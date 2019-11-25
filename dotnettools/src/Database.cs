@@ -1,0 +1,7 @@
+namespace dotnettools
+{
+    class Database
+    {
+
+    }
+}
