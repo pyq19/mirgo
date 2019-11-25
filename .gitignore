@@ -50,3 +50,4 @@ resources
 dotnettools/bin/*
 dotnettools/obj/*
 database
+*.swp
