@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 namespace dotnettools
 {
-    public class Loader
+    public class Manager
     {
         public int LoadVersion;
         public int LoadCustomVersion;
@@ -139,6 +139,11 @@ namespace dotnettools
                     RespawnTick = new RespawnTimer(reader, this);
 
             }
+        }
+
+        public void loadFromDatabase(string dbType, string uri)
+        {
+
         }
 
         private bool MagicExists(Spell spell)

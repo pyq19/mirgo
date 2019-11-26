@@ -30,9 +30,9 @@ namespace dotnettools
         public List<int> CollectQuestIndexes = new List<int>();
         public List<int> FinishQuestIndexes = new List<int>();
 
-        public NPCInfo(BinaryReader reader, Loader loader)
+        public NPCInfo(BinaryReader reader, Manager manager)
         {
-            Loader Envir = loader;
+            Manager Envir = manager;
 
             if (Envir.LoadVersion > 33)
             {

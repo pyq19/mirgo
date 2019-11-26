@@ -28,9 +28,9 @@ namespace dotnettools
         public bool HasSpawnScript;
         public bool HasDieScript;
 
-        public MonsterInfo(BinaryReader reader, Loader loader)
+        public MonsterInfo(BinaryReader reader, Manager manager)
         {
-            Loader Envir = loader;
+            Manager Envir = manager;
 
             Index = reader.ReadInt32();
             Name = reader.ReadString();

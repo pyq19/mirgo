@@ -5,7 +5,7 @@ namespace dotnettools
 {
     public class RespawnInfo
     {
-        public Loader Envir;
+        public Manager Envir;
 
         public int MonsterIndex;
         public Point Location;
@@ -19,9 +19,9 @@ namespace dotnettools
         public bool SaveRespawnTime;
         public ushort RespawnTicks;
 
-        public RespawnInfo(BinaryReader reader, int Version, int Customversion, Loader loader)
+        public RespawnInfo(BinaryReader reader, int Version, int Customversion, Manager manager)
         {
-            Envir = loader;
+            Envir = manager;
 
             MonsterIndex = reader.ReadInt32();
             Location = new Point(reader.ReadInt32(), reader.ReadInt32());

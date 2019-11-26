@@ -1,7 +1,0 @@
-namespace dotnettools
-{
-    class Database
-    {
-
-    }
-}
