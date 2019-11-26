@@ -1,11 +1,35 @@
 using System;
 using System.IO;
+using System.Collections.Generic;
 
 namespace dotnettools
 {
-    class Loader
+    public class Loader
     {
-        public Database loadDB(string path)
+        public int LoadVersion;
+        public int LoadCustomVersion;
+        public int MapIndex;
+        public int ItemIndex;
+        public int MonsterIndex;
+        public int NPCIndex;
+        public int QuestIndex;
+        public int GameshopIndex;
+        public int ConquestIndex;
+        public int RespawnIndex;
+        public List<MapInfo> MapInfoList = new List<MapInfo>();
+        public List<ItemInfo> ItemInfoList = new List<ItemInfo>();
+        public List<MonsterInfo> MonsterInfoList = new List<MonsterInfo>();
+        public List<NPCInfo> NPCInfoList = new List<NPCInfo>();
+        public List<QuestInfo> QuestInfoList = new List<QuestInfo>();
+        public DragonInfo DragonInfo;
+        public List<ConquestInfo> ConquestInfos = new List<ConquestInfo>();
+        public List<MagicInfo> MagicInfoList = new List<MagicInfo>();
+        public List<GameShopItem> GameShopItemList = new List<GameShopItem>();
+        public RespawnTimer RespawnTick;
+
+        public long Time { get; private set; }
+
+        public void loadDB(string path)
         {
             using (var stream = File.OpenRead(path))
             using (var reader = new BinaryReader(stream))
@@ -35,38 +59,38 @@ namespace dotnettools
                 if (LoadVersion >= 68)
                     RespawnIndex = reader.ReadInt32();
 
-
                 var count = reader.ReadInt32();
                 MapInfoList.Clear();
                 for (var i = 0; i < count; i++)
-                    MapInfoList.Add(new MapInfo(reader));
+                    MapInfoList.Add(new MapInfo(reader, this));
 
                 count = reader.ReadInt32();
                 ItemInfoList.Clear();
                 for (var i = 0; i < count; i++)
                 {
                     ItemInfoList.Add(new ItemInfo(reader, LoadVersion, LoadCustomVersion));
-                    if (ItemInfoList[i] != null && ItemInfoList[i].RandomStatsId < Settings.RandomItemStatsList.Count)
-                    {
-                        ItemInfoList[i].RandomStats = Settings.RandomItemStatsList[ItemInfoList[i].RandomStatsId];
-                    }
+                    // TODO 这部分是从 Setting 里面加, 以后改成数据库
+                    // if (ItemInfoList[i] != null && ItemInfoList[i].RandomStatsId < Settings.RandomItemStatsList.Count)
+                    // {
+                    //     ItemInfoList[i].RandomStats = Settings.RandomItemStatsList[ItemInfoList[i].RandomStatsId];
+                    // }
                 }
                 count = reader.ReadInt32();
                 MonsterInfoList.Clear();
                 for (var i = 0; i < count; i++)
-                    MonsterInfoList.Add(new MonsterInfo(reader));
+                    MonsterInfoList.Add(new MonsterInfo(reader, this));
 
                 if (LoadVersion > 33)
                 {
                     count = reader.ReadInt32();
                     NPCInfoList.Clear();
                     for (var i = 0; i < count; i++)
-                        NPCInfoList.Add(new NPCInfo(reader));
+                        NPCInfoList.Add(new NPCInfo(reader, this));
 
                     count = reader.ReadInt32();
                     QuestInfoList.Clear();
                     for (var i = 0; i < count; i++)
-                        QuestInfoList.Add(new QuestInfo(reader));
+                        QuestInfoList.Add(new QuestInfo(reader, this));
                 }
 
                 DragonInfo = LoadVersion >= 11 ? new DragonInfo(reader) : new DragonInfo();
@@ -87,13 +111,13 @@ namespace dotnettools
                 if (LoadVersion >= 63)
                 {
                     count = reader.ReadInt32();
-                    GameShopList.Clear();
+                    GameShopItemList.Clear();
                     for (var i = 0; i < count; i++)
                     {
                         var item = new GameShopItem(reader, LoadVersion, LoadCustomVersion);
-                        if (Main.BindGameShop(item))
+                        if (BindGameShop(item))
                         {
-                            GameShopList.Add(item);
+                            GameShopItemList.Add(item);
                         }
                     }
                 }
@@ -104,15 +128,41 @@ namespace dotnettools
                     count = reader.ReadInt32();
                     for (var i = 0; i < count; i++)
                     {
-                        ConquestInfos.Add(new ConquestInfo(reader));
+                        ConquestInfos.Add(new ConquestInfo(reader, this));
                     }
                 }
 
                 if (LoadVersion > 67)
-                    RespawnTick = new RespawnTimer(reader);
+                    RespawnTick = new RespawnTimer(reader, this);
 
             }
-            return null;
+        }
+        bool MagicExists(Spell spell)
+        {
+
+            return true;
+        }
+
+        void FillMagicInfoList()
+        {
+
+        }
+
+        void UpdateMagicInfo()
+        {
+
+        }
+
+        public bool BindGameShop(GameShopItem item, bool editEnvir = true)
+        {
+            for (var i = 0; i < ItemInfoList.Count; i++)
+            {
+                var info = ItemInfoList[i];
+                if (info.Index != item.ItemIndex) continue;
+                item.Info = info;
+                return true;
+            }
+            return false;
         }
     }
 
