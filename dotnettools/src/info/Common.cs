@@ -1860,6 +1860,12 @@ namespace dotnettools
                     Bind |= BindMode.NoWeddingRing;
             }
         }
+
+        // TODO
+        public void Save()
+        {
+
+        }
     }
 
     public class UserItem
@@ -1907,6 +1913,12 @@ namespace dotnettools
             Deal = reader.ReadBoolean();
             TopItem = reader.ReadBoolean();
             Date = DateTime.FromBinary(reader.ReadInt64());
+        }
+
+        // TODO
+        public void Save()
+        {
+
         }
     }
 
