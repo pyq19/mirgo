@@ -48,7 +48,14 @@ CREATE TABLE map_info (
     lightning_damage INT
 );
 
-CREATE TABLE safe_zone_info ();
+CREATE TABLE safe_zone_info (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    map_index INT,
+    location_x INT,
+    location_y INT,
+    size INT,
+    start_point INT
+);
 
 CREATE TABLE movement_info ();
 

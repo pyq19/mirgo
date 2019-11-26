@@ -21,10 +21,17 @@ namespace dotnettools
             StartPoint = reader.ReadBoolean();
         }
 
-        // TODO
         public void Save(int mapIndex)
         {
-            
+            var safeZoneInfoModel = new SafeZoneInfoModel()
+            {
+                MapIndex = mapIndex,
+                LocationX = Location.X,
+                LocationY = Location.Y,
+                Size = Size,
+                StartPoint = this.StartPoint ? 1 : 0
+            };
+            Manager.DB.Insertable(safeZoneInfoModel).ExecuteCommand();
         }
     }
 }
