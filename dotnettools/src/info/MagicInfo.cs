@@ -26,6 +26,8 @@ namespace dotnettools
         public float MultiplierBase;
         public float MultiplierBonus;
 
+        public MagicInfo() {}
+
         public MagicInfo(BinaryReader reader, int version = int.MaxValue, int Customversion = int.MaxValue)
         {
             Name = reader.ReadString();
