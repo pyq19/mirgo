@@ -79,9 +79,6 @@ namespace dotnettools
         [SugarColumn(ColumnName = "fight")]
         public bool Fight { get; set; }
 
-        [SugarColumn(ColumnName = "need_hole")]
-        public bool NeedHole { get; set; }
-
         [SugarColumn(ColumnName = "fire")]
         public bool Fire { get; set; }
 

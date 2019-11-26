@@ -49,5 +49,11 @@ namespace dotnettools
                 RespawnIndex = ++Envir.RespawnIndex;
             }
         }
+
+        // TODO
+        public void Save()
+        {
+
+        }
     }
 }

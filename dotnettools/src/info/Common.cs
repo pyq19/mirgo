@@ -2067,6 +2067,12 @@ namespace dotnettools
             Size = reader.ReadUInt16();
             Mine = reader.ReadByte();
         }
+
+        // TODO
+        public void Save()
+        {
+
+        }
     }
     #endregion
 
