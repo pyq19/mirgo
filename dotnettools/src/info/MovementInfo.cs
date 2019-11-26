@@ -30,10 +30,20 @@ namespace dotnettools
             ConquestIndex = reader.ReadInt32();
         }
 
-        // TODO
         public void Save(int mapIndex)
         {
-
+            var movementInfoModel = new MovementInfoModel()
+            {
+                MapIndex = MapIndex,
+                SourceX = Source.X,
+                SourceY = Source.Y,
+                DestinationX = Destination.X,
+                DestinationY = Destination.Y,
+                NeedHole = NeedHole,
+                NeedMove = NeedMove,
+                ConquestIndex = ConquestIndex
+            };
+            Manager.DB.Insertable(movementInfoModel).ExecuteCommand();
         }
     }
 }
