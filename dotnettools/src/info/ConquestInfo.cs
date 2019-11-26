@@ -51,9 +51,9 @@ namespace dotnettools
         public List<ConquestFlagInfo> ControlPoints = new List<ConquestFlagInfo>();
         public int ControlPointIndex;
 
-        public ConquestInfo(BinaryReader reader, Loader loader)
+        public ConquestInfo(BinaryReader reader, Manager manager)
         {
-            Loader Envir = loader;
+            Manager Envir = manager;
 
             Index = reader.ReadInt32();
 

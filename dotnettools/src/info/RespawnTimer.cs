@@ -13,9 +13,9 @@ namespace dotnettools
         public long CurrentDelay = 0;
         public List<RespawnTickOption> Respawn = new List<RespawnTickOption>();
 
-        public RespawnTimer(BinaryReader reader, Loader loader)
+        public RespawnTimer(BinaryReader reader, Manager manager)
         {
-            Loader Envir = loader;
+            Manager Envir = manager;
             BaseSpawnRate = reader.ReadByte();
             CurrentTickcounter = reader.ReadUInt64();
             LastTick = Envir.Time;

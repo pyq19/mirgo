@@ -40,9 +40,9 @@ namespace dotnettools
         public List<QuestItemReward> FixedRewards = new List<QuestItemReward>();
         public List<QuestItemReward> SelectRewards = new List<QuestItemReward>();
 
-        public QuestInfo(BinaryReader reader, Loader loader)
+        public QuestInfo(BinaryReader reader, Manager manager)
         {
-            Loader Envir = loader;
+            Manager Envir = manager;
 
             Index = reader.ReadInt32();
             Name = reader.ReadString();

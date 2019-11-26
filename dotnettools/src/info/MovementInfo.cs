@@ -13,9 +13,9 @@ namespace dotnettools
         public bool NeedMove;
         public int ConquestIndex;
 
-        public MovementInfo(BinaryReader reader, Loader loader)
+        public MovementInfo(BinaryReader reader, Manager manager)
         {
-            Loader Envir = loader;
+            Manager Envir = manager;
             MapIndex = reader.ReadInt32();
             Source = new Point(reader.ReadInt32(), reader.ReadInt32());
             Destination = new Point(reader.ReadInt32(), reader.ReadInt32());

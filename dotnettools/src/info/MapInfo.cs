@@ -6,7 +6,7 @@ namespace dotnettools
 {
     public class MapInfo
     {
-        public Loader loader;
+        public Manager manager;
         public int Index;
         public string FileName;
         public string Title;
@@ -47,9 +47,9 @@ namespace dotnettools
         public List<Point> ActiveCoords = new List<Point>();
         public InstanceInfo Instance;
 
-        public MapInfo(BinaryReader reader, Loader loader)
+        public MapInfo(BinaryReader reader, Manager manager)
         {
-            Loader Envir = loader;
+            Manager Envir = manager;
             Index = reader.ReadInt32();
             FileName = reader.ReadString();
             Title = reader.ReadString();
