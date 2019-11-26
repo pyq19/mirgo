@@ -10,8 +10,8 @@ namespace dotnettools
         [SugarColumn(ColumnName = "id", IsPrimaryKey = true, IsIdentity = true)] //是主键, 还是标识列
         public int Id { get; set; }
 
-        [SugarColumn(ColumnName = "map_id")]
-        public int MapInfoId { get; set; }
+        [SugarColumn(ColumnName = "map_index")]
+        public int MapIndex { get; set; }
 
         // public Point Location;
         [SugarColumn(ColumnName = "location_x")]
