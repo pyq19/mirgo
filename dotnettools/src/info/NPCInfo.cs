@@ -82,6 +82,12 @@ namespace dotnettools
                 FlagNeeded = reader.ReadInt32();
             }
         }
+
+        // TODO
+        public void Save()
+        {
+
+        }
     }
 
 }

@@ -7,7 +7,7 @@ namespace dotnettools
     public class MapInfo
     {
         public Manager manager;
-        public int Index;
+        public int MapIndex;
         public string FileName;
         public string Title;
         public ushort MiniMap;
@@ -50,7 +50,7 @@ namespace dotnettools
         public MapInfo(BinaryReader reader, Manager manager)
         {
             Manager Envir = manager;
-            Index = reader.ReadInt32();
+            MapIndex = reader.ReadInt32();
             FileName = reader.ReadString();
             Title = reader.ReadString();
             MiniMap = reader.ReadUInt16();
@@ -122,6 +122,11 @@ namespace dotnettools
             NoReincarnation = reader.ReadBoolean();
         }
 
+        // TODO
+        public void Save()
+        {
+
+        }
     }
 
     // TODO

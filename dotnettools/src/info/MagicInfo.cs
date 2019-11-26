@@ -26,7 +26,7 @@ namespace dotnettools
         public float MultiplierBase;
         public float MultiplierBonus;
 
-        public MagicInfo() {}
+        public MagicInfo() { }
 
         public MagicInfo(BinaryReader reader, int version = int.MaxValue, int Customversion = int.MaxValue)
         {
@@ -55,6 +55,12 @@ namespace dotnettools
                 MultiplierBase = reader.ReadSingle();
                 MultiplierBonus = reader.ReadSingle();
             }
+        }
+
+        // TODO
+        public void Save()
+        {
+
         }
     }
 

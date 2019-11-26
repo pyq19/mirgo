@@ -15,8 +15,6 @@ namespace dotnettools
             manager.saveDataToDatabase();
 
             manager.loadFromDatabase();
-
-            manager.test();
         }
     }
 }

@@ -19,7 +19,6 @@ namespace dotnettools
         public int ConquestIndex;
         public int RespawnIndex;
         public List<MapInfo> MapInfoList = new List<MapInfo>();
-
         public List<ItemInfo> ItemInfoList = new List<ItemInfo>();
         public List<MonsterInfo> MonsterInfoList = new List<MonsterInfo>();
         public List<NPCInfo> NPCInfoList = new List<NPCInfo>();
@@ -391,96 +390,10 @@ namespace dotnettools
         {
         }
 
-        #region 保存到数据库
-        // TODO 将数据保存到数据库
+        // 将数据保存到数据库
         public void saveDataToDatabase()
         {
             // 保存基础信息
-            saveBasicInfo();
-
-            // 保存地图信息
-            saveMapInfoList();
-
-            // 保存物品信息
-            saveItemInfoList();
-
-            // 保存怪物信息
-            saveMonsterInfoList();
-
-            // 保存NPC信息
-            saveNPCInfoList();
-
-            // 保存任务信息
-            saveQuestInfoList();
-
-            // 保存龙信息
-            saveDragonInfo();
-
-            // 保存魔法信息
-            saveMagicInfoList();
-
-            // 保存商店信息 ?不确定是不是商城
-            saveGameShopInfo();
-
-            // 保存土城攻城信息
-            saveConquestInfo();
-
-            // 保存刷怪时钟信息
-            saveRespawnTickInfo();
-        }
-
-        // TODO
-        private void saveRespawnTickInfo()
-        {
-        }
-
-        // TODO
-        private void saveConquestInfo()
-        {
-        }
-
-        // TODO
-        private void saveGameShopInfo()
-        {
-        }
-
-        // TODO
-        private void saveMagicInfoList()
-        {
-        }
-
-        // TODO
-        private void saveDragonInfo()
-        {
-        }
-
-        // TODO
-        private void saveQuestInfoList()
-        {
-        }
-
-        // TODO
-        private void saveNPCInfoList()
-        {
-        }
-
-        // TODO
-        private void saveMonsterInfoList()
-        {
-        }
-
-        // TODO
-        private void saveItemInfoList()
-        {
-        }
-
-        // TODO
-        private void saveMapInfoList()
-        {
-        }
-
-        private void saveBasicInfo()
-        {
             var basicModel = new BasicModel()
             {
                 Version = LoadVersion,
@@ -495,12 +408,44 @@ namespace dotnettools
                 RespawnIndex = RespawnIndex
             };
             db.Insertable(basicModel).ExecuteCommand();
-        }
-        #endregion
 
-        public void test()
-        {
-            ;
+            // 保存地图信息
+            for (var i = 0; i < MapInfoList.Count; i++)
+                MapInfoList[i].Save();
+
+            // 保存物品信息
+            for (var i = 0; i < ItemInfoList.Count; i++)
+                ItemInfoList[i].Save();
+
+            // 保存怪物信息
+            for (var i = 0; i < MonsterInfoList.Count; i++)
+                MonsterInfoList[i].Save();
+
+            // 保存NPC信息
+            for (var i = 0; i < NPCInfoList.Count; i++)
+                NPCInfoList[i].Save();
+
+            // 保存任务信息
+            for (var i = 0; i < QuestInfoList.Count; i++)
+                QuestInfoList[i].Save();
+
+            // 保存龙信息
+            DragonInfo.Save();
+
+            // 保存魔法信息
+            for (var i = 0; i < MagicInfoList.Count; i++)
+                MagicInfoList[i].Save();
+
+            // 保存商店信息 ?不确定是不是商城
+            for (var i = 0; i < GameShopItemList.Count; i++)
+                GameShopItemList[i].Save();
+
+            // 保存土城攻城信息
+            for (var i = 0; i < ConquestInfos.Count; i++)
+                ConquestInfos[i].Save();
+
+            // 保存刷怪时钟信息
+            RespawnTick.Save();
         }
     }
 }

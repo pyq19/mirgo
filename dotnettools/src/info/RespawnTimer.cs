@@ -28,6 +28,12 @@ namespace dotnettools
             }
             CurrentDelay = (long)Math.Round((double)BaseSpawnRate * (double)60000);
         }
+
+        // TODO
+        public void Save()
+        {
+
+        }
     }
 
     public class RespawnTickOption

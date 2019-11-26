@@ -103,6 +103,11 @@ namespace dotnettools
             Undead = reader.ReadBoolean();
         }
 
+        // TODO
+        public void Save()
+        {
+
+        }
     }
 
     public class MonsterDropInfo
