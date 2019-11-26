@@ -123,7 +123,6 @@ namespace dotnettools
             NoReincarnation = reader.ReadBoolean();
         }
 
-        // TODO
         public void Save()
         {
             var mapInfoModel = new MapInfoModel()
@@ -163,16 +162,16 @@ namespace dotnettools
             Manager.DB.Insertable(mapInfoModel).ExecuteCommand();
 
             for (int i = 0; i < SafeZones.Count; i++)
-                SafeZones[i].Save();
+                SafeZones[i].Save(MapIndex);
 
             for (int i = 0; i < Respawns.Count; i++)
-                Respawns[i].Save();
+                Respawns[i].Save(MapIndex);
 
             for (int i = 0; i < Movements.Count; i++)
-                Movements[i].Save();
+                Movements[i].Save(MapIndex);
 
             for (int i = 0; i < MineZones.Count; i++)
-                MineZones[i].Save();
+                MineZones[i].Save(MapIndex);
         }
     }
 
