@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Collections.Generic;
+using SqlSugar;
 
 namespace dotnettools
 {
@@ -17,6 +18,7 @@ namespace dotnettools
         public int ConquestIndex;
         public int RespawnIndex;
         public List<MapInfo> MapInfoList = new List<MapInfo>();
+
         public List<ItemInfo> ItemInfoList = new List<ItemInfo>();
         public List<MonsterInfo> MonsterInfoList = new List<MonsterInfo>();
         public List<NPCInfo> NPCInfoList = new List<NPCInfo>();
@@ -26,9 +28,11 @@ namespace dotnettools
         public List<MagicInfo> MagicInfoList = new List<MagicInfo>();
         public List<GameShopItem> GameShopItemList = new List<GameShopItem>();
         public RespawnTimer RespawnTick;
-
         public long Time { get; private set; }
 
+        private SqlSugarClient db;
+
+        // 从原始的文件数据库中读取数据
         public void loadFromFile(string path)
         {
             using (var stream = File.OpenRead(path))
@@ -141,11 +145,19 @@ namespace dotnettools
             }
         }
 
-        public void loadFromDatabase(string dbType, string uri)
+        public bool BindGameShop(GameShopItem item, bool editEnvir = true)
         {
-
+            for (var i = 0; i < ItemInfoList.Count; i++)
+            {
+                var info = ItemInfoList[i];
+                if (info.Index != item.ItemIndex) continue;
+                item.Info = info;
+                return true;
+            }
+            return false;
         }
 
+        #region 魔法相关
         private bool MagicExists(Spell spell)
         {
             for (var i = 0; i < MagicInfoList.Count; i++)
@@ -360,18 +372,140 @@ namespace dotnettools
                 }
             }
         }
+        #endregion
 
-        public bool BindGameShop(GameShopItem item, bool editEnvir = true)
+        // TODO 从数据库中读取数据
+        public void loadFromDatabase(string dbType, string uri)
         {
-            for (var i = 0; i < ItemInfoList.Count; i++)
+            if (dbType == "MySQL")
             {
-                var info = ItemInfoList[i];
-                if (info.Index != item.ItemIndex) continue;
-                item.Info = info;
-                return true;
+
             }
-            return false;
+            else if (dbType == "SQLite")
+            {
+
+            }
+        }
+
+        #region 保存到数据库
+        // TODO 将数据保存到数据库
+        public void saveDataToDatabase()
+        {
+            // 保存基础信息
+            saveBasicInfo();
+
+            // 保存地图信息
+            saveMapInfoList();
+
+            // 保存物品信息
+            saveItemInfoList();
+
+            // 保存怪物信息
+            saveMonsterInfoList();
+
+            // 保存NPC信息
+            saveNPCInfoList();
+
+            // 保存任务信息
+            saveQuestInfoList();
+
+            // 保存龙信息
+            saveDragonInfo();
+
+            // 保存魔法信息
+            saveMagicInfoList();
+
+            // 保存商店信息 ?不确定是不是商城
+            saveGameShopInfo();
+
+            // 保存土城攻城信息
+            saveConquestInfo();
+
+            // 保存刷怪时钟信息
+            saveRespawnTickInfo();
+        }
+
+        // TODO
+        private void saveRespawnTickInfo()
+        {
+        }
+
+        // TODO
+        private void saveConquestInfo()
+        {
+        }
+
+        // TODO
+        private void saveGameShopInfo()
+        {
+        }
+
+        // TODO
+        private void saveMagicInfoList()
+        {
+        }
+
+        // TODO
+        private void saveDragonInfo()
+        {
+        }
+
+        // TODO
+        private void saveQuestInfoList()
+        {
+        }
+
+        // TODO
+        private void saveNPCInfoList()
+        {
+        }
+
+        // TODO
+        private void saveMonsterInfoList()
+        {
+        }
+
+        // TODO
+        private void saveItemInfoList()
+        {
+        }
+
+        // TODO
+        private void saveMapInfoList()
+        {
+        }
+
+        // TODO
+        private void saveBasicInfo()
+        {
+        }
+        #endregion
+
+        public void test()
+        {
+            db = new SqlSugarClient(new ConnectionConfig()
+            {
+                ConnectionString = "server=127.0.0.1;uid=root;pwd=root;database=mir",
+                DbType = DbType.MySql,//设置数据库类型
+                IsAutoCloseConnection = true,//自动释放数据务，如果存在事务，在事务结束后释放
+                InitKeyType = InitKeyType.Attribute //从实体特性中读取主键自增列信息
+            });
+
+            var basicModel = new BasicModel()
+            {
+                Version = LoadVersion,
+                CustomVersion = LoadCustomVersion,
+                MapIndex = MapIndex,
+                ItemIndex = ItemIndex,
+                MonsterIndex = MonsterIndex,
+                NPCIndex = NPCIndex,
+                QuestIndex = QuestIndex,
+                GameshopIndex = GameshopIndex,
+                ConquestIndex = ConquestIndex,
+                RespawnIndex = RespawnIndex
+            };
+
+            db.Insertable(basicModel).ExecuteCommand();
         }
     }
-
 }
