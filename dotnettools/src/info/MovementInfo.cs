@@ -29,5 +29,11 @@ namespace dotnettools
             if (Envir.LoadVersion < 69) return;
             ConquestIndex = reader.ReadInt32();
         }
+
+        // TODO
+        public void Save()
+        {
+
+        }
     }
 }

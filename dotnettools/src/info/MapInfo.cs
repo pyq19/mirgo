@@ -50,6 +50,7 @@ namespace dotnettools
         public MapInfo(BinaryReader reader, Manager manager)
         {
             Manager Envir = manager;
+            this.manager = manager;
             MapIndex = reader.ReadInt32();
             FileName = reader.ReadString();
             Title = reader.ReadString();
@@ -125,7 +126,53 @@ namespace dotnettools
         // TODO
         public void Save()
         {
+            var mapInfoModel = new MapInfoModel()
+            {
+                MapIndex = MapIndex,
+                FileName = FileName,
+                Title = Title,
+                MiniMap = MiniMap,
+                Light = (byte)Light,
+                BigMap = BigMap,
+                NoTeleport = NoTeleport,
+                NoReconnect = NoReconnect,
+                NoReconnectMap = NoReconnectMap,
+                NoRandom = NoRandom,
+                NoEscape = NoEscape,
+                NoRecall = NoRecall,
+                NoDrug = NoDrug,
+                NoPosition = NoPosition,
+                NoThrowItem = NoThrowItem,
+                NoDropPlayer = NoDropPlayer,
+                NoDropMonster = NoDropMonster,
+                NoNames = NoNames,
+                Fight = Fight,
+                Fire = Fire,
+                FireDamage = FireDamage,
+                Lightning = Lightning,
+                LightningDamage = LightningDamage,
+                MapDarkLight = MapDarkLight,
+                MineIndex = MineIndex,
+                NoMount = NoMount,
+                NeedBridle = NeedBridle,
+                NoFight = NoFight,
+                Music = Music,
+                NoTownTeleport = NoTownTeleport,
+                NoReincarnation = NoReincarnation,
+            };
+            Manager.DB.Insertable(mapInfoModel).ExecuteCommand();
 
+            for (int i = 0; i < SafeZones.Count; i++)
+                SafeZones[i].Save();
+
+            for (int i = 0; i < Respawns.Count; i++)
+                Respawns[i].Save();
+
+            for (int i = 0; i < Movements.Count; i++)
+                Movements[i].Save();
+
+            for (int i = 0; i < MineZones.Count; i++)
+                MineZones[i].Save();
         }
     }
 

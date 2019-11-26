@@ -20,5 +20,11 @@ namespace dotnettools
             Size = reader.ReadUInt16();
             StartPoint = reader.ReadBoolean();
         }
+
+        // TODO
+        public void Save()
+        {
+            
+        }
     }
 }

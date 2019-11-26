@@ -7,7 +7,8 @@ namespace dotnettools
 {
     public class Manager
     {
-        public static string ConnectionString; // 数据库连接
+        public static SqlSugarClient DB;
+
         public int LoadVersion;
         public int LoadCustomVersion;
         public int MapIndex;
@@ -27,21 +28,8 @@ namespace dotnettools
         public List<ConquestInfo> ConquestInfos = new List<ConquestInfo>();
         public List<MagicInfo> MagicInfoList = new List<MagicInfo>();
         public List<GameShopItem> GameShopItemList = new List<GameShopItem>();
-        public RespawnTimer RespawnTick;
+        public RespawnTimer RespawnTick = new RespawnTimer();
         public long Time { get; private set; }
-
-        private SqlSugarClient db;
-
-        public Manager()
-        {
-            db = new SqlSugarClient(new ConnectionConfig()
-            {
-                ConnectionString = ConnectionString,
-                DbType = DbType.MySql,//设置数据库类型
-                IsAutoCloseConnection = true,//自动释放数据务，如果存在事务，在事务结束后释放
-                InitKeyType = InitKeyType.Attribute //从实体特性中读取主键自增列信息
-            });
-        }
 
         // 从原始的文件数据库中读取数据
         public void loadFromFile(string path)
@@ -407,7 +395,7 @@ namespace dotnettools
                 ConquestIndex = ConquestIndex,
                 RespawnIndex = RespawnIndex
             };
-            db.Insertable(basicModel).ExecuteCommand();
+            Manager.DB.Insertable(basicModel).ExecuteCommand();
 
             // 保存地图信息
             for (var i = 0; i < MapInfoList.Count; i++)

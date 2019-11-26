@@ -13,6 +13,8 @@ namespace dotnettools
         public long CurrentDelay = 0;
         public List<RespawnTickOption> Respawn = new List<RespawnTickOption>();
 
+        public RespawnTimer() { }
+
         public RespawnTimer(BinaryReader reader, Manager manager)
         {
             Manager Envir = manager;
