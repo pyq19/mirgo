@@ -6,14 +6,15 @@ namespace dotnettools
     {
         static void Main(string[] args)
         {
+            Manager.ConnectionString = "server=127.0.0.1;uid=root;pwd=root;database=mir";
             Manager manager = new Manager();
 
             string path = "/opt/gopath/src/github.com/yenkeia/mir-go/dotnettools/database/Server.MirDB";
             manager.loadFromFile(path);
 
-            // manager.saveDataToDatabase();
+            manager.saveDataToDatabase();
 
-            // manager.loadFromDatabase("SQLite", "db.sqlite");
+            manager.loadFromDatabase();
 
             manager.test();
         }

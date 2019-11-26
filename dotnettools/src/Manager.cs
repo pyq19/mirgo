@@ -7,6 +7,7 @@ namespace dotnettools
 {
     public class Manager
     {
+        public static string ConnectionString; // 数据库连接
         public int LoadVersion;
         public int LoadCustomVersion;
         public int MapIndex;
@@ -31,6 +32,17 @@ namespace dotnettools
         public long Time { get; private set; }
 
         private SqlSugarClient db;
+
+        public Manager()
+        {
+            db = new SqlSugarClient(new ConnectionConfig()
+            {
+                ConnectionString = ConnectionString,
+                DbType = DbType.MySql,//设置数据库类型
+                IsAutoCloseConnection = true,//自动释放数据务，如果存在事务，在事务结束后释放
+                InitKeyType = InitKeyType.Attribute //从实体特性中读取主键自增列信息
+            });
+        }
 
         // 从原始的文件数据库中读取数据
         public void loadFromFile(string path)
@@ -375,16 +387,8 @@ namespace dotnettools
         #endregion
 
         // TODO 从数据库中读取数据
-        public void loadFromDatabase(string dbType, string uri)
+        public void loadFromDatabase()
         {
-            if (dbType == "MySQL")
-            {
-
-            }
-            else if (dbType == "SQLite")
-            {
-
-            }
         }
 
         #region 保存到数据库
@@ -475,22 +479,8 @@ namespace dotnettools
         {
         }
 
-        // TODO
         private void saveBasicInfo()
         {
-        }
-        #endregion
-
-        public void test()
-        {
-            db = new SqlSugarClient(new ConnectionConfig()
-            {
-                ConnectionString = "server=127.0.0.1;uid=root;pwd=root;database=mir",
-                DbType = DbType.MySql,//设置数据库类型
-                IsAutoCloseConnection = true,//自动释放数据务，如果存在事务，在事务结束后释放
-                InitKeyType = InitKeyType.Attribute //从实体特性中读取主键自增列信息
-            });
-
             var basicModel = new BasicModel()
             {
                 Version = LoadVersion,
@@ -504,8 +494,13 @@ namespace dotnettools
                 ConquestIndex = ConquestIndex,
                 RespawnIndex = RespawnIndex
             };
-
             db.Insertable(basicModel).ExecuteCommand();
+        }
+        #endregion
+
+        public void test()
+        {
+            ;
         }
     }
 }
