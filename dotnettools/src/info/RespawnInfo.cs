@@ -50,10 +50,25 @@ namespace dotnettools
             }
         }
 
-        // TODO
         public void Save(int mapIndex)
         {
-
+            var respawnInfoModel = new RespawnInfoModel()
+            {
+                MapIndex = mapIndex,
+                MonsterIndex = MonsterIndex,
+                LocationX = Location.X,
+                LocationY = Location.Y,
+                Count = Count,
+                Spread = Spread,
+                Delay = Delay,
+                RandomDelay = RandomDelay,
+                Direction = Direction,
+                RoutePath = RoutePath,
+                RespawnIndex = RespawnIndex,
+                SaveRespawnTime = SaveRespawnTime,
+                RespawnTicks = RespawnTicks
+            };
+            Manager.DB.Insertable(respawnInfoModel).ExecuteCommand();
         }
     }
 }

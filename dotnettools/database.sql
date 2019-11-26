@@ -57,13 +57,45 @@ CREATE TABLE safe_zone_info (
     start_point INT
 );
 
-CREATE TABLE movement_info ();
+CREATE TABLE movement_info (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    map_index INT,
+    source_x INT,
+    source_y INT,
+    destination_x INT,
+    destination_y INT,
+    need_hole INT,
+    need_move INT,
+    conquest_index INT
+);
 
-CREATE TABLE respawn_info();
+CREATE TABLE respawn_info(
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    map_index INT,
+    monster_index INT,
+    location_x INT,
+    location_y INT,
+    count INT,
+    spread INT,
+    delay INT,
+    random_delay INT,
+    direction INT,
+    route_path VARCHAR(1000),
+    respawn_index INT,
+    save_respawn_time INT,
+    respawn_ticks INT
+);
 
 CREATE TABLE npc_info();
 
-CREATE TABLE mine_zone();
+CREATE TABLE mine_zone(
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    map_index INT,
+    mine INT,
+    location_x INT,
+    location_y INT,
+    size INT
+);
 
 CREATE TABLE active_coords();
 

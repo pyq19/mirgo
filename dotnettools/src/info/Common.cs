@@ -2068,10 +2068,17 @@ namespace dotnettools
             Mine = reader.ReadByte();
         }
 
-        // TODO
         public void Save(int mapIndex)
         {
-
+            var mineZoneModel = new MineZoneModel()
+            {
+                MapIndex = mapIndex,
+                LocationX = Location.X,
+                LocationY = Location.Y,
+                Size = Size,
+                Mine = Mine,
+            };
+            Manager.DB.Insertable(mineZoneModel).ExecuteCommand();
         }
     }
     #endregion
