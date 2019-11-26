@@ -6,7 +6,10 @@ namespace dotnettools
     {
         static void Main(string[] args)
         {
-
+            Loader loader = new Loader();
+            string path = "/opt/gopath/src/github.com/yenkeia/mir-go/dotnettools/database/Server.MirDB";
+            loader.loadDB(path);
+            Console.WriteLine("加载完成");
         }
     }
 }
