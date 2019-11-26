@@ -15,6 +15,7 @@ CREATE TABLE basic (
 -- MapInfo
 CREATE TABLE map_info (
     id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    map_index INT,
     file_name VARCHAR(100),
     title VARCHAR(100),
     mini_map INT,

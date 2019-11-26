@@ -31,7 +31,7 @@ namespace dotnettools
         }
 
         // TODO
-        public void Save()
+        public void Save(int mapIndex)
         {
 
         }

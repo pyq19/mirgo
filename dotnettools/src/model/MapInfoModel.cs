@@ -8,6 +8,9 @@ namespace dotnettools
         public MapInfoModel() { }
 
         [SugarColumn(ColumnName = "id", IsPrimaryKey = true, IsIdentity = true)] //是主键, 还是标识列
+        public int Id { get; set; }
+
+        [SugarColumn(ColumnName = "map_index")]
         public int MapIndex { get; set; }
 
         [SugarColumn(ColumnName = "file_name")]
