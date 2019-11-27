@@ -220,6 +220,23 @@ CREATE TABLE npc_info (
 );
 
 -- QuestInfo
+CREATE TABLE quest_info (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    quest_index INT,
+    name VARCHAR(200),
+    quest_group VARCHAR(200),
+    file_name VARCHAR(200),
+    required_min_level INT,
+    required_max_level INT,
+    required_quest INT,
+    required_class INT,
+    quest_type INT,
+    goto_message VARCHAR(2000),
+    kill_message VARCHAR(2000),
+    item_message VARCHAR(2000),
+    flag_message VARCHAR(2000)
+);
+
 -- MagicInfo
 -- GameShop
 -- Conquest
