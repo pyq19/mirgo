@@ -238,6 +238,30 @@ CREATE TABLE quest_info (
 );
 
 -- MagicInfo
+CREATE TABLE magic_info (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(200),
+    spell INT,
+    base_cost INT,
+    level_cost INT,
+    icon INT,
+    level_1 INT,
+    level_2 INT,
+    level_3 INT,
+    need_1 INT,
+    need_2 INT,
+    need_3 INT,
+    delay_base INT,
+    delay_reduction INT,
+    power_base INT,
+    power_bonus INT,
+    m_power_base INT,
+    m_power_bonus INT,
+    magic_range INT,
+    multiplier_base FLOAT(5, 3),
+    multiplier_bonus FLOAT(5, 3)
+);
+
 -- GameShop
 -- Conquest
 -- RespawnTick
