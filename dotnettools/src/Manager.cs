@@ -382,20 +382,20 @@ namespace dotnettools
         public void saveDataToDatabase()
         {
             // 保存基础信息
-            var basicModel = new BasicModel()
-            {
-                Version = LoadVersion,
-                CustomVersion = LoadCustomVersion,
-                MapIndex = MapIndex,
-                ItemIndex = ItemIndex,
-                MonsterIndex = MonsterIndex,
-                NPCIndex = NPCIndex,
-                QuestIndex = QuestIndex,
-                GameshopIndex = GameshopIndex,
-                ConquestIndex = ConquestIndex,
-                RespawnIndex = RespawnIndex
-            };
-            Manager.DB.Insertable(basicModel).ExecuteCommand();
+            // var basicModel = new BasicModel()
+            // {
+            //     Version = LoadVersion,
+            //     CustomVersion = LoadCustomVersion,
+            //     MapIndex = MapIndex,
+            //     ItemIndex = ItemIndex,
+            //     MonsterIndex = MonsterIndex,
+            //     NPCIndex = NPCIndex,
+            //     QuestIndex = QuestIndex,
+            //     GameshopIndex = GameshopIndex,
+            //     ConquestIndex = ConquestIndex,
+            //     RespawnIndex = RespawnIndex
+            // };
+            // Manager.DB.Insertable(basicModel).ExecuteCommand();
 
             // 保存地图信息
             // FIXME 完成了, 但是太慢, 以后改成批量插入
@@ -403,12 +403,14 @@ namespace dotnettools
             //     MapInfoList[i].Save();
 
             // 保存物品信息
-            for (var i = 0; i < ItemInfoList.Count; i++)
-                ItemInfoList[i].Save();
+            // FIXME 完成了, 但是太慢, 以后改成批量插入
+            // for (var i = 0; i < ItemInfoList.Count; i++)
+            //     ItemInfoList[i].Save();
 
             // 保存怪物信息
-            // for (var i = 0; i < MonsterInfoList.Count; i++)
-            //     MonsterInfoList[i].Save();
+            // FIXME 完成了, 但是太慢, 以后改成批量插入
+            for (var i = 0; i < MonsterInfoList.Count; i++)
+                MonsterInfoList[i].Save();
 
             // 保存NPC信息
             // for (var i = 0; i < NPCInfoList.Count; i++)
