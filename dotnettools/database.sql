@@ -196,6 +196,29 @@ CREATE TABLE monster_info (
 );
 
 -- NPCInfo
+CREATE TABLE npc_info (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    map_index INT,
+    npc_index INT,
+    file_name VARCHAR(200),
+    name VARCHAR(200),
+    location_x INT,
+    location_y INT,
+    rate INT,
+    image INT,
+    time_visible INT,
+    hour_start INT,
+    minute_start INT,
+    hour_end INT,
+    minute_end INT,
+    min_lev INT,
+    max_lev INT,
+    day_of_week VARCHAR(200),
+    class_required VARCHAR(200),
+    flag_needed INT,
+    conquest INT
+);
+
 -- QuestInfo
 -- MagicInfo
 -- GameShop

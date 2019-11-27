@@ -409,12 +409,12 @@ namespace dotnettools
 
             // 保存怪物信息
             // FIXME 完成了, 但是太慢, 以后改成批量插入
-            for (var i = 0; i < MonsterInfoList.Count; i++)
-                MonsterInfoList[i].Save();
+            // for (var i = 0; i < MonsterInfoList.Count; i++)
+            //     MonsterInfoList[i].Save();
 
             // 保存NPC信息
-            // for (var i = 0; i < NPCInfoList.Count; i++)
-            //     NPCInfoList[i].Save();
+            for (var i = 0; i < NPCInfoList.Count; i++)
+                NPCInfoList[i].Save();
 
             // 保存任务信息
             // for (var i = 0; i < QuestInfoList.Count; i++)
