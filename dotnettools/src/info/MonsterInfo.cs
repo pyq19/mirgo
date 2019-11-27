@@ -7,7 +7,7 @@ namespace dotnettools
     public class MonsterInfo
     {
 
-        public int Index;
+        public int MonsterIndex;
         public string Name = string.Empty;
 
         public Monster Image;
@@ -32,7 +32,7 @@ namespace dotnettools
         {
             Manager Envir = manager;
 
-            Index = reader.ReadInt32();
+            MonsterIndex = reader.ReadInt32();
             Name = reader.ReadString();
 
             Image = (Monster)reader.ReadUInt16();
@@ -103,10 +103,41 @@ namespace dotnettools
             Undead = reader.ReadBoolean();
         }
 
-        // TODO
         public void Save()
         {
-
+            var monsterInfoModel = new MonsterInfoModel()
+            {
+                MonsterIndex = MonsterIndex,
+                Name = Name,
+                Image = (ushort)Image,
+                AI = AI,
+                Effect = Effect,
+                Level = Level,
+                ViewRange = ViewRange,
+                CoolEye = CoolEye,
+                HP = HP,
+                MinAC = MinAC,
+                MaxAC = MaxAC,
+                MinMAC = MinMAC,
+                MaxMAC = MaxMAC,
+                MinDC = MinDC,
+                MaxDC = MaxDC,
+                MinMC = MinMC,
+                MaxMC = MaxMC,
+                MinSC = MinSC,
+                MaxSC = MaxSC,
+                Accuracy = Accuracy,
+                Agility = Agility,
+                Light = Light,
+                AttackSpeed = AttackSpeed,
+                MoveSpeed = MoveSpeed,
+                Experience = Experience,
+                CanPush = CanPush,
+                CanTame = CanTame,
+                AutoRev = AutoRev,
+                Undead = Undead,
+            };
+            Manager.DB.Insertable(monsterInfoModel).ExecuteCommand();
         }
     }
 

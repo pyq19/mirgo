@@ -162,6 +162,39 @@ CREATE TABLE item_info (
 );
 
 -- MonsterInfo
+CREATE TABLE monster_info (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    monster_index INT,
+    name VARCHAR(200),
+    image INT,
+    ai INT,
+    effect INT,
+    level INT,
+    view_range INT,
+    cool_eye INT,
+    hp INT,
+    min_ac INT,
+    max_ac INT,
+    min_mac INT,
+    max_mac INT,
+    min_dc INT,
+    max_dc INT,
+    min_mc INT,
+    max_mc INT,
+    min_sc INT,
+    max_sc INT,
+    accuracy INT,
+    agility INT,
+    light INT,
+    attack_speed INT,
+    move_speed INT,
+    experience INT,
+    can_push INT,
+    can_tame INT,
+    auto_rev INT,
+    undead INT
+);
+
 -- NPCInfo
 -- QuestInfo
 -- MagicInfo
