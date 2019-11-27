@@ -414,15 +414,15 @@ namespace dotnettools
             //     NPCInfoList[i].Save();
 
             // 保存任务信息
-            for (var i = 0; i < QuestInfoList.Count; i++)
-                QuestInfoList[i].Save();
+            // for (var i = 0; i < QuestInfoList.Count; i++)
+            //     QuestInfoList[i].Save();
 
             // 保存龙信息
             // DragonInfo.Save();
 
             // 保存魔法信息
-            // for (var i = 0; i < MagicInfoList.Count; i++)
-            //     MagicInfoList[i].Save();
+            for (var i = 0; i < MagicInfoList.Count; i++)
+                MagicInfoList[i].Save();
 
             // 保存商店信息 ?不确定是不是商城
             // for (var i = 0; i < GameShopItemList.Count; i++)
