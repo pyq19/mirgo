@@ -7,7 +7,7 @@ namespace dotnettools
 {
     public class NPCInfo
     {
-        public int Index;
+        public int NPCIndex;
         public string FileName = string.Empty, Name = string.Empty;
         public int MapIndex;
         public Point Location;
@@ -27,8 +27,8 @@ namespace dotnettools
         public int FlagNeeded = 0;
         public int Conquest;
         public bool IsDefault, IsRobot;
-        public List<int> CollectQuestIndexes = new List<int>();
-        public List<int> FinishQuestIndexes = new List<int>();
+        // public List<int> CollectQuestIndexes = new List<int>(); // 无用字段?
+        // public List<int> FinishQuestIndexes = new List<int>(); // 无用字段?
 
         public NPCInfo(BinaryReader reader, Manager manager)
         {
@@ -36,16 +36,16 @@ namespace dotnettools
 
             if (Envir.LoadVersion > 33)
             {
-                Index = reader.ReadInt32();
+                NPCIndex = reader.ReadInt32();
                 MapIndex = reader.ReadInt32();
 
-                int count = reader.ReadInt32();
-                for (int i = 0; i < count; i++)
-                    CollectQuestIndexes.Add(reader.ReadInt32());
+                int count = reader.ReadInt32(); // 0, 因为 CollectQuestIndexes 没地方用到
+                // for (int i = 0; i < count; i++)
+                //     CollectQuestIndexes.Add(reader.ReadInt32());
 
-                count = reader.ReadInt32();
-                for (int i = 0; i < count; i++)
-                    FinishQuestIndexes.Add(reader.ReadInt32());
+                count = reader.ReadInt32(); // 0, 因为 FinishQuestIndexes 没地方用到
+                // for (int i = 0; i < count; i++)
+                //     FinishQuestIndexes.Add(reader.ReadInt32());
             }
 
             FileName = reader.ReadString();
@@ -83,10 +83,31 @@ namespace dotnettools
             }
         }
 
-        // TODO
         public void Save()
         {
-
+            var npcInfoModel = new NPCInfoModel()
+            {
+                NPCIndex = NPCIndex,
+                MapIndex = MapIndex,
+                FileName = FileName,
+                Name = Name,
+                LocationX = Location.X,
+                LocationY = Location.Y,
+                Image = Image,
+                Rate = Rate,
+                TimeVisible = TimeVisible,
+                HourStart = HourStart,
+                MinuteStart = MinuteStart,
+                HourEnd = HourEnd,
+                MinuteEnd = MinuteEnd,
+                MinLev = MinLev,
+                MaxLev = MaxLev,
+                DayofWeek = DayofWeek,
+                ClassRequired = ClassRequired,
+                Conquest = Conquest,
+                FlagNeeded = FlagNeeded,
+            };
+            Manager.DB.Insertable(npcInfoModel).ExecuteCommand();
         }
     }
 
