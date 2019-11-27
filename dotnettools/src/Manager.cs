@@ -149,7 +149,7 @@ namespace dotnettools
             for (var i = 0; i < ItemInfoList.Count; i++)
             {
                 var info = ItemInfoList[i];
-                if (info.Index != item.ItemIndex) continue;
+                if (info.ItemIndex != item.ItemIndex) continue;
                 item.Info = info;
                 return true;
             }
@@ -398,42 +398,43 @@ namespace dotnettools
             Manager.DB.Insertable(basicModel).ExecuteCommand();
 
             // 保存地图信息
-            for (var i = 0; i < MapInfoList.Count; i++)
-                MapInfoList[i].Save();
+            // FIXME 完成了, 但是太慢, 以后改成批量插入
+            // for (var i = 0; i < MapInfoList.Count; i++)
+            //     MapInfoList[i].Save();
 
             // 保存物品信息
             for (var i = 0; i < ItemInfoList.Count; i++)
                 ItemInfoList[i].Save();
 
             // 保存怪物信息
-            for (var i = 0; i < MonsterInfoList.Count; i++)
-                MonsterInfoList[i].Save();
+            // for (var i = 0; i < MonsterInfoList.Count; i++)
+            //     MonsterInfoList[i].Save();
 
             // 保存NPC信息
-            for (var i = 0; i < NPCInfoList.Count; i++)
-                NPCInfoList[i].Save();
+            // for (var i = 0; i < NPCInfoList.Count; i++)
+            //     NPCInfoList[i].Save();
 
             // 保存任务信息
-            for (var i = 0; i < QuestInfoList.Count; i++)
-                QuestInfoList[i].Save();
+            // for (var i = 0; i < QuestInfoList.Count; i++)
+            //     QuestInfoList[i].Save();
 
             // 保存龙信息
-            DragonInfo.Save();
+            // DragonInfo.Save();
 
             // 保存魔法信息
-            for (var i = 0; i < MagicInfoList.Count; i++)
-                MagicInfoList[i].Save();
+            // for (var i = 0; i < MagicInfoList.Count; i++)
+            //     MagicInfoList[i].Save();
 
             // 保存商店信息 ?不确定是不是商城
-            for (var i = 0; i < GameShopItemList.Count; i++)
-                GameShopItemList[i].Save();
+            // for (var i = 0; i < GameShopItemList.Count; i++)
+            //     GameShopItemList[i].Save();
 
             // 保存土城攻城信息
-            for (var i = 0; i < ConquestInfos.Count; i++)
-                ConquestInfos[i].Save();
+            // for (var i = 0; i < ConquestInfos.Count; i++)
+            //     ConquestInfos[i].Save();
 
             // 保存刷怪时钟信息
-            RespawnTick.Save();
+            // RespawnTick.Save();
         }
     }
 }

@@ -86,8 +86,6 @@ CREATE TABLE respawn_info(
     respawn_ticks INT
 );
 
-CREATE TABLE npc_info();
-
 CREATE TABLE mine_zone(
     id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     map_index INT,
@@ -97,9 +95,72 @@ CREATE TABLE mine_zone(
     size INT
 );
 
-CREATE TABLE active_coords();
-
 -- ItemInfo
+CREATE TABLE item_info (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    item_index INT,
+    name VARCHAR(200),
+    type INT,
+    grade INT,
+    required_type INT,
+    required_class INT,
+    required_gender INT,
+    item_set INT,
+    shape INT,
+    weight INT,
+    light INT,
+    required_amount INT,
+    image INT,
+    durability INT,
+    stack_size INT,
+    price INT,
+    min_ac INT,
+    max_ac INT,
+    min_mac INT,
+    max_mac INT,
+    min_dc INT,
+    max_dc INT,
+    min_mc INT,
+    max_mc INT,
+    min_sc INT,
+    max_sc INT,
+    hp INT,
+    mp INT,
+    accuracy INT,
+    agility INT,
+    luck INT,
+    attack_speed INT,
+    start_item INT,
+    bag_weight INT,
+    hand_weight INT,
+    wear_weight INT,
+    effect INT,
+    strong INT,
+    magic_resist INT,
+    poison_resist INT,
+    health_recovery INT,
+    spell_recovery INT,
+    poison_recovery INT,
+    hp_rate INT,
+    mp_rate INT,
+    critical_rate INT,
+    critical_damage INT,
+    bools INT,
+    max_ac_rate INT,
+    max_mac_rate INT,
+    holy INT,
+    freezing INT,
+    poison_attack INT,
+    bind INT,
+    reflect INT,
+    hp_drain_rate INT,
+    unique_item INT,
+    random_stats_id INT,
+    can_fast_run INT,
+    can_awakening INT,
+    tool_tip VARCHAR(2000)
+);
+
 -- MonsterInfo
 -- NPCInfo
 -- QuestInfo
@@ -107,3 +168,4 @@ CREATE TABLE active_coords();
 -- GameShop
 -- Conquest
 -- RespawnTick
+-- CREATE TABLE active_coords();

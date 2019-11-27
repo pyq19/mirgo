@@ -1665,7 +1665,7 @@ namespace dotnettools
 
     public class ItemInfo
     {
-        public int Index;
+        public int ItemIndex;
         public string Name;
         public ItemType Type;
         public ItemGrade Grade;
@@ -1736,7 +1736,7 @@ namespace dotnettools
 
         public ItemInfo(BinaryReader reader, int version = int.MaxValue, int Customversion = int.MaxValue)
         {
-            Index = reader.ReadInt32();
+            ItemIndex = reader.ReadInt32();
             Name = reader.ReadString();
             Type = (ItemType)reader.ReadByte();
             if (version >= 40) Grade = (ItemGrade)reader.ReadByte();
@@ -1861,10 +1861,81 @@ namespace dotnettools
             }
         }
 
-        // TODO
         public void Save()
         {
 
+            byte bools = 0;
+            if (NeedIdentify) bools |= 0x01;
+            if (ShowGroupPickup) bools |= 0x02;
+            if (ClassBased) bools |= 0x04;
+            if (LevelBased) bools |= 0x08;
+            if (CanMine) bools |= 0x10;
+            if (GlobalDropNotify) bools |= 0x20;
+            var itemInfoModel = new ItemInfoModel()
+            {
+                ItemIndex = ItemIndex,
+                Name = Name,
+                Type = (byte)Type,
+                Grade = (byte)Grade,
+                RequiredType = (byte)RequiredType,
+                RequiredClass = (byte)RequiredClass,
+                RequiredGender = (byte)RequiredGender,
+                Set = (byte)Set,
+                Shape = Shape,
+                Weight = Weight,
+                Light = Light,
+                RequiredAmount = RequiredAmount,
+                Image = Image,
+                Durability = Durability,
+                StackSize = StackSize,
+                Price = Price,
+                MinAC = MinAC,
+                MaxAC = MaxAC,
+                MinMAC = MinMAC,
+                MaxMAC = MaxMAC,
+                MinDC = MinDC,
+                MaxDC = MaxDC,
+                MinMC = MinMC,
+                MaxMC = MaxMC,
+                MinSC = MinSC,
+                MaxSC = MaxSC,
+                HP = HP,
+                MP = MP,
+                Accuracy = Accuracy,
+                Agility = Agility,
+                Luck = Luck,
+                AttackSpeed = AttackSpeed,
+                StartItem = StartItem,
+                BagWeight = BagWeight,
+                HandWeight = HandWeight,
+                WearWeight = WearWeight,
+                Effect = Effect,
+                Strong = Strong,
+                MagicResist = MagicResist,
+                PoisonResist = PoisonResist,
+                HealthRecovery = HealthRecovery,
+                SpellRecovery = SpellRecovery,
+                PoisonRecovery = PoisonRecovery,
+                HPrate = HPrate,
+                MPrate = MPrate,
+                CriticalRate = CriticalRate,
+                CriticalDamage = CriticalDamage,
+                bools = bools,
+                MaxAcRate = MaxAcRate,
+                MaxMacRate = MaxMacRate,
+                Holy = Holy,
+                Freezing = Freezing,
+                PoisonAttack = PoisonAttack,
+                Bind = (short)Bind,
+                Reflect = Reflect,
+                HpDrainRate = HpDrainRate,
+                Unique = (short)Unique,
+                RandomStatsId = RandomStatsId,
+                CanFastRun = CanFastRun,
+                CanAwakening = CanAwakening,
+                ToolTip = ToolTip,
+            };
+            Manager.DB.Insertable(itemInfoModel).ExecuteCommand();
         }
     }
 
