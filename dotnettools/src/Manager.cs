@@ -382,58 +382,58 @@ namespace dotnettools
         public void saveDataToDatabase()
         {
             // 保存基础信息
-            // var basicModel = new BasicModel()
-            // {
-            //     Version = LoadVersion,
-            //     CustomVersion = LoadCustomVersion,
-            //     MapIndex = MapIndex,
-            //     ItemIndex = ItemIndex,
-            //     MonsterIndex = MonsterIndex,
-            //     NPCIndex = NPCIndex,
-            //     QuestIndex = QuestIndex,
-            //     GameshopIndex = GameshopIndex,
-            //     ConquestIndex = ConquestIndex,
-            //     RespawnIndex = RespawnIndex
-            // };
-            // Manager.DB.Insertable(basicModel).ExecuteCommand();
+            var basicModel = new BasicModel()
+            {
+                Version = LoadVersion,
+                CustomVersion = LoadCustomVersion,
+                MapIndex = MapIndex,
+                ItemIndex = ItemIndex,
+                MonsterIndex = MonsterIndex,
+                NPCIndex = NPCIndex,
+                QuestIndex = QuestIndex,
+                GameshopIndex = GameshopIndex,
+                ConquestIndex = ConquestIndex,
+                RespawnIndex = RespawnIndex
+            };
+            Manager.DB.Insertable(basicModel).ExecuteCommand();
 
             // 保存地图信息
-            // for (var i = 0; i < MapInfoList.Count; i++)
-            //     MapInfoList[i].Save();
+            for (var i = 0; i < MapInfoList.Count; i++)
+                MapInfoList[i].Save();
 
             // 保存物品信息
-            // for (var i = 0; i < ItemInfoList.Count; i++)
-            //     ItemInfoList[i].Save();
+            for (var i = 0; i < ItemInfoList.Count; i++)
+                ItemInfoList[i].Save();
 
             // 保存怪物信息
-            // for (var i = 0; i < MonsterInfoList.Count; i++)
-            //     MonsterInfoList[i].Save();
+            for (var i = 0; i < MonsterInfoList.Count; i++)
+                MonsterInfoList[i].Save();
 
             // 保存NPC信息
-            // for (var i = 0; i < NPCInfoList.Count; i++)
-            //     NPCInfoList[i].Save();
+            for (var i = 0; i < NPCInfoList.Count; i++)
+                NPCInfoList[i].Save();
 
             // 保存任务信息
-            // for (var i = 0; i < QuestInfoList.Count; i++)
-            //     QuestInfoList[i].Save();
+            for (var i = 0; i < QuestInfoList.Count; i++)
+                QuestInfoList[i].Save();
 
-            // 保存龙信息
+            // FIXME 保存龙信息 感觉是后来维护者乱 JB 加的, 懒得保存了
             // DragonInfo.Save();
 
             // 保存魔法信息
-            // for (var i = 0; i < MagicInfoList.Count; i++)
-            //     MagicInfoList[i].Save();
+            for (var i = 0; i < MagicInfoList.Count; i++)
+                MagicInfoList[i].Save();
 
             // 保存商店信息 ?不确定是不是商城
-            // for (var i = 0; i < GameShopItemList.Count; i++)
-            //     GameShopItemList[i].Save();
+            for (var i = 0; i < GameShopItemList.Count; i++)
+                GameShopItemList[i].Save();
 
-            // TODO 从文件读出来是空的, 目前看来没什么用
+            // FIXME 从文件读出来是空的, 目前看来没什么用
             // 保存土城攻城信息
             // for (var i = 0; i < ConquestInfos.Count; i++)
             //     ConquestInfos[i].Save();
 
-            // TODO 从文件读出来是空的, 目前看来没什么用
+            // FIXME 从文件读出来是空的, 目前看来没什么用
             // 保存刷怪时钟信息
             // RespawnTick.Save();
         }
