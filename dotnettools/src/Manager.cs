@@ -421,12 +421,12 @@ namespace dotnettools
             // DragonInfo.Save();
 
             // 保存魔法信息
-            for (var i = 0; i < MagicInfoList.Count; i++)
-                MagicInfoList[i].Save();
+            // for (var i = 0; i < MagicInfoList.Count; i++)
+            //     MagicInfoList[i].Save();
 
             // 保存商店信息 ?不确定是不是商城
-            // for (var i = 0; i < GameShopItemList.Count; i++)
-            //     GameShopItemList[i].Save();
+            for (var i = 0; i < GameShopItemList.Count; i++)
+                GameShopItemList[i].Save();
 
             // 保存土城攻城信息
             // for (var i = 0; i < ConquestInfos.Count; i++)

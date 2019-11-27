@@ -1956,8 +1956,8 @@ namespace dotnettools
 
     public class GameShopItem
     {
-        public int ItemIndex;
-        public int GIndex;
+        public int GameShopItemIndex;
+        public int ItemIndex;   // 对应 ItemInfo.ItemIndex
         public ItemInfo Info;
         public uint GoldPrice;
         public uint CreditPrice;
@@ -1973,7 +1973,7 @@ namespace dotnettools
         public GameShopItem(BinaryReader reader, int version = int.MaxValue, int Customversion = int.MaxValue)
         {
             ItemIndex = reader.ReadInt32();
-            GIndex = reader.ReadInt32();
+            GameShopItemIndex = reader.ReadInt32();
             GoldPrice = reader.ReadUInt32();
             CreditPrice = reader.ReadUInt32();
             Count = reader.ReadUInt32();
@@ -1986,10 +1986,24 @@ namespace dotnettools
             Date = DateTime.FromBinary(reader.ReadInt64());
         }
 
-        // TODO
         public void Save()
         {
-
+            var gameShopItemModel = new GameShopItemModel()
+            {
+                GameShopItemIndex = GameShopItemIndex,
+                ItemIndex = Info.ItemIndex, // = this.ItemIndex
+                GoldPrice = GoldPrice,
+                CreditPrice = CreditPrice,
+                Count = Count,
+                Class = Class,
+                Category = Category,
+                Stock = Stock,
+                iStock = iStock,
+                Deal = Deal,
+                TopItem = TopItem,
+                Date = Date,
+            };
+            Manager.DB.Insertable(gameShopItemModel).ExecuteCommand();
         }
     }
 

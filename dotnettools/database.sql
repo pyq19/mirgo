@@ -263,6 +263,22 @@ CREATE TABLE magic_info (
 );
 
 -- GameShop
+CREATE TABLE game_shop_item (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    game_shop_item_index INT,
+    item_index INT,
+    gold_price INT,
+    credit_price INT,
+    count INT,
+    class VARCHAR(200),
+    category VARCHAR(200),
+    stock INT,
+    i_stock INT,
+    deal INT,
+    top_item INT,
+    create_date DATE
+);
+
 -- Conquest
 -- RespawnTick
 -- CREATE TABLE active_coords();
