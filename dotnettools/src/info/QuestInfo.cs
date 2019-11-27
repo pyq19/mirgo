@@ -7,7 +7,7 @@ namespace dotnettools
     public class QuestInfo
     {
 
-        public int Index;
+        public int QuestIndex;
         public uint NpcIndex;
         public NPCInfo NpcInfo;
         private uint _finishNpcIndex;
@@ -44,7 +44,7 @@ namespace dotnettools
         {
             Manager Envir = manager;
 
-            Index = reader.ReadInt32();
+            QuestIndex = reader.ReadInt32();
             Name = reader.ReadString();
             Group = reader.ReadString();
             FileName = reader.ReadString();
@@ -73,10 +73,25 @@ namespace dotnettools
 
         }
 
-        // TODO
         public void Save()
         {
-
+            var questInfoModel = new QuestInfoModel()
+            {
+                QuestIndex = QuestIndex,
+                Name = Name,
+                Group = Group,
+                FileName = FileName,
+                RequiredMinLevel = RequiredMinLevel,
+                RequiredMaxLevel = RequiredMaxLevel,
+                RequiredQuest = RequiredQuest,
+                RequiredClass = (byte)RequiredClass,
+                Type = (byte)Type,
+                GotoMessage = GotoMessage,
+                KillMessage = KillMessage,
+                ItemMessage = ItemMessage,
+                FlagMessage = FlagMessage,
+            };
+            Manager.DB.Insertable(questInfoModel).ExecuteCommand();
         }
 
     }
