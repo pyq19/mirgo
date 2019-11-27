@@ -425,13 +425,15 @@ namespace dotnettools
             //     MagicInfoList[i].Save();
 
             // 保存商店信息 ?不确定是不是商城
-            for (var i = 0; i < GameShopItemList.Count; i++)
-                GameShopItemList[i].Save();
+            // for (var i = 0; i < GameShopItemList.Count; i++)
+            //     GameShopItemList[i].Save();
 
+            // TODO 从文件读出来是空的, 目前看来没什么用
             // 保存土城攻城信息
             // for (var i = 0; i < ConquestInfos.Count; i++)
             //     ConquestInfos[i].Save();
 
+            // TODO 从文件读出来是空的, 目前看来没什么用
             // 保存刷怪时钟信息
             // RespawnTick.Save();
         }
