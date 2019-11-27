@@ -57,10 +57,32 @@ namespace dotnettools
             }
         }
 
-        // TODO
         public void Save()
         {
-
+            var magicInfoModel = new MagicInfoModel()
+            {
+                Name = Name,
+                Spell = (byte)Spell,
+                BaseCost = BaseCost,
+                LevelCost = LevelCost,
+                Icon = Icon,
+                Level1 = Level1,
+                Level2 = Level2,
+                Level3 = Level3,
+                Need1 = Need1,
+                Need2 = Need2,
+                Need3 = Need3,
+                DelayBase = DelayBase,
+                DelayReduction = DelayReduction,
+                PowerBase = PowerBase,
+                PowerBonus = PowerBonus,
+                MPowerBase = MPowerBase,
+                MPowerBonus = MPowerBonus,
+                Range = Range,
+                MultiplierBase = MultiplierBase,
+                MultiplierBonus = MultiplierBonus,
+            };
+            Manager.DB.Insertable(magicInfoModel).ExecuteCommand();
         }
     }
 
