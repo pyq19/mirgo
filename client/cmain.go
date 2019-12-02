@@ -4,44 +4,26 @@ import (
 	"bufio"
 	"github.com/davyxu/cellnet"
 	"github.com/davyxu/cellnet/peer"
+	_ "github.com/davyxu/cellnet/peer/tcp"
 	"github.com/davyxu/cellnet/proc"
 	"github.com/davyxu/golog"
+	_ "github.com/yenkeia/mirgo/proc/mirtcp"
 	"github.com/yenkeia/mirgo/proto/client"
 	"github.com/yenkeia/mirgo/proto/server"
 	"os"
 	"strconv"
 	"strings"
-
-	_ "github.com/davyxu/cellnet/peer/tcp"
-	_ "github.com/yenkeia/mirgo/proc/mirtcp"
 )
 
 var log = golog.New("client")
-
-func readConsole(callback func(string)) {
-
-	for {
-
-		// 从标准输入读取字符串，以\n为分割
-		text, err := bufio.NewReader(os.Stdin).ReadString('\n')
-		if err != nil {
-			break
-		}
-
-		// 去掉读入内容的空白符
-		text = strings.TrimSpace(text)
-
-		callback(text)
-
-	}
-
-}
 
 func main() {
 
 	queue := cellnet.NewEventQueue()
 
-	p := peer.NewGenericPeer("tcp.Connector", "client", "127.0.0.1:7000", queue)
+	//addr := "192.168.31.242:7000"
+	addr := "127.0.0.1:7000"
+	p := peer.NewGenericPeer("tcp.Connector", "client", addr, queue)
 
 	proc.BindProcessorHandler(p, "mir.client.tcp", func(ev cellnet.Event) {
 		switch msg := ev.Message().(type) {
@@ -76,16 +58,28 @@ func main() {
 		case client.CLIENT_VERSION:
 			log.Debugln(idStr + " CLIENT_VERSION")
 			session.Send(&client.ClientVersion{
-				VersionHash: []uint8{}, // TODO
+				VersionHash: []uint8{16, 0, 0, 0, 86, 92, 129, 20, 102, 64, 159, 148, 125, 97, 112, 85, 237, 250, 133, 162},
 			})
 		case client.KEEP_ALIVE:
 			log.Debugln(idStr + " KEEP_ALIVE")
 			session.Send(&client.KeepAlive{
-				Time: 1000, // TODO
+				Time: 0,
 			})
 		default:
 			log.Debugln(idStr + " default")
 		}
 	})
+}
 
+func readConsole(callback func(string)) {
+	for {
+		// 从标准输入读取字符串，以\n为分割
+		text, err := bufio.NewReader(os.Stdin).ReadString('\n')
+		if err != nil {
+			break
+		}
+		// 去掉读入内容的空白符
+		text = strings.TrimSpace(text)
+		callback(text)
+	}
 }

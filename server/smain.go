@@ -18,7 +18,8 @@ func main() {
 
 	queue := cellnet.NewEventQueue()
 
-	p := peer.NewGenericPeer("tcp.Acceptor", "server", "127.0.0.1:7000", queue)
+	addr := "0.0.0.0:7000"
+	p := peer.NewGenericPeer("tcp.Acceptor", "server", addr, queue)
 
 	proc.BindProcessorHandler(p, "mir.server.tcp", func(ev cellnet.Event) {
 
@@ -34,11 +35,11 @@ func main() {
 			log.Debugln("session closed: ", ev.Session().ID())
 
 		case *client.ClientVersion:
-			clientVersion := server.ClientVersion{Result: 99} // TODO
+			clientVersion := server.ClientVersion{Result: 1}
 			ev.Session().Send(&clientVersion)
 
 		case *client.KeepAlive:
-			keepAlive := server.KeepAlive{Time: 8888} // TODO
+			keepAlive := server.KeepAlive{Time: 0}
 			ev.Session().Send(keepAlive)
 
 		default:
