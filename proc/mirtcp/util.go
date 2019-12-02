@@ -5,7 +5,10 @@ import (
 	"errors"
 	"github.com/davyxu/cellnet"
 	"github.com/davyxu/cellnet/codec"
+	"github.com/davyxu/golog"
 	"io"
+	"strconv"
+	"strings"
 )
 
 var (
@@ -18,6 +21,17 @@ const (
 	bodySize  = 2 // 包体大小字段
 	msgIDSize = 2 // 消息ID字段
 )
+
+var log = golog.New("proc.mirtcp.util")
+
+func String(bytes []byte) string {
+	strSlice := []string{}
+	for _, b := range bytes {
+		strSlice = append(strSlice, strconv.Itoa(int(b)))
+	}
+	res := strings.Join(strSlice, ", ")
+	return "[" + res + "]"
+}
 
 // 接收Length-Type-Value格式的封包流程
 func ClientRecvLTVPacket(reader io.Reader, maxPacketSize int) (msg interface{}, err error) {
@@ -50,6 +64,9 @@ func ClientRecvLTVPacket(reader io.Reader, maxPacketSize int) (msg interface{}, 
 	// 读取包体数据
 	_, err = io.ReadFull(reader, body)
 
+	allBytes := append(sizeBuffer, body...)
+	log.Debugln("<--- 客户端收到 Length: " + strconv.Itoa(len(allBytes)) + ", AllBytes: " + String(allBytes))
+
 	// 发生错误时返回
 	if err != nil {
 		return
@@ -60,7 +77,6 @@ func ClientRecvLTVPacket(reader io.Reader, maxPacketSize int) (msg interface{}, 
 	}
 
 	msgid := binary.LittleEndian.Uint16(body)
-
 
 	// FIXME 客户端接收到的是服务器的包, ID + 2000
 	msgid = msgid + 2000
@@ -120,6 +136,8 @@ func ClientSendLTVPacket(writer io.Writer, ctx cellnet.ContextSet, data interfac
 	// 将数据写入Socket
 	err := WriteFull(writer, pkt)
 
+	log.Debugln("---> 客户端发送: " + String(pkt))
+
 	// Codec中使用内存池时的释放位置
 	if meta != nil {
 		codec.FreeCodecResource(meta.Codec, msgData, ctx)
@@ -158,6 +176,9 @@ func ServerRecvLTVPacket(reader io.Reader, maxPacketSize int) (msg interface{}, 
 
 	// 读取包体数据
 	_, err = io.ReadFull(reader, body)
+
+	allBytes := append(sizeBuffer, body...)
+	log.Debugln("<--- 服务端收到 Length: " + strconv.Itoa(len(allBytes)) + ", AllBytes: " + String(allBytes))
 
 	// 发生错误时返回
 	if err != nil {
@@ -227,6 +248,8 @@ func ServerSendLTVPacket(writer io.Writer, ctx cellnet.ContextSet, data interfac
 
 	// 将数据写入Socket
 	err := WriteFull(writer, pkt)
+
+	log.Debugln("---> 服务端发送: " + String(pkt))
 
 	// Codec中使用内存池时的释放位置
 	if meta != nil {
