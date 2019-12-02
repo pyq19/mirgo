@@ -9,7 +9,7 @@ import (
 	"github.com/yenkeia/mirgo/proto/server"
 
 	_ "github.com/davyxu/cellnet/peer/tcp"
-	_ "github.com/davyxu/cellnet/proc/tcp"
+	_ "github.com/yenkeia/mirgo/proc/mirtcp"
 )
 
 var log = golog.New("server")
@@ -34,11 +34,11 @@ func main() {
 			log.Debugln("session closed: ", ev.Session().ID())
 
 		case *client.ClientVersion:
-			clientVersion := server.ClientVersion{Result: 1} // TODO
+			clientVersion := server.ClientVersion{Result: 99} // TODO
 			ev.Session().Send(&clientVersion)
 
 		case *client.KeepAlive:
-			keepAlive := server.KeepAlive{Time: 1000} // TODO
+			keepAlive := server.KeepAlive{Time: 8888} // TODO
 			ev.Session().Send(keepAlive)
 
 		default:

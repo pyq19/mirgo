@@ -13,7 +13,7 @@ import (
 	"strings"
 
 	_ "github.com/davyxu/cellnet/peer/tcp"
-	_ "github.com/davyxu/cellnet/proc/tcp"
+	_ "github.com/yenkeia/mirgo/proc/mirtcp"
 )
 
 var log = golog.New("client")
@@ -70,15 +70,21 @@ func main() {
 		session := p.(interface{ Session() cellnet.Session }).Session()
 
 		id, _ := strconv.Atoi(str)
+		id = id + 1000
+		idStr := strconv.Itoa(id)
 		switch id {
 		case client.CLIENT_VERSION:
+			log.Debugln(idStr + " CLIENT_VERSION")
 			session.Send(&client.ClientVersion{
 				VersionHash: []uint8{}, // TODO
 			})
 		case client.KEEP_ALIVE:
+			log.Debugln(idStr + " KEEP_ALIVE")
 			session.Send(&client.KeepAlive{
 				Time: 1000, // TODO
 			})
+		default:
+			log.Debugln(idStr + " default")
 		}
 	})
 
