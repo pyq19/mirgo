@@ -20,7 +20,7 @@ func main() {
 
 	p := peer.NewGenericPeer("tcp.Acceptor", "server", "127.0.0.1:7000", queue)
 
-	proc.BindProcessorHandler(p, "mir.tcp.ltv", func(ev cellnet.Event) {
+	proc.BindProcessorHandler(p, "mir.server.tcp", func(ev cellnet.Event) {
 
 		switch msg := ev.Message().(type) {
 
