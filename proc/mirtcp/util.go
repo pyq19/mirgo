@@ -52,7 +52,7 @@ func ClientRecvLTVPacket(reader io.Reader, maxPacketSize int) (msg interface{}, 
 	}
 
 	// 用小端格式读取Size
-	size := binary.LittleEndian.Uint16(sizeBuffer)
+	size := binary.LittleEndian.Uint16(sizeBuffer) - bodySize
 
 	if maxPacketSize > 0 && size >= uint16(maxPacketSize) {
 		return nil, ErrMaxPacket
@@ -65,7 +65,7 @@ func ClientRecvLTVPacket(reader io.Reader, maxPacketSize int) (msg interface{}, 
 	_, err = io.ReadFull(reader, body)
 
 	allBytes := append(sizeBuffer, body...)
-	log.Debugln("<--- 客户端收到 Length: " + strconv.Itoa(len(allBytes)) + ", AllBytes: " + String(allBytes))
+	log.Debugln("<--- 客户端收到 (" + strconv.Itoa(len(allBytes)) + "): " + String(allBytes))
 
 	// 发生错误时返回
 	if err != nil {
@@ -122,7 +122,7 @@ func ClientSendLTVPacket(writer io.Writer, ctx cellnet.ContextSet, data interfac
 	pkt := make([]byte, bodySize+msgIDSize+len(msgData))
 
 	// Length
-	binary.LittleEndian.PutUint16(pkt, uint16(msgIDSize+len(msgData)))
+	binary.LittleEndian.PutUint16(pkt, uint16(msgIDSize+len(msgData)+bodySize))
 
 	// FIXME 客户端发送的是客户端的包, ID - 1000
 	msgID = msgID - 1000
@@ -136,7 +136,7 @@ func ClientSendLTVPacket(writer io.Writer, ctx cellnet.ContextSet, data interfac
 	// 将数据写入Socket
 	err := WriteFull(writer, pkt)
 
-	log.Debugln("---> 客户端发送: " + String(pkt))
+	log.Debugln("---> 客户端发送 (" + strconv.Itoa(len(pkt)) + "): " + String(pkt))
 
 	// Codec中使用内存池时的释放位置
 	if meta != nil {
@@ -165,7 +165,7 @@ func ServerRecvLTVPacket(reader io.Reader, maxPacketSize int) (msg interface{}, 
 	}
 
 	// 用小端格式读取Size
-	size := binary.LittleEndian.Uint16(sizeBuffer)
+	size := binary.LittleEndian.Uint16(sizeBuffer) - bodySize
 
 	if maxPacketSize > 0 && size >= uint16(maxPacketSize) {
 		return nil, ErrMaxPacket
@@ -178,7 +178,7 @@ func ServerRecvLTVPacket(reader io.Reader, maxPacketSize int) (msg interface{}, 
 	_, err = io.ReadFull(reader, body)
 
 	allBytes := append(sizeBuffer, body...)
-	log.Debugln("<--- 服务端收到 Length: " + strconv.Itoa(len(allBytes)) + ", AllBytes: " + String(allBytes))
+	log.Debugln("<--- 服务端收到 (" + strconv.Itoa(len(allBytes)) + "): " + String(allBytes))
 
 	// 发生错误时返回
 	if err != nil {
@@ -235,7 +235,8 @@ func ServerSendLTVPacket(writer io.Writer, ctx cellnet.ContextSet, data interfac
 	pkt := make([]byte, bodySize+msgIDSize+len(msgData))
 
 	// Length
-	binary.LittleEndian.PutUint16(pkt, uint16(msgIDSize+len(msgData)))
+	// 最后的 + bodySize 加上最前表示包长的两个字节
+	binary.LittleEndian.PutUint16(pkt, uint16(msgIDSize+len(msgData)+bodySize))
 
 	// FIXME 服务端发送的是服务端的包, ID - 2000
 	msgID = msgID - 2000
@@ -249,7 +250,7 @@ func ServerSendLTVPacket(writer io.Writer, ctx cellnet.ContextSet, data interfac
 	// 将数据写入Socket
 	err := WriteFull(writer, pkt)
 
-	log.Debugln("---> 服务端发送: " + String(pkt))
+	log.Debugln("---> 服务端发送 (" + strconv.Itoa(len(pkt)) + "): " + String(pkt))
 
 	// Codec中使用内存池时的释放位置
 	if meta != nil {
