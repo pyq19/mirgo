@@ -43,7 +43,7 @@ func main() {
 
 	p := peer.NewGenericPeer("tcp.Connector", "client", "127.0.0.1:7000", queue)
 
-	proc.BindProcessorHandler(p, "tcp.ltv", func(ev cellnet.Event) {
+	proc.BindProcessorHandler(p, "mir.tcp.ltv", func(ev cellnet.Event) {
 		switch msg := ev.Message().(type) {
 		case *cellnet.SessionConnected:
 			log.Debugln("client connected")
@@ -72,9 +72,13 @@ func main() {
 		id, _ := strconv.Atoi(str)
 		switch id {
 		case client.CLIENT_VERSION:
-			session.Send(&client.ClientVersion{})
+			session.Send(&client.ClientVersion{
+				VersionHash: []uint8{}, // TODO
+			})
 		case client.KEEP_ALIVE:
-			session.Send(&client.KeepAlive{})
+			session.Send(&client.KeepAlive{
+				Time: 1000, // TODO
+			})
 		}
 	})
 

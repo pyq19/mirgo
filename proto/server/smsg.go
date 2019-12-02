@@ -19,9 +19,13 @@ const (
 
 type Connected struct{}
 
-type ClientVersion struct{}
+type ClientVersion struct {
+	Result uint8
+}
 
-type KeepAlive struct{}
+type KeepAlive struct {
+	Time int64
+}
 
 // 引用消息时，自动注册消息，这个文件可以由代码生成自动生成
 func init() {
