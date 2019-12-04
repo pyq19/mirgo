@@ -1,9 +1,15 @@
 package mircodec
 
 import (
+	"fmt"
 	"github.com/davyxu/cellnet"
 	"github.com/davyxu/cellnet/codec"
+	"github.com/davyxu/golog"
+	"github.com/davyxu/goobjfmt"
+	"reflect"
 )
+
+var log = golog.New("codec.mircodec")
 
 // MirCodec 编码解码
 type MirCodec struct {
@@ -20,13 +26,24 @@ func (m *MirCodec) MimeType() string {
 }
 
 // Encode 将数据转换为字节数组
-func (m *MirCodec) Encode(msgObj interface{}, ctx cellnet.ContextSet) (data interface{}, err error) {
-	return nil, nil
+func (*MirCodec) Encode(msgObj interface{}, ctx cellnet.ContextSet) (data interface{}, err error) {
+	return goobjfmt.BinaryWrite(msgObj)
 }
 
 // Decode 将字节数组转换为数据
-func (m *MirCodec) Decode(data interface{}, msgObj interface{}) error {
-	return nil
+func (*MirCodec) Decode(data interface{}, msgObj interface{}) error {
+	var bytes []uint8 = data.([]uint8)
+	log.Debugln(bytes)
+	objType := reflect.TypeOf(msgObj).Elem()
+	//log.Debugln(":::" + objType.Elem().Name())
+	// 遍历结构体所有成员
+	for i := 0; i < objType.NumField(); i++ {
+		// 获取每个成员的结构体字段类型
+		fieldType := objType.Field(i)
+		// 输出成员名和tag
+		fmt.Printf("name: %v  tag: '%v'\n", fieldType.Name, fieldType.Tag)
+	}
+	return goobjfmt.BinaryRead(data.([]byte), msgObj)
 }
 
 func init() {
