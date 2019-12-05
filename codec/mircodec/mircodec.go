@@ -2,11 +2,12 @@ package mircodec
 
 import (
 	"fmt"
+	"reflect"
+
 	"github.com/davyxu/cellnet"
 	"github.com/davyxu/cellnet/codec"
 	"github.com/davyxu/golog"
 	"github.com/davyxu/goobjfmt"
-	"reflect"
 )
 
 var log = golog.New("codec.mircodec")
@@ -25,9 +26,19 @@ func (m *MirCodec) MimeType() string {
 	return "application/binary"
 }
 
+// encode 把结构体编码(序列化)成字节数组
+func encode(obj interface{}) (bytes []byte) {
+	return bytes
+}
+
 // Encode 将数据转换为字节数组
 func (*MirCodec) Encode(msgObj interface{}, ctx cellnet.ContextSet) (data interface{}, err error) {
 	return goobjfmt.BinaryWrite(msgObj)
+}
+
+// decode 把字节数组解码(反序列化)成结构
+func decode(obj interface{}, bytes []byte) {
+
 }
 
 // Decode 将字节数组转换为数据
