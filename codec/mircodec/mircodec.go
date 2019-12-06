@@ -58,7 +58,7 @@ func encode(obj interface{}) (bytes []byte, err error) {
 			}
 			bytes = append(bytes, data...)
 		default:
-			errors.New("error")
+			return bytes, errors.New("error")
 		}
 	}
 	return bytes, nil
