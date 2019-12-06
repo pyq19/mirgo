@@ -21,38 +21,60 @@ type CatInfo struct {
 	Age  uint16
 }
 
+func TestEncodeDecode(t *testing.T) {
+	rawCatShop := CatShop{
+		"独山路宠物店111",
+		123,
+		CatInfo{
+			"花猫2222",
+			555,
+		},
+	}
+	res := _encode(t, &rawCatShop)
+
+	newCatShop := new(CatShop)
+	_decode(t, i(newCatShop), res)
+	//t.Log(catShop.Address)
+	t.Log(newCatShop.Address, newCatShop.Rank)
+	t.Log(newCatShop.Cat.Name, newCatShop.Cat.Age)
+}
+
+func _decodeField(t *testing.T, f reflect.Value, bytes []byte) []byte {
+	switch f.Type().Kind() {
+	case reflect.String:
+		i, s := ReadString(bytes, 0)
+		f.SetString(s)
+		bytes = bytes[i:]
+	case reflect.Uint8:
+		f.SetUint(uint64(bytes[0]))
+		bytes = bytes[1:]
+	case reflect.Uint16:
+		f.SetUint(uint64(BytesToUint16(bytes[:2])))
+		bytes = bytes[2:]
+	case reflect.Uint64:
+		f.SetUint(uint64(BytesToUint64(bytes[:8])))
+		bytes = bytes[8:]
+	case reflect.Struct:
+		l := f.NumField()
+		for i := 0; i < l; i++ {
+			bytes = _decodeField(t, f.Field(i), bytes)
+		}
+	}
+	return bytes
+}
+
 func _decode(t *testing.T, obj interface{}, bytes []byte) {
 	if len(bytes) == 0 {
 		return
 	}
-	t.Log("->", reflect.TypeOf(obj))
+	//t.Log("->", reflect.TypeOf(obj))
 	v := reflect.ValueOf(obj)
 	if v.Type().Kind() == reflect.Ptr {
 		v = v.Elem()
 	}
-	t.Log("-->", v.NumField(), v.Type(), v.Type().Name())
+	//t.Log("-->", v.NumField(), v.Type(), v.Type().Name())
 	for i := 0; i < v.NumField(); i++ {
-		f := v.Field(i)
-		t.Log("--->", f.Type().Name())
-		switch f.Type().Kind() {
-		case reflect.String:
-			i, s := ReadString(bytes, 0)
-			f.SetString(s)
-			bytes = bytes[i:]
-		case reflect.Uint8:
-			f.SetUint(uint64(bytes[0]))
-			bytes = bytes[1:]
-		case reflect.Uint16:
-			f.SetUint(uint64(BytesToUint16(bytes[:2])))
-			bytes = bytes[2:]
-		case reflect.Uint64:
-			f.SetUint(uint64(BytesToUint64(bytes[:8])))
-			bytes = bytes[8:]
-		case reflect.Struct:
-			// t.Log("!!!", f.NumField())
-			o := f.Interface()
-			_decode(t, o, bytes)
-		}
+		bytes = _decodeField(t, v.Field(i), bytes)
 	}
 }
 
@@ -64,7 +86,8 @@ func TestDecode(t *testing.T) {
 		172, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
 	catShop := new(CatShop)
 	_decode(t, i(catShop), bytes)
-	t.Log(catShop.Address)
+	//t.Log(catShop.Address)
+	t.Log(catShop.Cat.Name, catShop.Cat.Age)
 }
 
 func TestByteSlice(t *testing.T) {
