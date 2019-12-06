@@ -94,7 +94,8 @@ func encode(obj interface{}) (bytes []byte, err error) {
 			vv := f.Interface().([]byte)
 			bytes = append(bytes, vv...)
 		default:
-			return bytes, errors.New("error")
+			log.Errorln("编码错误")
+			return bytes, errors.New("编码错误")
 		}
 	}
 	if bytes == nil {
@@ -143,7 +144,7 @@ func decodeValue(f reflect.Value, bytes []byte) []byte {
 		f.SetBytes(bytes[:l+4])
 		bytes = bytes[l+4:]
 	default:
-		log.Errorln(f.Type())
+		log.Errorln(f.Type(), "解码错误")
 	}
 	return bytes
 }
