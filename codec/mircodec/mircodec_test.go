@@ -1,8 +1,6 @@
 package mircodec
 
 import (
-	"encoding/binary"
-	"reflect"
 	"testing"
 )
 
@@ -30,52 +28,17 @@ func TestEncodeDecode(t *testing.T) {
 			555,
 		},
 	}
-	res := _encode(t, &rawCatShop)
+	res, err := encode(&rawCatShop)
 
 	newCatShop := new(CatShop)
-	_decode(t, i(newCatShop), res)
+	err = decode(i(newCatShop), res)
+	if err != nil {
+		panic(err)
+	}
+
 	//t.Log(catShop.Address)
 	t.Log(newCatShop.Address, newCatShop.Rank)
 	t.Log(newCatShop.Cat.Name, newCatShop.Cat.Age)
-}
-
-func _decodeField(t *testing.T, f reflect.Value, bytes []byte) []byte {
-	switch f.Type().Kind() {
-	case reflect.String:
-		i, s := ReadString(bytes, 0)
-		f.SetString(s)
-		bytes = bytes[i:]
-	case reflect.Uint8:
-		f.SetUint(uint64(bytes[0]))
-		bytes = bytes[1:]
-	case reflect.Uint16:
-		f.SetUint(uint64(BytesToUint16(bytes[:2])))
-		bytes = bytes[2:]
-	case reflect.Uint64:
-		f.SetUint(uint64(BytesToUint64(bytes[:8])))
-		bytes = bytes[8:]
-	case reflect.Struct:
-		l := f.NumField()
-		for i := 0; i < l; i++ {
-			bytes = _decodeField(t, f.Field(i), bytes)
-		}
-	}
-	return bytes
-}
-
-func _decode(t *testing.T, obj interface{}, bytes []byte) {
-	if len(bytes) == 0 {
-		return
-	}
-	//t.Log("->", reflect.TypeOf(obj))
-	v := reflect.ValueOf(obj)
-	if v.Type().Kind() == reflect.Ptr {
-		v = v.Elem()
-	}
-	//t.Log("-->", v.NumField(), v.Type(), v.Type().Name())
-	for i := 0; i < v.NumField(); i++ {
-		bytes = _decodeField(t, v.Field(i), bytes)
-	}
 }
 
 // TestDecode 把字节数组解码(反序列化)成结构体
@@ -85,7 +48,7 @@ func TestDecode(t *testing.T) {
 		6, 232, 138, 177, 231, 140, 171,
 		172, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
 	catShop := new(CatShop)
-	_decode(t, i(catShop), bytes)
+	decode(i(catShop), bytes)
 	//t.Log(catShop.Address)
 	t.Log(catShop.Cat.Name, catShop.Cat.Age)
 }
@@ -98,39 +61,6 @@ func TestByteSlice(t *testing.T) {
 	t.Log(bytes[3:]) // [66 3 63 98]
 }
 
-func _encode(t *testing.T, obj interface{}) (bytes []byte) {
-	v := reflect.ValueOf(obj).Elem()
-	// 1. 遍历结构体每个字段
-	for i := 0; i < v.NumField(); i++ {
-		f := v.Field(i)
-		// t.Log(fieldType.Name, fieldType.Type.Kind())
-		switch f.Kind() {
-		case reflect.String:
-			vv := f.Interface().(string)
-			sb := StringToBytes(vv)
-			bytes = append(bytes, sb...)
-		case reflect.Uint8:
-			vv := f.Interface().(uint8)
-			bytes = append(bytes, vv)
-		case reflect.Uint16:
-			vv := f.Interface().(uint16)
-			b := make([]byte, 16)
-			binary.LittleEndian.PutUint16(b, uint16(vv))
-			bytes = append(bytes, b...)
-		case reflect.Uint64:
-			vv := f.Interface().(uint64)
-			b := make([]byte, 64)
-			binary.LittleEndian.PutUint64(b, uint64(vv))
-			bytes = append(bytes, b...)
-		case reflect.Struct:
-			vv := f.Addr().Interface()
-			bytes = append(bytes, _encode(t, vv)...)
-		default:
-			t.Log("!!!!!error")
-		}
-	}
-	return bytes
-}
 
 // TestEncode 把结构体编码(序列化)成字节数组
 func TestEncode(t *testing.T) {
@@ -142,6 +72,9 @@ func TestEncode(t *testing.T) {
 			2220,
 		},
 	}
-	res := _encode(t, &catShop)
+	res, err := encode(&catShop)
+	if err != nil {
+		panic(err)
+	}
 	t.Log("->", res)
 }
