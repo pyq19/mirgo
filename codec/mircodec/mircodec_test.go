@@ -6,9 +6,13 @@ import (
 	"testing"
 )
 
+func i(obj interface{}) interface{} {
+	return obj
+}
+
 type CatShop struct {
 	Address string
-	Rank    uint64
+	Rank    uint8
 	Cat     CatInfo
 }
 
@@ -17,17 +21,58 @@ type CatInfo struct {
 	Age  uint16
 }
 
-func i(obj interface{}) interface{} {
-	return obj
-}
-
-func _decode(obj interface{}, bytes []byte) {
-
+func _decode(t *testing.T, obj interface{}, bytes []byte) {
+	if len(bytes) == 0 {
+		return
+	}
+	t.Log("->", reflect.TypeOf(obj))
+	v := reflect.ValueOf(obj)
+	if v.Type().Kind() == reflect.Ptr {
+		v = v.Elem()
+	}
+	t.Log("-->", v.NumField(), v.Type(), v.Type().Name())
+	for i := 0; i < v.NumField(); i++ {
+		f := v.Field(i)
+		t.Log("--->", f.Type().Name())
+		switch f.Type().Kind() {
+		case reflect.String:
+			i, s := ReadString(bytes, 0)
+			f.SetString(s)
+			bytes = bytes[i:]
+		case reflect.Uint8:
+			f.SetUint(uint64(bytes[0]))
+			bytes = bytes[1:]
+		case reflect.Uint16:
+			f.SetUint(uint64(BytesToUint16(bytes[:2])))
+			bytes = bytes[2:]
+		case reflect.Uint64:
+			f.SetUint(uint64(BytesToUint64(bytes[:8])))
+			bytes = bytes[8:]
+		case reflect.Struct:
+			// t.Log("!!!", f.NumField())
+			o := f.Interface()
+			_decode(t, o, bytes)
+		}
+	}
 }
 
 // TestDecode 把字节数组解码(反序列化)成结构体
 func TestDecode(t *testing.T) {
+	bytes := []byte{18, 231, 139, 172, 229, 177, 177, 232, 183, 175, 229, 174, 160, 231, 137, 169, 229, 186, 151,
+		111,
+		6, 232, 138, 177, 231, 140, 171,
+		172, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
+	catShop := new(CatShop)
+	_decode(t, i(catShop), bytes)
+	t.Log(catShop.Address)
+}
 
+func TestByteSlice(t *testing.T) {
+	bytes := []byte{5, 11, 1, 66, 3, 63, 98}
+	t.Log(bytes[3])
+	t.Log(bytes[:2]) // [5 11]
+	t.Log(bytes[2:]) // [1 66 3 63 98]
+	t.Log(bytes[3:]) // [66 3 63 98]
 }
 
 func _encode(t *testing.T, obj interface{}) (bytes []byte) {
@@ -39,22 +84,26 @@ func _encode(t *testing.T, obj interface{}) (bytes []byte) {
 		switch f.Kind() {
 		case reflect.String:
 			vv := f.Interface().(string)
-			bytes = append(bytes, []byte(vv)...)
+			sb := StringToBytes(vv)
+			bytes = append(bytes, sb...)
+		case reflect.Uint8:
+			vv := f.Interface().(uint8)
+			bytes = append(bytes, vv)
 		case reflect.Uint16:
 			vv := f.Interface().(uint16)
 			b := make([]byte, 16)
 			binary.LittleEndian.PutUint16(b, uint16(vv))
-			bytes = append(bytes)
+			bytes = append(bytes, b...)
 		case reflect.Uint64:
 			vv := f.Interface().(uint64)
 			b := make([]byte, 64)
 			binary.LittleEndian.PutUint64(b, uint64(vv))
-			bytes = append(bytes)
+			bytes = append(bytes, b...)
 		case reflect.Struct:
 			vv := f.Addr().Interface()
-			_encode(t, vv)
+			bytes = append(bytes, _encode(t, vv)...)
 		default:
-			t.Log("error")
+			t.Log("!!!!!error")
 		}
 	}
 	return bytes
@@ -64,18 +113,12 @@ func _encode(t *testing.T, obj interface{}) (bytes []byte) {
 func TestEncode(t *testing.T) {
 	catShop := CatShop{
 		"独山路宠物店",
-		123,
+		111,
 		CatInfo{
 			"花猫",
-			2,
+			2220,
 		},
 	}
-	// t.Log(reflect.TypeOf(i(&catShop)))
-	// t.Log(reflect.TypeOf(i(&catShop)).Elem())
-	// t.Logf("%v", i(catShop))
-	// catShopType := reflect.TypeOf(catShop)
-	// t.Logf("%v", catShopType)
-	// t.Log(catShopType.Name())
-
-	t.Log(_encode(t, &catShop))
+	res := _encode(t, &catShop)
+	t.Log("->", res)
 }
