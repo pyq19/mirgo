@@ -34,13 +34,13 @@ type KeepAlive struct {
 
 // TODO
 type NewAccount struct {
-	//public string AccountID = string.Empty
-	//public string Password = string.Empty
+	AccountID string
+	Password  string
 	//public DateTime BirthDate
-	//public string UserName = string.Empty
-	//public string SecretQuestion = string.Empty
-	//public string SecretAnswer = string.Empty
-	//public string EMailAddress = string.Empty
+	UserName       string
+	SecretQuestion string
+	SecretAnswer   string
+	EMailAddress   string
 }
 
 type ChangePassword struct {
