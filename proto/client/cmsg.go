@@ -32,15 +32,14 @@ type KeepAlive struct {
 	Time int64
 }
 
-// TODO
 type NewAccount struct {
-	AccountID string
-	Password  string
-	//public DateTime BirthDate
-	UserName       string
-	SecretQuestion string
-	SecretAnswer   string
-	EMailAddress   string
+	AccountID      string
+	Password       string
+	DateTime       int64  // 无用字段 c# 中 DateTime 8 字节
+	UserName       string // 无用字段
+	SecretQuestion string // 无用字段
+	SecretAnswer   string // 无用字段
+	EMailAddress   string // 无用字段
 }
 
 type ChangePassword struct {
