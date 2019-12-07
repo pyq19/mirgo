@@ -6,6 +6,7 @@ import (
 	_ "github.com/davyxu/cellnet/peer/tcp"
 	"github.com/davyxu/cellnet/proc"
 	"github.com/jinzhu/gorm"
+	_ "github.com/jinzhu/gorm/dialects/sqlite"
 	_ "github.com/yenkeia/mirgo/proc/mirtcp"
 )
 
@@ -18,7 +19,11 @@ type Game struct {
 func NewGame(conf Config) *Game {
 	g := new(Game)
 	g.Conf = conf
-	db := NewDB(conf.MirDB)
+	db, err := gorm.Open("sqlite3", mirDB)
+	if err != nil {
+		panic("failed to connect database")
+	}
+	g.DB = db
 	defer db.Close()
 	g.Env = g.NewEnv()
 	return g
