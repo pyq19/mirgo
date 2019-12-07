@@ -1,4 +1,4 @@
-package com
+package common
 
 type Basic struct {
 	GameVersion   int `gorm:"primary_key"`
