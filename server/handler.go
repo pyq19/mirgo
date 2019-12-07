@@ -30,6 +30,10 @@ func (g *Game) EventHandler(ev cellnet.Event) {
 		keepAlive := server.KeepAlive{Time: 0}
 		ev.Session().Send(keepAlive)
 
+	case *client.NewAccount:
+		// TODO 保存新账号
+		log.Debugln(msg.AccountID, msg.Password)
+		ev.Session().Send(server.NewAccount{8})
 	default:
 		log.Debugln(msg)
 	}
