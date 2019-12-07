@@ -6,3 +6,14 @@
 - [SqlSugar](https://github.com/sunkaixuan/SqlSugar)
 - MySQL
 - [Cellnet](https://github.com/davyxu/cellnet)
+- [GORM](https://github.com/jinzhu/gorm)
+
+#### 获取依赖
+```bash
+go get -u github.com/mattn/go-sqlite3
+go get -u -v github.com/jinzhu/gorm
+go get -u -v github.com/davyxu/cellnet
+go get -u -v github.com/davyxu/golog
+go get -u -v github.com/davyxu/goobjfmt
+go get -u -v github.com/davyxu/protoplus
+```

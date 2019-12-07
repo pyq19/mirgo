@@ -5,19 +5,21 @@ import (
 	"github.com/davyxu/cellnet/peer"
 	_ "github.com/davyxu/cellnet/peer/tcp"
 	"github.com/davyxu/cellnet/proc"
+	"github.com/jinzhu/gorm"
 	_ "github.com/yenkeia/mirgo/proc/mirtcp"
 )
 
 type Game struct {
 	Conf Config
-	DB   *Database
+	DB   *gorm.DB
 	Env  *Environ
 }
 
 func NewGame(conf Config) *Game {
 	g := new(Game)
 	g.Conf = conf
-	g.DB = NewDB(conf.MirDB, conf.AccountDB)
+	db := NewDB(conf.MirDB)
+	defer db.Close()
 	g.Env = g.NewEnv()
 	return g
 }
