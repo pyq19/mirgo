@@ -2,11 +2,14 @@ package main
 
 import (
 	"github.com/davyxu/cellnet"
+	"github.com/davyxu/golog"
 	"github.com/yenkeia/mirgo/proto/client"
 	"github.com/yenkeia/mirgo/proto/server"
 )
 
-func eventHandler(ev cellnet.Event) {
+var log = golog.New("server.handler")
+
+func (g *Game) EventHandler(ev cellnet.Event) {
 
 	switch msg := ev.Message().(type) {
 
