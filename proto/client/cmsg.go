@@ -3,6 +3,7 @@ package client
 import (
 	"github.com/davyxu/cellnet"
 	"github.com/yenkeia/mirgo/codec/mircodec"
+	"github.com/yenkeia/mirgo/common"
 
 	// 使用binary协议，因此匿名引用这个包，底层会自动注册
 	"reflect"
@@ -53,11 +54,10 @@ type Login struct {
 	Password  string
 }
 
-// TODO
 type NewCharacter struct {
-	//public string Name = string.Empty;
-	//public MirGender Gender;
-	//public MirClass Class;
+	Name   string
+	Gender common.MirGender
+	Class  common.MirClass
 }
 
 type DeleteCharacter struct {

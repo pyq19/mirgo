@@ -7,6 +7,7 @@ import (
 	_ "github.com/davyxu/cellnet/peer/tcp"
 	"github.com/davyxu/cellnet/proc"
 	"github.com/davyxu/golog"
+	"github.com/yenkeia/mirgo/common"
 	_ "github.com/yenkeia/mirgo/proc/mirtcp"
 	"github.com/yenkeia/mirgo/proto/client"
 	"github.com/yenkeia/mirgo/proto/server"
@@ -64,6 +65,18 @@ func main() {
 			log.Debugln(idStr + " KEEP_ALIVE")
 			session.Send(&client.KeepAlive{
 				Time: 0,
+			})
+		case client.LOGIN:
+			session.Send(&client.Login{
+				AccountID: "随便",
+				Password:  "随便",
+			})
+		case client.NEW_CHARACTER:
+			log.Debugln(idStr + " NEW_CHARACTER")
+			session.Send(&client.NewCharacter{
+				Name:   "测试测试NewCharacter",
+				Gender: common.Male,
+				Class:  common.Taoist,
 			})
 		default:
 			log.Debugln(idStr + " default")
