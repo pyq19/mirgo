@@ -79,8 +79,13 @@ func encode(obj interface{}) (bytes []byte, err error) {
 			vv := uint64(f.Interface().(int64))
 			bytes = append(bytes, Uint64ToBytes(vv)...)
 		case reflect.Uint8:
-			vv := f.Interface().(uint8)
-			bytes = append(bytes, vv)
+			switch vv := f.Interface().(type) {
+			case uint8:
+				bytes = append(bytes, vv)
+			default:
+				vvv := reflect.ValueOf(vv).Uint()
+				bytes = append(bytes, uint8(vvv))
+			}
 		case reflect.Uint16:
 			vv := f.Interface().(uint16)
 			bytes = append(bytes, Uint16ToBytes(vv)...)
@@ -91,8 +96,23 @@ func encode(obj interface{}) (bytes []byte, err error) {
 			vv := f.Interface().(uint64)
 			bytes = append(bytes, Uint64ToBytes(vv)...)
 		case reflect.Slice:
-			vv := f.Interface().([]byte)
-			bytes = append(bytes, vv...)
+			// FIXME 还有别的类型可能会报错
+			switch vv := f.Interface().(type) {
+			case []uint8:
+				bytes = append(bytes, vv...)
+			default:
+				vvv := reflect.ValueOf(vv)
+				l := vvv.Len()
+				slice := vvv.Slice(0, l)
+				bytes = append(bytes, Uint32ToBytes(uint32(l))...)
+				for i := 0; i < l; i++ {
+					b, err := encode(slice.Index(i).Interface())
+					if err != nil {
+						panic(err)
+					}
+					bytes = append(bytes, b...)
+				}
+			}
 		default:
 			log.Errorln("编码错误")
 			return bytes, errors.New("编码错误")
@@ -140,9 +160,20 @@ func decodeValue(f reflect.Value, bytes []byte) []byte {
 		f.SetUint(BytesToUint64(bytes[:8]))
 		bytes = bytes[8:]
 	case reflect.Slice:
-		l := BytesToUint32(bytes[:4])
-		f.SetBytes(bytes[:l+4])
-		bytes = bytes[l+4:]
+		// TODO
+		if f.Type().Elem().Kind() == reflect.Uint8 {
+			l := BytesToUint32(bytes[:4])
+			f.SetBytes(bytes[:l+4])
+			bytes = bytes[l+4:]
+		} else {
+
+		}
+
+		// FIXME 还有别的类型可能会报错
+		//l := BytesToUint32(bytes[:4]) // 前4个字节表示长度
+		//bytes = bytes[4:]
+		//log.Debugln(l)
+
 	default:
 		log.Errorln(f.Type(), "解码错误")
 	}

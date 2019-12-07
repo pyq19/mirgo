@@ -29,6 +29,7 @@ func TestEncodeDecode(t *testing.T) {
 		},
 	}
 	res, err := encode(&rawCatShop)
+	t.Log("before:", res)
 
 	newCatShop := new(CatShop)
 	err = decode(i(newCatShop), res)
@@ -39,6 +40,8 @@ func TestEncodeDecode(t *testing.T) {
 	//t.Log(catShop.Address)
 	t.Log(newCatShop.Address, newCatShop.Rank)
 	t.Log(newCatShop.Cat.Name, newCatShop.Cat.Age)
+
+	t.Log("after:", res)
 }
 
 // TestDecode 把字节数组解码(反序列化)成结构体
@@ -51,6 +54,8 @@ func TestDecode(t *testing.T) {
 	decode(i(catShop), bytes)
 	//t.Log(catShop.Address)
 	t.Log(catShop.Cat.Name, catShop.Cat.Age)
+
+	t.Log(bytes)
 }
 
 func TestByteSlice(t *testing.T) {
@@ -60,7 +65,6 @@ func TestByteSlice(t *testing.T) {
 	t.Log(bytes[2:]) // [1 66 3 63 98]
 	t.Log(bytes[3:]) // [66 3 63 98]
 }
-
 
 // TestEncode 把结构体编码(序列化)成字节数组
 func TestEncode(t *testing.T) {
@@ -77,4 +81,63 @@ func TestEncode(t *testing.T) {
 		panic(err)
 	}
 	t.Log("->", res)
+}
+
+type Book struct {
+	Name string
+}
+
+type BookStore struct {
+	Books []Book
+}
+
+func TestEncodeSlice(t *testing.T) {
+	b1 := new(Book)
+	b1.Name = "庆余年"
+	b2 := new(Book)
+	b2.Name = "红楼梦"
+	bs := new(BookStore)
+	bs.Books = append(bs.Books, *b1)
+	bs.Books = append(bs.Books, *b2)
+	t.Log(bs)
+
+	bytes, err := encode(i(bs))
+	if err != nil {
+		panic(err)
+	}
+	t.Log(bytes)
+	// [2 0 0 0 9 229 186 134 228 189 153 229 185 180 9 231 186 162 230 165 188 230 162 166]
+}
+
+func TestDecodeSlice(t *testing.T) {
+	bytes := []byte{2, 0, 0, 0, 9, 229, 186, 134, 228, 189, 153, 229, 185, 180, 9, 231, 186, 162, 230, 165, 188, 230, 162, 166}
+	t.Log("before:", bytes)
+	bs := i(new(BookStore))
+
+	if err := decode(bs, bytes); err != nil {
+		panic(err)
+	}
+	t.Log("after:", bytes)
+	t.Log(bs)
+}
+
+type ClientVersion struct {
+	Hash []uint8
+}
+
+func TestDecodeSlice2(t *testing.T) {
+	cv := new(ClientVersion)
+	cv.Hash = []byte{5, 0, 0, 0, 22, 33, 11, 55, 100}
+	bytes, err := encode(i(cv))
+	if err != nil {
+		panic(err)
+	}
+	t.Log("before:", bytes)
+
+	cv2 := new(ClientVersion)
+	if err := decode(cv2, bytes); err != nil {
+		panic(err)
+	}
+	t.Log("after:", bytes)
+	t.Log(cv2)
 }

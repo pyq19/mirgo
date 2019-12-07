@@ -3,6 +3,7 @@ package server
 import (
 	"github.com/davyxu/cellnet"
 	"github.com/yenkeia/mirgo/codec/mircodec"
+	"github.com/yenkeia/mirgo/common"
 
 	// 使用binary协议，因此匿名引用这个包，底层会自动注册
 	"reflect"
@@ -99,8 +100,9 @@ type LoginBanned struct {
 	//public DateTime ExpiryDate
 }
 
-// TODO
-type LoginSuccess struct{}
+type LoginSuccess struct {
+	Characters []common.SelectInfo
+}
 
 type NewCharacter struct {
 	Result uint8
@@ -114,8 +116,9 @@ type NewCharacter struct {
 	 * */
 }
 
-// TODO
-type NewCharacterSuccess struct{}
+type NewCharacterSuccess struct {
+	CharInfo common.SelectInfo
+}
 
 type DeleteCharacter struct {
 	Result uint8
