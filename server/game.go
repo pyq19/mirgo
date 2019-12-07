@@ -8,21 +8,25 @@ import (
 	_ "github.com/yenkeia/mirgo/proc/mirtcp"
 )
 
-//var log = golog.New("server.game")
-
 type Game struct {
+	Conf Config
+	DB   *Database
+	Env  *Environ
 }
 
-func NewGame() *Game {
-	return &Game{}
+func NewGame(conf Config) *Game {
+	g := new(Game)
+	g.Conf = conf
+	g.DB = NewDB(conf.MirDB, conf.AccountDB)
+	g.Env = g.NewEnv()
+	return g
 }
 
 func (g *Game) ServerStart() {
 
 	queue := cellnet.NewEventQueue()
 
-	addr := "0.0.0.0:7000"
-	p := peer.NewGenericPeer("tcp.Acceptor", "server", addr, queue)
+	p := peer.NewGenericPeer("tcp.Acceptor", "server", g.Conf.Addr, queue)
 
 	proc.BindProcessorHandler(p, "mir.server.tcp", g.EventHandler)
 
