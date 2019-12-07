@@ -1,17 +1,18 @@
 package main
 
+import "os"
+
 var addr = "0.0.0.0:7000"
-var mirDB = "../dotnettools/mir.sqlite"
-var accountDB = "../dotnettools/account.sqlite"
+var mirDB = "/src/github.com/yenkeia/mirgo/dotnettools/mir.sqlite"
 
 type Config struct {
-	Addr      string
-	MirDB     string
-	AccountDB string
+	Addr  string
+	MirDB string
 }
 
 func main() {
-	conf := &Config{addr, mirDB, accountDB}
+	gopath := os.Getenv("GOPATH")
+	conf := &Config{addr, gopath + mirDB}
 	g := NewGame(*conf)
 	g.ServerStart()
 }
