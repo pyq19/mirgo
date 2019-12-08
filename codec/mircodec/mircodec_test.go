@@ -85,6 +85,7 @@ func TestEncode(t *testing.T) {
 
 type Book struct {
 	Name string
+	Page uint8
 }
 
 type BookStore struct {
@@ -94,23 +95,26 @@ type BookStore struct {
 func TestEncodeSlice(t *testing.T) {
 	b1 := new(Book)
 	b1.Name = "庆余年"
+	b1.Page = 123
 	b2 := new(Book)
 	b2.Name = "红楼梦"
+	b2.Page = 32
 	bs := new(BookStore)
 	bs.Books = append(bs.Books, *b1)
 	bs.Books = append(bs.Books, *b2)
-	t.Log(bs)
+	t.Log(bs) // &{[{庆余年 123} {红楼梦 32}]}
 
 	bytes, err := encode(i(bs))
 	if err != nil {
 		panic(err)
 	}
 	t.Log(bytes)
-	// [2 0 0 0 9 229 186 134 228 189 153 229 185 180 9 231 186 162 230 165 188 230 162 166]
+	//[2 0 0 0 9 229 186 134 228 189 153 229 185 180 123 9 231 186 162 230 165 188 230 162 166 32]
 }
 
 func TestDecodeSlice(t *testing.T) {
-	bytes := []byte{2, 0, 0, 0, 9, 229, 186, 134, 228, 189, 153, 229, 185, 180, 9, 231, 186, 162, 230, 165, 188, 230, 162, 166}
+	// &{[{庆余年 123} {红楼梦 32}]}
+	bytes := []byte{2, 0, 0, 0, 9, 229, 186, 134, 228, 189, 153, 229, 185, 180, 123, 9, 231, 186, 162, 230, 165, 188, 230, 162, 166, 32}
 	t.Log("before:", bytes)
 	bs := i(new(BookStore))
 
