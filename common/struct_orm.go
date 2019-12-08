@@ -28,66 +28,66 @@ type GameShopItem struct {
 }
 
 type ItemInfo struct {
-	ItemIndex      int `gorm:"primary_key"`
+	ItemIndex      int32 `gorm:"primary_key"`
 	Name           string
-	Type           int
-	Grade          int
-	RequiredType   int
-	RequiredClass  int
-	RequiredGender int
-	ItemSet        int
-	Shape          int
-	Weight         int
-	Light          int
-	RequiredAmount int
-	Image          int
-	Durability     int
-	StackSize      int
-	Price          int
-	MinAC          int
-	MaxAC          int
-	MinMAC         int
-	MaxMAC         int
-	MinDC          int
-	MaxDC          int
-	MinMC          int
-	MaxMC          int
-	MinSC          int
-	MaxSC          int
-	HP             int
-	MP             int
-	Accuracy       int
-	Agility        int
-	Luck           int
-	AttackSpeed    int
-	StartItem      int
-	BagWeight      int
-	HandWeight     int
-	WearWeight     int
-	Effect         int
-	Strong         int
-	MagicResist    int
-	PoisonResist   int
-	HealthRecovery int
-	SpellRecovery  int
-	PoisonRecovery int
-	HpRate         int
-	MpRate         int
-	CriticalRate   int
-	CriticalDamage int
-	Bools          int
-	MaxAcRate      int
-	MaxMacRate     int
-	Holy           int
-	Freezing       int
-	PoisonAttack   int
-	Bind           int
-	Reflect        int
-	HpDrainRate    int
-	UniqueItem     int
-	RandomStatsId  int
-	CanFastRun     int
-	CanAwakening   int
+	Type           ItemType
+	Grade          ItemGrade
+	RequiredType   RequiredType
+	RequiredClass  RequiredClass
+	RequiredGender RequiredGender
+	ItemSet        ItemSet
+	Shape          int16
+	Weight         uint8
+	Light          uint8
+	RequiredAmount uint8
+	Image          uint16
+	Durability     uint16
+	StackSize      uint32
+	Price          uint32
+	MinAC          uint8
+	MaxAC          uint8
+	MinMAC         uint8
+	MaxMAC         uint8
+	MinDC          uint8
+	MaxDC          uint8
+	MinMC          uint8
+	MaxMC          uint8
+	MinSC          uint8
+	MaxSC          uint8
+	HP             uint16
+	MP             uint16
+	Accuracy       uint8
+	Agility        uint8
+	Luck           int8
+	AttackSpeed    int8
+	StartItem      bool
+	BagWeight      uint8
+	HandWeight     uint8
+	WearWeight     uint8
+	Effect         uint8
+	Strong         uint8
+	MagicResist    uint8
+	PoisonResist   uint8
+	HealthRecovery uint8
+	SpellRecovery  uint8
+	PoisonRecovery uint8
+	HpRate         uint8 // C# HRate
+	MpRate         uint8 // C# MRate
+	CriticalRate   uint8
+	CriticalDamage uint8
+	Bools          uint8
+	MaxAcRate      uint8
+	MaxMacRate     uint8
+	Holy           uint8
+	Freezing       uint8
+	PoisonAttack   uint8
+	Bind           int16
+	Reflect        uint8
+	HpDrainRate    uint8
+	UniqueItem     int16
+	RandomStatsId  uint8
+	CanFastRun     bool
+	CanAwakening   bool
 	ToolTip        string
 }
 

@@ -75,8 +75,8 @@ func main() {
 			log.Debugln(idStr + " NEW_CHARACTER")
 			session.Send(&client.NewCharacter{
 				Name:   "测试测试NewCharacter",
-				Gender: common.Male,
-				Class:  common.Taoist,
+				Gender: common.MirGenderMale,
+				Class:  common.MirClassTaoist,
 			})
 		default:
 			log.Debugln(idStr + " default")
