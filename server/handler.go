@@ -58,9 +58,12 @@ func (g *Game) EventHandler(ev cellnet.Event) {
 
 	// TODO 创建角色成功
 	case *client.NewCharacter:
+		log.Debugln(msg.Name, msg.Class, msg.Gender)
 		res := new(server.NewCharacterSuccess)
-		res.CharInfo.Index = 1
-		res.CharInfo.Name = "创建角色成功了"
+		res.CharInfo.Index = 0
+		res.CharInfo.Name = msg.Name
+		res.CharInfo.Class = msg.Class
+		res.CharInfo.Gender = msg.Gender
 		ev.Session().Send(res)
 
 	default:
