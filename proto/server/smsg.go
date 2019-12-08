@@ -230,7 +230,7 @@ type StartGame struct {
 	 * 3: Start Game Error
 	 * */
 
-	Resolution int16
+	Resolution int32
 }
 
 type StartGameBanned struct {
@@ -255,6 +255,11 @@ type MapInformation struct {
 
 // TODO
 type UserInformation struct {
+	Bytes []byte
+}
+
+// TODO
+type UserInformation_tmp struct {
 	ObjectID                  uint32
 	RealId                    uint32
 	Name                      string
