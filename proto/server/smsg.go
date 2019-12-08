@@ -116,6 +116,87 @@ const (
 	REMOVE_MAGIC
 	MAGIC_LEVELED
 	MAGIC
+	MAGIC_DELAY
+	MAGIC_CAST
+	OBJECT_MAGIC
+	OBJECT_EFFECT
+	RANGE_ATTACK
+	PUSHED
+	OBJECT_PUSHED
+	OBJECT_NAME
+	USER_STORAGE
+	SWITCH_GROUP
+	DELETE_GROUP
+	DELETE_MEMBER
+	GROUP_INVITE
+	ADD_MEMBER
+	REVIVED
+	OBJECT_REVIVED
+	SPELL_TOGGLE
+	OBJECT_HEALTH
+	MAP_EFFECT
+	OBJECT_RANGE_ATTACK
+	ADD_BUFF
+	REMOVE_BUFF
+	OBJECT_HIDDEN
+	REFRESH_ITEM
+	OBJECT_SPELL
+	USER_DASH
+	OBJECT_DASH
+	USER_DASH_FAIL
+	OBJECT_DASH_FAIL
+	NPC_CONSIGN
+	NPC_MARKET
+	NPC_MARKET_PAGE
+	CONSIGN_ITEM
+	MARKET_FAIL
+	MARKET_SUCCESS
+	OBJECT_SIT_DOWN
+	IN_TRAP_ROCK
+	BASE_STATS_INFO
+	USER_NAME
+	CHAT_ITEM_STATS
+	GUILD_NOTICE_CHANGE
+	GUILD_MEMBER_CHANGE
+	GUILD_STATUS
+	GUILD_INVITE
+	GUILD_EXP_GAIN
+	GUILD_NAME_REQUEST
+	GUILD_STORAGE_GOLD_CHANGE
+	GUILD_STORAGE_ITEM_CHANGE
+	GUILD_STORAGE_LIST
+	GUILD_REQUEST_WAR
+	DEFAULT_NPC
+	NPC_UPDATE
+	NPC_IMAGE_UPDATE
+	MARRIAGE_REQUEST
+	DIVORCE_REQUEST
+	MENTOR_REQUEST
+	TRADE_REQUEST
+	TRADE_ACCEPT
+	TRADE_GOLD
+	TRADE_ITEM
+	TRADE_CONFIRM
+	TRADE_CANCEL
+	MOUNT_UPDATE
+	EQUIP_SLOT_ITEM
+	FISHING_UPDATE
+	CHANGE_QUEST
+	COMPLETE_QUEST
+	SHARE_QUEST
+	NEW_QUEST_INFO
+	GAINED_QUEST_ITEM
+	DELETE_QUEST_ITEM
+	CANCEL_REINCARNATION
+	REQUEST_REINCARNATION
+	USER_BACK_STEP
+	OBJECT_BACK_STEP
+	USER_DASH_ATTACK
+	OBJECT_DASH_ATTACK
+	USER_ATTACK_MOVE
+	COMBINE_ITEM
+	ITEM_UPGRADED
+	SET_CONCENTRATION
 )
 
 type Connected struct{}
@@ -375,6 +456,92 @@ type NewMagic struct{}
 type RemoveMagic struct{}
 type MagicLeveled struct{}
 type Magic struct{}
+type MagicDelay struct{}
+type MagicCast struct{}
+type ObjectMagic struct{}
+type ObjectEffect struct{}
+type RangeAttack struct{}
+type Pushed struct{}
+type ObjectPushed struct{}
+type ObjectName struct{}
+type UserStorage struct{}
+type SwitchGroup struct{}
+type DeleteGroup struct{}
+type DeleteMember struct{}
+type GroupInvite struct{}
+type AddMember struct{}
+type Revived struct{}
+type ObjectRevived struct{}
+type SpellToggle struct{}
+type ObjectHealth struct{}
+type MapEffect struct{}
+type ObjectRangeAttack struct{}
+type AddBuff struct{}
+type RemoveBuff struct{}
+type ObjectHidden struct{}
+type RefreshItem struct{}
+type ObjectSpell struct{}
+type UserDash struct{}
+type ObjectDash struct{}
+type UserDashFail struct{}
+type ObjectDashFail struct{}
+type NPCConsign struct{}
+type NPCMarket struct{}
+type NPCMarketPage struct{}
+type ConsignItem struct{}
+type MarketFail struct{}
+type MarketSuccess struct{}
+type ObjectSitDown struct{}
+type InTrapRock struct{}
+type BaseStatsInfo struct{}
+type UserName struct{}
+type ChatItemStats struct{}
+type GuildNoticeChange struct{}
+type GuildMemberChange struct{}
+type GuildStatus struct{}
+type GuildInvite struct{}
+type GuildExpGain struct{}
+type GuildNameRequest struct{}
+type GuildStorageGoldChange struct{}
+type GuildStorageItemChange struct{}
+type GuildStorageList struct{}
+type GuildRequestWar struct{}
+type DefaultNPC struct{}
+type NPCUpdate struct{}
+type NPCImageUpdate struct{}
+type MarriageRequest struct{}
+type DivorceRequest struct{}
+type MentorRequest struct{}
+type TradeRequest struct{}
+type TradeAccept struct{}
+type TradeGold struct{}
+type TradeItem struct{}
+type TradeConfirm struct{}
+type TradeCancel struct{}
+type MountUpdate struct{}
+type EquipSlotItem struct{}
+type FishingUpdate struct{}
+type ChangeQuest struct{}
+type CompleteQuest struct{}
+type ShareQuest struct{}
+type NewQuestInfo struct{}
+type GainedQuestItem struct{}
+type DeleteQuestItem struct{}
+type CancelReincarnation struct{}
+type RequestReincarnation struct{}
+type UserBackStep struct{}
+type ObjectBackStep struct{}
+type UserDashAttack struct{}
+type ObjectDashAttack struct{}
+type UserAttackMove struct{}
+type CombineItem struct{}
+type ItemUpgraded struct{}
+
+type SetConcentration struct {
+	ObjectID    uint32
+	Enabled     bool
+	Interrupted bool
+}
 
 // 引用消息时，自动注册消息，这个文件可以由代码生成自动生成
 func init() {
@@ -900,5 +1067,12 @@ func init() {
 		Codec: mirCodec,
 		Type:  reflect.TypeOf((*Magic)(nil)).Elem(),
 		ID:    MAGIC,
+	})
+
+	// FIXME 临时添加，前面还有很多未注册
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*SetConcentration)(nil)).Elem(),
+		ID:    SET_CONCENTRATION,
 	})
 }

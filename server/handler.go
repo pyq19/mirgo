@@ -69,12 +69,17 @@ func (g *Game) EventHandler(ev cellnet.Event) {
 
 	// TODO
 	case *client.StartGame:
-		// TODO SetConcentration
+		// SetConcentration
+		sc := new(server.SetConcentration)
+		sc.ObjectID = 66432
+		sc.Enabled = false
+		sc.Interrupted = false
+		ev.Session().Send(sc)
 
 		// StartGame
 		sg := new(server.StartGame)
-		sg.Resolution = common.Down
 		sg.Result = 4
+		sg.Resolution = 1024
 		ev.Session().Send(sg)
 
 		// MapInformation

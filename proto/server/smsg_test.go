@@ -75,7 +75,7 @@ func TestUserInformation(t *testing.T) {
 		0, 0,
 		0, 0, 0, 0,
 		1, 0, 0, 0,
-		0, 	// AC
+		0, // AC
 		0,
 		0,
 		0,
@@ -85,7 +85,7 @@ func TestUserInformation(t *testing.T) {
 		0,
 		0,
 		0,
-		0,	// Luck
+		0,                  // Luck
 		255, 255, 255, 255, // SoulBoundId
 		0,
 		0,
@@ -98,4 +98,37 @@ func TestUserInformation(t *testing.T) {
 		panic(err)
 	}
 	t.Log(msg)
+}
+
+func TestStartGame(t *testing.T) {
+	codec := new(mircodec.MirCodec)
+	b := []byte{4, 0, 4, 0, 0}
+	s1 := new(StartGame)
+	if err := codec.Decode(b, s1); err != nil {
+		panic(err)
+	}
+	t.Log("decode:", s1)
+
+	s2 := new(StartGame)
+	s2.Result = 4
+	s2.Resolution = 1024
+	ctx := new(cellnet.ContextSet)
+	bytes, _ := codec.Encode(s2, *ctx)
+	t.Log("encode:", bytes)
+}
+
+func TestSetConcentration(t *testing.T) {
+	codec := new(mircodec.MirCodec)
+	bytes := []byte{128, 3, 1, 0, 0, 0}
+	obj := new(SetConcentration)
+	codec.Decode(bytes, obj)
+	t.Log(obj)
+
+	obj2 := new(SetConcentration)
+	obj2.ObjectID = 66432
+	obj2.Enabled = false
+	obj2.Interrupted = false
+	ctx := new(cellnet.ContextSet)
+	bytes2, _ := codec.Encode(obj2, *ctx)
+	t.Log(bytes2)
 }
