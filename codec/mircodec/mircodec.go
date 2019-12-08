@@ -62,6 +62,13 @@ func encode(obj interface{}) (bytes []byte, err error) {
 				return bytes, err
 			}
 			bytes = append(bytes, data...)
+		case reflect.Bool:
+			vv := f.Interface().(bool)
+			b := byte(0)
+			if vv == true {
+				b = 1
+			}
+			bytes = append(bytes, b)
 		case reflect.String:
 			vv := f.Interface().(string)
 			sb := StringToBytes(vv)
@@ -135,6 +142,14 @@ func decodeValue(f reflect.Value, bytes []byte) []byte {
 		i, s := ReadString(bytes, 0)
 		f.SetString(s)
 		bytes = bytes[i:]
+	case reflect.Bool:
+		tmp := bytes[0]
+		b := true
+		if tmp == 0 {
+			b = false
+		}
+		f.SetBool(b)
+		bytes = bytes[1:]
 	case reflect.Int8:
 		f.SetInt(int64(bytes[0]))
 		bytes = bytes[1:]

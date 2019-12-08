@@ -16,3 +16,13 @@ const (
 	Assassin
 	Archer
 )
+
+type LightSetting uint8
+
+const (
+	Normal  LightSetting = 0
+	Dawn                 = 1
+	Day                  = 2
+	Evening              = 3
+	Night                = 4
+)
