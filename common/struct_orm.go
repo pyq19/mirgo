@@ -88,6 +88,7 @@ type ItemInfo struct {
 	RandomStatsId  uint8
 	CanFastRun     bool
 	CanAwakening   bool
+	IsToolTip      bool
 	ToolTip        string
 }
 
