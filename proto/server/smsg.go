@@ -233,9 +233,26 @@ type StartGame struct {
 	Resolution int16
 }
 
-type StartGameBanned struct{}
-type StartGameDelay struct{}
-type MapInformation struct{}
+type StartGameBanned struct {
+	Reason     string
+	ExpiryDate int64 // DateTime
+}
+
+type StartGameDelay struct {
+	Milliseconds int64
+}
+
+type MapInformation struct {
+	FileName     string
+	Title        string
+	MiniMap      uint16
+	BigMap       uint16
+	Music        uint16
+	Lights       common.LightSetting
+	Lightning    bool
+	MapDarkLight uint8
+}
+
 type UserInformation struct{}
 type UserLocation struct{}
 type ObjectPlayer struct{}
