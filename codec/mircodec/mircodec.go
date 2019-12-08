@@ -160,23 +160,30 @@ func decodeValue(f reflect.Value, bytes []byte) []byte {
 		f.SetUint(BytesToUint64(bytes[:8]))
 		bytes = bytes[8:]
 	case reflect.Slice:
-		// TODO
-		if f.Type().Elem().Kind() == reflect.Uint8 {
+		e := f.Type().Elem()
+		if e.Kind() == reflect.Uint8 {
 			l := BytesToUint32(bytes[:4])
 			f.SetBytes(bytes[:l+4])
 			bytes = bytes[l+4:]
+		} else if e.Kind() == reflect.Struct {
+			l := e.NumField()
+			bytes = bytes[4:]
+			slice := reflect.MakeSlice(f.Type(), l, l)
+			for i := 0; i < l; i++ {
+				sliceValue := reflect.New(slice.Type().Elem()).Elem()
+				bytes = decodeValue(sliceValue, bytes)
+				slice.Index(i).Set(sliceValue)
+			}
+			f.Set(slice)
 		} else {
-
+			// FIXME 还有别的类型可能会报错
+			log.Errorln("!!!暂不支持的类型解码，待完善")
 		}
-
-		// FIXME 还有别的类型可能会报错
-		//l := BytesToUint32(bytes[:4]) // 前4个字节表示长度
-		//bytes = bytes[4:]
-		//log.Debugln(l)
-
 	default:
 		log.Errorln(f.Type(), "解码错误")
 	}
+	//kk := f.Type().Kind()
+	//log.Debugln(kk)
 	return bytes
 }
 
