@@ -379,7 +379,11 @@ type ObjectWalk struct{}
 type ObjectRun struct{}
 type Chat struct{}
 type ObjectChat struct{}
-type NewItemInfo struct{}
+
+type NewItemInfo struct {
+	Info common.ItemInfo
+}
+
 type MoveItem struct{}
 type EquipItem struct{}
 type MergeItem struct{}

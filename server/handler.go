@@ -44,15 +44,15 @@ func (g *Game) EventHandler(ev cellnet.Event) {
 		c1 := new(common.SelectInfo)
 		c1.Name = "测试登陆1"
 		c1.Index = 1
-		c1.Gender = common.Female
-		c1.Class = common.Archer
+		c1.Gender = common.MirGenderFemale
+		c1.Class = common.MirClassArcher
 		res.Characters = append(res.Characters, *c1)
 
 		c2 := new(common.SelectInfo)
 		c2.Name = "测试登陆2"
 		c2.Index = 2
-		c2.Gender = common.Female
-		c2.Class = common.Taoist
+		c2.Gender = common.MirGenderFemale
+		c2.Class = common.MirClassAssassin
 		res.Characters = append(res.Characters, *c2)
 
 		ev.Session().Send(res)
