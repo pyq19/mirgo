@@ -40,8 +40,7 @@ func GetPacketName(t string, i int) string {
 	if t == "server" {
 		pktId = 2000 + i
 	}
-	log.Debugln(pktId)
-	return PacketNameMap[pktId]
+	return t + "." + PacketNameMap[pktId]
 }
 
 // 接收Length-Type-Value格式的封包流程
