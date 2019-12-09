@@ -197,6 +197,59 @@ const (
 	COMBINE_ITEM
 	ITEM_UPGRADED
 	SET_CONCENTRATION
+	SET_OBJECT_CONCENTRATION
+	SET_ELEMENTAL
+	SET_OBJECT_ELEMENTAL
+	REMOVE_DELAYED_EXPLOSION
+	OBJECT_DECO
+	OBJECT_SNEAKING
+	OBJECT_LEVEL_EFFECTS
+	SET_BINDING_SHOT
+	SEND_OUTPUT_MESSAGE
+	NPC_AWAKENING
+	NPC_DISASSEMBLE
+	NPC_DOWNGRADE
+	NPC_RESET
+	AWAKENING_NEED_MATERIALS
+	AWAKENING_LOCKED_ITEM
+	AWAKENING
+	RECEIVE_MAIL
+	MAIL_LOCKED_ITEM
+	MAIL_SEND_REQUEST
+	MAIL_SENT
+	PARCEL_COLLECTED
+	MAIL_COST
+	RESIZE_INVENTORY
+	RESIZE_STORAGE
+	NEW_INTELLIGENT_CREATURE
+	UPDATE_INTELLIGENT_CREATURElIST
+	INTELLIGENT_CREATURE_ENABLE_RENAME
+	INTELLIGENT_CREATURE_PICKUP
+	NPC_PEARL_GOODS
+	TRANSFORM_UPDATE
+	FRIEND_UPDATE
+	LOVER_UPDATE
+	MENTOR_UPDATE
+	GUILD_BUFF_LIST
+	NPC_REQUEST_INPUT
+	GAME_SHOP_INFO
+	GAME_SHOP_STOCK
+	RANKINGS
+	OPENDOOR
+	GET_RENTED_ITEMS
+	ITEM_RENTAL_REQUEST
+	ITEM_RENTAL_FEE
+	ITEM_RENTAL_PERIOD
+	DEPOSIT_RENTAL_ITEM
+	RETRIEVE_RENTAL_ITEM
+	UPDATE_RENTAL_ITEM
+	CANCEL_ITEM_RENTAL
+	ITEM_RENTAL_LOCK
+	ITEM_RENTAL_PARTNER_LOCK
+	CAN_CONFIRM_ITEM_RENTAL
+	CONFIRM_ITEM_RENTAL
+	NEW_RECIPE_INFO
+	OPEN_BROWSER
 )
 
 type Connected struct{}
@@ -546,6 +599,60 @@ type SetConcentration struct {
 	Enabled     bool
 	Interrupted bool
 }
+
+type SetObjectConcentration struct{}
+type SetElemental struct{}
+type SetObjectElemental struct{}
+type RemoveDelayedExplosion struct{}
+type ObjectDeco struct{}
+type ObjectSneaking struct{}
+type ObjectLevelEffects struct{}
+type SetBindingShot struct{}
+type SendOutputMessage struct{}
+type NPCAwakening struct{}
+type NPCDisassemble struct{}
+type NPCDowngrade struct{}
+type NPCReset struct{}
+type AwakeningNeedMaterials struct{}
+type AwakeningLockedItem struct{}
+type Awakening struct{}
+type ReceiveMail struct{}
+type MailLockedItem struct{}
+type MailSendRequest struct{}
+type MailSent struct{}
+type ParcelCollected struct{}
+type MailCost struct{}
+type ResizeInventory struct{}
+type ResizeStorage struct{}
+type NewIntelligentCreature struct{}
+type UpdateIntelligentCreatureList struct{}
+type IntelligentCreatureEnableRename struct{}
+type IntelligentCreaturePickup struct{}
+type NPCPearlGoods struct{}
+type TransformUpdate struct{}
+type FriendUpdate struct{}
+type LoverUpdate struct{}
+type MentorUpdate struct{}
+type GuildBuffList struct{}
+type NPCRequestInput struct{}
+type GameShopInfo struct{}
+type GameShopStock struct{}
+type Rankings struct{}
+type Opendoor struct{}
+type GetRentedItems struct{}
+type ItemRentalRequest struct{}
+type ItemRentalFee struct{}
+type ItemRentalPeriod struct{}
+type DepositRentalItem struct{}
+type RetrieveRentalItem struct{}
+type UpdateRentalItem struct{}
+type CancelItemRental struct{}
+type ItemRentalLock struct{}
+type ItemRentalPartnerLock struct{}
+type CanConfirmItemRental struct{}
+type ConfirmItemRental struct{}
+type NewRecipeInfo struct{}
+type OpenBrowser struct{}
 
 // 引用消息时，自动注册消息，这个文件可以由代码生成自动生成
 func init() {
@@ -1477,4 +1584,270 @@ func init() {
 		Type:  reflect.TypeOf((*SetConcentration)(nil)).Elem(),
 		ID:    SET_CONCENTRATION,
 	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*SetObjectConcentration)(nil)).Elem(),
+		ID:    SET_OBJECT_CONCENTRATION,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*SetElemental)(nil)).Elem(),
+		ID:    SET_ELEMENTAL,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*SetObjectElemental)(nil)).Elem(),
+		ID:    SET_OBJECT_ELEMENTAL,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*RemoveDelayedExplosion)(nil)).Elem(),
+		ID:    REMOVE_DELAYED_EXPLOSION,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*ObjectDeco)(nil)).Elem(),
+		ID:    OBJECT_DECO,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*ObjectSneaking)(nil)).Elem(),
+		ID:    OBJECT_SNEAKING,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*ObjectLevelEffects)(nil)).Elem(),
+		ID:    OBJECT_LEVEL_EFFECTS,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*SetBindingShot)(nil)).Elem(),
+		ID:    SET_BINDING_SHOT,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*SendOutputMessage)(nil)).Elem(),
+		ID:    SEND_OUTPUT_MESSAGE,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*NPCAwakening)(nil)).Elem(),
+		ID:    NPC_AWAKENING,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*NPCDisassemble)(nil)).Elem(),
+		ID:    NPC_DISASSEMBLE,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*NPCDowngrade)(nil)).Elem(),
+		ID:    NPC_DOWNGRADE,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*NPCReset)(nil)).Elem(),
+		ID:    NPC_RESET,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*AwakeningNeedMaterials)(nil)).Elem(),
+		ID:    AWAKENING_NEED_MATERIALS,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*AwakeningLockedItem)(nil)).Elem(),
+		ID:    AWAKENING_LOCKED_ITEM,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*Awakening)(nil)).Elem(),
+		ID:    AWAKENING,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*ReceiveMail)(nil)).Elem(),
+		ID:    RECEIVE_MAIL,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*MailLockedItem)(nil)).Elem(),
+		ID:    MAIL_LOCKED_ITEM,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*MailSendRequest)(nil)).Elem(),
+		ID:    MAIL_SEND_REQUEST,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*MailSent)(nil)).Elem(),
+		ID:    MAIL_SENT,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*ParcelCollected)(nil)).Elem(),
+		ID:    PARCEL_COLLECTED,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*MailCost)(nil)).Elem(),
+		ID:    MAIL_COST,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*ResizeInventory)(nil)).Elem(),
+		ID:    RESIZE_INVENTORY,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*ResizeStorage)(nil)).Elem(),
+		ID:    RESIZE_STORAGE,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*NewIntelligentCreature)(nil)).Elem(),
+		ID:    NEW_INTELLIGENT_CREATURE,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*UpdateIntelligentCreatureList)(nil)).Elem(),
+		ID:    UPDATE_INTELLIGENT_CREATURElIST,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*IntelligentCreatureEnableRename)(nil)).Elem(),
+		ID:    INTELLIGENT_CREATURE_ENABLE_RENAME,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*IntelligentCreaturePickup)(nil)).Elem(),
+		ID:    INTELLIGENT_CREATURE_PICKUP,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*NPCPearlGoods)(nil)).Elem(),
+		ID:    NPC_PEARL_GOODS,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*TransformUpdate)(nil)).Elem(),
+		ID:    TRANSFORM_UPDATE,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*FriendUpdate)(nil)).Elem(),
+		ID:    FRIEND_UPDATE,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*LoverUpdate)(nil)).Elem(),
+		ID:    LOVER_UPDATE,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*MentorUpdate)(nil)).Elem(),
+		ID:    MENTOR_UPDATE,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*GuildBuffList)(nil)).Elem(),
+		ID:    GUILD_BUFF_LIST,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*NPCRequestInput)(nil)).Elem(),
+		ID:    NPC_REQUEST_INPUT,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*GameShopInfo)(nil)).Elem(),
+		ID:    GAME_SHOP_INFO,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*GameShopStock)(nil)).Elem(),
+		ID:    GAME_SHOP_STOCK,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*Rankings)(nil)).Elem(),
+		ID:    RANKINGS,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*Opendoor)(nil)).Elem(),
+		ID:    OPENDOOR,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*GetRentedItems)(nil)).Elem(),
+		ID:    GET_RENTED_ITEMS,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*ItemRentalRequest)(nil)).Elem(),
+		ID:    ITEM_RENTAL_REQUEST,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*ItemRentalFee)(nil)).Elem(),
+		ID:    ITEM_RENTAL_FEE,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*ItemRentalPeriod)(nil)).Elem(),
+		ID:    ITEM_RENTAL_PERIOD,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*DepositRentalItem)(nil)).Elem(),
+		ID:    DEPOSIT_RENTAL_ITEM,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*RetrieveRentalItem)(nil)).Elem(),
+		ID:    RETRIEVE_RENTAL_ITEM,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*UpdateRentalItem)(nil)).Elem(),
+		ID:    UPDATE_RENTAL_ITEM,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*CancelItemRental)(nil)).Elem(),
+		ID:    CANCEL_ITEM_RENTAL,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*ItemRentalLock)(nil)).Elem(),
+		ID:    ITEM_RENTAL_LOCK,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*ItemRentalPartnerLock)(nil)).Elem(),
+		ID:    ITEM_RENTAL_PARTNER_LOCK,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*CanConfirmItemRental)(nil)).Elem(),
+		ID:    CAN_CONFIRM_ITEM_RENTAL,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*ConfirmItemRental)(nil)).Elem(),
+		ID:    CONFIRM_ITEM_RENTAL,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*NewRecipeInfo)(nil)).Elem(),
+		ID:    NEW_RECIPE_INFO,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*OpenBrowser)(nil)).Elem(),
+		ID:    OPEN_BROWSER,
+	})
+
 }
