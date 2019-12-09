@@ -14,10 +14,9 @@ type SelectInfo struct {
 	LastAccess int64
 }
 
-// TODO
 type UserItem struct {
 	UniqueID       uint64
-	ItemIndex      uint32
+	ItemIndex      int32
 	CurrentDura    uint16
 	MaxDura        uint16
 	Count          uint32
@@ -30,8 +29,8 @@ type UserItem struct {
 	Agility        uint8
 	HP             uint8
 	MP             uint8
-	AttackSpeed    uint8
-	Luck           uint8
+	AttackSpeed    int8
+	Luck           int8
 	SoulBoundId    uint32
 	Bools          uint8
 	Identified     bool
@@ -46,18 +45,4 @@ type UserItem struct {
 	CriticalDamage uint8
 	Freezing       uint8
 	PoisonAttack   uint8
-	//writer.Write(Slots.Length);
-	//for (int i = 0; i < Slots.Length; i++)
-	//{	writer.Write(Slots[i] == null);
-	//	if (Slots[i] == null) continue;
-	//	Slots[i].Save(writer); }
-	//writer.Write(GemCount);
-	//Awake.Save(writer);
-	//writer.Write((byte)RefinedValue);
-	//writer.Write(RefineAdded);
-	//writer.Write(WeddingRing);
-	//writer.Write(ExpireInfo != null);
-	//ExpireInfo?.Save(writer);
-	//writer.Write(RentalInformation != null);
-	//RentalInformation?.Save(writer)
 }

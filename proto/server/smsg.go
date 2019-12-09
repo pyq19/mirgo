@@ -384,36 +384,29 @@ type MapInformation struct {
 	MapDarkLight uint8
 }
 
-// TODO
 type UserInformation struct {
-	ObjectID                  uint32
-	RealId                    uint32
-	Name                      string
-	GuildName                 string
-	GuildRank                 string
-	NameColour                uint32
-	Class                     common.MirClass
-	Gender                    common.MirGender
-	Level                     uint16
-	Location                  common.Point
-	Direction                 common.MirDirection
-	Hair                      uint8
-	HP                        uint16
-	MP                        uint16
-	Experience                int64
-	MaxExperience             int64
-	LevelEffect               common.LevelEffects
-	Inventory                 []common.UserItem
-	Equipment                 []common.UserItem
-	QuestInventory            []common.UserItem
-	Gold                      uint32
-	Credit                    uint32
-	HasExpandedStorage        bool
-	ExpandedStorageExpiryTime uint64 // DateTime
-	//Magics                    interface{} // []ClientMagic
-	//IntelligentCreatures      interface{} // []ClientIntelligentCreature // TODO
-	//IntelligentCreatureType   uint8       // IntelligentCreatureType 忽略
-	//CreatureSummoned          bool
+	ObjectID       uint32
+	RealId         uint32
+	Name           string
+	GuildName      string
+	GuildRank      string
+	NameColour     uint32
+	Class          common.MirClass
+	Gender         common.MirGender
+	Level          uint16
+	Location       common.Point
+	Direction      common.MirDirection
+	Hair           uint8
+	HP             uint16
+	MP             uint16
+	Experience     int64
+	MaxExperience  int64
+	LevelEffect    common.LevelEffects
+	Inventory      []common.UserItem
+	Equipment      []common.UserItem
+	QuestInventory []common.UserItem
+	Gold           uint32
+	Credit         uint32
 }
 
 type UserLocation struct{}
