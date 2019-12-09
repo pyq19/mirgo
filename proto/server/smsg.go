@@ -1072,8 +1072,406 @@ func init() {
 		Type:  reflect.TypeOf((*Magic)(nil)).Elem(),
 		ID:    MAGIC,
 	})
-
-	// FIXME 临时添加，前面还有很多未注册
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*MagicDelay)(nil)).Elem(),
+		ID:    MAGIC_DELAY,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*MagicCast)(nil)).Elem(),
+		ID:    MAGIC_CAST,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*ObjectMagic)(nil)).Elem(),
+		ID:    OBJECT_MAGIC,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*ObjectEffect)(nil)).Elem(),
+		ID:    OBJECT_EFFECT,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*RangeAttack)(nil)).Elem(),
+		ID:    RANGE_ATTACK,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*Pushed)(nil)).Elem(),
+		ID:    PUSHED,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*ObjectPushed)(nil)).Elem(),
+		ID:    OBJECT_PUSHED,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*ObjectName)(nil)).Elem(),
+		ID:    OBJECT_NAME,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*UserStorage)(nil)).Elem(),
+		ID:    USER_STORAGE,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*SwitchGroup)(nil)).Elem(),
+		ID:    SWITCH_GROUP,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*DeleteGroup)(nil)).Elem(),
+		ID:    DELETE_GROUP,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*DeleteMember)(nil)).Elem(),
+		ID:    DELETE_MEMBER,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*GroupInvite)(nil)).Elem(),
+		ID:    GROUP_INVITE,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*AddMember)(nil)).Elem(),
+		ID:    ADD_MEMBER,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*Revived)(nil)).Elem(),
+		ID:    REVIVED,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*ObjectRevived)(nil)).Elem(),
+		ID:    OBJECT_REVIVED,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*SpellToggle)(nil)).Elem(),
+		ID:    SPELL_TOGGLE,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*ObjectHealth)(nil)).Elem(),
+		ID:    OBJECT_HEALTH,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*MapEffect)(nil)).Elem(),
+		ID:    MAP_EFFECT,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*ObjectRangeAttack)(nil)).Elem(),
+		ID:    OBJECT_RANGE_ATTACK,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*AddBuff)(nil)).Elem(),
+		ID:    ADD_BUFF,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*RemoveBuff)(nil)).Elem(),
+		ID:    REMOVE_BUFF,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*ObjectHidden)(nil)).Elem(),
+		ID:    OBJECT_HIDDEN,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*RefreshItem)(nil)).Elem(),
+		ID:    REFRESH_ITEM,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*ObjectSpell)(nil)).Elem(),
+		ID:    OBJECT_SPELL,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*UserDash)(nil)).Elem(),
+		ID:    USER_DASH,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*ObjectDash)(nil)).Elem(),
+		ID:    OBJECT_DASH,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*UserDashFail)(nil)).Elem(),
+		ID:    USER_DASH_FAIL,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*ObjectDashFail)(nil)).Elem(),
+		ID:    OBJECT_DASH_FAIL,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*NPCConsign)(nil)).Elem(),
+		ID:    NPC_CONSIGN,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*NPCMarket)(nil)).Elem(),
+		ID:    NPC_MARKET,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*NPCMarketPage)(nil)).Elem(),
+		ID:    NPC_MARKET_PAGE,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*ConsignItem)(nil)).Elem(),
+		ID:    CONSIGN_ITEM,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*MarketFail)(nil)).Elem(),
+		ID:    MARKET_FAIL,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*MarketSuccess)(nil)).Elem(),
+		ID:    MARKET_SUCCESS,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*ObjectSitDown)(nil)).Elem(),
+		ID:    OBJECT_SIT_DOWN,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*InTrapRock)(nil)).Elem(),
+		ID:    IN_TRAP_ROCK,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*BaseStatsInfo)(nil)).Elem(),
+		ID:    BASE_STATS_INFO,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*UserName)(nil)).Elem(),
+		ID:    USER_NAME,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*ChatItemStats)(nil)).Elem(),
+		ID:    CHAT_ITEM_STATS,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*GuildNoticeChange)(nil)).Elem(),
+		ID:    GUILD_NOTICE_CHANGE,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*GuildMemberChange)(nil)).Elem(),
+		ID:    GUILD_MEMBER_CHANGE,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*GuildStatus)(nil)).Elem(),
+		ID:    GUILD_STATUS,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*GuildInvite)(nil)).Elem(),
+		ID:    GUILD_INVITE,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*GuildExpGain)(nil)).Elem(),
+		ID:    GUILD_EXP_GAIN,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*GuildNameRequest)(nil)).Elem(),
+		ID:    GUILD_NAME_REQUEST,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*GuildStorageGoldChange)(nil)).Elem(),
+		ID:    GUILD_STORAGE_GOLD_CHANGE,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*GuildStorageItemChange)(nil)).Elem(),
+		ID:    GUILD_STORAGE_ITEM_CHANGE,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*GuildStorageList)(nil)).Elem(),
+		ID:    GUILD_STORAGE_LIST,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*GuildRequestWar)(nil)).Elem(),
+		ID:    GUILD_REQUEST_WAR,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*DefaultNPC)(nil)).Elem(),
+		ID:    DEFAULT_NPC,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*NPCUpdate)(nil)).Elem(),
+		ID:    NPC_UPDATE,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*NPCImageUpdate)(nil)).Elem(),
+		ID:    NPC_IMAGE_UPDATE,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*MarriageRequest)(nil)).Elem(),
+		ID:    MARRIAGE_REQUEST,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*DivorceRequest)(nil)).Elem(),
+		ID:    DIVORCE_REQUEST,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*MentorRequest)(nil)).Elem(),
+		ID:    MENTOR_REQUEST,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*TradeRequest)(nil)).Elem(),
+		ID:    TRADE_REQUEST,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*TradeAccept)(nil)).Elem(),
+		ID:    TRADE_ACCEPT,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*TradeGold)(nil)).Elem(),
+		ID:    TRADE_GOLD,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*TradeItem)(nil)).Elem(),
+		ID:    TRADE_ITEM,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*TradeConfirm)(nil)).Elem(),
+		ID:    TRADE_CONFIRM,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*TradeCancel)(nil)).Elem(),
+		ID:    TRADE_CANCEL,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*MountUpdate)(nil)).Elem(),
+		ID:    MOUNT_UPDATE,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*EquipSlotItem)(nil)).Elem(),
+		ID:    EQUIP_SLOT_ITEM,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*FishingUpdate)(nil)).Elem(),
+		ID:    FISHING_UPDATE,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*ChangeQuest)(nil)).Elem(),
+		ID:    CHANGE_QUEST,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*CompleteQuest)(nil)).Elem(),
+		ID:    COMPLETE_QUEST,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*ShareQuest)(nil)).Elem(),
+		ID:    SHARE_QUEST,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*NewQuestInfo)(nil)).Elem(),
+		ID:    NEW_QUEST_INFO,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*GainedQuestItem)(nil)).Elem(),
+		ID:    GAINED_QUEST_ITEM,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*DeleteQuestItem)(nil)).Elem(),
+		ID:    DELETE_QUEST_ITEM,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*CancelReincarnation)(nil)).Elem(),
+		ID:    CANCEL_REINCARNATION,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*RequestReincarnation)(nil)).Elem(),
+		ID:    REQUEST_REINCARNATION,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*UserBackStep)(nil)).Elem(),
+		ID:    USER_BACK_STEP,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*ObjectBackStep)(nil)).Elem(),
+		ID:    OBJECT_BACK_STEP,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*UserDashAttack)(nil)).Elem(),
+		ID:    USER_DASH_ATTACK,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*ObjectDashAttack)(nil)).Elem(),
+		ID:    OBJECT_DASH_ATTACK,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*UserAttackMove)(nil)).Elem(),
+		ID:    USER_ATTACK_MOVE,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*CombineItem)(nil)).Elem(),
+		ID:    COMBINE_ITEM,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*ItemUpgraded)(nil)).Elem(),
+		ID:    ITEM_UPGRADED,
+	})
 	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
 		Codec: mirCodec,
 		Type:  reflect.TypeOf((*SetConcentration)(nil)).Elem(),
