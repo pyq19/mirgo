@@ -6,6 +6,7 @@ import (
 	"github.com/davyxu/cellnet"
 	"github.com/davyxu/cellnet/codec"
 	"github.com/davyxu/golog"
+	"github.com/yenkeia/mirgo/codec/mircodec"
 	"io"
 	"strconv"
 	"strings"
@@ -31,6 +32,16 @@ func String(bytes []byte) string {
 	}
 	res := strings.Join(strSlice, ", ")
 	return "[" + res + "]"
+}
+
+// GetPacketName 通过消息ID获取消息名字
+func GetPacketName(t string, i int) string {
+	pktId := 1000 + i
+	if t == "server" {
+		pktId = 2000 + i
+	}
+	log.Debugln(pktId)
+	return PacketNameMap[pktId]
 }
 
 // 接收Length-Type-Value格式的封包流程
@@ -65,7 +76,8 @@ func ClientRecvLTVPacket(reader io.Reader, maxPacketSize int) (msg interface{}, 
 	_, err = io.ReadFull(reader, body)
 
 	allBytes := append(sizeBuffer, body...)
-	log.Debugln("<--- 客户端收到 (" + strconv.Itoa(len(allBytes)) + "): " + String(allBytes))
+	packetName := GetPacketName("server", int(mircodec.BytesToUint16(body[:2])))
+	log.Debugln("<--- 客户端收到 (" + packetName + ") " + strconv.Itoa(len(allBytes)) + "字节: " + String(allBytes))
 
 	// 发生错误时返回
 	if err != nil {
@@ -136,7 +148,8 @@ func ClientSendLTVPacket(writer io.Writer, ctx cellnet.ContextSet, data interfac
 	// 将数据写入Socket
 	err := WriteFull(writer, pkt)
 
-	log.Debugln("---> 客户端发送 (" + strconv.Itoa(len(pkt)) + "): " + String(pkt))
+	packetName := GetPacketName("client", int(mircodec.BytesToUint16(pkt[2:4])))
+	log.Debugln("---> 客户端发送 (" + packetName + ") " + strconv.Itoa(len(pkt)) + "字节: " + String(pkt))
 
 	// Codec中使用内存池时的释放位置
 	if meta != nil {
@@ -178,7 +191,8 @@ func ServerRecvLTVPacket(reader io.Reader, maxPacketSize int) (msg interface{}, 
 	_, err = io.ReadFull(reader, body)
 
 	allBytes := append(sizeBuffer, body...)
-	log.Debugln("<--- 服务端收到 (" + strconv.Itoa(len(allBytes)) + "): " + String(allBytes))
+	packetName := GetPacketName("client", int(mircodec.BytesToUint16(body[:2])))
+	log.Debugln("<--- 服务端收到 (" + packetName + ") " + strconv.Itoa(len(allBytes)) + "字节: " + String(allBytes))
 
 	// 发生错误时返回
 	if err != nil {
@@ -250,7 +264,8 @@ func ServerSendLTVPacket(writer io.Writer, ctx cellnet.ContextSet, data interfac
 	// 将数据写入Socket
 	err := WriteFull(writer, pkt)
 
-	log.Debugln("---> 服务端发送 (" + strconv.Itoa(len(pkt)) + "): " + String(pkt))
+	packetName := GetPacketName("server", int(mircodec.BytesToUint16(pkt[2:4])))
+	log.Debugln("---> 服务端发送 (" + packetName + ") " + strconv.Itoa(len(pkt)) + "字节: " + String(pkt))
 
 	// Codec中使用内存池时的释放位置
 	if meta != nil {
