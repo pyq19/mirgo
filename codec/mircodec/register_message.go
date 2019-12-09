@@ -9,7 +9,7 @@ import (
 
 func init() {
 	initClientMessage()
-	//initServerMessage()
+	initServerMessage()
 }
 
 // 引用消息时，自动注册消息，这个文件可以由代码生成自动生成
