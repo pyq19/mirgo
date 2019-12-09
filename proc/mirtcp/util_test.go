@@ -15,7 +15,6 @@ func _String(bytes []byte) string {
 	return "[" + res + "]"
 }
 
-
 func TestString(t *testing.T) {
 	bytes := []byte{111, 11, 1}
 	t.Log(_String(bytes))

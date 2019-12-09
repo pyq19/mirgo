@@ -658,6 +658,7 @@ type OpenBrowser struct{}
 func init() {
 
 	mirCodec := new(mircodec.MirCodec)
+	mirUserInformationCodec := new(mircodec.MirUserInformationCodec)
 
 	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
 		Codec: mirCodec,
@@ -750,7 +751,7 @@ func init() {
 		ID:    MAP_INFORMATION,
 	})
 	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
-		Codec: mirCodec,
+		Codec: mirUserInformationCodec,
 		Type:  reflect.TypeOf((*UserInformation)(nil)).Elem(),
 		ID:    USER_INFORMATION,
 	})
