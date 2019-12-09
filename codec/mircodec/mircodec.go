@@ -26,22 +26,21 @@ func (m *MirCodec) MimeType() string {
 
 // Encode 将数据转换为字节数组
 func (*MirCodec) Encode(msgObj interface{}, ctx cellnet.ContextSet) (data interface{}, err error) {
-	data, err = encode(msgObj)
 
 	// TODO 测试用
 	v := reflect.ValueOf(msgObj)
 	if v.Kind() == reflect.Ptr {
 		v = v.Elem()
 	}
-	log.Debugf("---> %v 编码后得到: %v\n", v.Type().Name(), data)
+	log.Debugf("Encode %v\n", v.Type().Name())
 
-	return data, err
+	return encode(msgObj)
 }
 
 // Decode 将字节数组转换为数据
 func (*MirCodec) Decode(data interface{}, msgObj interface{}) error {
 	bytes := data.([]byte)
-	log.Debugln("<--- 收到:", bytes)
+	//log.Debugln("<--- 收到:", bytes)
 	return decode(msgObj, bytes)
 }
 

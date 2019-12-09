@@ -78,6 +78,9 @@ func main() {
 				Gender: common.MirGenderMale,
 				Class:  common.MirClassTaoist,
 			})
+		case client.START_GAME:
+			log.Debugln(idStr + " START_GAME")
+			session.Send(&client.StartGame{CharacterIndex: 1})
 		default:
 			log.Debugln(idStr + " default")
 		}

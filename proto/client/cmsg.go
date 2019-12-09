@@ -63,6 +63,88 @@ const (
 	S_REPAIR_ITEM
 	MAGIC_KEY
 	MAGIC
+	SWITCH_GROUP
+	ADD_MEMBER
+	DELL_MEMBER
+	GROUP_INVITE
+	TOWN_REVIVE
+	SPELL_TOGGLE
+	CONSIGN_ITEM
+	MARKET_SEARCH
+	MARKET_REFRESH
+	MARKET_PAGE
+	MARKET_BUY
+	MARKET_GET_BACK
+	REQUEST_USER_NAME
+	REQUEST_CHAT_ITEM
+	EDIT_GUILD_MEMBER
+	EDIT_GUILD_NOTICE
+	GUILD_INVITE
+	GUILD_NAME_RETURN
+	REQUEST_GUILD_INFO
+	GUILD_STORAGE_GOLD_CHANGE
+	GUILD_STORAGE_ITEM_CHANGE
+	GUILD_WAR_RETURN
+	MARRIAGE_REQUEST
+	MARRIAGE_REPLY
+	CHANGE_MARRIAGE
+	DIVORCE_REQUEST
+	DIVORCE_REPLY
+	ADD_MENTOR
+	MENTOR_REPLY
+	ALLOW_MENTOR
+	CANCEL_MENTOR
+	TRADE_REQUEST
+	TRADE_REPLY
+	TRADE_GOLD
+	TRADE_CONFIRM
+	TRADE_CANCEL
+	EQUIP_SLOT_ITEM
+	FISHING_CAST
+	FISHING_CHANGE_AUTOCAST
+	ACCEPT_QUEST
+	FINISH_QUEST
+	ABANDON_QUEST
+	SHARE_QUEST
+	ACCEPT_REINCARNATION
+	CANCEL_REINCARNATION
+	COMBINE_ITEM
+	SET_CONCENTRATION
+	AWAKENING_NEED_MATERIALS
+	AWAKENING_LOCKED_ITEM
+	AWAKENING
+	DISASSEMBLE_ITEM
+	DOWNGRADE_AWAKENING
+	RESET_ADDED_ITEM
+	SEND_MAIL
+	READ_MAIL
+	COLLECT_PARCEL
+	DELETE_MAIL
+	LOCK_MAIL
+	MAIL_LOCKED_ITEM
+	MAIL_COST
+	UPDATE_INTELLIGENT_CREATURE
+	INTELLIGENT_CREATURE_PICKUP
+	ADD_FRIEND
+	REMOVE_FRIEND
+	REFRESH_FRIENDS
+	ADD_MEMO
+	GUILD_BUFF_UPDATE
+	NPC_CONFIRM_INPUT
+	GAMESHOP_BUY
+	REPORT_ISSUE
+	GET_RANKING
+	OPENDOOR
+	GET_RENTED_ITEMS
+	ITEM_RENTAL_REQUEST
+	ITEM_RENTAL_FEE
+	ITEM_RENTAL_PERIOD
+	DEPOSIT_RENTAL_ITEM
+	RETRIEVE_RENTAL_ITEM
+	CANCEL_ITEM_RENTAL
+	ITEM_RENTAL_LOCK_FEE
+	ITEM_RENTAL_LOCK_ITEM
+	CONFIRM_ITEM_RENTAL
 )
 
 type ClientVersion struct {
@@ -152,6 +234,88 @@ type BuyItemBack struct{}
 type SRepairItem struct{}
 type MagicKey struct{}
 type Magic struct{}
+type SwitchGroup struct{}
+type AddMember struct{}
+type DellMember struct{}
+type GroupInvite struct{}
+type TownRevive struct{}
+type SpellToggle struct{}
+type ConsignItem struct{}
+type MarketSearch struct{}
+type MarketRefresh struct{}
+type MarketPage struct{}
+type MarketBuy struct{}
+type MarketGetBack struct{}
+type RequestUserName struct{}
+type RequestChatItem struct{}
+type EditGuildMember struct{}
+type EditGuildNotice struct{}
+type GuildInvite struct{}
+type GuildNameReturn struct{}
+type RequestGuildInfo struct{}
+type GuildStorageGoldChange struct{}
+type GuildStorageItemChange struct{}
+type GuildWarReturn struct{}
+type MarriageRequest struct{}
+type MarriageReply struct{}
+type ChangeMarriage struct{}
+type DivorceRequest struct{}
+type DivorceReply struct{}
+type AddMentor struct{}
+type MentorReply struct{}
+type AllowMentor struct{}
+type CancelMentor struct{}
+type TradeRequest struct{}
+type TradeReply struct{}
+type TradeGold struct{}
+type TradeConfirm struct{}
+type TradeCancel struct{}
+type EquipSlotItem struct{}
+type FishingCast struct{}
+type FishingChangeAutocast struct{}
+type AcceptQuest struct{}
+type FinishQuest struct{}
+type AbandonQuest struct{}
+type ShareQuest struct{}
+type AcceptReincarnation struct{}
+type CancelReincarnation struct{}
+type CombineItem struct{}
+type SetConcentration struct{}
+type AwakeningNeedMaterials struct{}
+type AwakeningLockedItem struct{}
+type Awakening struct{}
+type DisassembleItem struct{}
+type DowngradeAwakening struct{}
+type ResetAddedItem struct{}
+type SendMail struct{}
+type ReadMail struct{}
+type CollectParcel struct{}
+type DeleteMail struct{}
+type LockMail struct{}
+type MailLockedItem struct{}
+type MailCost struct{}
+type UpdateIntelligentCreature struct{}
+type IntelligentCreaturePickup struct{}
+type AddFriend struct{}
+type RemoveFriend struct{}
+type RefreshFriends struct{}
+type AddMemo struct{}
+type GuildBuffUpdate struct{}
+type NPCConfirmInput struct{}
+type GameshopBuy struct{}
+type ReportIssue struct{}
+type GetRanking struct{}
+type Opendoor struct{}
+type GetRentedItems struct{}
+type ItemRentalRequest struct{}
+type ItemRentalFee struct{}
+type ItemRentalPeriod struct{}
+type DepositRentalItem struct{}
+type RetrieveRentalItem struct{}
+type CancelItemRental struct{}
+type ItemRentalLockFee struct{}
+type ItemRentalLockItem struct{}
+type ConfirmItemRental struct{}
 
 // 引用消息时，自动注册消息，这个文件可以由代码生成自动生成
 func init() {
@@ -412,5 +576,415 @@ func init() {
 		Codec: mirCodec,
 		Type:  reflect.TypeOf((*Magic)(nil)).Elem(),
 		ID:    MAGIC,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*SwitchGroup)(nil)).Elem(),
+		ID:    SWITCH_GROUP,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*AddMember)(nil)).Elem(),
+		ID:    ADD_MEMBER,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*DellMember)(nil)).Elem(),
+		ID:    DELL_MEMBER,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*GroupInvite)(nil)).Elem(),
+		ID:    GROUP_INVITE,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*TownRevive)(nil)).Elem(),
+		ID:    TOWN_REVIVE,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*SpellToggle)(nil)).Elem(),
+		ID:    SPELL_TOGGLE,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*ConsignItem)(nil)).Elem(),
+		ID:    CONSIGN_ITEM,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*MarketSearch)(nil)).Elem(),
+		ID:    MARKET_SEARCH,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*MarketRefresh)(nil)).Elem(),
+		ID:    MARKET_REFRESH,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*MarketPage)(nil)).Elem(),
+		ID:    MARKET_PAGE,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*MarketBuy)(nil)).Elem(),
+		ID:    MARKET_BUY,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*MarketGetBack)(nil)).Elem(),
+		ID:    MARKET_GET_BACK,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*RequestUserName)(nil)).Elem(),
+		ID:    REQUEST_USER_NAME,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*RequestChatItem)(nil)).Elem(),
+		ID:    REQUEST_CHAT_ITEM,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*EditGuildMember)(nil)).Elem(),
+		ID:    EDIT_GUILD_MEMBER,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*EditGuildNotice)(nil)).Elem(),
+		ID:    EDIT_GUILD_NOTICE,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*GuildInvite)(nil)).Elem(),
+		ID:    GUILD_INVITE,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*GuildNameReturn)(nil)).Elem(),
+		ID:    GUILD_NAME_RETURN,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*RequestGuildInfo)(nil)).Elem(),
+		ID:    REQUEST_GUILD_INFO,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*GuildStorageGoldChange)(nil)).Elem(),
+		ID:    GUILD_STORAGE_GOLD_CHANGE,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*GuildStorageItemChange)(nil)).Elem(),
+		ID:    GUILD_STORAGE_ITEM_CHANGE,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*GuildWarReturn)(nil)).Elem(),
+		ID:    GUILD_WAR_RETURN,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*MarriageRequest)(nil)).Elem(),
+		ID:    MARRIAGE_REQUEST,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*MarriageReply)(nil)).Elem(),
+		ID:    MARRIAGE_REPLY,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*ChangeMarriage)(nil)).Elem(),
+		ID:    CHANGE_MARRIAGE,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*DivorceRequest)(nil)).Elem(),
+		ID:    DIVORCE_REQUEST,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*DivorceReply)(nil)).Elem(),
+		ID:    DIVORCE_REPLY,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*AddMentor)(nil)).Elem(),
+		ID:    ADD_MENTOR,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*MentorReply)(nil)).Elem(),
+		ID:    MENTOR_REPLY,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*AllowMentor)(nil)).Elem(),
+		ID:    ALLOW_MENTOR,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*CancelMentor)(nil)).Elem(),
+		ID:    CANCEL_MENTOR,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*TradeRequest)(nil)).Elem(),
+		ID:    TRADE_REQUEST,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*TradeReply)(nil)).Elem(),
+		ID:    TRADE_REPLY,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*TradeGold)(nil)).Elem(),
+		ID:    TRADE_GOLD,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*TradeConfirm)(nil)).Elem(),
+		ID:    TRADE_CONFIRM,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*TradeCancel)(nil)).Elem(),
+		ID:    TRADE_CANCEL,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*EquipSlotItem)(nil)).Elem(),
+		ID:    EQUIP_SLOT_ITEM,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*FishingCast)(nil)).Elem(),
+		ID:    FISHING_CAST,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*FishingChangeAutocast)(nil)).Elem(),
+		ID:    FISHING_CHANGE_AUTOCAST,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*AcceptQuest)(nil)).Elem(),
+		ID:    ACCEPT_QUEST,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*FinishQuest)(nil)).Elem(),
+		ID:    FINISH_QUEST,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*AbandonQuest)(nil)).Elem(),
+		ID:    ABANDON_QUEST,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*ShareQuest)(nil)).Elem(),
+		ID:    SHARE_QUEST,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*AcceptReincarnation)(nil)).Elem(),
+		ID:    ACCEPT_REINCARNATION,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*CancelReincarnation)(nil)).Elem(),
+		ID:    CANCEL_REINCARNATION,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*CombineItem)(nil)).Elem(),
+		ID:    COMBINE_ITEM,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*SetConcentration)(nil)).Elem(),
+		ID:    SET_CONCENTRATION,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*AwakeningNeedMaterials)(nil)).Elem(),
+		ID:    AWAKENING_NEED_MATERIALS,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*AwakeningLockedItem)(nil)).Elem(),
+		ID:    AWAKENING_LOCKED_ITEM,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*Awakening)(nil)).Elem(),
+		ID:    AWAKENING,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*DisassembleItem)(nil)).Elem(),
+		ID:    DISASSEMBLE_ITEM,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*DowngradeAwakening)(nil)).Elem(),
+		ID:    DOWNGRADE_AWAKENING,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*ResetAddedItem)(nil)).Elem(),
+		ID:    RESET_ADDED_ITEM,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*SendMail)(nil)).Elem(),
+		ID:    SEND_MAIL,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*ReadMail)(nil)).Elem(),
+		ID:    READ_MAIL,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*CollectParcel)(nil)).Elem(),
+		ID:    COLLECT_PARCEL,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*DeleteMail)(nil)).Elem(),
+		ID:    DELETE_MAIL,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*LockMail)(nil)).Elem(),
+		ID:    LOCK_MAIL,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*MailLockedItem)(nil)).Elem(),
+		ID:    MAIL_LOCKED_ITEM,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*MailCost)(nil)).Elem(),
+		ID:    MAIL_COST,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*UpdateIntelligentCreature)(nil)).Elem(),
+		ID:    UPDATE_INTELLIGENT_CREATURE,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*IntelligentCreaturePickup)(nil)).Elem(),
+		ID:    INTELLIGENT_CREATURE_PICKUP,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*AddFriend)(nil)).Elem(),
+		ID:    ADD_FRIEND,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*RemoveFriend)(nil)).Elem(),
+		ID:    REMOVE_FRIEND,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*RefreshFriends)(nil)).Elem(),
+		ID:    REFRESH_FRIENDS,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*AddMemo)(nil)).Elem(),
+		ID:    ADD_MEMO,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*GuildBuffUpdate)(nil)).Elem(),
+		ID:    GUILD_BUFF_UPDATE,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*NPCConfirmInput)(nil)).Elem(),
+		ID:    NPC_CONFIRM_INPUT,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*GameshopBuy)(nil)).Elem(),
+		ID:    GAMESHOP_BUY,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*ReportIssue)(nil)).Elem(),
+		ID:    REPORT_ISSUE,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*GetRanking)(nil)).Elem(),
+		ID:    GET_RANKING,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*Opendoor)(nil)).Elem(),
+		ID:    OPENDOOR,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*GetRentedItems)(nil)).Elem(),
+		ID:    GET_RENTED_ITEMS,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*ItemRentalRequest)(nil)).Elem(),
+		ID:    ITEM_RENTAL_REQUEST,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*ItemRentalFee)(nil)).Elem(),
+		ID:    ITEM_RENTAL_FEE,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*ItemRentalPeriod)(nil)).Elem(),
+		ID:    ITEM_RENTAL_PERIOD,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*DepositRentalItem)(nil)).Elem(),
+		ID:    DEPOSIT_RENTAL_ITEM,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*RetrieveRentalItem)(nil)).Elem(),
+		ID:    RETRIEVE_RENTAL_ITEM,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*CancelItemRental)(nil)).Elem(),
+		ID:    CANCEL_ITEM_RENTAL,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*ItemRentalLockFee)(nil)).Elem(),
+		ID:    ITEM_RENTAL_LOCK_FEE,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*ItemRentalLockItem)(nil)).Elem(),
+		ID:    ITEM_RENTAL_LOCK_ITEM,
+	})
+	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
+		Codec: mirCodec,
+		Type:  reflect.TypeOf((*ConfirmItemRental)(nil)).Elem(),
+		ID:    CONFIRM_ITEM_RENTAL,
 	})
 }
