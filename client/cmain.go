@@ -29,17 +29,17 @@ func main() {
 	proc.BindProcessorHandler(p, "mir.client.tcp", func(ev cellnet.Event) {
 		switch msg := ev.Message().(type) {
 		case *cellnet.SessionConnected:
-			log.Debugln("client connected")
+			//log.Debugln("client connected")
 		case *cellnet.SessionClosed:
-			log.Debugln("client error")
+			//log.Debugln("client error")
 		case *server.Connected:
-			log.Infof("<--- server.Connected")
+			//log.Infof("<--- server.Connected")
 		case *server.ClientVersion:
-			log.Infof("<--- server.ClientVersion")
+			//log.Infof("<--- server.ClientVersion")
 		case *server.KeepAlive:
-			log.Infof("<--- server.KeepAlive")
+			//log.Infof("<--- server.KeepAlive")
 		default:
-			log.Debugln(msg)
+			log.Debugf("default: 客户端收到: %s", msg)
 		}
 	})
 
