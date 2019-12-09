@@ -138,9 +138,9 @@ func (r *BytesWrapper) ReadBoolean() bool {
 	return true
 }
 
-// TODO
 func (r *BytesWrapper) ReadString() string {
 	b := int((*r.Bytes)[0])
+	s := string((*r.Bytes)[1 : b+1])
 	*r.Bytes = (*r.Bytes)[b+1:]
-	return string((*r.Bytes)[1 : b+1])
+	return s
 }
