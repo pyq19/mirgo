@@ -164,3 +164,12 @@ const (
 	ItemSetPaeok              = 29
 	ItemSetSulgwan            = 30
 )
+
+type LevelEffects uint8
+
+const (
+	LevelEffectsNone       = 0
+	LevelEffectsMist       = 0x0001
+	LevelEffectsRedDragon  = 0x0002
+	LevelEffectsBlueDragon = 0x0004
+)

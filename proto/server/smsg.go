@@ -400,9 +400,9 @@ type UserInformation struct {
 	Hair                      uint8
 	HP                        uint16
 	MP                        uint16
-	Experience                uint64
-	MaxExperience             uint64
-	LevelEffect               uint8 // LevelEffects
+	Experience                int64
+	MaxExperience             int64
+	LevelEffect               common.LevelEffects
 	Inventory                 []common.UserItem
 	Equipment                 []common.UserItem
 	QuestInventory            []common.UserItem
