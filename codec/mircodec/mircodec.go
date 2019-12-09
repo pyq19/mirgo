@@ -26,7 +26,6 @@ func (m *MirCodec) MimeType() string {
 
 // Encode 将数据转换为字节数组
 func (*MirCodec) Encode(msgObj interface{}, ctx cellnet.ContextSet) (data interface{}, err error) {
-
 	// TODO 测试用
 	v := reflect.ValueOf(msgObj)
 	if v.Kind() == reflect.Ptr {
@@ -174,13 +173,12 @@ func decodeValue(f reflect.Value, bytes []byte) []byte {
 		f.SetUint(BytesToUint64(bytes[:8]))
 		bytes = bytes[8:]
 	case reflect.Slice:
+		l := int(BytesToUint32(bytes[:4]))
 		e := f.Type().Elem()
 		if e.Kind() == reflect.Uint8 {
-			l := BytesToUint32(bytes[:4])
 			f.SetBytes(bytes[:l+4])
 			bytes = bytes[l+4:]
 		} else if e.Kind() == reflect.Struct {
-			l := e.NumField()
 			bytes = bytes[4:]
 			slice := reflect.MakeSlice(f.Type(), l, l)
 			for i := 0; i < l; i++ {

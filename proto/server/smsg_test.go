@@ -3,6 +3,7 @@ package server
 import (
 	"github.com/davyxu/cellnet"
 	"github.com/yenkeia/mirgo/codec/mircodec"
+	"github.com/yenkeia/mirgo/common"
 	"reflect"
 	"testing"
 )
@@ -131,4 +132,36 @@ func TestSetConcentration(t *testing.T) {
 	ctx := new(cellnet.ContextSet)
 	bytes2, _ := codec.Encode(obj2, *ctx)
 	t.Log(bytes2)
+}
+
+func TestEncodeLoginSuccess(t *testing.T) {
+	codec := new(mircodec.MirCodec)
+	ctx := new(cellnet.ContextSet)
+
+	res := new(LoginSuccess)
+
+	c1 := new(common.SelectInfo)
+	c1.Name = "测试登陆1"
+	c1.Index = 1
+	c1.Gender = common.MirGenderFemale
+	c1.Class = common.MirClassArcher
+	res.Characters = append(res.Characters, *c1)
+
+	c2 := new(common.SelectInfo)
+	c2.Name = "测试登陆2"
+	c2.Index = 2
+	c2.Gender = common.MirGenderFemale
+	c2.Class = common.MirClassAssassin
+	res.Characters = append(res.Characters, *c2)
+
+	bytes, _ := codec.Encode(res, *ctx)
+	t.Log(bytes)
+}
+
+func TestDecodeLoginSuccess(t *testing.T) {
+	codec := new(mircodec.MirCodec)
+	bytes1 := []byte{2, 0, 0, 0, 1, 0, 0, 0, 13, 230, 181, 139, 232, 175, 149, 231, 153, 187, 233, 153, 134, 49, 0, 0, 4, 1, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 13, 230, 181, 139, 232, 175, 149, 231, 153, 187, 233, 153, 134, 50, 0, 0, 3, 1, 0, 0, 0, 0, 0, 0, 0, 0}
+	ls1 := new(LoginSuccess)
+	codec.Decode(bytes1, ls1)
+	t.Log(ls1)
 }
