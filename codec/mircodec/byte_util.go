@@ -68,3 +68,79 @@ func BytesToUint32(bytes []byte) uint32 {
 func BytesToUint64(bytes []byte) uint64 {
 	return binary.LittleEndian.Uint64(bytes)
 }
+
+type BytesWrapper struct {
+	Bytes *[]byte
+}
+
+func (r *BytesWrapper) ReadByte() (n int8) {
+	return r.ReadInt8()
+}
+
+func (r *BytesWrapper) ReadInt8() (n int8) {
+	b := (*r.Bytes)[0]
+	*r.Bytes = (*r.Bytes)[1:]
+	return int8(b)
+}
+
+func (r *BytesWrapper) ReadInt16() (n int16) {
+	b := (*r.Bytes)[:2]
+	*r.Bytes = (*r.Bytes)[2:]
+	return int16(BytesToUint16(b))
+}
+
+func (r *BytesWrapper) ReadInt32() (n int32) {
+	b := (*r.Bytes)[:4]
+	*r.Bytes = (*r.Bytes)[4:]
+	return int32(BytesToUint32(b))
+}
+
+func (r *BytesWrapper) ReadInt64() (n int64) {
+	b := (*r.Bytes)[:8]
+	*r.Bytes = (*r.Bytes)[8:]
+	return int64(BytesToUint64(b))
+}
+
+func (r *BytesWrapper) ReadSByte() (n uint8) {
+	return r.ReadUInt8()
+}
+
+func (r *BytesWrapper) ReadUInt8() (n uint8) {
+	b := (*r.Bytes)[0]
+	*r.Bytes = (*r.Bytes)[1:]
+	return b
+}
+
+func (r *BytesWrapper) ReadUInt16() (n uint16) {
+	b := (*r.Bytes)[:2]
+	*r.Bytes = (*r.Bytes)[2:]
+	return BytesToUint16(b)
+}
+
+func (r *BytesWrapper) ReadUInt32() (n uint32) {
+	b := (*r.Bytes)[:4]
+	*r.Bytes = (*r.Bytes)[4:]
+	return BytesToUint32(b)
+}
+
+func (r *BytesWrapper) ReadUInt64() (n uint64) {
+	b := (*r.Bytes)[:8]
+	*r.Bytes = (*r.Bytes)[8:]
+	return BytesToUint64(b)
+}
+
+func (r *BytesWrapper) ReadBoolean() bool {
+	b := (*r.Bytes)[0]
+	*r.Bytes = (*r.Bytes)[1:]
+	if int(b) == 0 {
+		return false
+	}
+	return true
+}
+
+// TODO
+func (r *BytesWrapper) ReadString() string {
+	b := int((*r.Bytes)[0])
+	*r.Bytes = (*r.Bytes)[b+1:]
+	return string((*r.Bytes)[1 : b+1])
+}
