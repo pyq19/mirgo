@@ -73,6 +73,12 @@ type BytesWrapper struct {
 	Bytes *[]byte
 }
 
+func (r *BytesWrapper) Last() (res []byte) {
+	res = *r.Bytes
+	*r.Bytes = make([]byte, 0)
+	return
+}
+
 func (r *BytesWrapper) ReadByte() (n int8) {
 	return r.ReadInt8()
 }

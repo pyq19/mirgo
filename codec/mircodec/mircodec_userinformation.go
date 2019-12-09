@@ -3,6 +3,7 @@ package mircodec
 import (
 	"github.com/davyxu/cellnet"
 	"github.com/davyxu/cellnet/codec"
+	"github.com/yenkeia/mirgo/common"
 	"github.com/yenkeia/mirgo/proto/server"
 )
 
@@ -34,20 +35,41 @@ func (*MirUserInformationCodec) Decode(data interface{}, msgObj interface{}) err
 	ui.Name = reader.ReadString()
 	ui.GuildName = reader.ReadString()
 	ui.GuildRank = reader.ReadString()
-	//ui.NameColour = Color.FromArgb(reader.ReadInt32());
-	//ui.Class = (MirClass)reader.ReadByte();
-	//ui.Gender = (MirGender)reader.ReadByte();
-	//ui.Level = reader.ReadUInt16();
-	//ui.Location = new Point(reader.ReadInt32(), reader.ReadInt32());
-	//ui.Direction = (MirDirection)reader.ReadByte();
-	//ui.Hair = reader.ReadByte();
-	//ui.HP = reader.ReadUInt16();
-	//ui.MP = reader.ReadUInt16();
-	//
-	//ui.Experience = reader.ReadInt64();
-	//ui.MaxExperience = reader.ReadInt64();
-	//
-	//ui.LevelEffect = nil
+	ui.NameColour = reader.ReadUInt32()
+	ui.Class = common.MirClass(reader.ReadByte())
+	ui.Gender = common.MirGender(reader.ReadByte())
+	ui.Level = reader.ReadUInt16()
+	x := reader.ReadInt32()
+	y := reader.ReadInt32()
+	ui.Location = common.Point{X: uint32(x), Y: uint32(y)}
+	ui.Direction = common.MirDirection(reader.ReadByte())
+	ui.Hair = reader.ReadUInt8()
+	ui.HP = reader.ReadUInt16()
+	ui.MP = reader.ReadUInt16()
+	ui.Experience = reader.ReadInt64()
+	ui.MaxExperience = reader.ReadInt64()
+	ui.LevelEffect = common.LevelEffects(reader.ReadUInt8())
+
+	// Inventory
+	if reader.ReadBoolean() {
+		//count := reader.ReadInt32()
+		//last := reader.Last()
+		//for i := 0; i < int(count); i++ {
+		//	if reader.ReadBoolean() {
+		//		//common.UserItem{}
+		//		last = decodeValue(nil, last)
+		//	}
+		//}
+	}
+
+	// Equipment
+	if reader.ReadBoolean() {
+	}
+
+	// QuestInventory
+	if reader.ReadBoolean() {
+	}
+
 	return decode(msgObj, bytes)
 }
 
