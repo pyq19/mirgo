@@ -5,6 +5,7 @@ import (
 	"github.com/davyxu/cellnet/codec"
 	"github.com/yenkeia/mirgo/common"
 	"github.com/yenkeia/mirgo/proto/server"
+	"reflect"
 )
 
 // MirUserInformationCodec ...
@@ -25,7 +26,7 @@ func (*MirUserInformationCodec) Encode(msgObj interface{}, ctx cellnet.ContextSe
 	return encode(msgObj)
 }
 
-// TODO Decode 将字节数组转换为数据
+// Decode 将字节数组转换为数据
 func (*MirUserInformationCodec) Decode(data interface{}, msgObj interface{}) error {
 	ui := msgObj.(*server.UserInformation)
 	bytes := data.([]byte)
@@ -52,25 +53,45 @@ func (*MirUserInformationCodec) Decode(data interface{}, msgObj interface{}) err
 
 	// Inventory
 	if reader.ReadBoolean() {
-		//count := reader.ReadInt32()
-		//last := reader.Last()
-		//for i := 0; i < int(count); i++ {
-		//	if reader.ReadBoolean() {
-		//		//common.UserItem{}
-		//		last = decodeValue(nil, last)
-		//	}
-		//}
+		count := reader.ReadInt32()
+		ui.Inventory = make([]common.UserItem, count)
+		for i := 0; i < int(count); i++ {
+			if reader.ReadBoolean() {
+				last := reader.Last()
+				item := &ui.Inventory[i]
+				*reader.Bytes = decodeValue(reflect.ValueOf(item), last)
+			}
+		}
 	}
 
 	// Equipment
 	if reader.ReadBoolean() {
+		count := reader.ReadInt32()
+		ui.Equipment = make([]common.UserItem, count)
+		for i := 0; i < int(count); i++ {
+			if reader.ReadBoolean() {
+				last := reader.Last()
+				item := &ui.Equipment[i]
+				*reader.Bytes = decodeValue(reflect.ValueOf(item), last)
+			}
+		}
 	}
 
 	// QuestInventory
 	if reader.ReadBoolean() {
+		count := reader.ReadInt32()
+		ui.QuestInventory = make([]common.UserItem, count)
+		for i := 0; i < int(count); i++ {
+			if reader.ReadBoolean() {
+				last := reader.Last()
+				item := &ui.QuestInventory[i]
+				*reader.Bytes = decodeValue(reflect.ValueOf(item), last)
+			}
+		}
 	}
-
-	return decode(msgObj, bytes)
+	ui.Gold = reader.ReadUInt32()
+	ui.Credit = reader.ReadUInt32()
+	return nil
 }
 
 func init() {
