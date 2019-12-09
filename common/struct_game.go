@@ -33,8 +33,6 @@ type UserItem struct {
 	Luck           int8
 	SoulBoundId    uint32
 	Bools          uint8
-	Identified     bool
-	Cursed         bool
 	Strong         uint8
 	MagicResist    uint8
 	PoisonResist   uint8

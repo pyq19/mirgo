@@ -92,6 +92,9 @@ func encode(obj interface{}) (bytes []byte, err error) {
 }
 
 func decodeValue(f reflect.Value, bytes []byte) []byte {
+	if f.Type().Kind() == reflect.Ptr {
+		f = f.Elem()
+	}
 	switch f.Type().Kind() {
 	case reflect.Struct:
 		l := f.NumField()
