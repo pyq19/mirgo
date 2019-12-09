@@ -1,17 +1,17 @@
-package server
+package mircodec
 
 import (
 	"github.com/davyxu/cellnet"
-	"github.com/yenkeia/mirgo/codec/mircodec"
 	"github.com/yenkeia/mirgo/common"
+	"github.com/yenkeia/mirgo/proto/server"
 	"reflect"
 	"testing"
 )
 
 func TestConst(t *testing.T) {
-	t.Log(CONNECTED)
-	t.Log(CLIENT_VERSION)
-	t.Log(reflect.TypeOf(CONNECTED))
+	t.Log(server.CONNECTED)
+	t.Log(server.CLIENT_VERSION)
+	t.Log(reflect.TypeOf(server.CONNECTED))
 }
 
 func TestMapInformation(t *testing.T) {
@@ -28,9 +28,9 @@ func TestMapInformation(t *testing.T) {
 		0,
 		0}
 	t.Log(bytes)
-	msg := new(MapInformation)
+	msg := new(server.MapInformation)
 
-	codec := new(mircodec.MirCodec)
+	codec := new(MirCodec)
 	if err := codec.Decode(bytes, msg); err != nil {
 		panic(err)
 	}
@@ -73,8 +73,8 @@ func TestUserInformation(t *testing.T) {
 		46, 0, 0, 0, 1, 3, 0, 0, 0, 0, 0, 0, 0, 146, 2, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 255, 255, 255, 255, 0, 0, 0, 0, 0, 0, 0, 1, 6, 0, 0, 0, 0, 0, 0, 0, 235, 4, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 255, 255, 255, 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 255, 255, 255, 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 14, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 221, 0, 0, 0, 160, 15, 160, 15, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 255, 255, 255, 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 255, 255, 255, 255, 0, 0, 1, 2, 0, 0, 0, 0, 0, 0, 0, 61, 1, 0, 0, 136, 19, 136, 19, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 255, 255, 255, 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 255, 255, 255, 255, 0, 0, 0, 1, 4, 0, 0, 0, 0, 0, 0, 0, 210, 2, 0, 0, 49, 31, 64, 31, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 255, 255, 255, 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 255, 255, 255, 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 40, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 99, 0}
 	t.Log(bytes)
 
-	msg := new(UserInformation)
-	codec := new(mircodec.MirUserInformationCodec)
+	msg := new(server.UserInformation)
+	codec := new(MirUserInformationCodec)
 	if err := codec.Decode(bytes, msg); err != nil {
 		panic(err)
 	}
@@ -82,15 +82,15 @@ func TestUserInformation(t *testing.T) {
 }
 
 func TestStartGame(t *testing.T) {
-	codec := new(mircodec.MirCodec)
+	codec := new(MirCodec)
 	b := []byte{4, 0, 4, 0, 0}
-	s1 := new(StartGame)
+	s1 := new(server.StartGame)
 	if err := codec.Decode(b, s1); err != nil {
 		panic(err)
 	}
 	t.Log("decode:", s1)
 
-	s2 := new(StartGame)
+	s2 := new(server.StartGame)
 	s2.Result = 4
 	s2.Resolution = 1024
 	ctx := new(cellnet.ContextSet)
@@ -99,13 +99,13 @@ func TestStartGame(t *testing.T) {
 }
 
 func TestSetConcentration(t *testing.T) {
-	codec := new(mircodec.MirCodec)
+	codec := new(MirCodec)
 	bytes := []byte{128, 3, 1, 0, 0, 0}
-	obj := new(SetConcentration)
+	obj := new(server.SetConcentration)
 	codec.Decode(bytes, obj)
 	t.Log(obj)
 
-	obj2 := new(SetConcentration)
+	obj2 := new(server.SetConcentration)
 	obj2.ObjectID = 66432
 	obj2.Enabled = false
 	obj2.Interrupted = false
@@ -115,10 +115,10 @@ func TestSetConcentration(t *testing.T) {
 }
 
 func TestEncodeLoginSuccess(t *testing.T) {
-	codec := new(mircodec.MirCodec)
+	codec := new(MirCodec)
 	ctx := new(cellnet.ContextSet)
 
-	res := new(LoginSuccess)
+	res := new(server.LoginSuccess)
 
 	c1 := new(common.SelectInfo)
 	c1.Name = "测试登陆1"
@@ -139,9 +139,9 @@ func TestEncodeLoginSuccess(t *testing.T) {
 }
 
 func TestDecodeLoginSuccess(t *testing.T) {
-	codec := new(mircodec.MirCodec)
+	codec := new(MirCodec)
 	bytes1 := []byte{2, 0, 0, 0, 1, 0, 0, 0, 13, 230, 181, 139, 232, 175, 149, 231, 153, 187, 233, 153, 134, 49, 0, 0, 4, 1, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 13, 230, 181, 139, 232, 175, 149, 231, 153, 187, 233, 153, 134, 50, 0, 0, 3, 1, 0, 0, 0, 0, 0, 0, 0, 0}
-	ls1 := new(LoginSuccess)
+	ls1 := new(server.LoginSuccess)
 	codec.Decode(bytes1, ls1)
 	t.Log(ls1)
 }
