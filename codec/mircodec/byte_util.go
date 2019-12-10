@@ -1,6 +1,9 @@
 package mircodec
 
-import "encoding/binary"
+import (
+	"encoding/binary"
+	"reflect"
+)
 
 // ReadString 根据传入的索引 返回读完string后所在bytes 的下一个索引 及string
 func ReadString(bytes []byte, index int) (int, string) {
@@ -152,9 +155,10 @@ func (r *BytesWrapper) ReadString() string {
 }
 
 func (r *BytesWrapper) Write(obj interface{}) {
-	if res, err := encode(obj); err != nil {
-		*r.Bytes = append(*r.Bytes, res...)
-	} else {
+	if res, err := encodeValue(reflect.ValueOf(obj)); err != nil {
 		log.Errorln(err)
+	} else {
+		*r.Bytes = append(*r.Bytes, res...)
 	}
+
 }
