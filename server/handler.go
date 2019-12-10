@@ -125,9 +125,8 @@ func (g *Game) EventHandler(ev cellnet.Event) {
 		codec.Decode(bytes5, item5)
 		ev.Session().Send(item5)
 
-		// TODO
-		//res := new(server.UserInformation)
-		//ev.Session().Send(res)
+		res := new(server.UserInformation)
+		ev.Session().Send(res)
 
 	default:
 		log.Debugln("default:", msg)
