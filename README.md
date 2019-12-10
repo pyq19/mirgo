@@ -4,7 +4,7 @@
 #### 用到的开源库/工具
 - .NET Core 3.0
 - [SqlSugar](https://github.com/sunkaixuan/SqlSugar)
-- MySQL
+- SQLite
 - [Cellnet](https://github.com/davyxu/cellnet)
 - [GORM](https://github.com/jinzhu/gorm)
 
