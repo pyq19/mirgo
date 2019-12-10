@@ -373,4 +373,19 @@ func TestUserInformation(t *testing.T) {
 		panic(err)
 	}
 	t.Log(msg)
+
+	ctx := new(cellnet.ContextSet)
+	if datas, err := codec.Encode(msg, *ctx); err != nil {
+		t.Log(datas)
+	}
+}
+
+func TestEmptySlice(t *testing.T) {
+	slice := make([]common.UserItem, 5)
+	slice[0].ItemIndex = 1
+	t.Log(len(slice))
+	t.Log(slice[0])
+	for i := 0; i < len(slice); i++ {
+		t.Log(IsNull(slice[i]))
+	}
 }

@@ -23,7 +23,94 @@ func (m *MirUserInformationCodec) MimeType() string {
 
 // Encode 将数据转换为字节数组
 func (*MirUserInformationCodec) Encode(msgObj interface{}, ctx cellnet.ContextSet) (data interface{}, err error) {
-	return encode(msgObj)
+	//return encode(msgObj)
+	var bytes []byte
+	ui := msgObj.(*server.UserInformation)
+	writer := &BytesWrapper{Bytes: &bytes}
+	writer.Write(ui.ObjectID)
+	writer.Write(ui.RealId)
+	writer.Write(ui.Name)
+	writer.Write(ui.GuildName)
+	writer.Write(ui.GuildRank)
+	writer.Write(ui.NameColour)
+	writer.Write(ui.Class)
+	writer.Write(ui.Gender)
+	writer.Write(ui.Level)
+	writer.Write(ui.Location.X)
+	writer.Write(ui.Location.Y)
+	writer.Write(ui.Direction)
+	writer.Write(ui.Hair)
+	writer.Write(ui.HP)
+	writer.Write(ui.MP)
+	writer.Write(ui.Experience)
+	writer.Write(ui.MaxExperience)
+	writer.Write(ui.LevelEffect)
+
+	// Inventory
+	hasInventory := true
+	if ui.Inventory == nil || len(ui.Inventory) == 0 {
+		hasInventory = false
+	}
+	writer.Write(hasInventory)
+	if hasInventory {
+		l := len(ui.Inventory)
+		writer.Write(l)
+		for i := 0; i < l; i++ {
+			hasUserItem := IsNull(ui.Inventory[i])
+			writer.Write(hasUserItem)
+			if !hasUserItem {
+				continue
+			}
+			writer.Write(ui.Inventory[i])
+		}
+	}
+
+	// Equipment
+	hasEquipment := true
+	if ui.Equipment == nil || len(ui.Equipment) == 0 {
+		hasEquipment = false
+	}
+	writer.Write(hasEquipment)
+	if hasEquipment {
+		l := len(ui.Equipment)
+		writer.Write(l)
+		for i := 0; i < l; i++ {
+			hasUserItem := IsNull(ui.Equipment[i])
+			writer.Write(hasUserItem)
+			if !hasUserItem {
+				continue
+			}
+			writer.Write(ui.Equipment[i])
+		}
+	}
+
+	// QuestInventory
+	hasQuestInventory := true
+	if ui.QuestInventory == nil || len(ui.QuestInventory) == 0 {
+		hasQuestInventory = false
+	}
+	writer.Write(hasQuestInventory)
+	if hasQuestInventory {
+		l := len(ui.QuestInventory)
+		writer.Write(l)
+		for i := 0; i < l; i++ {
+			hasUserItem := IsNull(ui.QuestInventory[i])
+			writer.Write(hasUserItem)
+			if !hasUserItem {
+				continue
+			}
+			writer.Write(ui.QuestInventory[i])
+		}
+	}
+
+	return *writer.Bytes, nil
+}
+
+func IsNull(ui common.UserItem) bool {
+	if ui.UniqueID == 0 && ui.ItemIndex == 0 {
+		return true
+	}
+	return false
 }
 
 // Decode 将字节数组转换为数据
