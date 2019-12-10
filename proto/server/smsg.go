@@ -390,7 +390,7 @@ type UserInformation struct {
 	Name           string
 	GuildName      string
 	GuildRank      string
-	NameColour     uint32
+	NameColour     uint32	// TODO []byte
 	Class          common.MirClass
 	Gender         common.MirGender
 	Level          uint16

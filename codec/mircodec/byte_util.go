@@ -150,3 +150,11 @@ func (r *BytesWrapper) ReadString() string {
 	*r.Bytes = (*r.Bytes)[b+1:]
 	return s
 }
+
+func (r *BytesWrapper) Write(obj interface{}) {
+	if res, err := encode(obj); err != nil {
+		*r.Bytes = append(*r.Bytes, res...)
+	} else {
+		log.Errorln(err)
+	}
+}
