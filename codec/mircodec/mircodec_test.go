@@ -220,10 +220,7 @@ func TestSetConcentration(t *testing.T) {
 	t.Log(bytes2)
 }
 
-func TestEncodeLoginSuccess(t *testing.T) {
-	codec := new(MirCodec)
-	ctx := new(cellnet.ContextSet)
-
+func newLoginSuccessStruct() *server.LoginSuccess {
 	res := new(server.LoginSuccess)
 
 	c1 := new(common.SelectInfo)
@@ -239,17 +236,45 @@ func TestEncodeLoginSuccess(t *testing.T) {
 	c2.Gender = common.MirGenderFemale
 	c2.Class = common.MirClassAssassin
 	res.Characters = append(res.Characters, *c2)
+	return res
+}
+
+func TestEncodeLoginSuccess(t *testing.T) {
+	codec := new(MirCodec)
+	ctx := new(cellnet.ContextSet)
+
+	res := newLoginSuccessStruct()
 
 	bytes, _ := codec.Encode(res, *ctx)
-	t.Log(bytes)
+	t.Log(bytes.([]byte))
+
+	t.Log(len(bytes.([]byte)))
 }
 
 func TestDecodeLoginSuccess(t *testing.T) {
 	codec := new(MirCodec)
 	bytes1 := []byte{2, 0, 0, 0, 1, 0, 0, 0, 13, 230, 181, 139, 232, 175, 149, 231, 153, 187, 233, 153, 134, 49, 0, 0, 4, 1, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 13, 230, 181, 139, 232, 175, 149, 231, 153, 187, 233, 153, 134, 50, 0, 0, 3, 1, 0, 0, 0, 0, 0, 0, 0, 0}
+	t.Log(len(bytes1))
 	ls1 := new(server.LoginSuccess)
 	codec.Decode(bytes1, ls1)
 	t.Log(ls1)
+	//&{[{1 测试登陆1 0 4 1 0} {2 测试登陆2 0 3 1 0}]}
+}
+
+func TestDecodeEncodeLoginSuccess(t *testing.T) {
+	codec := new(MirCodec)
+
+	ls2 := newLoginSuccessStruct()
+	bytes, err := codec.Encode(ls2, *new(cellnet.ContextSet))
+	if err != nil {
+		panic(err)
+	}
+	t.Log(bytes)
+
+	ls1 := new(server.LoginSuccess)
+	codec.Decode(bytes, ls1)
+	t.Log(ls1)
+	//&{[{1 测试登陆1 0 4 1 0} {2 测试登陆2 0 3 1 0}]}
 }
 
 // TODO
