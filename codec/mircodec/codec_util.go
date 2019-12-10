@@ -22,6 +22,9 @@ func encode(obj interface{}) (bytes []byte, err error) {
 
 // encode 把结构体编码(序列化)成字节数组
 func encodeValue(v reflect.Value) (bytes []byte, err error) {
+	if v.Type().Kind() == reflect.Ptr {
+		v = v.Elem()
+	}
 	switch v.Kind() {
 	case reflect.Struct:
 		vv := v.Addr().Interface()
@@ -90,7 +93,7 @@ func encodeValue(v reflect.Value) (bytes []byte, err error) {
 		}
 	default:
 		log.Errorln("编码错误")
-		return bytes, errors.New("编码错误")
+		return bytes, errors.New("编码错误!")
 	}
 	return bytes, nil
 }

@@ -399,10 +399,11 @@ func TestUserInformation(t *testing.T) {
 	}
 	t.Log(msg)
 
-	ctx := new(cellnet.ContextSet)
-	if datas, err := codec.Encode(msg, *ctx); err != nil {
-		t.Log(datas)
+	obj, err := codec.Encode(msg, *new(cellnet.ContextSet))
+	if err != nil {
+		t.Error(err)
 	}
+	t.Log(obj)
 }
 
 func TestEmptySlice(t *testing.T) {
