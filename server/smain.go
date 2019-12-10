@@ -12,7 +12,7 @@ type Config struct {
 
 func main() {
 	gopath := os.Getenv("GOPATH")
-	conf := &Config{addr, gopath + mirDB}
-	g := NewGame(*conf)
+	conf := Config{addr, gopath + mirDB}
+	g := NewGame(conf)
 	g.ServerStart()
 }
