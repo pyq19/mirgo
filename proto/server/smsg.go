@@ -390,7 +390,7 @@ type UserInformation struct {
 	Name           string
 	GuildName      string
 	GuildRank      string
-	NameColour     uint32	// TODO []byte
+	NameColour     uint32 // TODO []byte
 	Class          common.MirClass
 	Gender         common.MirGender
 	Level          uint16
@@ -409,11 +409,29 @@ type UserInformation struct {
 	Credit         uint32
 }
 
-type UserLocation struct{}
+type UserLocation struct {
+	Location  common.Point
+	Direction common.MirDirection
+}
+
 type ObjectPlayer struct{}
-type ObjectRemove struct{}
-type ObjectTurn struct{}
-type ObjectWalk struct{}
+
+type ObjectRemove struct {
+	ObjectID uint32
+}
+
+type ObjectTurn struct {
+	ObjectID  uint32
+	Location  common.Point
+	Direction common.MirDirection
+}
+
+type ObjectWalk struct {
+	ObjectID  uint32
+	Location  common.Point
+	Direction common.MirDirection
+}
+
 type ObjectRun struct{}
 type Chat struct{}
 type ObjectChat struct{}
