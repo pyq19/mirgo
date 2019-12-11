@@ -313,17 +313,18 @@ func (g *Game) KeepAlive(s cellnet.Session, msg *client.KeepAlive) {
 	s.Send(keepAlive)
 }
 
-// TODO 保存新账号
+// TODO NewAccount 保存新账号
 func (g *Game) NewAccount(s cellnet.Session, msg *client.NewAccount) {
 	log.Debugln(msg.AccountID, msg.Password)
 	s.Send(server.NewAccount{8})
 }
 
+// TODO ChangePassword 改密码
 func (g *Game) ChangePassword(s cellnet.Session, msg *client.ChangePassword) {
 
 }
 
-// TODO 登陆
+// TODO Login 登陆
 func (g *Game) Login(s cellnet.Session, msg *client.Login) {
 	res := new(server.LoginSuccess)
 
@@ -344,7 +345,7 @@ func (g *Game) Login(s cellnet.Session, msg *client.Login) {
 	s.Send(res)
 }
 
-// TODO 创建角色成功
+// TODO NewCharacter 创建角色成功
 func (g *Game) NewCharacter(s cellnet.Session, msg *client.NewCharacter) {
 	log.Debugln(msg.Name, msg.Class, msg.Gender)
 	res := new(server.NewCharacterSuccess)
@@ -355,11 +356,12 @@ func (g *Game) NewCharacter(s cellnet.Session, msg *client.NewCharacter) {
 	s.Send(res)
 }
 
+// TODO DeleteCharacter 删除角色
 func (g *Game) DeleteCharacter(s cellnet.Session, msg *client.DeleteCharacter) {
 
 }
 
-// TODO 开始游戏
+// TODO StartGame 开始游戏
 func (g *Game) StartGame(s cellnet.Session, msg *client.StartGame) {
 
 	// SetConcentration
