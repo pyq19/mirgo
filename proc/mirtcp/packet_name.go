@@ -61,7 +61,7 @@ func initClientPacketMap() {
 	PacketNameMap[client.MAGIC] = "MAGIC"
 	PacketNameMap[client.SWITCH_GROUP] = "SWITCH_GROUP"
 	PacketNameMap[client.ADD_MEMBER] = "ADD_MEMBER"
-	PacketNameMap[client.DELL_MEMBER] = "DELL_MEMBER"
+	PacketNameMap[client.DEL_MEMBER] = "DEL_MEMBER"
 	PacketNameMap[client.GROUP_INVITE] = "GROUP_INVITE"
 	PacketNameMap[client.TOWN_REVIVE] = "TOWN_REVIVE"
 	PacketNameMap[client.SPELL_TOGGLE] = "SPELL_TOGGLE"

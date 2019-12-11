@@ -128,7 +128,7 @@ func (g *Game) HandleEvent(ev cellnet.Event) {
 		g.SwitchGroup(s, msg)
 	case *client.AddMember:
 		g.AddMember(s, msg)
-	case *client.DellMember:
+	case *client.DelMember:
 		g.DelMember(s, msg)
 	case *client.GroupInvite:
 		g.GroupInvite(s, msg)
@@ -319,7 +319,7 @@ func (g *Game) NewAccount(s cellnet.Session, msg *client.NewAccount) {
 	s.Send(server.NewAccount{8})
 }
 
-func (g *Game) ChangePassword(s cellnet.Session, msg *client.NewAccount) {
+func (g *Game) ChangePassword(s cellnet.Session, msg *client.ChangePassword) {
 
 }
 
@@ -600,7 +600,7 @@ func (g *Game) AddMember(s cellnet.Session, msg *client.AddMember) {
 
 }
 
-func (g *Game) DelMember(s cellnet.Session, msg *client.DellMember) {
+func (g *Game) DelMember(s cellnet.Session, msg *client.DelMember) {
 
 }
 
