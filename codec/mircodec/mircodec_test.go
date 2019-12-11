@@ -407,7 +407,7 @@ func TestUserInformation(t *testing.T) {
 
 func TestEmptySlice(t *testing.T) {
 	slice := make([]common.UserItem, 5)
-	slice[0].ItemIndex = 1
+	slice[0].ItemId = 1
 	t.Log(len(slice))
 	t.Log(slice[0])
 	for i := 0; i < len(slice); i++ {

@@ -1,5 +1,13 @@
 package common
 
+// Account TODO
+type Account struct {
+}
+
+// AccountCharacter TODO
+type AccountCharacter struct {
+}
+
 type Basic struct {
 	Id            int `gorm:"primary_key"`
 	GameVersion   int
@@ -11,6 +19,18 @@ type Basic struct {
 	GameShopIndex int
 	ConquestIndex int
 	RespawnIndex  int
+}
+
+// Character TODO
+type Character struct {
+}
+
+// CharacterMagic TODO
+type CharacterMagic struct {
+}
+
+// CharacterUserItem TODO
+type CharacterUserItem struct {
 }
 
 type GameShopItem struct {
@@ -115,6 +135,9 @@ type MagicInfo struct {
 	MagicRange      int
 	MultiplierBase  float32
 	MultiplierBonus float32
+}
+
+type Magic struct {
 }
 
 type MapInfo struct {
@@ -264,4 +287,35 @@ type SafeZoneInfo struct {
 	LocationY  int
 	Size       int
 	StartPoint int
+}
+
+type UserItem struct {
+	Id             uint64 `gorm:"primary_key"` // UniqueID
+	ItemId         int32
+	CurrentDura    uint16
+	MaxDura        uint16
+	Count          uint32
+	AC             uint8
+	MAC            uint8
+	DC             uint8
+	MC             uint8
+	SC             uint8
+	Accuracy       uint8
+	Agility        uint8
+	HP             uint8
+	MP             uint8
+	AttackSpeed    int8
+	Luck           int8
+	SoulBoundId    uint32
+	Bools          uint8
+	Strong         uint8
+	MagicResist    uint8
+	PoisonResist   uint8
+	HealthRecovery uint8
+	ManaRecovery   uint8
+	PoisonRecovery uint8
+	CriticalRate   uint8
+	CriticalDamage uint8
+	Freezing       uint8
+	PoisonAttack   uint8
 }
