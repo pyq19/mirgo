@@ -14,24 +14,22 @@ type Basic struct {
 }
 
 type GameShopItem struct {
-	Id                int `gorm:"primary_key"`
-	GameShopItemIndex int
-	ItemIndex         int
-	GoldPrice         int
-	CreditPrice       int
-	Count             int
-	Class             string
-	Category          string
-	Stock             int
-	IStock            int
-	Deal              int
-	TopItem           int
+	Id          int `gorm:"primary_key"`
+	ItemId      int
+	GoldPrice   int
+	CreditPrice int
+	Count       int
+	Class       string
+	Category    string
+	Stock       int
+	IStock      int
+	Deal        int
+	TopItem     int
 	//CreateDate
 }
 
 type ItemInfo struct {
 	Id             int `gorm:"primary_key"`
-	ItemIndex      int32
 	Name           string
 	Type           ItemType
 	Grade          ItemGrade
@@ -120,8 +118,7 @@ type MagicInfo struct {
 }
 
 type MapInfo struct {
-	Id              int `gorm:"primary_key"`
-	MapIndex        int
+	Id              int    `gorm:"primary_key"`
 	Filename        string `gorm:"Column:file_name"`
 	Title           string
 	MiniMap         int
@@ -163,41 +160,40 @@ type MapInfo struct {
 //}
 
 type MonsterInfo struct {
-	Id           int `gorm:"primary_key"`
-	MonsterIndex int
-	Name         string
-	Image        int
-	AI           int `gorm:"Column:ai"`
-	Effect       int
-	Level        int
-	ViewRange    int
-	CoolEye      int
-	HP           int `gorm:"Column:hp"`
-	MinAC        int
-	MaxAC        int
-	MinMAC       int
-	MaxMAC       int
-	MinDC        int
-	MaxDC        int
-	MinMC        int
-	MaxMC        int
-	MinSC        int
-	MaxSC        int
-	Accuracy     int
-	Agility      int
-	Light        int
-	AttackSpeed  int
-	MoveSpeed    int
-	Experience   int
-	CanPush      int
-	CanTame      int
-	AutoRev      int
-	Undead       int
+	Id          int `gorm:"primary_key"`
+	Name        string
+	Image       int
+	AI          int `gorm:"Column:ai"`
+	Effect      int
+	Level       int
+	ViewRange   int
+	CoolEye     int
+	HP          int `gorm:"Column:hp"`
+	MinAC       int
+	MaxAC       int
+	MinMAC      int
+	MaxMAC      int
+	MinDC       int
+	MaxDC       int
+	MinMC       int
+	MaxMC       int
+	MinSC       int
+	MaxSC       int
+	Accuracy    int
+	Agility     int
+	Light       int
+	AttackSpeed int
+	MoveSpeed   int
+	Experience  int
+	CanPush     int
+	CanTame     int
+	AutoRev     int
+	Undead      int
 }
 
 type MovementInfo struct {
 	Id            int `gorm:"primary_key"`
-	MapIndex      int
+	MapId         int
 	SourceX       int `gorm:"Column:source_x"`
 	SourceY       int `gorm:"Column:source_y"`
 	DestinationX  int `gorm:"Column:destination_x"`
@@ -208,8 +204,7 @@ type MovementInfo struct {
 }
 type NpcInfo struct {
 	Id            int `gorm:"primary_key"`
-	MapIndex      int
-	NpcIndex      int
+	MapId         int
 	Filename      string `gorm:"Column:file_name"`
 	Name          string
 	LocationX     int `gorm:"Column:location_x"`
@@ -231,7 +226,6 @@ type NpcInfo struct {
 
 type QuestInfo struct {
 	Id               int `gorm:"primary_key"`
-	QuestIndex       int
 	Name             string
 	QuestGroup       string
 	Filename         string `gorm:"Column:file_name"`
@@ -248,8 +242,8 @@ type QuestInfo struct {
 
 type RespawnInfo struct {
 	Id              int `gorm:"primary_key"`
-	MapIndex        int
-	MonsterIndex    int
+	MapId           int
+	MonsterId       int
 	LocationX       int
 	LocationY       int
 	Count           int
@@ -265,7 +259,7 @@ type RespawnInfo struct {
 
 type SafeZoneInfo struct {
 	Id         int `gorm:"primary_key"`
-	MapIndex   int
+	MapId      int
 	LocationX  int
 	LocationY  int
 	Size       int
