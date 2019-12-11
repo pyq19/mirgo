@@ -108,7 +108,7 @@ func (*MirUserInformationCodec) Encode(msgObj interface{}, ctx cellnet.ContextSe
 }
 
 func IsNull(ui common.UserItem) bool {
-	if ui.UniqueID == 0 && ui.ItemIndex == 0 {
+	if ui.Id == 0 && ui.ItemId == 0 {
 		return true
 	}
 	return false
