@@ -1,7 +1,8 @@
 package common
 
 type Basic struct {
-	GameVersion   int `gorm:"primary_key"`
+	Id            int `gorm:"primary_key"`
+	GameVersion   int
 	CustomVersion int
 	MapIndex      int
 	MonsterIndex  int
@@ -13,7 +14,8 @@ type Basic struct {
 }
 
 type GameShopItem struct {
-	GameShopItemIndex int `gorm:"primary_key"`
+	Id                int `gorm:"primary_key"`
+	GameShopItemIndex int
 	ItemIndex         int
 	GoldPrice         int
 	CreditPrice       int
@@ -28,7 +30,8 @@ type GameShopItem struct {
 }
 
 type ItemInfo struct {
-	ItemIndex      int32 `gorm:"primary_key"`
+	Id             int `gorm:"primary_key"`
+	ItemIndex      int32
 	Name           string
 	Type           ItemType
 	Grade          ItemGrade
@@ -93,6 +96,7 @@ type ItemInfo struct {
 }
 
 type MagicInfo struct {
+	Id              int `gorm:"primary_key"`
 	Name            string
 	Spell           int
 	BaseCost        int
@@ -116,7 +120,8 @@ type MagicInfo struct {
 }
 
 type MapInfo struct {
-	MapIndex        int    `gorm:"primary_key"`
+	Id              int `gorm:"primary_key"`
+	MapIndex        int
 	Filename        string `gorm:"Column:file_name"`
 	Title           string
 	MiniMap         int
@@ -158,7 +163,8 @@ type MapInfo struct {
 //}
 
 type MonsterInfo struct {
-	MonsterIndex int `gorm:"primary_key"`
+	Id           int `gorm:"primary_key"`
+	MonsterIndex int
 	Name         string
 	Image        int
 	AI           int `gorm:"Column:ai"`
@@ -190,7 +196,8 @@ type MonsterInfo struct {
 }
 
 type MovementInfo struct {
-	MapIndex      int `gorm:"primary_key"`
+	Id            int `gorm:"primary_key"`
+	MapIndex      int
 	SourceX       int `gorm:"Column:source_x"`
 	SourceY       int `gorm:"Column:source_y"`
 	DestinationX  int `gorm:"Column:destination_x"`
@@ -200,8 +207,9 @@ type MovementInfo struct {
 	ConquestIndex int
 }
 type NpcInfo struct {
+	Id            int `gorm:"primary_key"`
 	MapIndex      int
-	NpcIndex      int    `gorm:"primary_key"`
+	NpcIndex      int
 	Filename      string `gorm:"Column:file_name"`
 	Name          string
 	LocationX     int `gorm:"Column:location_x"`
@@ -222,7 +230,8 @@ type NpcInfo struct {
 }
 
 type QuestInfo struct {
-	QuestIndex       int `gorm:"primary_key"`
+	Id               int `gorm:"primary_key"`
+	QuestIndex       int
 	Name             string
 	QuestGroup       string
 	Filename         string `gorm:"Column:file_name"`
@@ -238,6 +247,7 @@ type QuestInfo struct {
 }
 
 type RespawnInfo struct {
+	Id              int `gorm:"primary_key"`
 	MapIndex        int
 	MonsterIndex    int
 	LocationX       int
@@ -254,6 +264,7 @@ type RespawnInfo struct {
 }
 
 type SafeZoneInfo struct {
+	Id         int `gorm:"primary_key"`
 	MapIndex   int
 	LocationX  int
 	LocationY  int
