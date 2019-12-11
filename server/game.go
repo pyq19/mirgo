@@ -14,6 +14,7 @@ type Game struct {
 	Conf Config
 	DB   *gorm.DB
 	Env  *Environ
+	Peer *cellnet.GenericPeer
 }
 
 func NewGame(conf Config) *Game {
@@ -35,7 +36,9 @@ func (g *Game) ServerStart() {
 
 	p := peer.NewGenericPeer("tcp.Acceptor", "server", g.Conf.Addr, queue)
 
-	proc.BindProcessorHandler(p, "mir.server.tcp", g.EventHandler)
+	g.Peer = &p
+
+	proc.BindProcessorHandler(p, "mir.server.tcp", g.HandleEvent)
 
 	// 开始侦听
 	p.Start()

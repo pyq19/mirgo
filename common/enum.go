@@ -173,3 +173,24 @@ const (
 	LevelEffectsRedDragon  = 0x0002
 	LevelEffectsBlueDragon = 0x0004
 )
+
+type ChatType uint8
+
+const (
+	ChatTypeNormal       ChatType = 0
+	ChatTypeShout                 = 1
+	ChatTypeSystem                = 2
+	ChatTypeHint                  = 3
+	ChatTypeAnnouncement          = 4
+	ChatTypeGroup                 = 5
+	ChatTypeWhisperIn             = 6
+	ChatTypeWhisperOut            = 7
+	ChatTypeGuild                 = 8
+	ChatTypeTrainer               = 9
+	ChatTypeLevelUp               = 10
+	ChatTypeSystem2               = 11
+	ChatTypeRelationship          = 12
+	ChatTypeMentor                = 13
+	ChatTypeShout2                = 14
+	ChatTypeShout3                = 15
+)
