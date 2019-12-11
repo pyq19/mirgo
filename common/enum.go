@@ -194,3 +194,176 @@ const (
 	ChatTypeShout2                = 14
 	ChatTypeShout3                = 15
 )
+
+type MirGridType uint8
+
+const (
+	MirGridTypeNone           MirGridType = 0
+	MirGridTypeInventory                  = 1
+	MirGridTypeEquipment                  = 2
+	MirGridTypeTrade                      = 3
+	MirGridTypeStorage                    = 4
+	MirGridTypeBuyBack                    = 5
+	MirGridTypeDropPanel                  = 6
+	MirGridTypeInspect                    = 7
+	MirGridTypeTrustMerchant              = 8
+	MirGridTypeGuildStorage               = 9
+	MirGridTypeGuestTrade                 = 10
+	MirGridTypeMount                      = 11
+	MirGridTypeFishing                    = 12
+	MirGridTypeQuestInventory             = 13
+	MirGridTypeAwakenItem                 = 14
+	MirGridTypeMail                       = 15
+	MirGridTypeRefine                     = 16
+	MirGridTypeRenting                    = 17
+	MirGridTypeGuestRenting               = 18
+	MirGridTypeCraft                      = 19
+)
+
+type AttackMode uint8
+
+const (
+	AttackModePeace      AttackMode = 0
+	AttackModeGroup                 = 1
+	AttackModeGuild                 = 2
+	AttackModeEnemyGuild            = 3
+	AttackModeRedBrown              = 4
+	AttackModeAll                   = 5
+)
+
+type Spell uint8
+
+const (
+	SpellNone             Spell = 0
+	SpellFencing                = 1 //Warrior
+	SpellSlaying                = 2
+	SpellThrusting              = 3
+	SpellHalfMoon               = 4
+	SpellShoulderDash           = 5
+	SpellTwinDrakeBlade         = 6
+	SpellEntrapment             = 7
+	SpellFlamingSword           = 8
+	SpellLionRoar               = 9
+	SpellCrossHalfMoon          = 10
+	SpellBladeAvalanche         = 11
+	SpellProtectionField        = 12
+	SpellRage                   = 13
+	SpellCounterAttack          = 14
+	SpellSlashingBurst          = 15
+	SpellFury                   = 16
+	SpellImmortalSkin           = 17
+	SpellFireBall               = 31 //Wizard
+	SpellRepulsion              = 32
+	SpellElectricShock          = 33
+	SpellGreatFireBall          = 34
+	SpellHellFire               = 35
+	SpellThunderBolt            = 36
+	SpellTeleport               = 37
+	SpellFireBang               = 38
+	SpellFireWall               = 39
+	SpellLightning              = 40
+	SpellFrostCrunch            = 41
+	SpellThunderStorm           = 42
+	SpellMagicShield            = 43
+	SpellTurnUndead             = 44
+	SpellVampirism              = 45
+	SpellIceStorm               = 46
+	SpellFlameDisruptor         = 47
+	SpellMirroring              = 48
+	SpellFlameField             = 49
+	SpellBlizzard               = 50
+	SpellMagicBooster           = 51
+	SpellMeteorStrike           = 52
+	SpellIceThrust              = 53
+	SpellFastMove               = 54
+	SpellStormEscape            = 55
+	SpellHealing                = 61 //Taoist
+	SpellSpiritSword            = 62
+	SpellPoisoning              = 63
+	SpellSoulFireBall           = 64
+	SpellSummonSkeleton         = 65
+	SpellHiding                 = 67
+	SpellMassHiding             = 68
+	SpellSoulShield             = 69
+	SpellRevelation             = 70
+	SpellBlessedArmour          = 71
+	SpellEnergyRepulsor         = 72
+	SpellTrapHexagon            = 73
+	SpellPurification           = 74
+	SpellMassHealing            = 75
+	SpellHallucination          = 76
+	SpellUltimateEnhancer       = 77
+	SpellSummonShinsu           = 78
+	SpellReincarnation          = 79
+	SpellSummonHolyDeva         = 80
+	SpellCurse                  = 81
+	SpellPlague                 = 82
+	SpellPoisonCloud            = 83
+	SpellEnergyShield           = 84
+	SpellPetEnhancer            = 85
+	SpellHealingCircle          = 86
+	SpellFatalSword             = 91 //Assassin
+	SpellDoubleSlash            = 92
+	SpellHaste                  = 93
+	SpellFlashDash              = 94
+	SpellLightBody              = 95
+	SpellHeavenlySword          = 96
+	SpellFireBurst              = 97
+	SpellTrap                   = 98
+	SpellPoisonSword            = 99
+	SpellMoonLight              = 100
+	SpellMPEater                = 101
+	SpellSwiftFeet              = 102
+	SpellDarkBody               = 103
+	SpellHemorrhage             = 104
+	SpellCrescentSlash          = 105
+	SpellMoonMist               = 106
+	SpellFocus                  = 121 //Archer
+	SpellStraightShot           = 122
+	SpellDoubleShot             = 123
+	SpellExplosiveTrap          = 124
+	SpellDelayedExplosion       = 125
+	SpellMeditation             = 126
+	SpellBackStep               = 127
+	SpellElementalShot          = 128
+	SpellConcentration          = 129
+	SpellStonetrap              = 130
+	SpellElementalBarrier       = 131
+	SpellSummonVampire          = 132
+	SpellVampireShot            = 133
+	SpellSummonToad             = 134
+	SpellPoisonShot             = 135
+	SpellCrippleShot            = 136
+	SpellSummonSnakes           = 137
+	SpellNapalmShot             = 138
+	SpellOneWithNature          = 139
+	SpellBindingShot            = 140
+	SpellMentalState            = 141
+	SpellBlink                  = 151 //Custom
+	SpellPortal                 = 152
+	SpellBattleCry              = 153
+	SpellDigOutZombie           = 200 //Map Events
+	SpellRubble                 = 201
+	SpellMapLightning           = 202
+	SpellMapLava                = 203
+	SpellMapQuake1              = 204
+	SpellMapQuake2              = 205
+)
+
+type PanelType uint8
+
+const (
+	PanelTypeBuy PanelType = 0
+	PanelTypeSell
+	PanelTypeRepair
+	PanelTypeSpecialRepair
+	PanelTypeConsign
+	PanelTypeCraft
+	PanelTypeRefine
+	PanelTypeCheckRefine
+	PanelTypeDisassemble
+	PanelTypeDowngrade
+	PanelTypeReset
+	PanelTypeCollectRefine
+	PanelTypeReplaceWedRing
+)
