@@ -44,6 +44,9 @@ func encodeValue(v reflect.Value) (bytes []byte, err error) {
 		vv := v.Interface().(string)
 		sb := StringToBytes(vv)
 		bytes = append(bytes, sb...)
+	case reflect.Int:
+		vv := uint32(v.Interface().(int))
+		bytes = append(bytes, Uint32ToBytes(vv)...)
 	case reflect.Int8:
 		vv := uint8(v.Interface().(int8))
 		bytes = append(bytes, vv)
@@ -126,7 +129,7 @@ func decodeValue(f reflect.Value, bytes []byte) []byte {
 	case reflect.Int16:
 		f.SetInt(int64(BytesToUint16(bytes[:2])))
 		bytes = bytes[2:]
-	case reflect.Int32:
+	case reflect.Int, reflect.Int32:
 		f.SetInt(int64(BytesToUint32(bytes[:4])))
 		bytes = bytes[4:]
 	case reflect.Int64:
