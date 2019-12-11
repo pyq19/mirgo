@@ -22,7 +22,7 @@ func TestDB(t *testing.T) {
 
 	var gameShopItem common.GameShopItem
 	db.Table("game_shop_item").Where("game_shop_item_index = ?", 2).Find(&gameShopItem)
-	t.Log(gameShopItem.GoldPrice)
+	t.Log(gameShopItem.GoldPrice, gameShopItem.Id)
 
 	var magicInfo common.MagicInfo
 	db.Table("magic_info").Where("name = ?", "Fencing").Find(&magicInfo)

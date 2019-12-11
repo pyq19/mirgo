@@ -160,5 +160,4 @@ func (r *BytesWrapper) Write(obj interface{}) {
 	} else {
 		*r.Bytes = append(*r.Bytes, res...)
 	}
-
 }
