@@ -191,7 +191,11 @@ type LogOut struct{}
 type Turn struct{}
 type Walk struct{}
 type Run struct{}
-type Chat struct{}
+
+type Chat struct {
+	Message string
+}
+
 type MoveItem struct{}
 type StoreItem struct{}
 type TakeBackItem struct{}

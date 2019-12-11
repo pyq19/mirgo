@@ -433,7 +433,12 @@ type ObjectWalk struct {
 }
 
 type ObjectRun struct{}
-type Chat struct{}
+
+type Chat struct {
+	Message string
+	Type    common.ChatType
+}
+
 type ObjectChat struct{}
 
 type NewItemInfo struct {
