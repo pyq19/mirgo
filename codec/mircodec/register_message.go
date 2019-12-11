@@ -282,8 +282,8 @@ func initClientMessage() {
 	})
 	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
 		Codec: mirCodec,
-		Type:  reflect.TypeOf((*client.DellMember)(nil)).Elem(),
-		ID:    client.DELL_MEMBER,
+		Type:  reflect.TypeOf((*client.DelMember)(nil)).Elem(),
+		ID:    client.DEL_MEMBER,
 	})
 	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
 		Codec: mirCodec,

@@ -60,7 +60,7 @@ const (
 	MAGIC
 	SWITCH_GROUP
 	ADD_MEMBER
-	DELL_MEMBER
+	DEL_MEMBER
 	GROUP_INVITE
 	TOWN_REVIVE
 	SPELL_TOGGLE
@@ -188,130 +188,461 @@ type StartGame struct {
 }
 
 type LogOut struct{}
-type Turn struct{}
-type Walk struct{}
-type Run struct{}
+
+type Turn struct {
+	Direction common.MirDirection
+}
+
+type Walk struct {
+	Direction common.MirDirection
+}
+
+type Run struct {
+	Direction common.MirDirection
+}
 
 type Chat struct {
 	Message string
 }
 
-type MoveItem struct{}
-type StoreItem struct{}
-type TakeBackItem struct{}
-type MergeItem struct{}
-type EquipItem struct{}
-type RemoveItem struct{}
-type RemoveSlotItem struct{}
-type SplitItem struct{}
-type UseItem struct{}
-type DropItem struct{}
-type DepositRefineItem struct{}
-type RetrieveRefineItem struct{}
+type MoveItem struct {
+	Grid common.MirGridType
+	From int32
+	To   int32
+}
+
+type StoreItem struct {
+	From int32
+	To   int32
+}
+
+type TakeBackItem struct {
+	From int32
+	To   int32
+}
+
+type MergeItem struct {
+	GridFrom common.MirGridType
+	GridTo   common.MirGridType
+	IDFrom   uint64
+	IDTo     uint64
+}
+
+type EquipItem struct {
+	Grid     common.MirGridType
+	UniqueID uint64
+	To       int32
+}
+
+type RemoveItem struct {
+	Grid     common.MirGridType
+	UniqueID uint64
+	To       int32
+}
+
+type RemoveSlotItem struct {
+	Grid     common.MirGridType
+	GridTo   common.MirGridType
+	UniqueID uint64
+	To       int32
+}
+
+type SplitItem struct {
+	Grid     common.MirGridType
+	UniqueID uint64
+	Count    uint32
+}
+
+type UseItem struct {
+	UniqueID uint64
+}
+
+type DropItem struct {
+	UniqueID uint64
+	Count    uint32
+}
+
+type DepositRefineItem struct {
+	From int32
+	To   int32
+}
+
+type RetrieveRefineItem struct {
+	From int32
+	To   int32
+}
+
 type RefineCancel struct{}
-type RefineItem struct{}
-type CheckRefine struct{}
-type ReplaceWedRing struct{}
-type DepositTradeItem struct{}
-type RetrieveTradeItem struct{}
-type DropGold struct{}
+
+type RefineItem struct {
+	UniqueID uint64
+}
+
+type CheckRefine struct {
+	UniqueID uint64
+}
+
+type ReplaceWedRing struct {
+	UniqueID uint64
+}
+
+type DepositTradeItem struct {
+	From int32
+	To   int32
+}
+
+type RetrieveTradeItem struct {
+	From int32
+	To   int32
+}
+
+type DropGold struct {
+	Amount uint32
+}
+
 type PickUp struct{}
-type Inspect struct{}
-type ChangeAMode struct{}
-type ChangePMode struct{}
-type ChangeTrade struct{}
-type Attack struct{}
-type RangeAttack struct{}
-type Harvest struct{}
-type CallNPC struct{}
-type TalkMonsterNPC struct{}
-type BuyItem struct{}
-type SellItem struct{}
-type CraftItem struct{}
-type RepairItem struct{}
-type BuyItemBack struct{}
-type SRepairItem struct{}
-type MagicKey struct{}
-type Magic struct{}
-type SwitchGroup struct{}
-type AddMember struct{}
-type DellMember struct{}
-type GroupInvite struct{}
+
+type Inspect struct {
+	ObjectID uint32
+	Ranking  bool
+}
+
+type ChangeAMode struct {
+	Mode common.AttackMode
+}
+
+type ChangePMode struct {
+	Mode common.AttackMode
+}
+
+type ChangeTrade struct {
+	AllowTrade bool
+}
+
+type Attack struct {
+	Direction common.MirDirection
+	Spell     common.Spell
+}
+
+type RangeAttack struct {
+	Direction      common.MirDirection
+	Location       common.Point
+	TargetID       uint32
+	TargetLocation common.Point
+}
+
+type Harvest struct {
+	Direction common.MirDirection
+}
+
+type CallNPC struct {
+	ObjectID uint32
+	Key      string
+}
+
+type TalkMonsterNPC struct {
+	ObjectID uint32
+}
+
+type BuyItem struct {
+	ItemIndex uint64
+	Count     uint32
+	Type      common.PanelType
+}
+
+type SellItem struct {
+	UniqueID uint64
+	Count    uint32
+}
+
+// TODO
+type CraftItem struct {
+}
+
+type RepairItem struct {
+	UniqueID uint64
+}
+
+type BuyItemBack struct {
+	UniqueID uint64
+	Count    uint32
+}
+
+type SRepairItem struct {
+	UniqueID uint64
+}
+
+type MagicKey struct {
+	Spell common.Spell
+	Key   uint8
+}
+
+type Magic struct {
+	Spell     common.Spell
+	Direction common.MirDirection
+	TargetID  uint32
+	Location  common.Point
+}
+
+type SwitchGroup struct {
+	AllowGroup bool
+}
+
+type AddMember struct {
+	Name string
+}
+
+type DelMember struct {
+	Name string
+}
+
+type GroupInvite struct {
+	AcceptInvite bool
+}
+
 type TownRevive struct{}
-type SpellToggle struct{}
-type ConsignItem struct{}
-type MarketSearch struct{}
+
+type SpellToggle struct {
+	Spell  common.Spell
+	CanUse bool
+}
+
+type ConsignItem struct {
+	UniqueID uint64
+	Price    uint32
+}
+
+type MarketSearch struct {
+	Match string
+}
+
 type MarketRefresh struct{}
-type MarketPage struct{}
-type MarketBuy struct{}
-type MarketGetBack struct{}
-type RequestUserName struct{}
-type RequestChatItem struct{}
-type EditGuildMember struct{}
-type EditGuildNotice struct{}
+
+type MarketPage struct {
+	Page int32
+}
+
+type MarketBuy struct {
+	AuctionID uint64
+}
+
+type MarketGetBack struct {
+	AuctionID uint64
+}
+
+type RequestUserName struct {
+	UserID uint32
+}
+
+type RequestChatItem struct {
+	ChatItemID uint64
+}
+
+type EditGuildMember struct {
+	ChangeType uint8
+	RankIndex  uint8
+	Name       string
+	RankName   string
+}
+
+// TODO
+type EditGuildNotice struct {
+}
+
+// TODO
 type GuildInvite struct{}
+
+// TODO
 type GuildNameReturn struct{}
+
+// TODO
 type RequestGuildInfo struct{}
+
+// TODO
 type GuildStorageGoldChange struct{}
+
+// TODO
 type GuildStorageItemChange struct{}
+
+// TODO
 type GuildWarReturn struct{}
+
+// TODO
 type MarriageRequest struct{}
+
+// TODO
 type MarriageReply struct{}
+
+// TODO
 type ChangeMarriage struct{}
+
+// TODO
 type DivorceRequest struct{}
+
+// TODO
 type DivorceReply struct{}
+
+// TODO
 type AddMentor struct{}
+
+// TODO
 type MentorReply struct{}
+
+// TODO
 type AllowMentor struct{}
+
+// TODO
 type CancelMentor struct{}
+
+// TODO
 type TradeRequest struct{}
+
+// TODO
 type TradeReply struct{}
+
+// TODO
 type TradeGold struct{}
+
+// TODO
 type TradeConfirm struct{}
+
+// TODO
 type TradeCancel struct{}
+
+// TODO
 type EquipSlotItem struct{}
+
+// TODO
 type FishingCast struct{}
+
+// TODO
 type FishingChangeAutocast struct{}
+
+// TODO
 type AcceptQuest struct{}
+
+// TODO
 type FinishQuest struct{}
+
+// TODO
 type AbandonQuest struct{}
+
+// TODO
 type ShareQuest struct{}
+
+// TODO
 type AcceptReincarnation struct{}
+
+// TODO
 type CancelReincarnation struct{}
+
+// TODO
 type CombineItem struct{}
+
+// TODO
 type SetConcentration struct{}
+
+// TODO
 type AwakeningNeedMaterials struct{}
+
+// TODO
 type AwakeningLockedItem struct{}
+
+// TODO
 type Awakening struct{}
+
+// TODO
 type DisassembleItem struct{}
+
+// TODO
 type DowngradeAwakening struct{}
+
+// TODO
 type ResetAddedItem struct{}
+
+// TODO
 type SendMail struct{}
+
+// TODO
 type ReadMail struct{}
+
+// TODO
 type CollectParcel struct{}
+
+// TODO
 type DeleteMail struct{}
+
+// TODO
 type LockMail struct{}
+
+// TODO
 type MailLockedItem struct{}
+
+// TODO
 type MailCost struct{}
+
+// TODO
 type UpdateIntelligentCreature struct{}
+
+// TODO
 type IntelligentCreaturePickup struct{}
+
+// TODO
 type AddFriend struct{}
+
+// TODO
 type RemoveFriend struct{}
+
+// TODO
 type RefreshFriends struct{}
+
+// TODO
 type AddMemo struct{}
+
+// TODO
 type GuildBuffUpdate struct{}
+
+// TODO
 type NPCConfirmInput struct{}
+
+// TODO
 type GameshopBuy struct{}
+
+// TODO
 type ReportIssue struct{}
+
+// TODO
 type GetRanking struct{}
+
+// TODO
 type Opendoor struct{}
+
+// TODO
 type GetRentedItems struct{}
+
+// TODO
 type ItemRentalRequest struct{}
+
+// TODO
 type ItemRentalFee struct{}
+
+// TODO
 type ItemRentalPeriod struct{}
+
+// TODO
 type DepositRentalItem struct{}
+
+// TODO
 type RetrieveRentalItem struct{}
+
+// TODO
 type CancelItemRental struct{}
+
+// TODO
 type ItemRentalLockFee struct{}
+
+// TODO
 type ItemRentalLockItem struct{}
+
+// TODO
 type ConfirmItemRental struct{}

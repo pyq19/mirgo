@@ -31,6 +31,7 @@ func (g *Game) HandleEvent(ev cellnet.Event) {
 	case *client.NewAccount:
 		g.NewAccount(s, msg)
 	case *client.ChangePassword:
+		g.ChangePassword(s, msg)
 	case *client.Login:
 		g.Login(s, msg)
 	case *client.NewCharacter:
@@ -316,6 +317,10 @@ func (g *Game) KeepAlive(s cellnet.Session, msg *client.KeepAlive) {
 func (g *Game) NewAccount(s cellnet.Session, msg *client.NewAccount) {
 	log.Debugln(msg.AccountID, msg.Password)
 	s.Send(server.NewAccount{8})
+}
+
+func (g *Game) ChangePassword(s cellnet.Session, msg *client.NewAccount) {
+
 }
 
 // TODO 登陆
