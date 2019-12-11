@@ -137,9 +137,6 @@ type MagicInfo struct {
 	MultiplierBonus float32
 }
 
-type Magic struct {
-}
-
 type MapInfo struct {
 	Id              int    `gorm:"primary_key"`
 	Filename        string `gorm:"Column:file_name"`
@@ -225,6 +222,7 @@ type MovementInfo struct {
 	NeedMove      int
 	ConquestIndex int
 }
+
 type NpcInfo struct {
 	Id            int `gorm:"primary_key"`
 	MapId         int
