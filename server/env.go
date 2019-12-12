@@ -7,10 +7,11 @@ import (
 
 type Environ struct {
 	Game    *Game
+	GameDB  *GameDB
 	Players *[]Player // 总玩家
 }
 
-type ServerDB struct {
+type GameDB struct {
 	Basic         common.Basic
 	GameShopItems []common.GameShopItem
 	ItemInfos     []common.ItemInfo
@@ -24,6 +25,11 @@ type ServerDB struct {
 	SafeZoneInfos []common.SafeZoneInfo
 }
 
+// TODO
+func (d GameDB) Init() {
+
+}
+
 type Player struct {
 	Session   *cellnet.Session
 	Character *common.Character
@@ -31,9 +37,14 @@ type Player struct {
 	UserItems *[]common.UserItem
 }
 
-// TODO
 func (g *Game) NewEnviron() (env *Environ) {
 	env = new(Environ)
 	env.Game = g
+
+	gameDB := new(GameDB)
+	gameDB.Init()
+
+	players := make([]Player, 0)
+	env.Players = &players
 	return
 }
