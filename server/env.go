@@ -9,6 +9,11 @@ type Environ struct {
 	Game    *Game
 	GameDB  *GameDB
 	Players *[]Player // 总玩家
+
+	// CommonEventChan  chan interface{} // 系统事件
+	// PlayerEventChan  chan interface{} // 玩家事件
+	// MonsterEventChan chan interface{} // 怪物事件
+	// MapEventChan     chan interface{} // 地图事件
 }
 
 type GameDB struct {
@@ -91,5 +96,9 @@ func (e *Environ) InitMonsters() {
 }
 
 func (e *Environ) StartLoop() {
-
+	// p := *e.Game.Peer
+	// p.(cellnet.SessionAccessor).VisitSession(func(ses cellnet.Session) bool {
+	// 	ses.Send(&ack)
+	// 	return true
+	// })
 }
