@@ -27,6 +27,7 @@ func NewGame(conf Config) *Game {
 	defer db.Close()
 	g.DB = db
 	g.Env = g.NewEnviron()
+	go g.Env.StartLoop()
 	return g
 }
 
