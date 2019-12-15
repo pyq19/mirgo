@@ -1,6 +1,7 @@
 package common
 
 import (
+	"io/ioutil"
 	"os"
 	"testing"
 
@@ -31,5 +32,24 @@ func TestLoadMap(t *testing.T) {
 func TestSaveMapText(t *testing.T) {
 	gopath := os.Getenv("GOPATH")
 	filePath := gopath + "/src/github.com/yenkeia/mirgo/01.txt"
-	t.Log(filePath)
+	mapAbsPath := gopath + "/src/github.com/yenkeia/mirgo/dotnettools/database/Maps/0.map"
+	m := GetMapV1(GetMapBytes(mapAbsPath))
+	// t.Log(m)
+	str := ""
+	for i := 0; i < int(m.Width); i++ {
+		for j := 0; j < int(m.Height); j++ {
+			c := m.CoordinateCellMap[Point{uint32(i), uint32(j)}.String()]
+			if int(c.Attribute) == 0 {
+				str = str + "#"
+			} else if int(c.Attribute) == 1 {
+				str = str + "1"
+			} else if int(c.Attribute) == 2 {
+				str = str + "2"
+			} else {
+				str = str + "?"
+			}
+		}
+		str = str + "\n"
+	}
+	ioutil.WriteFile(filePath, []byte(str), 0644)
 }
