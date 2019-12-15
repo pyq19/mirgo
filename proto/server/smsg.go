@@ -271,30 +271,10 @@ type KeepAlive struct {
 
 type NewAccount struct {
 	Result uint8
-	/*
-	 * 0: Disabled
-	 * 1: Bad AccountID
-	 * 2: Bad Password
-	 * 3: Bad Email
-	 * 4: Bad Name
-	 * 5: Bad Question
-	 * 6: Bad Answer
-	 * 7: Account Exists.
-	 * 8: Success
-	 */
 }
 
 type ChangePassword struct {
 	Result uint8
-	/*
-	 * 0: Disabled
-	 * 1: Bad AccountID
-	 * 2: Bad Current Password
-	 * 3: Bad New Password
-	 * 4: Account Not Exist
-	 * 5: Wrong Password
-	 * 6: Success
-	 */
 }
 
 // TODO
@@ -305,13 +285,6 @@ type ChangePasswordBanned struct {
 
 type Login struct {
 	Result uint8
-	/*
-	* 0: Disabled
-	* 1: Bad AccountID
-	* 2: Bad Password
-	* 3: Account Not Exist
-	* 4: Wrong Password
-	 */
 }
 
 // TODO

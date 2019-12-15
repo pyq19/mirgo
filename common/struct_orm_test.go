@@ -58,3 +58,37 @@ func TestDB(t *testing.T) {
 	db.Table("safe_zone").Where("map_id = ?", 1).Find(&safeZoneInfo)
 	t.Log(safeZoneInfo.MapId, safeZoneInfo.LocationX, safeZoneInfo.LocationY)
 }
+
+func TestAccountDB(t *testing.T) {
+	path := os.Getenv("GOPATH") + "/src/github.com/yenkeia/mirgo/dotnettools/mir.sqlite"
+	db, err := gorm.Open("sqlite3", path)
+	if err != nil {
+		panic("failed to connect database")
+	}
+	defer db.Close()
+
+	var account Account
+	db.Table("account").Where("username = ?", "不存在").Find(&account)
+	t.Log(account)
+}
+
+func TestCharacter(t *testing.T) {
+	path := os.Getenv("GOPATH") + "/src/github.com/yenkeia/mirgo/dotnettools/mir.sqlite"
+	db, err := gorm.Open("sqlite3", path)
+	if err != nil {
+		panic("failed to connect database")
+	}
+	defer db.Close()
+
+	ac := make([]AccountCharacter, 3)
+	db.Table("account_character").Where("account_id = ?", 1).Limit(3).Find(&ac)
+	t.Log(ac, len(ac))
+
+	ids := make([]int, 3)
+	for _, c := range ac {
+		ids = append(ids, c.Id)
+	}
+	cs := make([]Character, 3)
+	db.Table("character").Where("id in (?)", ids).Find(&cs)
+	t.Log(cs)
+}

@@ -1,11 +1,17 @@
 package common
 
-// Account TODO
+// Account 账号
 type Account struct {
+	Id       int `gorm:"primary_key"`
+	Username string
+	Password string
 }
 
-// AccountCharacter TODO
+// AccountCharacter 账号角色关系
 type AccountCharacter struct {
+	Id          int `gorm:"primary_key"`
+	AccountId   int
+	CharacterId int
 }
 
 type Basic struct {
@@ -21,18 +27,34 @@ type Basic struct {
 	RespawnIndex  int
 }
 
-// Character TODO
+// Character 角色
 type Character struct {
+	Id               int32 `gorm:"primary_key"`
+	Name             string
+	Level            uint16
+	Class            MirClass
+	Gender           MirGender
+	Hair             uint8
+	CurrentMapId     int32
+	CurrentLocationX int32
+	CurrentLocationY int32
+	Direction        MirDirection
+	HP               uint16
+	MP               uint16
+	Experience       int64
+	AttackMode       AttackMode
+	PetMode          PetMode
 }
 
-// CharacterMagic TODO
+// CharacterMagic 角色魔法关系
 type CharacterMagic struct {
 }
 
-// CharacterUserItem TODO
+// CharacterUserItem 角色物品关系
 type CharacterUserItem struct {
 }
 
+// GameShopItem 游戏内商城物品
 type GameShopItem struct {
 	Id          int `gorm:"primary_key"`
 	ItemId      int
@@ -49,7 +71,7 @@ type GameShopItem struct {
 }
 
 type ItemInfo struct {
-	Id             int `gorm:"primary_key"`
+	Id             int16 `gorm:"primary_key"`
 	Name           string
 	Type           ItemType
 	Grade          ItemGrade

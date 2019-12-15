@@ -5,10 +5,11 @@ import (
 	"github.com/yenkeia/mirgo/common"
 )
 
+// Environ ...
 type Environ struct {
 	Game    *Game
 	GameDB  *GameDB
-	Players *[]Player // 总玩家
+	Players []Player // 总玩家
 
 	// CommonEventChan  chan interface{} // 系统事件
 	// PlayerEventChan  chan interface{} // 玩家事件
@@ -16,6 +17,7 @@ type Environ struct {
 	// MapEventChan     chan interface{} // 地图事件
 }
 
+// GameDB ...
 type GameDB struct {
 	Basic         common.Basic
 	GameShopItems []common.GameShopItem
@@ -30,13 +32,24 @@ type GameDB struct {
 	SafeZoneInfos []common.SafeZoneInfo
 }
 
+const (
+	LOGIN = iota
+	SELECT
+	GAME
+	DISCONNECTED
+)
+
+// Player ...
 type Player struct {
+	AccountId int
+	GameStage int
 	Session   *cellnet.Session
 	Character *common.Character
 	Magics    *[]common.MagicInfo
 	UserItems *[]common.UserItem
 }
 
+// NewEnviron ...
 func (g *Game) NewEnviron() (env *Environ) {
 	env = new(Environ)
 	env.Game = g
@@ -44,10 +57,11 @@ func (g *Game) NewEnviron() (env *Environ) {
 	env.InitMaps()
 	env.InitMonsters()
 	players := make([]Player, 0, 50)
-	env.Players = &players
+	env.Players = players
 	return
 }
 
+// LoadGameDB ...
 func (e *Environ) LoadGameDB() {
 	gdb := new(GameDB)
 	e.GameDB = gdb
@@ -87,14 +101,17 @@ func (e *Environ) LoadGameDB() {
 	gdb.SafeZoneInfos = si
 }
 
+// InitMaps ...
 func (e *Environ) InitMaps() {
 
 }
 
+// InitMonsters ...
 func (e *Environ) InitMonsters() {
 
 }
 
+// StartLoop ...
 func (e *Environ) StartLoop() {
 	// p := *e.Game.Peer
 	// p.(cellnet.SessionAccessor).VisitSession(func(ses cellnet.Session) bool {

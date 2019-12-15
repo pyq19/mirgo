@@ -10,6 +10,7 @@ import (
 	_ "github.com/yenkeia/mirgo/proc/mirtcp"
 )
 
+// Game ...
 type Game struct {
 	Conf Config
 	DB   *gorm.DB
@@ -17,6 +18,7 @@ type Game struct {
 	Peer *cellnet.GenericPeer
 }
 
+// NewGame ...
 func NewGame(conf Config) *Game {
 	g := new(Game)
 	g.Conf = conf
@@ -24,13 +26,14 @@ func NewGame(conf Config) *Game {
 	if err != nil {
 		panic("failed to connect database")
 	}
-	defer db.Close()
+	//defer db.Close()
 	g.DB = db
 	g.Env = g.NewEnviron()
 	go g.Env.StartLoop()
 	return g
 }
 
+// ServerStart ...
 func (g *Game) ServerStart() {
 	queue := cellnet.NewEventQueue()
 	p := peer.NewGenericPeer("tcp.Acceptor", "server", g.Conf.Addr, queue)
