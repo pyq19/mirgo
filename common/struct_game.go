@@ -45,36 +45,36 @@ func GetMapBytes(mapAbsPath string) []byte {
 	return fileBytes
 }
 
-//func GetMapV1(bytes []byte) *Map {
-//	offset := 21
-//	w := mircodec.BytesToUint16(bytes[offset : offset+2])
-//	offset += 2
-//	xor := mircodec.BytesToUint16(bytes[offset : offset+2])
-//	offset += 2
-//	h := mircodec.BytesToUint16(bytes[offset : offset+2])
-//	width := w ^ xor
-//	height := h ^ xor
-//	offset = 54
-//	cellCount := int(width) * int(height)
-//	cells := make([]Cell, 0, cellCount)
-//	for i := 0; i < int(width); i++ {
-//		for j := 0; j < int(height); j++ {
-//			p := Point{X: uint32(i), Y: uint32(j)}
-//			c := Cell{Coordinate: p.String(), Point: p}
-//			if (mircodec.BytesToUint32(bytes[offset:offset+4])^0xAA38AA38)&0x20000000 != 0 {
-//				c.Attribute = CellAttributeHighWall
-//				cells = append(cells, c)
-//			}
-//			if ((mircodec.BytesToUint16(bytes[offset+6:offset+8]) ^ xor) & 0x8000) != 0 {
-//				c.Attribute = CellAttributeLowWall
-//				cells = append(cells, c)
-//			}
-//			offset += 15
-//		}
-//	}
-//	m := new(Map)
-//	m.Width = width
-//	m.Height = height
-//	m.Cells = cells
-//	return m
-//}
+func GetMapV1(bytes []byte) *Map {
+	offset := 21
+	w := BytesToUint16(bytes[offset : offset+2])
+	offset += 2
+	xor := BytesToUint16(bytes[offset : offset+2])
+	offset += 2
+	h := BytesToUint16(bytes[offset : offset+2])
+	width := w ^ xor
+	height := h ^ xor
+	offset = 54
+	cellCount := int(width) * int(height)
+	cells := make([]Cell, 0, cellCount)
+	for i := 0; i < int(width); i++ {
+		for j := 0; j < int(height); j++ {
+			p := Point{X: uint32(i), Y: uint32(j)}
+			c := Cell{Coordinate: p.String(), Point: p}
+			if (BytesToUint32(bytes[offset:offset+4])^0xAA38AA38)&0x20000000 != 0 {
+				c.Attribute = CellAttributeHighWall
+				cells = append(cells, c)
+			}
+			if ((BytesToUint16(bytes[offset+6:offset+8]) ^ xor) & 0x8000) != 0 {
+				c.Attribute = CellAttributeLowWall
+				cells = append(cells, c)
+			}
+			offset += 15
+		}
+	}
+	m := new(Map)
+	m.Width = width
+	m.Height = height
+	m.Cells = cells
+	return m
+}

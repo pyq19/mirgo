@@ -6,7 +6,7 @@ import (
 	"github.com/davyxu/cellnet"
 	"github.com/davyxu/cellnet/codec"
 	"github.com/davyxu/golog"
-	"github.com/yenkeia/mirgo/codec/mircodec"
+	"github.com/yenkeia/mirgo/common"
 	"io"
 	"strconv"
 	"strings"
@@ -75,7 +75,7 @@ func ClientRecvLTVPacket(reader io.Reader, maxPacketSize int) (msg interface{}, 
 	_, err = io.ReadFull(reader, body)
 
 	allBytes := append(sizeBuffer, body...)
-	packetName := GetPacketName("server", int(mircodec.BytesToUint16(body[:2])))
+	packetName := GetPacketName("server", int(common.BytesToUint16(body[:2])))
 	log.Debugln("<--- 客户端收到 (" + packetName + ") " + strconv.Itoa(len(allBytes)) + "字节: " + String(allBytes))
 
 	// 发生错误时返回
@@ -147,7 +147,7 @@ func ClientSendLTVPacket(writer io.Writer, ctx cellnet.ContextSet, data interfac
 	// 将数据写入Socket
 	err := WriteFull(writer, pkt)
 
-	packetName := GetPacketName("client", int(mircodec.BytesToUint16(pkt[2:4])))
+	packetName := GetPacketName("client", int(common.BytesToUint16(pkt[2:4])))
 	log.Debugln("---> 客户端发送 (" + packetName + ") " + strconv.Itoa(len(pkt)) + "字节: " + String(pkt))
 
 	// Codec中使用内存池时的释放位置
@@ -190,7 +190,7 @@ func ServerRecvLTVPacket(reader io.Reader, maxPacketSize int) (msg interface{}, 
 	_, err = io.ReadFull(reader, body)
 
 	allBytes := append(sizeBuffer, body...)
-	packetName := GetPacketName("client", int(mircodec.BytesToUint16(body[:2])))
+	packetName := GetPacketName("client", int(common.BytesToUint16(body[:2])))
 	log.Debugln("<--- 服务端收到 (" + packetName + ") " + strconv.Itoa(len(allBytes)) + "字节: " + String(allBytes))
 
 	// 发生错误时返回
@@ -263,7 +263,7 @@ func ServerSendLTVPacket(writer io.Writer, ctx cellnet.ContextSet, data interfac
 	// 将数据写入Socket
 	err := WriteFull(writer, pkt)
 
-	packetName := GetPacketName("server", int(mircodec.BytesToUint16(pkt[2:4])))
+	packetName := GetPacketName("server", int(common.BytesToUint16(pkt[2:4])))
 	log.Debugln("---> 服务端发送 (" + packetName + ") " + strconv.Itoa(len(pkt)) + "字节: " + String(pkt))
 
 	// Codec中使用内存池时的释放位置
