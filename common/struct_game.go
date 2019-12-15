@@ -32,9 +32,14 @@ type Cell struct {
 type Door struct{}
 
 type Map struct {
-	Width  uint16
-	Height uint16
-	Cells  []Cell
+	Width             uint16
+	Height            uint16
+	Cells             []Cell
+	CoordinateCellMap map[string]Cell
+}
+
+func (m *Map) GetCell(coordinate string) Cell {
+	return m.CoordinateCellMap[coordinate]
 }
 
 func GetMapBytes(mapAbsPath string) []byte {
@@ -46,6 +51,8 @@ func GetMapBytes(mapAbsPath string) []byte {
 }
 
 func GetMapV1(bytes []byte) *Map {
+	m := new(Map)
+	m.CoordinateCellMap = make(map[string]Cell)
 	offset := 21
 	w := BytesToUint16(bytes[offset : offset+2])
 	offset += 2
@@ -69,10 +76,10 @@ func GetMapV1(bytes []byte) *Map {
 				c.Attribute = CellAttributeLowWall
 				cells = append(cells, c)
 			}
+			m.CoordinateCellMap[p.String()] = c
 			offset += 15
 		}
 	}
-	m := new(Map)
 	m.Width = width
 	m.Height = height
 	m.Cells = cells
