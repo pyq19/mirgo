@@ -12,17 +12,14 @@ import (
 
 var log = golog.New("server.handler")
 
+// HandleEvent ...
 func (g *Game) HandleEvent(ev cellnet.Event) {
-
 	var s cellnet.Session
 	s = ev.Session()
 	switch msg := ev.Message().(type) {
-
-	// 有新的连接
-	case *cellnet.SessionAccepted:
+	case *cellnet.SessionAccepted: // 有新的连接
 		g.SessionAccepted(s, msg)
-	// 有连接断开
-	case *cellnet.SessionClosed:
+	case *cellnet.SessionClosed: // 有连接断开
 		g.SessionClosed(s, msg)
 	case *client.ClientVersion:
 		g.ClientVersion(s, msg)
@@ -294,58 +291,122 @@ func (g *Game) HandleEvent(ev cellnet.Event) {
 	}
 }
 
+// SessionAccepted ...
 func (g *Game) SessionAccepted(s cellnet.Session, msg *cellnet.SessionAccepted) {
 	connected := server.Connected{}
 	s.Send(&connected)
 }
 
+// SessionClosed ...
 func (g *Game) SessionClosed(s cellnet.Session, msg *cellnet.SessionClosed) {
 
 }
 
+// ClientVersion ...
 func (g *Game) ClientVersion(s cellnet.Session, msg *client.ClientVersion) {
 	clientVersion := server.ClientVersion{Result: 1}
 	s.Send(&clientVersion)
 }
 
+// KeepAlive ...
 func (g *Game) KeepAlive(s cellnet.Session, msg *client.KeepAlive) {
 	keepAlive := server.KeepAlive{Time: 0}
 	s.Send(keepAlive)
 }
 
-// TODO NewAccount 保存新账号
+// NewAccount 保存新账号
 func (g *Game) NewAccount(s cellnet.Session, msg *client.NewAccount) {
-	log.Debugln(msg.AccountID, msg.Password)
-	s.Send(server.NewAccount{8})
+	/*
+	 * 0: Disabled
+	 * 1: Bad AccountID
+	 * 2: Bad Password
+	 * 3: Bad Email
+	 * 4: Bad Name
+	 * 5: Bad Question
+	 * 6: Bad Answer
+	 * 7: Account Exists.
+	 * 8: Success
+	 */
+	res := uint8(0)
+	ac := new(common.Account)
+	g.DB.Table("account").Where("username = ?", msg.AccountID).Find(ac)
+	if ac.Id == 0 && ac.Username == "" {
+		ac.Username = msg.AccountID
+		ac.Password = msg.Password
+		g.DB.Table("account").Create(&ac)
+		res = 8
+	}
+	s.Send(server.NewAccount{Result: res})
 }
 
-// TODO ChangePassword 改密码
+// ChangePassword 改密码
 func (g *Game) ChangePassword(s cellnet.Session, msg *client.ChangePassword) {
-
+	/*
+	 * 0: Disabled
+	 * 1: Bad AccountID
+	 * 2: Bad Current Password
+	 * 3: Bad New Password
+	 * 4: Account Not Exist
+	 * 5: Wrong Password
+	 * 6: Success
+	 */
+	res := uint8(5)
+	ac := new(common.Account)
+	g.DB.Table("account").Where("username = ? AND password = ?", msg.AccountID, msg.CurrentPassword).Find(ac)
+	if ac.Id != 0 {
+		ac.Password = msg.NewPassword
+		g.DB.Table("account").Model(ac).Updates(common.Account{Password: msg.NewPassword})
+		res = 6
+	}
+	s.Send(server.ChangePassword{Result: res})
 }
 
-// TODO Login 登陆
+// Login 登陆
 func (g *Game) Login(s cellnet.Session, msg *client.Login) {
+	/*
+	 * 0: Disabled
+	 * 1: Bad AccountID
+	 * 2: Bad Password
+	 * 3: Account Not Exist
+	 * 4: Wrong Password
+	 */
+	a := new(common.Account)
+	g.DB.Table("account").Where("username = ? AND password = ?", msg.AccountID, msg.Password).Find(a)
+	if a.Id == 0 {
+		s.Send(server.Login{Result: uint8(4)})
+		return
+	}
+	p := new(Player)
+	p.GameStage = SELECT
+	p.Session = &s
+	g.Env.Players = append(g.Env.Players, *p)
+
+	ac := make([]common.AccountCharacter, 3)
+	g.DB.Table("account_character").Where("account_id = ?", a.Id).Limit(3).Find(&ac)
+	ids := make([]int, 3)
+	for _, c := range ac {
+		ids = append(ids, c.Id)
+	}
+	cs := make([]common.Character, 3)
+	//db.Where("name in (?)", []string{"jinzhu", "jinzhu 2"}).Find(&users)
+	g.DB.Table("character").Where("id in (?)", ids).Find(&cs)
+	si := make([]common.SelectInfo, len(cs))
+	for i, c := range cs {
+		s := new(common.SelectInfo)
+		s.Index = uint32(c.Id)
+		s.Name = c.Name
+		s.Level = c.Level
+		s.Class = c.Class
+		s.Gender = c.Gender
+		s.LastAccess = 0
+		si[i] = *s
+	}
 	res := new(server.LoginSuccess)
-
-	c1 := new(common.SelectInfo)
-	c1.Name = "测试登陆1"
-	c1.Index = 1
-	c1.Gender = common.MirGenderFemale
-	c1.Class = common.MirClassArcher
-	res.Characters = append(res.Characters, *c1)
-
-	c2 := new(common.SelectInfo)
-	c2.Name = "测试登陆2"
-	c2.Index = 2
-	c2.Gender = common.MirGenderFemale
-	c2.Class = common.MirClassAssassin
-	res.Characters = append(res.Characters, *c2)
-
+	res.Characters = si
 	s.Send(res)
 }
 
-// TODO NewCharacter 创建角色成功
+// NewCharacter 创建角色成功
 func (g *Game) NewCharacter(s cellnet.Session, msg *client.NewCharacter) {
 	log.Debugln(msg.Name, msg.Class, msg.Gender)
 	res := new(server.NewCharacterSuccess)
@@ -356,7 +417,7 @@ func (g *Game) NewCharacter(s cellnet.Session, msg *client.NewCharacter) {
 	s.Send(res)
 }
 
-// TODO DeleteCharacter 删除角色
+// DeleteCharacter 删除角色
 func (g *Game) DeleteCharacter(s cellnet.Session, msg *client.DeleteCharacter) {
 
 }

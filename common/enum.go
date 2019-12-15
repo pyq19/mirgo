@@ -375,3 +375,12 @@ const (
 	CellAttributeHighWall               = 1
 	CellAttributeLowWall                = 2
 )
+
+type PetMode uint8
+
+const (
+	PetModeBoth       PetMode = 0
+	PetModeMoveOnly           = 1
+	PetModeAttackOnly         = 2
+	PetModeNone               = 3
+)
