@@ -367,3 +367,11 @@ const (
 	PanelTypeCollectRefine
 	PanelTypeReplaceWedRing
 )
+
+type CellAttribute uint8
+
+const (
+	CellAttributeWalk     CellAttribute = 0
+	CellAttributeHighWall               = 1
+	CellAttributeLowWall                = 2
+)
