@@ -2,6 +2,7 @@ package mircodec
 
 import (
 	"errors"
+	"github.com/yenkeia/mirgo/common"
 	"reflect"
 )
 
@@ -42,23 +43,23 @@ func encodeValue(v reflect.Value) (bytes []byte, err error) {
 		bytes = append(bytes, b)
 	case reflect.String:
 		vv := v.Interface().(string)
-		sb := StringToBytes(vv)
+		sb := common.StringToBytes(vv)
 		bytes = append(bytes, sb...)
 	case reflect.Int:
 		vv := uint32(v.Interface().(int))
-		bytes = append(bytes, Uint32ToBytes(vv)...)
+		bytes = append(bytes, common.Uint32ToBytes(vv)...)
 	case reflect.Int8:
 		vv := uint8(v.Interface().(int8))
 		bytes = append(bytes, vv)
 	case reflect.Int16:
 		vv := uint16(v.Interface().(int16))
-		bytes = append(bytes, Uint16ToBytes(vv)...)
+		bytes = append(bytes, common.Uint16ToBytes(vv)...)
 	case reflect.Int32:
 		vv := uint32(v.Interface().(int32))
-		bytes = append(bytes, Uint32ToBytes(vv)...)
+		bytes = append(bytes, common.Uint32ToBytes(vv)...)
 	case reflect.Int64:
 		vv := uint64(v.Interface().(int64))
-		bytes = append(bytes, Uint64ToBytes(vv)...)
+		bytes = append(bytes, common.Uint64ToBytes(vv)...)
 	case reflect.Uint8:
 		switch vv := v.Interface().(type) {
 		case uint8:
@@ -69,13 +70,13 @@ func encodeValue(v reflect.Value) (bytes []byte, err error) {
 		}
 	case reflect.Uint16:
 		vv := v.Interface().(uint16)
-		bytes = append(bytes, Uint16ToBytes(vv)...)
+		bytes = append(bytes, common.Uint16ToBytes(vv)...)
 	case reflect.Uint32:
 		vv := v.Interface().(uint32)
-		bytes = append(bytes, Uint32ToBytes(vv)...)
+		bytes = append(bytes, common.Uint32ToBytes(vv)...)
 	case reflect.Uint64:
 		vv := v.Interface().(uint64)
-		bytes = append(bytes, Uint64ToBytes(vv)...)
+		bytes = append(bytes, common.Uint64ToBytes(vv)...)
 	case reflect.Slice:
 		// FIXME 还有别的类型可能会报错
 		switch vv := v.Interface().(type) {
@@ -85,7 +86,7 @@ func encodeValue(v reflect.Value) (bytes []byte, err error) {
 			vvv := reflect.ValueOf(vv)
 			l := vvv.Len()
 			slice := vvv.Slice(0, l)
-			bytes = append(bytes, Uint32ToBytes(uint32(l))...)
+			bytes = append(bytes, common.Uint32ToBytes(uint32(l))...)
 			for i := 0; i < l; i++ {
 				b, err := encode(slice.Index(i).Interface())
 				if err != nil {
@@ -112,7 +113,7 @@ func decodeValue(f reflect.Value, bytes []byte) []byte {
 			bytes = decodeValue(f.Field(i), bytes)
 		}
 	case reflect.String:
-		i, s := ReadString(bytes, 0)
+		i, s := common.ReadString(bytes, 0)
 		f.SetString(s)
 		bytes = bytes[i:]
 	case reflect.Bool:
@@ -127,28 +128,28 @@ func decodeValue(f reflect.Value, bytes []byte) []byte {
 		f.SetInt(int64(bytes[0]))
 		bytes = bytes[1:]
 	case reflect.Int16:
-		f.SetInt(int64(BytesToUint16(bytes[:2])))
+		f.SetInt(int64(common.BytesToUint16(bytes[:2])))
 		bytes = bytes[2:]
 	case reflect.Int, reflect.Int32:
-		f.SetInt(int64(BytesToUint32(bytes[:4])))
+		f.SetInt(int64(common.BytesToUint32(bytes[:4])))
 		bytes = bytes[4:]
 	case reflect.Int64:
-		f.SetInt(int64(BytesToUint64(bytes[:8])))
+		f.SetInt(int64(common.BytesToUint64(bytes[:8])))
 		bytes = bytes[8:]
 	case reflect.Uint8:
 		f.SetUint(uint64(bytes[0]))
 		bytes = bytes[1:]
 	case reflect.Uint16:
-		f.SetUint(uint64(BytesToUint16(bytes[:2])))
+		f.SetUint(uint64(common.BytesToUint16(bytes[:2])))
 		bytes = bytes[2:]
 	case reflect.Uint32:
-		f.SetUint(uint64(BytesToUint32(bytes[:4])))
+		f.SetUint(uint64(common.BytesToUint32(bytes[:4])))
 		bytes = bytes[4:]
 	case reflect.Uint64:
-		f.SetUint(BytesToUint64(bytes[:8]))
+		f.SetUint(common.BytesToUint64(bytes[:8]))
 		bytes = bytes[8:]
 	case reflect.Slice:
-		l := int(BytesToUint32(bytes[:4]))
+		l := int(common.BytesToUint32(bytes[:4]))
 		e := f.Type().Elem()
 		if e.Kind() == reflect.Uint8 {
 			f.SetBytes(bytes[:l+4])
