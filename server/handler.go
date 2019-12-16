@@ -383,7 +383,6 @@ func (g *Game) Login(s cellnet.Session, msg *client.Login) {
 	p.AccountId = a.Id
 	p.GameStage = SELECT
 	p.Session = &s
-	g.Env.Players = append(g.Env.Players, *p)
 	g.Env.SessionIDPlayerMap[s.ID()] = *p
 
 	ac := make([]common.AccountCharacter, 3)
