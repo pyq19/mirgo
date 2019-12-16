@@ -52,3 +52,4 @@ dotnettools/obj/*
 database
 *.swp
 dotnettools/mysql2sqlite
+smain
