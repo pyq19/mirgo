@@ -69,13 +69,13 @@ func main() {
 			})
 		case client.LOGIN:
 			session.Send(&client.Login{
-				AccountID: "随便",
-				Password:  "随便",
+				AccountID: "test",
+				Password:  "testt",
 			})
 		case client.NEW_CHARACTER:
 			log.Debugln(idStr + " NEW_CHARACTER")
 			session.Send(&client.NewCharacter{
-				Name:   "测试测试NewCharacter",
+				Name:   "test character",
 				Gender: common.MirGenderMale,
 				Class:  common.MirClassTaoist,
 			})
