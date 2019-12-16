@@ -8,7 +8,6 @@ import (
 	"github.com/davyxu/cellnet/proc"
 	"github.com/davyxu/golog"
 	_ "github.com/yenkeia/mirgo/codec/mircodec"
-	"github.com/yenkeia/mirgo/common"
 	_ "github.com/yenkeia/mirgo/proc/mirtcp"
 	"github.com/yenkeia/mirgo/proto/client"
 	"github.com/yenkeia/mirgo/proto/server"
@@ -74,14 +73,17 @@ func main() {
 			})
 		case client.NEW_CHARACTER:
 			log.Debugln(idStr + " NEW_CHARACTER")
-			session.Send(&client.NewCharacter{
-				Name:   "test character",
-				Gender: common.MirGenderMale,
-				Class:  common.MirClassTaoist,
-			})
+			//session.Send(&client.NewCharacter{
+			//	Name:   "test character",
+			//	Gender: common.MirGenderMale,
+			//	Class:  common.MirClassTaoist,
+			//})
 		case client.START_GAME:
 			log.Debugln(idStr + " START_GAME")
 			session.Send(&client.StartGame{CharacterIndex: 1})
+		case client.DELETE_CHARACTER:
+			log.Debugln(idStr + " DELETE_CHARACTER")
+			//session.Send(&client.DeleteCharacter{CharacterIndex: 3})
 		default:
 			log.Debugln(idStr + " default")
 		}
