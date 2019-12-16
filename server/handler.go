@@ -466,7 +466,17 @@ func (g *Game) NewCharacter(s cellnet.Session, msg *client.NewCharacter) {
 
 // DeleteCharacter 删除角色
 func (g *Game) DeleteCharacter(s cellnet.Session, msg *client.DeleteCharacter) {
-
+	p, ok := g.Env.SessionIDPlayerMap[s.ID()]
+	if !ok || p.GameStage != SELECT {
+		return
+	}
+	c := new(common.Character)
+	g.DB.Table("character").Where("id = ?", msg.CharacterIndex).Find(c)
+	if c.Id == 0 {
+		return
+	}
+	g.DB.Table("character").Delete(c)
+	g.DB.Table("account_character").Where("character_id = ?", c.Id).Delete(common.Character{})
 }
 
 // TODO StartGame 开始游戏
