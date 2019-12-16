@@ -299,14 +299,6 @@ type LoginSuccess struct {
 
 type NewCharacter struct {
 	Result uint8
-	/*
-	 * 0: Disabled.
-	 * 1: Bad Character Name
-	 * 2: Bad Gender
-	 * 3: Bad Class
-	 * 4: Max Characters
-	 * 5: Character Exists.
-	 * */
 }
 
 type NewCharacterSuccess struct {

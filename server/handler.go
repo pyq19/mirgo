@@ -299,7 +299,10 @@ func (g *Game) SessionAccepted(s cellnet.Session, msg *cellnet.SessionAccepted) 
 
 // SessionClosed ...
 func (g *Game) SessionClosed(s cellnet.Session, msg *cellnet.SessionClosed) {
-
+	pm := g.Env.SessionIDPlayerMap
+	if _, ok := pm[s.ID()]; ok {
+		delete(pm, s.ID())
+	}
 }
 
 // ClientVersion ...
@@ -377,9 +380,11 @@ func (g *Game) Login(s cellnet.Session, msg *client.Login) {
 		return
 	}
 	p := new(Player)
+	p.AccountId = a.Id
 	p.GameStage = SELECT
 	p.Session = &s
 	g.Env.Players = append(g.Env.Players, *p)
+	g.Env.SessionIDPlayerMap[s.ID()] = *p
 
 	ac := make([]common.AccountCharacter, 3)
 	g.DB.Table("account_character").Where("account_id = ?", a.Id).Limit(3).Find(&ac)
@@ -406,11 +411,53 @@ func (g *Game) Login(s cellnet.Session, msg *client.Login) {
 	s.Send(res)
 }
 
-// NewCharacter 创建角色成功
+// NewCharacter 创建角色
 func (g *Game) NewCharacter(s cellnet.Session, msg *client.NewCharacter) {
-	log.Debugln(msg.Name, msg.Class, msg.Gender)
+	p, ok := g.Env.SessionIDPlayerMap[s.ID()]
+	if !ok || p.GameStage != SELECT {
+		return
+	}
+	acs := make([]common.AccountCharacter, 3)
+	g.DB.Table("account_character").Where("account_id = ?", p.AccountId).Limit(3).Find(&acs)
+	if len(acs) >= 3 {
+		n := new(server.NewCharacter)
+		/*
+		 * 0: Disabled.
+		 * 1: Bad Character Name
+		 * 2: Bad Gender
+		 * 3: Bad Class
+		 * 4: Max Characters
+		 * 5: Character Exists.
+		 * */
+		n.Result = uint8(4)
+		s.Send(n)
+		return
+	}
+	c := new(common.Character)
+	c.Name = msg.Name
+	c.Level = 8
+	c.Class = msg.Class
+	c.Gender = msg.Gender
+	c.Hair = 1
+	c.CurrentMapId = 1
+	c.CurrentLocationX = 284
+	c.CurrentLocationY = 608
+	c.Direction = common.MirDirectionDown
+	c.HP = 15
+	c.MP = 17
+	c.Experience = 0
+	c.AttackMode = common.AttackModeAll
+	c.PetMode = common.PetModeBoth
+	g.DB.Table("character").Create(c)
+	g.DB.Table("character").Where("name = ?", msg.Name).Last(c)
+	ac := new(common.AccountCharacter)
+	ac.AccountId = p.AccountId
+	ac.CharacterId = int(c.Id)
+	g.DB.Table("account_character").Create(ac)
+	// log.Debugln(msg.Name, msg.Class, msg.Gender)
+	// user item
 	res := new(server.NewCharacterSuccess)
-	res.CharInfo.Index = 0
+	res.CharInfo.Index = uint32(c.Id)
 	res.CharInfo.Name = msg.Name
 	res.CharInfo.Class = msg.Class
 	res.CharInfo.Gender = msg.Gender
