@@ -7,6 +7,7 @@ import (
 	_ "github.com/davyxu/cellnet/peer/tcp"
 	"github.com/davyxu/cellnet/proc"
 	"github.com/davyxu/golog"
+	_ "github.com/yenkeia/mirgo/codec/mircodec"
 	"github.com/yenkeia/mirgo/common"
 	_ "github.com/yenkeia/mirgo/proc/mirtcp"
 	"github.com/yenkeia/mirgo/proto/client"
