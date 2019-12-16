@@ -9,7 +9,6 @@ import (
 type Environ struct {
 	Game               *Game
 	GameDB             *GameDB
-	Players            []Player // 总玩家
 	SessionIDPlayerMap map[int64]Player
 	// CommonEventChan  chan interface{} // 系统事件
 	// PlayerEventChan  chan interface{} // 玩家事件
@@ -56,8 +55,6 @@ func (g *Game) NewEnviron() (env *Environ) {
 	env.LoadGameDB()
 	env.InitMaps()
 	env.InitMonsters()
-	players := make([]Player, 0, 50)
-	env.Players = players
 	env.SessionIDPlayerMap = make(map[int64]Player)
 	return
 }
