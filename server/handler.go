@@ -300,9 +300,7 @@ func (g *Game) SessionAccepted(s cellnet.Session, msg *cellnet.SessionAccepted) 
 // SessionClosed ...
 func (g *Game) SessionClosed(s cellnet.Session, msg *cellnet.SessionClosed) {
 	pm := g.Env.SessionIDPlayerMap
-	if _, ok := pm[s.ID()]; ok {
-		delete(pm, s.ID())
-	}
+	pm.Delete(s.ID())
 }
 
 // ClientVersion ...
@@ -383,8 +381,7 @@ func (g *Game) Login(s cellnet.Session, msg *client.Login) {
 	p.AccountId = a.Id
 	p.GameStage = SELECT
 	p.Session = &s
-	g.Env.Players = append(g.Env.Players, *p)
-	g.Env.SessionIDPlayerMap[s.ID()] = *p
+	g.Env.SessionIDPlayerMap.Store(s.ID(), p)
 
 	ac := make([]common.AccountCharacter, 3)
 	g.DB.Table("account_character").Where("account_id = ?", a.Id).Limit(3).Find(&ac)
@@ -413,7 +410,8 @@ func (g *Game) Login(s cellnet.Session, msg *client.Login) {
 
 // NewCharacter 创建角色
 func (g *Game) NewCharacter(s cellnet.Session, msg *client.NewCharacter) {
-	p, ok := g.Env.SessionIDPlayerMap[s.ID()]
+	v, ok := g.Env.SessionIDPlayerMap.Load(s.ID())
+	p := v.(*Player)
 	if !ok || p.GameStage != SELECT {
 		return
 	}
@@ -466,17 +464,24 @@ func (g *Game) NewCharacter(s cellnet.Session, msg *client.NewCharacter) {
 
 // DeleteCharacter 删除角色
 func (g *Game) DeleteCharacter(s cellnet.Session, msg *client.DeleteCharacter) {
-	p, ok := g.Env.SessionIDPlayerMap[s.ID()]
+	v, ok := g.Env.SessionIDPlayerMap.Load(s.ID())
+	p := v.(*Player)
 	if !ok || p.GameStage != SELECT {
 		return
 	}
 	c := new(common.Character)
 	g.DB.Table("character").Where("id = ?", msg.CharacterIndex).Find(c)
 	if c.Id == 0 {
+		res := new(server.DeleteCharacter)
+		res.Result = 4
+		s.Send(res)
 		return
 	}
 	g.DB.Table("character").Delete(c)
 	g.DB.Table("account_character").Where("character_id = ?", c.Id).Delete(common.Character{})
+	res := new(server.DeleteCharacterSuccess)
+	res.CharacterIndex = msg.CharacterIndex
+	s.Send(res)
 }
 
 // TODO StartGame 开始游戏
