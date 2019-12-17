@@ -384,3 +384,11 @@ const (
 	PetModeAttackOnly         = 2
 	PetModeNone               = 3
 )
+
+type UserItemType uint8
+
+const (
+	UserItemTypeInventory      UserItemType = 0
+	UserItemTypeEquipment                   = 1
+	UserItemTypeQuestInventory              = 2
+)

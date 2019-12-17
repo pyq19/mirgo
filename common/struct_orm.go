@@ -52,6 +52,10 @@ type CharacterMagic struct {
 
 // CharacterUserItem 角色物品关系
 type CharacterUserItem struct {
+	Id          int `gorm:"primary_key"`
+	CharacterId int
+	UserItemId  int
+	Type        int
 }
 
 // GameShopItem 游戏内商城物品

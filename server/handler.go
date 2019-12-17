@@ -313,6 +313,18 @@ func (g *Game) ClientVersion(s cellnet.Session, msg *client.ClientVersion) {
 	s.Send(&clientVersion)
 }
 
+func (g *Game) GetPlayer(s cellnet.Session, gameStage int) (p *Player, ok bool) {
+	v, ok := g.Env.SessionIDPlayerMap.Load(s.ID())
+	if !ok {
+		return nil, false
+	}
+	p = v.(*Player)
+	if p.GameStage != gameStage {
+		return nil, false
+	}
+	return p, true
+}
+
 // KeepAlive ...
 func (g *Game) KeepAlive(s cellnet.Session, msg *client.KeepAlive) {
 	keepAlive := server.KeepAlive{Time: 0}
@@ -332,6 +344,11 @@ func (g *Game) NewAccount(s cellnet.Session, msg *client.NewAccount) {
 	 * 7: Account Exists.
 	 * 8: Success
 	 */
+	_, ok := g.GetPlayer(s, LOGIN)
+	if !ok {
+		return
+	}
+
 	res := uint8(0)
 	ac := new(common.Account)
 	g.DB.Table("account").Where("username = ?", msg.AccountID).Find(ac)
@@ -355,6 +372,11 @@ func (g *Game) ChangePassword(s cellnet.Session, msg *client.ChangePassword) {
 	 * 5: Wrong Password
 	 * 6: Success
 	 */
+	_, ok := g.GetPlayer(s, LOGIN)
+	if !ok {
+		return
+	}
+
 	res := uint8(5)
 	ac := new(common.Account)
 	g.DB.Table("account").Where("username = ? AND password = ?", msg.AccountID, msg.CurrentPassword).Find(ac)
@@ -368,14 +390,6 @@ func (g *Game) ChangePassword(s cellnet.Session, msg *client.ChangePassword) {
 
 // Login 登陆
 func (g *Game) Login(s cellnet.Session, msg *client.Login) {
-	v, ok := g.Env.SessionIDPlayerMap.Load(s.ID())
-	if !ok {
-		return
-	}
-	p := v.(*Player)
-	if p.GameStage != LOGIN {
-		return
-	}
 	/*
 	 * 0: Disabled
 	 * 1: Bad AccountID
@@ -383,13 +397,18 @@ func (g *Game) Login(s cellnet.Session, msg *client.Login) {
 	 * 3: Account Not Exist
 	 * 4: Wrong Password
 	 */
+	p, ok := g.GetPlayer(s, LOGIN)
+	if !ok {
+		return
+	}
+
 	a := new(common.Account)
 	g.DB.Table("account").Where("username = ? AND password = ?", msg.AccountID, msg.Password).Find(a)
 	if a.Id == 0 {
 		s.Send(server.Login{Result: uint8(4)})
 		return
 	}
-	
+
 	p.AccountId = a.Id
 	p.GameStage = SELECT
 
@@ -420,11 +439,11 @@ func (g *Game) Login(s cellnet.Session, msg *client.Login) {
 
 // NewCharacter 创建角色
 func (g *Game) NewCharacter(s cellnet.Session, msg *client.NewCharacter) {
-	v, ok := g.Env.SessionIDPlayerMap.Load(s.ID())
-	p := v.(*Player)
-	if !ok || p.GameStage != SELECT {
+	p, ok := g.GetPlayer(s, SELECT)
+	if !ok {
 		return
 	}
+
 	acs := make([]common.AccountCharacter, 3)
 	g.DB.Table("account_character").Where("account_id = ?", p.AccountId).Limit(3).Find(&acs)
 	if len(acs) >= 3 {
@@ -474,11 +493,11 @@ func (g *Game) NewCharacter(s cellnet.Session, msg *client.NewCharacter) {
 
 // DeleteCharacter 删除角色
 func (g *Game) DeleteCharacter(s cellnet.Session, msg *client.DeleteCharacter) {
-	v, ok := g.Env.SessionIDPlayerMap.Load(s.ID())
-	p := v.(*Player)
-	if !ok || p.GameStage != SELECT {
+	_, ok := g.GetPlayer(s, SELECT)
+	if !ok {
 		return
 	}
+
 	c := new(common.Character)
 	g.DB.Table("character").Where("id = ?", msg.CharacterIndex).Find(c)
 	if c.Id == 0 {
@@ -496,14 +515,11 @@ func (g *Game) DeleteCharacter(s cellnet.Session, msg *client.DeleteCharacter) {
 
 // TODO StartGame 开始游戏
 func (g *Game) StartGame(s cellnet.Session, msg *client.StartGame) {
-	v, ok := g.Env.SessionIDPlayerMap.Load(s.ID())
+	p, ok := g.GetPlayer(s, SELECT)
 	if !ok {
 		return
 	}
-	p := v.(*Player)
-	if p.GameStage != SELECT {
-		return
-	}
+
 	c := new(common.Character)
 	g.DB.Table("character").Where("id = ?", msg.CharacterIndex).Find(c)
 	if c.Id == 0 {
