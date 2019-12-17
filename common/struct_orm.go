@@ -75,7 +75,7 @@ type GameShopItem struct {
 }
 
 type ItemInfo struct {
-	Id             int16 `gorm:"primary_key"`
+	Id             int32 `gorm:"primary_key"`
 	Name           string
 	Type           ItemType
 	Grade          ItemGrade

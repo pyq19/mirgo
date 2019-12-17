@@ -2,8 +2,10 @@ package mircodec
 
 import (
 	"github.com/davyxu/cellnet"
+	"github.com/jinzhu/gorm"
 	"github.com/yenkeia/mirgo/common"
 	"github.com/yenkeia/mirgo/proto/server"
+	"os"
 	"reflect"
 	"testing"
 )
@@ -398,11 +400,44 @@ func TestUserInformation(t *testing.T) {
 	}
 	t.Log(msg)
 
+	//saveToDB(msg)
+
 	obj, err := codec.Encode(msg, *new(cellnet.ContextSet))
 	if err != nil {
 		t.Error(err)
 	}
 	t.Log(obj)
+}
+
+func saveToDB(msg *server.UserInformation) {
+	gopath := os.Getenv("GOPATH")
+	db, err := gorm.Open("sqlite3", gopath+mirDB)
+	if err != nil {
+		panic("failed to connect database")
+	}
+	//defer db.Close()
+
+	i := msg.Inventory
+	for _, v := range i {
+		if v.Id == 0 {
+			continue
+		}
+		db.Table("user_item").Create(v)
+	}
+	e := msg.Equipment
+	for _, v := range e {
+		if v.Id == 0 {
+			continue
+		}
+		db.Table("user_item").Create(v)
+	}
+	q := msg.QuestInventory
+	for _, v := range q {
+		if v.Id == 0 {
+			continue
+		}
+		db.Table("user_item").Create(v)
+	}
 }
 
 func TestEmptySlice(t *testing.T) {
@@ -413,4 +448,56 @@ func TestEmptySlice(t *testing.T) {
 	for i := 0; i < len(slice); i++ {
 		t.Log(IsNull(slice[i]))
 	}
+}
+
+func TestDecodeUserInformation(t *testing.T) {
+	bytes := []byte{
+		1, 0, 0, 0,
+		1, 0, 0, 0,
+		6, 232, 140, 131, 233, 151, 178,
+		0,
+		0,
+		255, 255, 255, 255,
+		2, 0,
+		20, 0,
+		28, 1, 0, 0,
+		96, 2, 0, 0,
+		1,
+		1,
+		15, 0,
+		17, 0,
+		55, 0, 0, 0, 0, 0, 0, 0,
+		100, 0, 0, 0, 0, 0, 0, 0,
+		1,
+
+		1,
+		46, 0, 0, 0,
+		1,
+		3, 0, 0, 0, 0, 0, 0, 0, 146, 2, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 255, 255, 255, 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+		1,
+		4, 0, 0, 0, 0, 0, 0, 0, 210, 2, 0, 0, 54, 31, 64, 31, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 255, 255, 255, 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+		1,
+		5, 0, 0, 0, 0, 0, 0, 0, 235, 4, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 255, 255, 255, 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+
+		1,
+		14, 0, 0, 0,
+		1,
+		1, 0, 0, 0, 0, 0, 0, 0, 221, 0, 0, 0, 160, 15, 160, 15, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 255, 255, 255, 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+		1,
+		2, 0, 0, 0, 0, 0, 0, 0, 62, 1, 0, 0, 136, 19, 136, 19, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 255, 255, 255, 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+
+		1,
+		40, 0, 0, 0,
+		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+
+		100, 0, 0, 0,
+		100, 0, 0, 0}
+	msg := new(server.UserInformation)
+	codec := new(MirUserInformationCodec)
+	if err := codec.Decode(bytes, msg); err != nil {
+		panic(err)
+	}
+	t.Log(msg)
 }

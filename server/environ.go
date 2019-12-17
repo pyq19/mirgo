@@ -1,7 +1,9 @@
 package main
 
 import (
+	_ "github.com/yenkeia/mirgo/codec/mircodec"
 	"github.com/yenkeia/mirgo/common"
+	_ "github.com/yenkeia/mirgo/proc/mirtcp"
 	"sync"
 )
 
@@ -23,10 +25,21 @@ func (g *Game) NewEnviron() (env *Environ) {
 	return
 }
 
+// FIXME 改成从 map 取出
 func (e *Environ) GetMapInfoById(mapId int) *common.MapInfo {
-	for _, m := range e.GameDB.MapInfos {
-		if m.Id == mapId {
-			return &m
+	for _, v := range e.GameDB.MapInfos {
+		if v.Id == mapId {
+			return &v
+		}
+	}
+	return nil
+}
+
+// FIXME 改成从 map 取出
+func (e *Environ) GetItemInfoById(itemId int) *common.ItemInfo {
+	for _, v := range e.GameDB.ItemInfos {
+		if v.Id == int32(itemId) {
+			return &v
 		}
 	}
 	return nil
