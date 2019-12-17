@@ -306,6 +306,10 @@ func (g *Game) SessionClosed(s cellnet.Session, msg *cellnet.SessionClosed) {
 // ClientVersion ...
 func (g *Game) ClientVersion(s cellnet.Session, msg *client.ClientVersion) {
 	clientVersion := server.ClientVersion{Result: 1}
+	p := new(Player)
+	p.GameStage = LOGIN
+	p.Session = &s
+	g.Env.SessionIDPlayerMap.Store(s.ID(), p)
 	s.Send(&clientVersion)
 }
 
@@ -364,6 +368,14 @@ func (g *Game) ChangePassword(s cellnet.Session, msg *client.ChangePassword) {
 
 // Login 登陆
 func (g *Game) Login(s cellnet.Session, msg *client.Login) {
+	v, ok := g.Env.SessionIDPlayerMap.Load(s.ID())
+	if !ok {
+		return
+	}
+	p := v.(*Player)
+	if p.GameStage != LOGIN {
+		return
+	}
 	/*
 	 * 0: Disabled
 	 * 1: Bad AccountID
@@ -377,11 +389,9 @@ func (g *Game) Login(s cellnet.Session, msg *client.Login) {
 		s.Send(server.Login{Result: uint8(4)})
 		return
 	}
-	p := new(Player)
+	
 	p.AccountId = a.Id
 	p.GameStage = SELECT
-	p.Session = &s
-	g.Env.SessionIDPlayerMap.Store(s.ID(), p)
 
 	ac := make([]common.AccountCharacter, 3)
 	g.DB.Table("account_character").Where("account_id = ?", a.Id).Limit(3).Find(&ac)
@@ -486,6 +496,21 @@ func (g *Game) DeleteCharacter(s cellnet.Session, msg *client.DeleteCharacter) {
 
 // TODO StartGame 开始游戏
 func (g *Game) StartGame(s cellnet.Session, msg *client.StartGame) {
+	v, ok := g.Env.SessionIDPlayerMap.Load(s.ID())
+	if !ok {
+		return
+	}
+	p := v.(*Player)
+	if p.GameStage != SELECT {
+		return
+	}
+	c := new(common.Character)
+	g.DB.Table("character").Where("id = ?", msg.CharacterIndex).Find(c)
+	if c.Id == 0 {
+		return
+	}
+	p.Character = c
+	p.GameStage = GAME
 
 	// SetConcentration
 	sc := new(server.SetConcentration)
@@ -501,21 +526,19 @@ func (g *Game) StartGame(s cellnet.Session, msg *client.StartGame) {
 	s.Send(sg)
 
 	// MapInformation
-	bytes := []byte{
-		1, 48,
-		14, 66, 105, 99, 104, 111, 110, 80, 114, 111, 118, 105, 110, 99, 101,
-		101, 0,
-		135, 0,
-		0, 0,
-		0,
-		0,
-		0}
-	r := new(server.MapInformation)
+	mi := new(server.MapInformation)
+	pmi := g.Env.GetMapInfoById(int(p.Character.CurrentMapId))
+	mi.FileName = pmi.Filename
+	mi.Title = pmi.Title
+	mi.MiniMap = uint16(pmi.MineIndex)
+	mi.BigMap = uint16(pmi.BigMap)
+	mi.Music = uint16(pmi.Music)
+	mi.Lights = common.LightSetting(pmi.Light)
+	mi.Lightning = true
+	mi.MapDarkLight = 0
+	s.Send(mi)
+
 	codec := new(mircodec.MirCodec)
-	if err := codec.Decode(bytes, r); err != nil {
-		panic(err)
-	}
-	s.Send(r)
 
 	// NewItemInfo
 	bytes1 := []byte{146, 2, 0, 0, 13, 40, 72, 80, 41, 68, 114, 117, 103, 83, 109, 97, 108, 108, 13, 0, 0, 31, 3, 0, 0, 0, 1, 0, 0, 142, 1, 0, 0, 20, 0, 0, 0, 40, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 30, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 6, 0, 0, 0, 1, 0}
