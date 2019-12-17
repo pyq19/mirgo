@@ -40,11 +40,11 @@ func TestSaveMapText(t *testing.T) {
 		for j := 0; j < int(m.Height); j++ {
 			v, _ := m.CoordinateCellMap.Load(common.Point{uint32(i), uint32(j)}.String())
 			c := v.(*Cell)
-			if int(c.Attribute) == 0 {
-				str = str + "#"
-			} else if int(c.Attribute) == 1 {
+			if c.Attribute == common.CellAttributeWalk {
+				str = str + "0"
+			} else if c.Attribute == common.CellAttributeHighWall {
 				str = str + "1"
-			} else if int(c.Attribute) == 2 {
+			} else if int(c.Attribute) == common.CellAttributeLowWall {
 				str = str + "2"
 			} else {
 				str = str + "?"

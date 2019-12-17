@@ -1,6 +1,7 @@
 package main
 
 import (
+	"os"
 	"sync"
 )
 
@@ -24,7 +25,16 @@ func (g *Game) NewEnviron() (env *Environ) {
 
 // InitMaps ...
 func (e *Environ) InitMaps() {
-
+	mapDirPath := os.Getenv("GOPATH") + "/src/github.com/yenkeia/mirgo/dotnettools/database/Maps/"
+	//e.Maps = make([]Map, 386)
+	e.Maps = make([]Map, 1)
+	for _, mi := range e.GameDB.MapInfos {
+		if mi.Filename == "0" {
+			m := GetMapV1(GetMapBytes(mapDirPath + mi.Filename + ".map"))
+			e.Maps[0] = *m
+			break
+		}
+	}
 }
 
 // p := *e.Game.Peer

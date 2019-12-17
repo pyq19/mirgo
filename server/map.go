@@ -84,8 +84,9 @@ func GetMapV1(bytes []byte) *Map {
 	width := w ^ xor
 	height := h ^ xor
 	offset = 54
-	cellCount := int(width) * int(height)
-	cells := make([]Cell, 0, cellCount)
+	count := int(width) * int(height)
+	cells := make([]Cell, 0, count)
+	walkableCells := make([]Cell, 0, count / 3)
 	for i := 0; i < int(width); i++ {
 		for j := 0; j < int(height); j++ {
 			p := common.Point{X: uint32(i), Y: uint32(j)}
@@ -96,12 +97,14 @@ func GetMapV1(bytes []byte) *Map {
 			c.Objects = []MapObj{}
 			if (common.BytesToUint32(bytes[offset:offset+4])^0xAA38AA38)&0x20000000 != 0 {
 				c.Attribute = common.CellAttributeHighWall
-				cells = append(cells, *c)
 			}
 			if ((common.BytesToUint16(bytes[offset+6:offset+8]) ^ xor) & 0x8000) != 0 {
 				c.Attribute = common.CellAttributeLowWall
-				cells = append(cells, *c)
 			}
+			if c.Attribute == common.CellAttributeWalk {
+				walkableCells = append(walkableCells, *c)
+			}
+			cells = append(cells, *c)
 			m.CoordinateCellMap.Store(p.String(), c)
 			offset += 15
 		}
@@ -109,5 +112,6 @@ func GetMapV1(bytes []byte) *Map {
 	m.Width = width
 	m.Height = height
 	m.Cells = cells
+	m.WalkableCells = walkableCells
 	return m
 }
