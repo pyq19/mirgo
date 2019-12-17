@@ -1,11 +1,11 @@
-package common
+package main
 
 import (
+	"github.com/jinzhu/gorm"
+	"github.com/yenkeia/mirgo/common"
 	"io/ioutil"
 	"os"
 	"testing"
-
-	"github.com/jinzhu/gorm"
 )
 
 func TestMapAbsPath(t *testing.T) {
@@ -13,7 +13,7 @@ func TestMapAbsPath(t *testing.T) {
 	var mirDB = "/src/github.com/yenkeia/mirgo/dotnettools/mir.sqlite"
 	db, _ := gorm.Open("sqlite3", gopath+mirDB)
 
-	mp := make([]MapInfo, 386)
+	mp := make([]common.MapInfo, 386)
 	db.Table("map").Find(&mp)
 
 	mapDirPath := "/src/github.com/yenkeia/mirgo/dotnettools/database/Maps/"
@@ -38,7 +38,8 @@ func TestSaveMapText(t *testing.T) {
 	str := ""
 	for i := 0; i < int(m.Width); i++ {
 		for j := 0; j < int(m.Height); j++ {
-			c := m.CoordinateCellMap[Point{uint32(i), uint32(j)}.String()]
+			v, _ := m.CoordinateCellMap.Load(common.Point{uint32(i), uint32(j)}.String())
+			c := v.(*Cell)
 			if int(c.Attribute) == 0 {
 				str = str + "#"
 			} else if int(c.Attribute) == 1 {
