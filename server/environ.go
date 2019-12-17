@@ -1,7 +1,7 @@
 package main
 
 import (
-	"os"
+	"github.com/yenkeia/mirgo/common"
 	"sync"
 )
 
@@ -9,7 +9,7 @@ import (
 type Environ struct {
 	Game               *Game
 	GameDB             *GameDB
-	SessionIDPlayerMap *sync.Map // map[int64]Player
+	SessionIDPlayerMap *sync.Map // map[int64]*Player
 	Maps               []Map
 }
 
@@ -23,18 +23,13 @@ func (g *Game) NewEnviron() (env *Environ) {
 	return
 }
 
-// InitMaps ...
-func (e *Environ) InitMaps() {
-	mapDirPath := os.Getenv("GOPATH") + "/src/github.com/yenkeia/mirgo/dotnettools/database/Maps/"
-	//e.Maps = make([]Map, 386)
-	e.Maps = make([]Map, 1)
-	for _, mi := range e.GameDB.MapInfos {
-		if mi.Filename == "0" {
-			m := GetMapV1(GetMapBytes(mapDirPath + mi.Filename + ".map"))
-			e.Maps[0] = *m
-			break
+func (e *Environ) GetMapInfoById(mapId int) *common.MapInfo {
+	for _, m := range e.GameDB.MapInfos {
+		if m.Id == mapId {
+			return &m
 		}
 	}
+	return nil
 }
 
 // p := *e.Game.Peer

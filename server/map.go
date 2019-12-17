@@ -4,6 +4,7 @@ import (
 	"github.com/davyxu/cellnet"
 	"github.com/yenkeia/mirgo/common"
 	"io/ioutil"
+	"os"
 	"sync"
 )
 
@@ -17,6 +18,20 @@ type Map struct {
 	NPCs              []NPC
 	Players           []Player
 	Respawns          []Respawn
+}
+
+// InitMaps ...
+func (e *Environ) InitMaps() {
+	mapDirPath := os.Getenv("GOPATH") + "/src/github.com/yenkeia/mirgo/dotnettools/database/Maps/"
+	//e.Maps = make([]Map, 386)
+	e.Maps = make([]Map, 1)
+	for _, mi := range e.GameDB.MapInfos {
+		if mi.Filename == "0" {
+			m := GetMapV1(GetMapBytes(mapDirPath + mi.Filename + ".map"))
+			e.Maps[0] = *m
+			break
+		}
+	}
 }
 
 type MapObj interface {
@@ -86,7 +101,7 @@ func GetMapV1(bytes []byte) *Map {
 	offset = 54
 	count := int(width) * int(height)
 	cells := make([]Cell, 0, count)
-	walkableCells := make([]Cell, 0, count / 3)
+	walkableCells := make([]Cell, 0, count/3)
 	for i := 0; i < int(width); i++ {
 		for j := 0; j < int(height); j++ {
 			p := common.Point{X: uint32(i), Y: uint32(j)}
