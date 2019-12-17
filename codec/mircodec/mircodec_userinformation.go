@@ -54,6 +54,7 @@ func (*MirUserInformationCodec) Encode(msgObj interface{}, ctx cellnet.ContextSe
 	writer.Write(hasInventory)
 	if hasInventory {
 		l := len(ui.Inventory)
+		//l := 46
 		writer.Write(int32(l))
 		for i := 0; i < l; i++ {
 			hasUserItem := !IsNull(ui.Inventory[i])
@@ -73,6 +74,7 @@ func (*MirUserInformationCodec) Encode(msgObj interface{}, ctx cellnet.ContextSe
 	writer.Write(hasEquipment)
 	if hasEquipment {
 		l := len(ui.Equipment)
+		//l := 14
 		writer.Write(int32(l))
 		for i := 0; i < l; i++ {
 			hasUserItem := !IsNull(ui.Equipment[i])
@@ -92,6 +94,7 @@ func (*MirUserInformationCodec) Encode(msgObj interface{}, ctx cellnet.ContextSe
 	writer.Write(hasQuestInventory)
 	if hasQuestInventory {
 		l := len(ui.QuestInventory)
+		//l := 40
 		writer.Write(int32(l))
 		for i := 0; i < l; i++ {
 			hasUserItem := !IsNull(ui.QuestInventory[i])

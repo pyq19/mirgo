@@ -4,8 +4,9 @@ import "C"
 import (
 	"github.com/davyxu/cellnet"
 	"github.com/davyxu/golog"
-	"github.com/yenkeia/mirgo/codec/mircodec"
+	_ "github.com/yenkeia/mirgo/codec/mircodec"
 	"github.com/yenkeia/mirgo/common"
+	_ "github.com/yenkeia/mirgo/proc/mirtcp"
 	"github.com/yenkeia/mirgo/proto/client"
 	"github.com/yenkeia/mirgo/proto/server"
 )
@@ -513,7 +514,7 @@ func (g *Game) DeleteCharacter(s cellnet.Session, msg *client.DeleteCharacter) {
 	s.Send(res)
 }
 
-// TODO StartGame 开始游戏
+// StartGame 开始游戏
 func (g *Game) StartGame(s cellnet.Session, msg *client.StartGame) {
 	p, ok := g.GetPlayer(s, SELECT)
 	if !ok {
@@ -554,40 +555,69 @@ func (g *Game) StartGame(s cellnet.Session, msg *client.StartGame) {
 	mi.MapDarkLight = 0
 	s.Send(mi)
 
-	codec := new(mircodec.MirCodec)
+	ui := new(server.UserInformation)
+	ui.ObjectID = 66432 // TODO
+	ui.RealId = uint32(p.Character.Id)
+	ui.Name = p.Character.Name
+	ui.GuildName = ""
+	ui.GuildRank = ""
+	ui.NameColour = 4294967295 // TODO [255,255,255,255]
+	ui.Class = p.Character.Class
+	ui.Gender = p.Character.Gender
+	ui.Level = p.Character.Level
+	ui.Location = common.Point{X: uint32(p.Character.CurrentLocationX), Y: uint32(p.Character.CurrentLocationY)}
+	ui.Direction = p.Character.Direction
+	ui.Hair = p.Character.Hair
+	ui.HP = p.Character.HP
+	ui.MP = p.Character.MP
+	ui.Experience = p.Character.Experience
+	ui.MaxExperience = 100 // TODO
+	ui.LevelEffect = common.LevelEffects(1)
+	ui.Gold = 100   // TODO
+	ui.Credit = 100 // TODO
 
-	// NewItemInfo
-	bytes1 := []byte{146, 2, 0, 0, 13, 40, 72, 80, 41, 68, 114, 117, 103, 83, 109, 97, 108, 108, 13, 0, 0, 31, 3, 0, 0, 0, 1, 0, 0, 142, 1, 0, 0, 20, 0, 0, 0, 40, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 30, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 6, 0, 0, 0, 1, 0}
-	item1 := new(server.NewItemInfo)
-	codec.Decode(bytes1, item1)
-	s.Send(item1)
-
-	bytes2 := []byte{235, 4, 0, 0, 16, 84, 101, 115, 116, 83, 101, 114, 118, 101, 114, 83, 99, 114, 111, 108, 108, 21, 4, 0, 31, 3, 0, 1, 0, 1, 0, 0, 254, 6, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 23, 0, 0, 0, 0, 0, 0, 0, 0, 1, 49, 66, 97, 115, 105, 99, 32, 84, 101, 115, 116, 32, 83, 101, 114, 118, 101, 114, 32, 83, 99, 114, 111, 108, 108, 32, 119, 104, 105, 99, 104, 32, 103, 105, 118, 101, 115, 32, 105, 110, 102, 111, 114, 109, 97, 116, 105, 111, 110, 46}
-	item2 := new(server.NewItemInfo)
-	codec.Decode(bytes2, item2)
-	s.Send(item2)
-
-	bytes3 := []byte{221, 0, 0, 0, 11, 87, 111, 111, 100, 101, 110, 83, 119, 111, 114, 100, 1, 1, 0, 7, 3, 0, 0, 0, 4, 0, 1, 30, 0, 160, 15, 1, 0, 0, 0, 50, 0, 0, 0, 0, 0, 0, 0, 2, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 1, 0}
-	item3 := new(server.NewItemInfo)
-	codec.Decode(bytes3, item3)
-	s.Send(item3)
-
-	bytes4 := []byte{61, 1, 0, 0, 12, 66, 97, 115, 101, 68, 114, 101, 115, 115, 40, 77, 41, 2, 1, 0, 31, 1, 0, 1, 0, 5, 0, 1, 60, 0, 136, 19, 1, 0, 0, 0, 120, 0, 0, 0, 2, 2, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 1, 1, 0}
-	item4 := new(server.NewItemInfo)
-	codec.Decode(bytes4, item4)
-	s.Send(item4)
-
-	bytes5 := []byte{210, 2, 0, 0, 6, 67, 97, 110, 100, 108, 101, 12, 0, 0, 31, 3, 0, 0, 0, 1, 38, 0, 130, 0, 64, 31, 1, 0, 0, 0, 10, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 6, 0, 0, 0, 1, 0}
-	item5 := new(server.NewItemInfo)
-	codec.Decode(bytes5, item5)
-	s.Send(item5)
-
-	uiCodec := new(mircodec.MirUserInformationCodec)
-	bytes6 := []byte{128, 3, 1, 0, 1, 0, 0, 0, 6, 99, 99, 99, 99, 99, 99, 0, 0, 255, 255, 255, 255, 1, 1, 1, 0, 28, 1, 0, 0, 96, 2, 0, 0, 1, 8, 15, 0, 17, 0, 0, 0, 0, 0, 0, 0, 0, 0, 100, 0, 0, 0, 0, 0, 0, 0, 0, 1, 46, 0, 0, 0, 1, 3, 0, 0, 0, 0, 0, 0, 0, 146, 2, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 255, 255, 255, 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 5, 0, 0, 0, 0, 0, 0, 0, 235, 4, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 255, 255, 255, 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 4, 0, 0, 0, 0, 0, 0, 0, 210, 2, 0, 0, 54, 31, 64, 31, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 255, 255, 255, 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 14, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 221, 0, 0, 0, 160, 15, 160, 15, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 255, 255, 255, 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 2, 0, 0, 0, 0, 0, 0, 0, 62, 1, 0, 0, 136, 19, 136, 19, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 255, 255, 255, 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 40, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
-	item6 := new(server.UserInformation)
-	uiCodec.Decode(bytes6, item6)
-	s.Send(item6)
+	cui := make([]common.CharacterUserItem, 0, 100)
+	g.DB.Table("character_user_item").Where("character_id = ?", p.Character.Id).Find(&cui)
+	is := make([]int, 0, 46)
+	es := make([]int, 0, 14)
+	qs := make([]int, 0, 40)
+	for _, i := range cui {
+		switch common.UserItemType(i.Type) {
+		case common.UserItemTypeInventory:
+			is = append(is, i.UserItemId)
+		case common.UserItemTypeEquipment:
+			es = append(es, i.UserItemId)
+		case common.UserItemTypeQuestInventory:
+			qs = append(qs, i.UserItemId)
+		}
+	}
+	ui.Inventory = make([]common.UserItem, 46)
+	ui.Equipment = make([]common.UserItem, 14)
+	ui.QuestInventory = make([]common.UserItem, 40)
+	uii := make([]common.UserItem, 0, 46)
+	uie := make([]common.UserItem, 0, 14)
+	uiq := make([]common.UserItem, 0, 40)
+	g.DB.Table("user_item").Where("id in (?)", is).Find(&uii)
+	g.DB.Table("user_item").Where("id in (?)", es).Find(&uie)
+	g.DB.Table("user_item").Where("id in (?)", qs).Find(&uiq)
+	for i, v := range uii {
+		ui.Inventory[i] = v
+		ii := g.Env.GetItemInfoById(int(v.ItemId))
+		s.Send(&server.NewItemInfo{Info: *ii})
+	}
+	for i, v := range uie {
+		ui.Equipment[i] = v
+		ii := g.Env.GetItemInfoById(int(v.ItemId))
+		s.Send(&server.NewItemInfo{Info: *ii})
+	}
+	for i, v := range uiq {
+		ui.QuestInventory[i] = v
+		ii := g.Env.GetItemInfoById(int(v.ItemId))
+		s.Send(&server.NewItemInfo{Info: *ii})
+	}
+	s.Send(ui)
 }
+
 func (g *Game) LogOut(s cellnet.Session, msg *client.LogOut) {
 
 }
