@@ -57,4 +57,5 @@ func (e *Environ) GetItemInfoById(itemId int) *common.ItemInfo {
 // StartLoop ...
 func (e *Environ) StartLoop() {
 
+	go e.Game.Pool.Run()
 }

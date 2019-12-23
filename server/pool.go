@@ -13,7 +13,7 @@ func NewTask(f func(...interface{}), args ...interface{}) *Task {
 }
 
 func (t *Task) Execute() {
-	t.f(t.args)
+	t.f(t.args...)
 }
 
 type Pool struct {
@@ -39,6 +39,7 @@ func (p *Pool) Worker(id int) {
 	// 永久从 JobsChan 中取任务，并执行
 	for task := range p.JobsChan {
 		task.Execute()
+		// log.Debugln("worker id: ", id)
 	}
 }
 
