@@ -12,8 +12,8 @@ type Map struct {
 	Id                int
 	Info              *common.MapInfo
 	Cells             []Cell
-	WalkableCells     []Cell
 	CoordinateCellMap *sync.Map // map[string]*Cell
+	//WalkableCells     []Cell
 }
 
 // InitMaps ...
@@ -39,8 +39,6 @@ type Cell struct {
 	NPC        *NPC
 	Player     *Player
 }
-
-type Door struct{}
 
 func (m *Map) GetCell(coordinate string) *Cell {
 	if v, ok := m.CoordinateCellMap.Load(coordinate); ok {
@@ -71,7 +69,7 @@ func GetMapV1(bytes []byte) *Map {
 	offset = 54
 	count := int(width) * int(height)
 	cells := make([]Cell, 0, count)
-	walkableCells := make([]Cell, 0, count/3)
+	//walkableCells := make([]Cell, 0, count/3)
 	for i := 0; i < int(width); i++ {
 		for j := 0; j < int(height); j++ {
 			p := common.Point{X: uint32(i), Y: uint32(j)}
@@ -85,21 +83,22 @@ func GetMapV1(bytes []byte) *Map {
 			if ((common.BytesToUint16(bytes[offset+6:offset+8]) ^ xor) & 0x8000) != 0 {
 				c.Attribute = common.CellAttributeLowWall
 			}
-			if c.Attribute == common.CellAttributeWalk {
-				walkableCells = append(walkableCells, *c)
-			}
+			//if c.Attribute == common.CellAttributeWalk {
+			//	walkableCells = append(walkableCells, *c)
+			//}
 			cells = append(cells, *c)
 			m.CoordinateCellMap.Store(p.String(), c)
 			offset += 15
 		}
 	}
 	m.Cells = cells
-	m.WalkableCells = walkableCells
+	//m.WalkableCells = walkableCells
 	return m
 }
 
 func (m *Map) AddRespawn(r *Respawn) {
-
+	c := m.GetCell(common.NewPoint(r.Info.LocationY, r.Info.LocationY).String())
+	c.Respawn = r
 }
 
 func (m *Map) AddNPC(n *NPC) {
