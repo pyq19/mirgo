@@ -14,6 +14,12 @@
 mkdir ~/mir
 export GOPATH=~/mir
 ```
+获取项目
+```bash
+mkdir -p $GOPATH/src/github.com/yenkeia
+cd $GOPATH/src/github.com/yenkeia
+git clone https://github.com/yenkeia/mirgo.git
+```
 获取依赖
 ```bash
 go get -u -v github.com/mattn/go-sqlite3
@@ -25,7 +31,7 @@ go get -u -v github.com/davyxu/protoplus
 ```
 编译
 ```bash
-cd $GOPATH/src/github.com/yenkeia/mirgo/server
+cd mirgo/server
 go build
 ```
 运行
