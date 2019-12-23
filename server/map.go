@@ -31,8 +31,9 @@ func (e *Environ) InitMaps() {
 }
 
 func (m *Map) GetCell(coordinate string) *Cell {
-	if v, ok := m.CoordinateCellMap.Load(coordinate); ok {
-		return v.(*Cell)
+	v, ok := m.CoordinateCellMap.Load(coordinate)
+	if !ok {
+		return nil
 	}
-	return nil
+	return v.(*Cell)
 }

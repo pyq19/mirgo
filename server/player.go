@@ -28,10 +28,3 @@ func (p *Player) Point() *common.Point {
 	y := int(p.Character.CurrentLocationY)
 	return common.NewPoint(x, y)
 }
-
-//func (p *Player) SetCell(c *Cell) {
-//	p.Cell = c
-//	p.Character.CurrentMapId = int32(c.Map.Id)
-//	p.Character.CurrentLocationX = int32(c.Point.X)
-//	p.Character.CurrentLocationY = int32(c.Point.Y)
-//}
