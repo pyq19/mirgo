@@ -539,7 +539,7 @@ func (g *Game) StartGame(s cellnet.Session, msg *client.StartGame) {
 	p.GameStage = GAME
 
 	m := g.Env.GetMap(int(p.Character.CurrentMapId))
-	m.GetCell(p.Point().String()).AddPlayer(p)
+	m.GetCell(p.Point().String()).SetPlayer(p)
 
 	// SetConcentration
 	sc := new(server.SetConcentration)

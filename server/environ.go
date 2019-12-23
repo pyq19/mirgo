@@ -77,7 +77,7 @@ func (e *Environ) InitRespawns() {
 		r := new(Respawn)
 		r.Info = &ri
 		m := v.(*Map)
-		m.GetCell(common.NewPoint(ri.LocationX, ri.LocationY).String()).AddRespawn(r)
+		m.GetCell(common.NewPoint(ri.LocationX, ri.LocationY).String()).SetRespawn(r)
 	}
 }
 

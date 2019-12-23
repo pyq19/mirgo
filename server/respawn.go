@@ -13,9 +13,3 @@ func (r *Respawn) Point() *common.Point {
 	y := r.Info.LocationY
 	return common.NewPoint(x, y)
 }
-
-//func (r *Respawn) SetCell(c *Cell) {
-//	r.Cell = c
-//	r.Info.LocationX = int(c.Point.X)
-//	r.Info.LocationY = int(c.Point.Y)
-//}
