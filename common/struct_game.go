@@ -13,6 +13,10 @@ func (p Point) String() string {
 	return fmt.Sprintf("%d,%d", p.X, p.Y)
 }
 
+func NewPoint(x, y int) *Point {
+	return &Point{uint32(x), uint32(y)}
+}
+
 type SelectInfo struct {
 	Index      uint32
 	Name       string
