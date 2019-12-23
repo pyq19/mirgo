@@ -13,9 +13,18 @@ import (
 
 var log = golog.New("server.handler")
 
-// HandleEvent ...
 func (g *Game) HandleEvent(ev cellnet.Event) {
-	var s cellnet.Session
+	g.Pool.Submit(NewTask(_HandleEvent, g, ev))
+}
+
+func _HandleEvent(args ...interface{}) {
+	var (
+		g  *Game
+		ev cellnet.Event
+		s  cellnet.Session
+	)
+	g = args[0].(*Game)
+	ev = args[1].(cellnet.Event)
 	s = ev.Session()
 	switch msg := ev.Message().(type) {
 	case *cellnet.SessionAccepted: // 有新的连接
