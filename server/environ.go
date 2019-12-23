@@ -38,7 +38,7 @@ func (e *Environ) StartLoop() {
 	go e.Game.Pool.Run()
 }
 
-// FIXME 改成从 map 取出
+// GetMapInfoById FIXME 改成从 map 取出
 func (e *Environ) GetMapInfoById(mapId int) *common.MapInfo {
 	for _, v := range e.GameDB.MapInfos {
 		if v.Id == mapId {
@@ -48,7 +48,7 @@ func (e *Environ) GetMapInfoById(mapId int) *common.MapInfo {
 	return nil
 }
 
-// FIXME 改成从 map 取出
+// GetItemInfoById FIXME 改成从 map 取出
 func (e *Environ) GetItemInfoById(itemId int) *common.ItemInfo {
 	for _, v := range e.GameDB.ItemInfos {
 		if v.Id == int32(itemId) {
@@ -58,20 +58,33 @@ func (e *Environ) GetItemInfoById(itemId int) *common.ItemInfo {
 	return nil
 }
 
+// InitNPCs 初始化地图上的 NPC
 func (e *Environ) InitNPCs() {
 
 }
 
-// TODO
+// InitRespawns 初始化地图上的怪物
 func (e *Environ) InitRespawns() {
 	for _, ri := range e.GameDB.RespawnInfos {
+		// FIXME 只加载第一张地图 测试用
 		if ri.MapId != 1 {
+			continue
+		}
+		v, ok := e.Maps.Load(ri.MapId)
+		if !ok {
 			continue
 		}
 		r := new(Respawn)
 		r.Info = &ri
-		v, _ := e.Maps.Load(1)
 		m := v.(*Map)
-		m.AddRespawn(r)
+		m.GetCell(common.NewPoint(ri.LocationX, ri.LocationY).String()).AddRespawn(r)
 	}
+}
+
+func (e *Environ) GetMap(mapId int) *Map {
+	v, ok := e.Maps.Load(mapId)
+	if !ok {
+		return nil
+	}
+	return v.(*Map)
 }
