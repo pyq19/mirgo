@@ -9,6 +9,8 @@ import (
 // Map ...
 type Map struct {
 	Id                int
+	Width             uint16 // 测试用
+	Height            uint16 // 测试用
 	Info              *common.MapInfo
 	Cells             []Cell
 	CoordinateCellMap *sync.Map // map[string]*Cell
