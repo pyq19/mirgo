@@ -32,10 +32,10 @@ func GetMapV1(bytes []byte) *Map {
 	for i := 0; i < int(width); i++ {
 		for j := 0; j < int(height); j++ {
 			p := common.Point{X: uint32(i), Y: uint32(j)}
-			//c := Cell{Coordinate: p.String(), Point: p}
+			//c := Cell{Coordinate: p.Coordinate(), Point: p}
 			c := new(Cell)
 			c.Map = m
-			c.Coordinate = p.String()
+			c.Coordinate = p.Coordinate()
 			c.Point = p
 			if (common.BytesToUint32(bytes[offset:offset+4])^0xAA38AA38)&0x20000000 != 0 {
 				c.Attribute = common.CellAttributeHighWall
@@ -47,10 +47,12 @@ func GetMapV1(bytes []byte) *Map {
 			//	walkableCells = append(walkableCells, *c)
 			//}
 			cells = append(cells, *c)
-			m.CoordinateCellMap.Store(p.String(), c)
+			m.CoordinateCellMap.Store(p.Coordinate(), c)
 			offset += 15
 		}
 	}
+	m.Width = width
+	m.Height = height
 	m.Cells = cells
 	//m.WalkableCells = walkableCells
 	return m

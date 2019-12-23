@@ -38,7 +38,7 @@ func TestSaveMapText(t *testing.T) {
 	str := ""
 	for i := 0; i < int(m.Width); i++ {
 		for j := 0; j < int(m.Height); j++ {
-			v, _ := m.CoordinateCellMap.Load(common.Point{uint32(i), uint32(j)}.String())
+			v, _ := m.CoordinateCellMap.Load(common.Point{uint32(i), uint32(j)}.Coordinate())
 			c := v.(*Cell)
 			if c.Attribute == common.CellAttributeWalk {
 				str = str + "0"
