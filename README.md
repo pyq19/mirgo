@@ -22,6 +22,7 @@ git clone https://github.com/yenkeia/mirgo.git
 ```
 获取依赖
 ```bash
+go env -w GOPROXY=https://goproxy.cn,direct
 go get -u -v github.com/mattn/go-sqlite3
 go get -u -v github.com/jinzhu/gorm
 go get -u -v github.com/davyxu/cellnet
@@ -31,6 +32,7 @@ go get -u -v github.com/davyxu/protoplus
 ```
 编译
 ```bash
+export GO111MODULE=off
 cd mirgo/server
 go build
 ```
