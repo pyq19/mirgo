@@ -24,8 +24,8 @@ type Pool struct {
 
 func NewPool(workerNum int) *Pool {
 	return &Pool{
-		EntryChan: make(chan *Task),
-		JobsChan:  make(chan *Task),
+		EntryChan: make(chan *Task, 50),
+		JobsChan:  make(chan *Task, 50),
 		WorkerNum: workerNum,
 	}
 }
