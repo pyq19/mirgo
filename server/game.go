@@ -14,6 +14,7 @@ import (
 type Game struct {
 	Conf Config
 	DB   *gorm.DB
+	Pool *Pool
 	Env  *Environ
 	Peer *cellnet.GenericPeer
 }
@@ -28,6 +29,7 @@ func NewGame(conf Config) *Game {
 	}
 	//defer db.Close()
 	g.DB = db
+	g.Pool = NewPool(5)
 	g.Env = g.NewEnviron()
 	g.Env.StartLoop()
 	return g
