@@ -1,7 +1,6 @@
 package main
 
 import (
-	"github.com/davyxu/cellnet"
 	"github.com/yenkeia/mirgo/common"
 	"io/ioutil"
 	"os"
@@ -10,64 +9,35 @@ import (
 
 // Map ...
 type Map struct {
-	Width             uint16
-	Height            uint16
+	Id                int
+	Info              *common.MapInfo
 	Cells             []Cell
 	WalkableCells     []Cell
 	CoordinateCellMap *sync.Map // map[string]*Cell
-	NPCs              []NPC
-	Players           []Player
-	Respawns          []Respawn
 }
 
 // InitMaps ...
 func (e *Environ) InitMaps() {
 	mapDirPath := os.Getenv("GOPATH") + "/src/github.com/yenkeia/mirgo/dotnettools/database/Maps/"
 	//e.Maps = make([]Map, 386)
-	e.Maps = make([]Map, 1)
+	e.Maps = new(sync.Map)
 	for _, mi := range e.GameDB.MapInfos {
-		if mi.Filename == "0" {
+		if mi.Id == 1 {
 			m := GetMapV1(GetMapBytes(mapDirPath + mi.Filename + ".map"))
-			e.Maps[0] = *m
+			m.Id = mi.Id
+			e.Maps.Store(1, m)
 			break
 		}
 	}
-}
-
-type MapObj interface {
-}
-
-type NPC struct {
-	MapObj
-}
-
-const (
-	LOGIN = iota
-	SELECT
-	GAME
-	DISCONNECTED
-)
-
-// Player ...
-type Player struct {
-	MapObj
-	AccountId int
-	GameStage int
-	Session   *cellnet.Session
-	Character *common.Character
-	Magics    *[]common.MagicInfo
-	UserItems *[]common.UserItem
-}
-
-type Respawn struct {
-	MapObj
 }
 
 type Cell struct {
 	Coordinate string       // 坐标 x,y
 	Point      common.Point // 坐标点
 	Attribute  common.CellAttribute
-	Objects    []MapObj
+	Respawn    *Respawn
+	NPC        *NPC
+	Player     *Player
 }
 
 type Door struct{}
@@ -109,7 +79,6 @@ func GetMapV1(bytes []byte) *Map {
 			c := new(Cell)
 			c.Coordinate = p.String()
 			c.Point = p
-			c.Objects = []MapObj{}
 			if (common.BytesToUint32(bytes[offset:offset+4])^0xAA38AA38)&0x20000000 != 0 {
 				c.Attribute = common.CellAttributeHighWall
 			}
@@ -124,9 +93,19 @@ func GetMapV1(bytes []byte) *Map {
 			offset += 15
 		}
 	}
-	m.Width = width
-	m.Height = height
 	m.Cells = cells
 	m.WalkableCells = walkableCells
 	return m
+}
+
+func (m *Map) AddRespawn(r *Respawn) {
+
+}
+
+func (m *Map) AddNPC(n *NPC) {
+
+}
+
+func (m *Map) AddPlayer(p *Player) {
+
 }

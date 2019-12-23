@@ -12,7 +12,7 @@ type Environ struct {
 	Game               *Game
 	GameDB             *GameDB
 	SessionIDPlayerMap *sync.Map // map[int64]*Player
-	Maps               []Map
+	Maps               *sync.Map // map[int]Map	// mapId: Map
 }
 
 // NewEnviron ...
@@ -21,8 +21,21 @@ func (g *Game) NewEnviron() (env *Environ) {
 	env.Game = g
 	env.InitGameDB()
 	env.InitMaps()
+	env.InitNPCs()
+	env.InitRespawns()
 	env.SessionIDPlayerMap = new(sync.Map)
 	return
+}
+
+// p := *e.Game.Peer
+// p.(cellnet.SessionAccessor).VisitSession(func(ses cellnet.Session) bool {
+// 	ses.Send(&ack)
+// 	return true
+// })
+// StartLoop 玩家事件 / 怪物事件 / 地图事件 ...
+func (e *Environ) StartLoop() {
+
+	go e.Game.Pool.Run()
 }
 
 // FIXME 改成从 map 取出
@@ -45,17 +58,20 @@ func (e *Environ) GetItemInfoById(itemId int) *common.ItemInfo {
 	return nil
 }
 
-// p := *e.Game.Peer
-// p.(cellnet.SessionAccessor).VisitSession(func(ses cellnet.Session) bool {
-// 	ses.Send(&ack)
-// 	return true
-// })
-// CommonEventChan  chan interface{} // 系统事件
-// PlayerEventChan  chan interface{} // 玩家事件
-// MonsterEventChan chan interface{} // 怪物事件
-// MapEventChan     chan interface{} // 地图事件
-// StartLoop ...
-func (e *Environ) StartLoop() {
+func (e *Environ) InitNPCs() {
 
-	go e.Game.Pool.Run()
+}
+
+// TODO
+func (e *Environ) InitRespawns() {
+	for _, ri := range e.GameDB.RespawnInfos {
+		if ri.MapId != 1 {
+			continue
+		}
+		r := new(Respawn)
+		r.Info = &ri
+		v, _ := e.Maps.Load(1)
+		m := v.(*Map)
+		m.AddRespawn(r)
+	}
 }
