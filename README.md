@@ -9,11 +9,15 @@
 - [GORM](https://github.com/jinzhu/gorm)
 
 #### 编译步骤
+环境设置
+```bash
+go env -w GOPROXY=https://goproxy.cn,direct
+export GO111MODULE=off
+```
 新建项目文件夹，设置为 gopath
 ```bash
 mkdir ~/mir
 export GOPATH=~/mir
-export GO111MODULE=off
 ```
 获取项目
 ```bash
@@ -23,7 +27,6 @@ git clone https://github.com/yenkeia/mirgo.git
 ```
 获取依赖
 ```bash
-go env -w GOPROXY=https://goproxy.cn,direct
 go get -u -v github.com/mattn/go-sqlite3
 go get -u -v github.com/jinzhu/gorm
 go get -u -v github.com/davyxu/cellnet
