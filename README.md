@@ -13,6 +13,7 @@
 ```bash
 mkdir ~/mir
 export GOPATH=~/mir
+export GO111MODULE=off
 ```
 获取项目
 ```bash
@@ -30,10 +31,16 @@ go get -u -v github.com/davyxu/golog
 go get -u -v github.com/davyxu/goobjfmt
 go get -u -v github.com/davyxu/protoplus
 ```
+解压服务端资源到 mirgo/dotnettools/database 目录下
+```bash
+cd mirgo/dotnettools
+mkdir database
+cd database
+unrar x ../Daneo1989_Server.rar -pLOMCN -y
+```
 编译
 ```bash
-export GO111MODULE=off
-cd mirgo/server
+cd $GOPATH/src/github.com/yenkeia/mirgo/server
 go build
 ```
 运行
