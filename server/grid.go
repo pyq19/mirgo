@@ -44,15 +44,14 @@ func (g *Grid) Remove(playerID string) {
 	delete(g.playerIDs, playerID)
 }
 
-// GetPlyerIDs 得到当前格子中所有的玩家
-func (g *Grid) GetPlyerIDs() (playerIDs []string) {
+// GetPlayerID 得到当前格子中所有的玩家
+func (g *Grid) GetPlayerID() (playerIDs []string) {
 	g.pIDLock.RLock()
 	defer g.pIDLock.RUnlock()
 
 	for k, _ := range g.playerIDs {
 		playerIDs = append(playerIDs, k)
 	}
-
 	return
 }
 
