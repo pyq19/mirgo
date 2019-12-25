@@ -1,6 +1,5 @@
 package main
 
-import "C"
 import (
 	"github.com/davyxu/cellnet"
 	"github.com/davyxu/golog"
@@ -537,7 +536,7 @@ func (g *Game) StartGame(s cellnet.Session, msg *client.StartGame) {
 	}
 	p.Character = c
 	p.GameStage = GAME
-	p.ID = g.R.RandString(10)
+	p.ID = g.Rand.RandString(10)
 
 	m := g.Env.GetMap(int(p.Character.CurrentMapId))
 	m.GetCell(p.Point().Coordinate()).SetPlayer(p)
