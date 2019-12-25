@@ -7,21 +7,13 @@ import (
 
 // Map ...
 type Map struct {
-	Env               *Environ
-	Id                int
-	Width             uint16 // 测试用
-	Height            uint16 // 测试用
-	Info              *common.MapInfo
-	CoordinateCellMap *sync.Map // map[string]*Cell
-	AOI               *AOIManager
-}
-
-func (m *Map) getCell(coordinate string) *Cell {
-	v, ok := m.CoordinateCellMap.Load(coordinate)
-	if !ok {
-		return nil
-	}
-	return v.(*Cell)
+	Env    *Environ
+	Id     int
+	Width  uint16 // 测试用
+	Height uint16 // 测试用
+	Info   *common.MapInfo
+	AOI    *AOIManager
+	Cells  *sync.Map // key=Cell.Coordinate  value=*Cell
 }
 
 func (m *Map) Submit(t *Task) {
@@ -29,21 +21,13 @@ func (m *Map) Submit(t *Task) {
 }
 
 func (m *Map) AddObject(obj interface{}) {
-	//switch o := obj.(type) {
-	//case *Player:
-	//	p := common.NewPoint(int(o.Character.CurrentLocationX), int(o.Character.CurrentLocationY))
-	//	c := m.getCell(p.Coordinate())
-	//	c.SetPlayer(o)
-	//case *Respawn:
-	//	m.getCell(o.Point().Coordinate()).SetRespawn(o)
-	//case *NPC:
-	//}
+	m.AOI.AddObject(obj)
 }
 
-func (m *Map) DeleteObject(obj interface{}) {
-
-}
-
-func (m *Map) UpdateObject(obj interface{}) {
-
+func (m *Map) GetCell(coordinate string) *Cell {
+	v, ok := m.Cells.Load(coordinate)
+	if !ok {
+		return nil
+	}
+	return v.(*Cell)
 }

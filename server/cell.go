@@ -3,30 +3,30 @@ package main
 import (
 	"fmt"
 	"github.com/yenkeia/mirgo/common"
+	"sync"
 )
 
 type Cell struct {
 	Map        *Map
 	Coordinate string // 坐标 x,y
 	Attribute  common.CellAttribute
-	Respawn    *Respawn
-	NPC        *NPC
-	Player     *Player
+	Object     interface{}
+	lock       sync.RWMutex
 }
 
 func (c *Cell) Empty() bool {
-	if c.Respawn != nil {
-		return false
+	if c.Object == nil {
+		return true
 	}
-	if c.NPC != nil {
-		return false
-	}
-	if c.Player != nil {
-		return false
-	}
-	return true
+	return false
 }
 
 func (c *Cell) String() string {
-	return fmt.Sprintf("Coordinate: %s, Respawn: %v, Player: %v, NPC: %v\n", c.Coordinate, c.Respawn, c.Player, c.NPC)
+	return fmt.Sprintf("Coordinate: %s, Object: %v \n", c.Coordinate, c.Object)
+}
+
+func (c *Cell) SetObject(obj interface{}) {
+	c.lock.Lock()
+	c.Object = obj
+	c.lock.Unlock()
 }

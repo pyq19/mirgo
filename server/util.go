@@ -16,7 +16,7 @@ func GetMapBytes(mapAbsPath string) []byte {
 
 func GetMapV1(bytes []byte) *Map {
 	m := new(Map)
-	m.CoordinateCellMap = new(sync.Map)
+	m.Cells = new(sync.Map)
 	offset := 21
 	w := common.BytesToUint16(bytes[offset : offset+2])
 	offset += 2
@@ -40,8 +40,7 @@ func GetMapV1(bytes []byte) *Map {
 			if ((common.BytesToUint16(bytes[offset+6:offset+8]) ^ xor) & 0x8000) != 0 {
 				c.Attribute = common.CellAttributeLowWall
 			}
-			aoi.AddCellToGrid(c)
-			m.CoordinateCellMap.Store(p.Coordinate(), c)
+			m.Cells.Store(p.Coordinate(), c)
 			offset += 15
 		}
 	}

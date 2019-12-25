@@ -9,27 +9,27 @@ import (
 
 // AOIManager 每一张地图对应一个 AOI 管理模块
 type AOIManager struct {
-	Map   *Map      // 这个 AOI 属于哪张地图
-	MinX  int       // 区域左边界坐标
-	MaxX  int       // 区域右边界坐标
-	CntsX int       // x方向区域的数量
-	MinY  int       // 区域上边界坐标
-	MaxY  int       // 区域下边界坐标
-	CntsY int       // y方向的区域数量
-	grids *sync.Map // map[int]*Grid 当前区域中都有哪些区域，key=区域ID， value=区域对象
+	Map               *Map      // 这个 AOI 属于哪张地图
+	MinX              int       // 区域左边界坐标
+	MaxX              int       // 区域右边界坐标
+	CntsX             int       // x方向区域的数量
+	MinY              int       // 区域上边界坐标
+	MaxY              int       // 区域下边界坐标
+	CntsY             int       // y方向的区域数量
+	grids             *sync.Map // map[int]*Grid 当前区域中都有哪些区域，key=区域ID， value=区域对象
 }
 
 // NewAOIManager 初始化一个AOI区域
 func NewAOIManager(m *Map, minX, maxX, cntsX, minY, maxY, cntsY int) *AOIManager {
-	aoiMgr := &AOIManager{
-		Map:   m,
-		MinX:  minX,
-		MaxX:  maxX,
-		CntsX: cntsX,
-		MinY:  minY,
-		MaxY:  maxY,
-		CntsY: cntsY,
-		grids: new(sync.Map),
+	aoi := &AOIManager{
+		Map:               m,
+		MinX:              minX,
+		MaxX:              maxX,
+		CntsX:             cntsX,
+		MinY:              minY,
+		MaxY:              maxY,
+		CntsY:             cntsY,
+		grids:             new(sync.Map),
 	}
 
 	// 给AOI初始化区域中所有的区域
@@ -40,16 +40,16 @@ func NewAOIManager(m *Map, minX, maxX, cntsX, minY, maxY, cntsY int) *AOIManager
 			gridID := y*cntsX + x
 
 			// 初始化一个区域放在AOI中的map里，key是当前区域的ID
-			grid := NewGrid(gridID,
-				aoiMgr.MinX+x*aoiMgr.gridWidth(),
-				aoiMgr.MinX+(x+1)*aoiMgr.gridWidth(),
-				aoiMgr.MinY+y*aoiMgr.gridHeight(),
-				aoiMgr.MinY+(y+1)*aoiMgr.gridHeight())
-			aoiMgr.grids.Store(gridID, grid)
+			grid := NewGrid(aoi, gridID,
+				aoi.MinX+x*aoi.gridWidth(),
+				aoi.MinX+(x+1)*aoi.gridWidth(),
+				aoi.MinY+y*aoi.gridHeight(),
+				aoi.MinY+(y+1)*aoi.gridHeight())
+			aoi.grids.Store(gridID, grid)
 		}
 	}
 
-	return aoiMgr
+	return aoi
 }
 
 // gridWidth 得到每个区域在x轴方向的宽度
@@ -61,18 +61,6 @@ func (m *AOIManager) gridWidth() int {
 func (m *AOIManager) gridHeight() int {
 	return (m.MaxY - m.MinY) / m.CntsY
 }
-
-/*
-// String 打印信息方法
-func (m *AOIManager) String() string {
-	s := fmt.Sprintf("AOIManagr:\nminX:%d, maxX:%d, cntsX:%d, minY:%d, maxY:%d, cntsY:%d\n Grids in AOI Manager:\n",
-		m.MinX, m.MaxX, m.CntsX, m.MinY, m.MaxY, m.CntsY)
-	for _, grid := range m.grids {
-		s += fmt.Sprintln(grid)
-	}
-	return s
-}
-*/
 
 // GetSurroundGridsByGridID 根据区域的gID得到当前周边的九宫格信息
 func (m *AOIManager) GetSurroundGridsByGridID(gID int) (grids []*Grid) {
@@ -142,7 +130,19 @@ func (m *AOIManager) GetSurroundGridsByCoordinate(coordinate string) (grids []*G
 	return m.GetSurroundGridsByGridID(grid.GID)
 }
 
-func (m *AOIManager) AddCellToGrid(c *Cell) {
-	grid := m.GetGridByCoordinate(c.Coordinate)
-	grid.AddCell(c)
+func (m *AOIManager) AddObject(obj interface{}) {
+	switch o := obj.(type) {
+	case *Player:
+		coordinate := o.Point().Coordinate()
+		grid := m.GetGridByCoordinate(coordinate)
+		grid.AddPlayer(o)
+	case *Respawn:
+		coordinate := o.Point().Coordinate()
+		grid := m.GetGridByCoordinate(coordinate)
+		grid.AddRespawn(o)
+	case *NPC:
+		coordinate := o.Point().Coordinate()
+		grid := m.GetGridByCoordinate(coordinate)
+		grid.AddNPC(o)
+	}
 }
