@@ -7,13 +7,15 @@ import (
 
 // Grid 一个地图中的区域类
 type Grid struct {
-	AOI     *AOIManager
-	GID     int       // 区域ID
-	MinX    int       // 区域左边界坐标
-	MaxX    int       // 区域右边界坐标
-	MinY    int       // 区域上边界坐标
-	MaxY    int       // 区域下边界坐标
-	Players *sync.Map // 当前区域内的玩家 key=playerID  value=*player
+	AOI      *AOIManager
+	GID      int       // 区域ID
+	MinX     int       // 区域左边界坐标
+	MaxX     int       // 区域右边界坐标
+	MinY     int       // 区域上边界坐标
+	MaxY     int       // 区域下边界坐标
+	Players  *sync.Map // 当前区域内的玩家 key=Player.ID value=*Player
+	Respawns *sync.Map // 当前区域内的怪物 key=Respawn.ID value=*Respawn
+	NPCs     *sync.Map // 当前区域内的 NPC
 }
 
 // NewGrid 初始化一个区域
@@ -58,10 +60,26 @@ func (g *Grid) DeletePlayer(p *Player) {
 	g.Players.Delete(v.(*Player).ID)
 }
 
-func (g *Grid) AddRespawn(o *Respawn) {
-
+func (g *Grid) AddRespawn(r *Respawn) {
+	g.Respawns.Store(r.ID, r)
 }
 
-func (g *Grid) AddNPC(o *NPC) {
+func (g *Grid) DeleteRespawn(r *Respawn) {
+	v, ok := g.Respawns.Load(r.ID)
+	if !ok {
+		return
+	}
+	g.Respawns.Delete(v.(*Respawn).ID)
+}
 
+func (g *Grid) AddNPC(n *NPC) {
+	g.NPCs.Store(n.ID, n)
+}
+
+func (g *Grid) DeleteNPC(n *NPC) {
+	v, ok := g.NPCs.Load(n.ID)
+	if !ok {
+		return
+	}
+	g.NPCs.Delete(v.(*NPC).ID)
 }

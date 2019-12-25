@@ -3,6 +3,7 @@ package main
 import "github.com/yenkeia/mirgo/common"
 
 type NPC struct {
+	ID   string
 	Info *common.NpcInfo
 }
 

@@ -9,27 +9,27 @@ import (
 
 // AOIManager 每一张地图对应一个 AOI 管理模块
 type AOIManager struct {
-	Map               *Map      // 这个 AOI 属于哪张地图
-	MinX              int       // 区域左边界坐标
-	MaxX              int       // 区域右边界坐标
-	CntsX             int       // x方向区域的数量
-	MinY              int       // 区域上边界坐标
-	MaxY              int       // 区域下边界坐标
-	CntsY             int       // y方向的区域数量
-	grids             *sync.Map // map[int]*Grid 当前区域中都有哪些区域，key=区域ID， value=区域对象
+	Map   *Map      // 这个 AOI 属于哪张地图
+	MinX  int       // 区域左边界坐标
+	MaxX  int       // 区域右边界坐标
+	CntsX int       // x方向区域的数量
+	MinY  int       // 区域上边界坐标
+	MaxY  int       // 区域下边界坐标
+	CntsY int       // y方向的区域数量
+	grids *sync.Map // map[int]*Grid 当前区域中都有哪些区域，key=区域ID， value=区域对象
 }
 
 // NewAOIManager 初始化一个AOI区域
 func NewAOIManager(m *Map, minX, maxX, cntsX, minY, maxY, cntsY int) *AOIManager {
 	aoi := &AOIManager{
-		Map:               m,
-		MinX:              minX,
-		MaxX:              maxX,
-		CntsX:             cntsX,
-		MinY:              minY,
-		MaxY:              maxY,
-		CntsY:             cntsY,
-		grids:             new(sync.Map),
+		Map:   m,
+		MinX:  minX,
+		MaxX:  maxX,
+		CntsX: cntsX,
+		MinY:  minY,
+		MaxY:  maxY,
+		CntsY: cntsY,
+		grids: new(sync.Map),
 	}
 
 	// 给AOI初始化区域中所有的区域
@@ -128,21 +128,4 @@ func (m *AOIManager) GetGridByCoordinate(coordinate string) (grid *Grid) {
 func (m *AOIManager) GetSurroundGridsByCoordinate(coordinate string) (grids []*Grid) {
 	grid := m.GetGridByCoordinate(coordinate)
 	return m.GetSurroundGridsByGridID(grid.GID)
-}
-
-func (m *AOIManager) AddObject(obj interface{}) {
-	switch o := obj.(type) {
-	case *Player:
-		coordinate := o.Point().Coordinate()
-		grid := m.GetGridByCoordinate(coordinate)
-		grid.AddPlayer(o)
-	case *Respawn:
-		coordinate := o.Point().Coordinate()
-		grid := m.GetGridByCoordinate(coordinate)
-		grid.AddRespawn(o)
-	case *NPC:
-		coordinate := o.Point().Coordinate()
-		grid := m.GetGridByCoordinate(coordinate)
-		grid.AddNPC(o)
-	}
 }
