@@ -556,7 +556,7 @@ func (g *Game) StartGame(s cellnet.Session, msg *client.StartGame) {
 
 	// MapInformation
 	mi := new(server.MapInformation)
-	pmi := g.Env.GetMapInfoById(int(p.Character.CurrentMapId))
+	pmi := g.Env.GameDB.GetMapInfoById(int(p.Character.CurrentMapId))
 	mi.FileName = pmi.Filename
 	mi.Title = pmi.Title
 	mi.MiniMap = uint16(pmi.MineIndex)
@@ -614,17 +614,17 @@ func (g *Game) StartGame(s cellnet.Session, msg *client.StartGame) {
 	g.DB.Table("user_item").Where("id in (?)", qs).Find(&uiq)
 	for i, v := range uii {
 		ui.Inventory[i] = v
-		ii := g.Env.GetItemInfoById(int(v.ItemId))
+		ii := g.Env.GameDB.GetItemInfoById(int(v.ItemId))
 		s.Send(&server.NewItemInfo{Info: *ii})
 	}
 	for i, v := range uie {
 		ui.Equipment[i] = v
-		ii := g.Env.GetItemInfoById(int(v.ItemId))
+		ii := g.Env.GameDB.GetItemInfoById(int(v.ItemId))
 		s.Send(&server.NewItemInfo{Info: *ii})
 	}
 	for i, v := range uiq {
 		ui.QuestInventory[i] = v
-		ii := g.Env.GetItemInfoById(int(v.ItemId))
+		ii := g.Env.GameDB.GetItemInfoById(int(v.ItemId))
 		s.Send(&server.NewItemInfo{Info: *ii})
 	}
 	s.Send(ui)
