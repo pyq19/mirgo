@@ -76,6 +76,7 @@ func (e *Environ) InitMaps() {
 	for _, mi := range e.GameDB.MapInfos {
 		if mi.Id == 1 {
 			m := GetMapV1(GetMapBytes(mapDirPath + mi.Filename + ".map"))
+			m.Env = e
 			m.Id = mi.Id
 			e.Maps.Store(1, m)
 			break
