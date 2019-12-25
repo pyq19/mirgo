@@ -17,7 +17,7 @@ type Game struct {
 	Pool *Pool
 	Env  *Environ
 	Peer *cellnet.GenericPeer
-	Rand    *RandGenerator
+	Rand *RandGenerator
 }
 
 // NewGame ...
@@ -32,7 +32,7 @@ func NewGame(conf Config) *Game {
 	//defer db.Close()
 	g.DB = db
 	g.Pool = NewPool(5)
-	g.Env = g.NewEnviron()
+	g.Env = NewEnviron(g)
 	g.Env.StartLoop()
 	return g
 }
