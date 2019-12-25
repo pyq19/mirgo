@@ -119,6 +119,11 @@ func (e *Environ) GetMap(mapId int) *Map {
 // 	ses.Send(&ack)
 // 	return true
 // })
+
+func (e *Environ) Submit(t *Task) {
+	e.Game.Pool.EntryChan <- t
+}
+
 // StartLoop
 func (e *Environ) StartLoop() {
 	// 系统事件 广播 存档
