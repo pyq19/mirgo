@@ -101,6 +101,7 @@ func (e *Environ) InitRespawns() {
 			continue
 		}
 		r := new(Respawn)
+		r.ID = e.Game.Rand.RandString(10)
 		r.Info = &ri
 		v.(*Map).AddObject(r)
 	}
