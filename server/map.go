@@ -2,7 +2,6 @@ package main
 
 import (
 	"github.com/yenkeia/mirgo/common"
-	"os"
 	"sync"
 )
 
@@ -18,25 +17,22 @@ type Map struct {
 	//WalkableCells     []Cell
 }
 
-// InitMaps ...
-func (e *Environ) InitMaps() {
-	mapDirPath := os.Getenv("GOPATH") + "/src/github.com/yenkeia/mirgo/dotnettools/database/Maps/"
-	//e.Maps = make([]Map, 386)
-	e.Maps = new(sync.Map)
-	for _, mi := range e.GameDB.MapInfos {
-		if mi.Id == 1 {
-			m := GetMapV1(GetMapBytes(mapDirPath + mi.Filename + ".map"))
-			m.Id = mi.Id
-			e.Maps.Store(1, m)
-			break
-		}
-	}
-}
-
 func (m *Map) GetCell(coordinate string) *Cell {
 	v, ok := m.CoordinateCellMap.Load(coordinate)
 	if !ok {
 		return nil
 	}
 	return v.(*Cell)
+}
+
+func (m *Map) AddObject(obj interface{}) {
+
+}
+
+func (m *Map) DeleteObject(obj interface{}) {
+
+}
+
+func (m *Map) UpdateObject(obj interface{}) {
+
 }

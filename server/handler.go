@@ -539,7 +539,8 @@ func (g *Game) StartGame(s cellnet.Session, msg *client.StartGame) {
 	p.ID = g.Rand.RandString(10)
 
 	m := g.Env.GetMap(int(p.Character.CurrentMapId))
-	m.GetCell(p.Point().Coordinate()).SetPlayer(p)
+	//m.GetCell(p.Point().Coordinate()).SetPlayer(p)
+	m.AddObject(p)
 
 	// SetConcentration
 	sc := new(server.SetConcentration)
