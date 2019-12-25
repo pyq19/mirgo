@@ -84,42 +84,6 @@ func (e *Environ) InitMaps() {
 	}
 }
 
-// p := *e.Game.Peer
-// p.(cellnet.SessionAccessor).VisitSession(func(ses cellnet.Session) bool {
-// 	ses.Send(&ack)
-// 	return true
-// })
-// StartLoop
-func (e *Environ) StartLoop() {
-	// 系统事件 广播 存档
-
-	// 玩家事件 buff 等状态改变
-
-	// 地图事件 怪物动作 刷怪 掉落物品
-
-	go e.Game.Pool.Run()
-}
-
-// GetMapInfoById FIXME 改成从 map 取出
-func (e *Environ) GetMapInfoById(mapId int) *common.MapInfo {
-	for _, v := range e.GameDB.MapInfos {
-		if v.Id == mapId {
-			return &v
-		}
-	}
-	return nil
-}
-
-// GetItemInfoById FIXME 改成从 map 取出
-func (e *Environ) GetItemInfoById(itemId int) *common.ItemInfo {
-	for _, v := range e.GameDB.ItemInfos {
-		if v.Id == int32(itemId) {
-			return &v
-		}
-	}
-	return nil
-}
-
 // InitNPCs 初始化地图上的 NPC
 func (e *Environ) InitNPCs() {
 
@@ -148,4 +112,20 @@ func (e *Environ) GetMap(mapId int) *Map {
 		return nil
 	}
 	return v.(*Map)
+}
+
+// p := *e.Game.Peer
+// p.(cellnet.SessionAccessor).VisitSession(func(ses cellnet.Session) bool {
+// 	ses.Send(&ack)
+// 	return true
+// })
+// StartLoop
+func (e *Environ) StartLoop() {
+	// 系统事件 广播 存档
+
+	// 玩家事件 buff 等状态改变
+
+	// 地图事件 怪物动作 刷怪 掉落物品
+
+	go e.Game.Pool.Run()
 }

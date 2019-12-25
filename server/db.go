@@ -16,3 +16,23 @@ type GameDB struct {
 	RespawnInfos  []common.RespawnInfo
 	SafeZoneInfos []common.SafeZoneInfo
 }
+
+// GetMapInfoById FIXME 改成从 map 取出
+func (db *GameDB) GetMapInfoById(mapId int) *common.MapInfo {
+	for _, v := range db.MapInfos {
+		if v.Id == mapId {
+			return &v
+		}
+	}
+	return nil
+}
+
+// GetItemInfoById FIXME 改成从 map 取出
+func (db *GameDB) GetItemInfoById(itemId int) *common.ItemInfo {
+	for _, v := range db.ItemInfos {
+		if v.Id == int32(itemId) {
+			return &v
+		}
+	}
+	return nil
+}
