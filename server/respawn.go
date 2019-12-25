@@ -4,7 +4,6 @@ import "github.com/yenkeia/mirgo/common"
 
 // Respawn = Monster Obj
 type Respawn struct {
-	ID   string
 	Info *common.RespawnInfo
 }
 

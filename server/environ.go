@@ -13,7 +13,7 @@ type Environ struct {
 	Game               *Game
 	GameDB             *GameDB
 	SessionIDPlayerMap *sync.Map // map[int64]*Player
-	Maps               *sync.Map // map[int]Map	// mapId: Map
+	Maps               *sync.Map // map[int]*Map	// mapId: Map
 }
 
 // NewEnviron ...
@@ -92,6 +92,7 @@ func (e *Environ) InitNPCs() {
 // InitRespawns 初始化地图上的怪物
 func (e *Environ) InitRespawns() {
 	for _, ri := range e.GameDB.RespawnInfos {
+		ri := ri // 坑
 		// FIXME 只加载第一张地图 测试用
 		if ri.MapId != 1 {
 			continue
@@ -101,7 +102,6 @@ func (e *Environ) InitRespawns() {
 			continue
 		}
 		r := new(Respawn)
-		r.ID = e.Game.Rand.RandString(10)
 		r.Info = &ri
 		v.(*Map).AddObject(r)
 	}
