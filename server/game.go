@@ -17,14 +17,14 @@ type Game struct {
 	Pool *Pool
 	Env  *Environ
 	Peer *cellnet.GenericPeer
-	R    *RandGenerator
+	Rand    *RandGenerator
 }
 
 // NewGame ...
 func NewGame(conf Config) *Game {
 	g := new(Game)
 	g.Conf = conf
-	g.R = new(RandGenerator)
+	g.Rand = new(RandGenerator)
 	db, err := gorm.Open("sqlite3", conf.MirDB)
 	if err != nil {
 		panic("failed to connect database")
