@@ -11,8 +11,8 @@ func TestGrid_GetPlayerID(t *testing.T) {
 	p2 := new(Player)
 	p2.ID = "p2p2p2"
 
-	grid.Add(p1)
-	grid.Add(p2)
+	grid.AddPlayer(p1)
+	grid.AddPlayer(p2)
 
 	players := grid.GetAllPlayer()
 	t.Log(players[0].ID, players[1].ID)
