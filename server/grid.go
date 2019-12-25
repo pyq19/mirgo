@@ -21,13 +21,15 @@ type Grid struct {
 // NewGrid 初始化一个区域
 func NewGrid(aoi *AOIManager, gID, minX, maxX, minY, maxY int) *Grid {
 	return &Grid{
-		AOI:     aoi,
-		GID:     gID,
-		MinX:    minX,
-		MaxX:    maxX,
-		MinY:    minY,
-		MaxY:    maxY,
-		Players: new(sync.Map),
+		AOI:      aoi,
+		GID:      gID,
+		MinX:     minX,
+		MaxX:     maxX,
+		MinY:     minY,
+		MaxY:     maxY,
+		Players:  new(sync.Map),
+		Respawns: new(sync.Map),
+		NPCs:     new(sync.Map),
 	}
 }
 
@@ -61,15 +63,15 @@ func (g *Grid) DeletePlayer(p *Player) {
 }
 
 func (g *Grid) AddRespawn(r *Respawn) {
-	g.Respawns.Store(r.ID, r)
+	g.Respawns.Store(r.Info.Id, r)
 }
 
 func (g *Grid) DeleteRespawn(r *Respawn) {
-	v, ok := g.Respawns.Load(r.ID)
+	v, ok := g.Respawns.Load(r.Info.Id)
 	if !ok {
 		return
 	}
-	g.Respawns.Delete(v.(*Respawn).ID)
+	g.Respawns.Delete(v.(*Respawn).Info.Id)
 }
 
 func (g *Grid) AddNPC(n *NPC) {
