@@ -54,3 +54,24 @@ func TestSaveMapText(t *testing.T) {
 	}
 	ioutil.WriteFile(filePath, []byte(str), 0644)
 }
+
+func TestPrintMapGrid(t *testing.T) {
+	gopath := os.Getenv("GOPATH")
+	mapAbsPath := gopath + "/src/github.com/yenkeia/mirgo/dotnettools/database/Maps/0.map"
+	m := GetMapV1(GetMapBytes(mapAbsPath))
+	//grids := []*Grid{}
+	//m.AOI.grids.Range(func(key, value interface{}) bool {
+	//	grids = append(grids, value.(*Grid))
+	//	return true
+	//})
+	//t.Log(grids)
+
+	g := m.AOI.GetGridByCoordinate("0,0")
+	cells := []*Cell{}
+	g.Cells.Range(func(key, value interface{}) bool {
+		cells = append(cells, value.(*Cell))
+		return true
+	})
+	t.Log(len(cells))
+	t.Log(cells)
+}

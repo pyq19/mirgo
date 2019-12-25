@@ -19,7 +19,7 @@ m := NewAOIManager(0, 2000, 4, 0, 1200, 3)
 
 func TestAOIManager_GetGridByCoordinate(t *testing.T) {
 	var g *Grid
-	m := NewAOIManager(0, 2000, 4, 0, 1200, 3)
+	m := NewAOIManager(nil, 0, 2000, 4, 0, 1200, 3)
 	g = m.GetGridByCoordinate("550,880")
 	t.Log(g.String())
 	g = m.GetGridByCoordinate("0,0")
@@ -33,7 +33,7 @@ func TestAOIManager_GetGridByCoordinate(t *testing.T) {
 }
 
 func TestAOIManager_GetSurroundGridsByCoordinate(t *testing.T) {
-	m := NewAOIManager(0, 2000, 4, 0, 1200, 3)
+	m := NewAOIManager(nil, 0, 2000, 4, 0, 1200, 3)
 	var gs []*Grid
 	gs = m.GetSurroundGridsByCoordinate("0,0")
 	t.Log(gs)
@@ -44,14 +44,14 @@ func TestAOIManager_GetSurroundGridsByCoordinate(t *testing.T) {
 }
 
 func TestAOIManager_GetSurroundGridsByGridID(t *testing.T) {
-	m := NewAOIManager(0, 2000, 4, 0, 1200, 3)
+	m := NewAOIManager(nil, 0, 2000, 4, 0, 1200, 3)
 	var gs []*Grid
 	gs = m.GetSurroundGridsByGridID(6)
 	t.Log(gs)
 }
 
 func TestAOIManager_GetAllGrid(t *testing.T) {
-	m := NewAOIManager(0, 2000, 4, 0, 1200, 3)
+	m := NewAOIManager(nil, 0, 2000, 4, 0, 1200, 3)
 	m.grids.Range(func(key, value interface{}) bool {
 		t.Log(key.(int))
 		t.Log(value.(*Grid).String())

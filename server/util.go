@@ -23,11 +23,13 @@ func GetMapV1(bytes []byte) *Map {
 	xor := common.BytesToUint16(bytes[offset : offset+2])
 	offset += 2
 	h := common.BytesToUint16(bytes[offset : offset+2])
-	width := w ^ xor
-	height := h ^ xor
+	width := int(w ^ xor)
+	height := int(h ^ xor)
+	aoi := newAOI(m, width, height)
+	m.AOI = aoi
 	offset = 54
-	for i := 0; i < int(width); i++ {
-		for j := 0; j < int(height); j++ {
+	for i := 0; i < width; i++ {
+		for j := 0; j < height; j++ {
 			p := common.Point{X: uint32(i), Y: uint32(j)}
 			c := new(Cell)
 			c.Map = m
@@ -38,11 +40,19 @@ func GetMapV1(bytes []byte) *Map {
 			if ((common.BytesToUint16(bytes[offset+6:offset+8]) ^ xor) & 0x8000) != 0 {
 				c.Attribute = common.CellAttributeLowWall
 			}
+			aoi.AddCellToGrid(c)
 			m.CoordinateCellMap.Store(p.Coordinate(), c)
 			offset += 15
 		}
 	}
-	m.Width = width
-	m.Height = height
+	m.Width = uint16(width)
+	m.Height = uint16(height)
 	return m
+}
+
+func newAOI(m *Map, width int, height int) (aoi *AOIManager) {
+	cntX := width / 20
+	cntY := height / 20
+	aoi = NewAOIManager(m, 0, width, cntX, 0, height, cntY)
+	return
 }

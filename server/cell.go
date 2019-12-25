@@ -1,6 +1,9 @@
 package main
 
-import "github.com/yenkeia/mirgo/common"
+import (
+	"fmt"
+	"github.com/yenkeia/mirgo/common"
+)
 
 type Cell struct {
 	Map        *Map
@@ -22,4 +25,8 @@ func (c *Cell) Empty() bool {
 		return false
 	}
 	return true
+}
+
+func (c *Cell) String() string {
+	return fmt.Sprintf("Coordinate: %s, Respawn: %v, Player: %v, NPC: %v\n", c.Coordinate, c.Respawn, c.Player, c.NPC)
 }
