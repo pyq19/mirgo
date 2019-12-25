@@ -89,8 +89,13 @@ func (e *Environ) InitMaps() {
 // 	ses.Send(&ack)
 // 	return true
 // })
-// StartLoop 玩家事件 / 怪物事件 / 地图事件 ...
+// StartLoop
 func (e *Environ) StartLoop() {
+	// 系统事件 广播 存档
+
+	// 玩家事件 buff 等状态改变
+
+	// 地图事件 怪物动作 刷怪 掉落物品
 
 	go e.Game.Pool.Run()
 }
