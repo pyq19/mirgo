@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/yenkeia/mirgo/common"
 	"sync"
 )
 
@@ -40,8 +41,8 @@ func NewAOIManager(minX, maxX, cntsX, minY, maxY, cntsY int) *AOIManager {
 			grid := NewGrid(gridID,
 				aoiMgr.MinX+x*aoiMgr.gridWidth(),
 				aoiMgr.MinX+(x+1)*aoiMgr.gridWidth(),
-				aoiMgr.MinY+y*aoiMgr.gridLength(),
-				aoiMgr.MinY+(y+1)*aoiMgr.gridLength())
+				aoiMgr.MinY+y*aoiMgr.gridHeight(),
+				aoiMgr.MinY+(y+1)*aoiMgr.gridHeight())
 			aoiMgr.grids.Store(gridID, grid)
 		}
 	}
@@ -54,8 +55,8 @@ func (m *AOIManager) gridWidth() int {
 	return (m.MaxX - m.MinX) / m.CntsX
 }
 
-// gridLength 得到每个格子在x轴方向的长度
-func (m *AOIManager) gridLength() int {
+// gridLength 得到每个格子在y轴方向的高度
+func (m *AOIManager) gridHeight() int {
 	return (m.MaxY - m.MinY) / m.CntsY
 }
 
@@ -70,3 +71,71 @@ func (m *AOIManager) String() string {
 	return s
 }
 */
+
+// GetSurroundGridsByGridID 根据格子的gID得到当前周边的九宫格信息
+func (m *AOIManager) GetSurroundGridsByGridID(gID int) (grids []*Grid) {
+	// 判断gID是否存在
+	v, ok := m.grids.Load(gID)
+	if !ok {
+		return
+	}
+	g := v.(*Grid)
+	// 将当前gid添加到九宫格中
+	grids = append(grids, g)
+	// 根据gid得到当前格子所在的X轴编号
+	idx := gID % m.CntsX
+	// 判断当前idx左边是否还有格子
+	if idx > 0 {
+		v, _ := m.grids.Load(gID - 1)
+		grids = append(grids, v.(*Grid))
+	}
+	// 判断当前的idx右边是否还有格子
+	if idx < m.CntsX-1 {
+		v, _ := m.grids.Load(gID + 1)
+		grids = append(grids, v.(*Grid))
+	}
+	// 将x轴当前的格子都取出，进行遍历，再分别得到每个格子的上下是否有格子
+	// 得到当前x轴的格子id集合
+	gidsX := make([]int, 0, len(grids))
+	for _, v := range grids {
+		gidsX = append(gidsX, v.GID)
+	}
+	// 遍历x轴格子
+	for _, v := range gidsX {
+		// 计算该格子处于第几列
+		idy := v / m.CntsX
+		// 判断当前的idy上边是否还有格子
+		if idy > 0 {
+			v, _ := m.grids.Load(v - m.CntsX)
+			grids = append(grids, v.(*Grid))
+		}
+		// 判断当前的idy下边是否还有格子
+		if idy < m.CntsY-1 {
+			v, _ := m.grids.Load(v + m.CntsX)
+			grids = append(grids, v.(*Grid))
+		}
+	}
+	return
+}
+
+// GetGridByCoordinate
+func (m *AOIManager) GetGridByCoordinate(coordinate string) (grid *Grid) {
+	p := common.NewPointByCoordinate(coordinate)
+	x := int(p.X)
+	y := int(p.Y)
+	w := m.gridWidth()
+	h := m.gridHeight()
+	gridID := (y/h)*m.CntsX + (x / w)
+	v, ok := m.grids.Load(gridID)
+	if !ok {
+		return nil
+	}
+	grid = v.(*Grid)
+	return grid
+}
+
+// GetSurroundGridsByCoordinate 根据坐标求出周边九宫格
+func (m *AOIManager) GetSurroundGridsByCoordinate(coordinate string) (grids []*Grid) {
+	grid := m.GetGridByCoordinate(coordinate)
+	return m.GetSurroundGridsByGridID(grid.GID)
+}

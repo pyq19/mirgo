@@ -2,6 +2,8 @@ package common
 
 import (
 	"fmt"
+	"strconv"
+	"strings"
 )
 
 type Point struct {
@@ -12,6 +14,14 @@ type Point struct {
 // Coordinate 点的坐标
 func (p Point) Coordinate() string {
 	return fmt.Sprintf("%d,%d", p.X, p.Y)
+}
+
+// NewPointByCoordinate 坐标转换成点
+func NewPointByCoordinate(coordinate string) *Point {
+	strArr := strings.Split(coordinate, ",")
+	x, _ := strconv.Atoi(strArr[0])
+	y, _ := strconv.Atoi(strArr[1])
+	return &Point{X: uint32(x), Y: uint32(y)}
 }
 
 func NewPoint(x, y int) *Point {
