@@ -3,7 +3,6 @@ package main
 import "github.com/yenkeia/mirgo/common"
 
 type NPC struct {
-	Cell *Cell
 	Info *common.NpcInfo
 }
 

@@ -3,7 +3,7 @@ package main
 import "testing"
 
 func TestGrid_GetPlayerID(t *testing.T) {
-	grid := NewGrid(1, 1, 1, 1, 1)
+	grid := NewGrid(nil, 1, 1, 1, 1, 1)
 
 	p1 := new(Player)
 	p1.ID = "p1p1p1"
