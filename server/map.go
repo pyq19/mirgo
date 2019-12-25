@@ -14,6 +14,7 @@ type Map struct {
 	Info              *common.MapInfo
 	Cells             []Cell
 	CoordinateCellMap *sync.Map // map[string]*Cell
+	AOIManager        *AOIManager
 	//WalkableCells     []Cell
 }
 

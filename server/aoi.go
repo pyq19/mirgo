@@ -2,7 +2,9 @@ package main
 
 import "fmt"
 
-// AOIManager AOI管理模块
+// Zinx应用-MMO游戏案例-(2)AOI兴趣点算法 https://www.jianshu.com/p/e5b5db9fa6fe
+
+// AOIManager 每一张地图对应一个 AOI 管理模块
 type AOIManager struct {
 	MinX  int           // 区域左边界坐标
 	MaxX  int           // 区域右边界坐标
