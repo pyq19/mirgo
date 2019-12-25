@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"sync"
 )
 
@@ -49,10 +50,8 @@ func (g *Grid) GetAllPlayer() (players []*Player) {
 	return
 }
 
-/*
 // String 打印信息方法
 func (g *Grid) String() string {
-	return fmt.Sprintf("Grid id: %d, minX:%d, maxX:%d, minY:%d, maxY:%d, playerIDs:%v",
-		g.GID, g.MinX, g.MaxX, g.MinY, g.MaxY, g.playerIDs)
+	return fmt.Sprintf("Grid id: %d, minX:%d, maxX:%d, minY:%d, maxY:%d \n",
+		g.GID, g.MinX, g.MaxX, g.MinY, g.MaxY)
 }
-*/
