@@ -55,3 +55,7 @@ go build
 代码: https://github.com/yenkeia/mir2
 
 资源链接: https://pan.baidu.com/s/12hpQDbOO6uNYNJDSyHbgDg  密码:86zz
+
+#### 参考资料
+- [Zinx应用-MMO游戏案例-(2)AOI兴趣点算法](https://www.jianshu.com/p/e5b5db9fa6fe)
+- [Zinx应用-MMO游戏案例-(8)移动位置与AOI广播](https://www.jianshu.com/p/8c8fafdace14)

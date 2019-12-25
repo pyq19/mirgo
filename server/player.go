@@ -14,6 +14,7 @@ const (
 
 // Player ...
 type Player struct {
+	ID        string
 	Cell      *Cell
 	AccountId int
 	GameStage int
