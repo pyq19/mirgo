@@ -3,8 +3,7 @@ package main
 import "github.com/yenkeia/mirgo/common"
 
 type NPC struct {
-	ID   string
-	Info *common.NpcInfo
+	Info   *common.NpcInfo
 }
 
 func (n *NPC) Point() *common.Point {

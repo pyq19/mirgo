@@ -35,11 +35,6 @@ func (m *Map) AddObject(obj interface{}) {
 		grid := m.AOI.GetGridByCoordinate(coordinate)
 		grid.AddPlayer(o)
 		m.GetCell(o.Point().Coordinate()).SetObject(o)
-	case *Respawn:
-		coordinate := o.Point().Coordinate()
-		grid := m.AOI.GetGridByCoordinate(coordinate)
-		grid.AddRespawn(o)
-		m.GetCell(o.Point().Coordinate()).SetObject(o)
 	case *NPC:
 		coordinate := o.Point().Coordinate()
 		grid := m.AOI.GetGridByCoordinate(coordinate)

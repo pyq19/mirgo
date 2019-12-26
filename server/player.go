@@ -14,7 +14,6 @@ const (
 
 // Player ...
 type Player struct {
-	ID        string
 	AccountId int
 	GameStage int
 	Session   *cellnet.Session
