@@ -8,7 +8,6 @@ import (
 // Map ...
 type Map struct {
 	Env    *Environ
-	Id     int
 	Width  uint16 // 测试用
 	Height uint16 // 测试用
 	Info   *common.MapInfo

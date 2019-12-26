@@ -419,21 +419,21 @@ func saveToDB(msg *server.UserInformation) {
 
 	i := msg.Inventory
 	for _, v := range i {
-		if v.Id == 0 {
+		if v.ID == 0 {
 			continue
 		}
 		db.Table("user_item").Create(v)
 	}
 	e := msg.Equipment
 	for _, v := range e {
-		if v.Id == 0 {
+		if v.ID == 0 {
 			continue
 		}
 		db.Table("user_item").Create(v)
 	}
 	q := msg.QuestInventory
 	for _, v := range q {
-		if v.Id == 0 {
+		if v.ID == 0 {
 			continue
 		}
 		db.Table("user_item").Create(v)
@@ -442,7 +442,7 @@ func saveToDB(msg *server.UserInformation) {
 
 func TestEmptySlice(t *testing.T) {
 	slice := make([]common.UserItem, 5)
-	slice[0].ItemId = 1
+	slice[0].ItemID = 1
 	t.Log(len(slice))
 	t.Log(slice[0])
 	for i := 0; i < len(slice); i++ {

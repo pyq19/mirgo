@@ -21,7 +21,7 @@ func TestDB(t *testing.T) {
 
 	var gameShopItem GameShopItem
 	db.Table("game_shop_item").Where("id = ?", 2).Find(&gameShopItem)
-	t.Log(gameShopItem.GoldPrice, gameShopItem.Id)
+	t.Log(gameShopItem.GoldPrice, gameShopItem.ID)
 
 	var magicInfo MagicInfo
 	db.Table("magic").Where("name = ?", "Fencing").Find(&magicInfo)
@@ -40,7 +40,7 @@ func TestDB(t *testing.T) {
 
 	var movementInfo MovementInfo
 	db.Table("movement").Where("map_id = ?", 2).First(&movementInfo)
-	t.Log(movementInfo.MapId, movementInfo.ConquestIndex, movementInfo.DestinationX, movementInfo.DestinationY)
+	t.Log(movementInfo.MapID, movementInfo.ConquestIndex, movementInfo.DestinationX, movementInfo.DestinationY)
 
 	var npcInfo NpcInfo
 	db.Table("npc").Where("id = ?", 1).Find(&npcInfo)
@@ -56,7 +56,7 @@ func TestDB(t *testing.T) {
 
 	var safeZoneInfo SafeZoneInfo
 	db.Table("safe_zone").Where("map_id = ?", 1).Find(&safeZoneInfo)
-	t.Log(safeZoneInfo.MapId, safeZoneInfo.LocationX, safeZoneInfo.LocationY)
+	t.Log(safeZoneInfo.MapID, safeZoneInfo.LocationX, safeZoneInfo.LocationY)
 }
 
 func TestAccountDB(t *testing.T) {
@@ -86,7 +86,7 @@ func TestCharacter(t *testing.T) {
 
 	ids := make([]int, 3)
 	for _, c := range ac {
-		ids = append(ids, c.Id)
+		ids = append(ids, c.ID)
 	}
 	cs := make([]Character, 3)
 	db.Table("character").Where("id in (?)", ids).Find(&cs)

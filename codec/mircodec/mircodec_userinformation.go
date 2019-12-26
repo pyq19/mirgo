@@ -28,7 +28,7 @@ func (*MirUserInformationCodec) Encode(msgObj interface{}, ctx cellnet.ContextSe
 	ui := msgObj.(*server.UserInformation)
 	writer := &BytesWrapper{Bytes: &bytes}
 	writer.Write(ui.ObjectID)
-	writer.Write(ui.RealId)
+	writer.Write(ui.RealID)
 	writer.Write(ui.Name)
 	writer.Write(ui.GuildName)
 	writer.Write(ui.GuildRank)
@@ -111,7 +111,7 @@ func (*MirUserInformationCodec) Encode(msgObj interface{}, ctx cellnet.ContextSe
 }
 
 func IsNull(ui common.UserItem) bool {
-	if ui.Id == 0 && ui.ItemId == 0 {
+	if ui.ID == 0 && ui.ItemID == 0 {
 		return true
 	}
 	return false
@@ -123,7 +123,7 @@ func (*MirUserInformationCodec) Decode(data interface{}, msgObj interface{}) err
 	bytes := data.([]byte)
 	reader := &BytesWrapper{Bytes: &bytes}
 	ui.ObjectID = reader.ReadUInt32()
-	ui.RealId = reader.ReadUInt32()
+	ui.RealID = reader.ReadUInt32()
 	ui.Name = reader.ReadString()
 	ui.GuildName = reader.ReadString()
 	ui.GuildRank = reader.ReadString()

@@ -351,7 +351,7 @@ type MapInformation struct {
 
 type UserInformation struct {
 	ObjectID       uint32
-	RealId         uint32
+	RealID         uint32
 	Name           string
 	GuildName      string
 	GuildRank      string

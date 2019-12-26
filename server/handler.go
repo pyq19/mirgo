@@ -361,7 +361,7 @@ func (g *Game) NewAccount(s cellnet.Session, msg *client.NewAccount) {
 	res := uint8(0)
 	ac := new(common.Account)
 	g.DB.Table("account").Where("username = ?", msg.AccountID).Find(ac)
-	if ac.Id == 0 && ac.Username == "" {
+	if ac.ID == 0 && ac.Username == "" {
 		ac.Username = msg.AccountID
 		ac.Password = msg.Password
 		g.DB.Table("account").Create(&ac)
@@ -389,7 +389,7 @@ func (g *Game) ChangePassword(s cellnet.Session, msg *client.ChangePassword) {
 	res := uint8(5)
 	ac := new(common.Account)
 	g.DB.Table("account").Where("username = ? AND password = ?", msg.AccountID, msg.CurrentPassword).Find(ac)
-	if ac.Id != 0 {
+	if ac.ID != 0 {
 		ac.Password = msg.NewPassword
 		g.DB.Table("account").Model(ac).Updates(common.Account{Password: msg.NewPassword})
 		res = 6
@@ -413,19 +413,19 @@ func (g *Game) Login(s cellnet.Session, msg *client.Login) {
 
 	a := new(common.Account)
 	g.DB.Table("account").Where("username = ? AND password = ?", msg.AccountID, msg.Password).Find(a)
-	if a.Id == 0 {
+	if a.ID == 0 {
 		s.Send(server.Login{Result: uint8(4)})
 		return
 	}
 
-	p.AccountId = a.Id
+	p.AccountID = a.ID
 	p.GameStage = SELECT
 
 	ac := make([]common.AccountCharacter, 3)
-	g.DB.Table("account_character").Where("account_id = ?", a.Id).Limit(3).Find(&ac)
+	g.DB.Table("account_character").Where("account_id = ?", a.ID).Limit(3).Find(&ac)
 	ids := make([]int, 3)
 	for _, c := range ac {
-		ids = append(ids, c.Id)
+		ids = append(ids, c.ID)
 	}
 	cs := make([]common.Character, 3)
 	//db.Where("name in (?)", []string{"jinzhu", "jinzhu 2"}).Find(&users)
@@ -433,7 +433,7 @@ func (g *Game) Login(s cellnet.Session, msg *client.Login) {
 	si := make([]common.SelectInfo, len(cs))
 	for i, c := range cs {
 		s := new(common.SelectInfo)
-		s.Index = uint32(c.Id)
+		s.Index = uint32(c.ID)
 		s.Name = c.Name
 		s.Level = c.Level
 		s.Class = c.Class
@@ -454,7 +454,7 @@ func (g *Game) NewCharacter(s cellnet.Session, msg *client.NewCharacter) {
 	}
 
 	acs := make([]common.AccountCharacter, 3)
-	g.DB.Table("account_character").Where("account_id = ?", p.AccountId).Limit(3).Find(&acs)
+	g.DB.Table("account_character").Where("account_id = ?", p.AccountID).Limit(3).Find(&acs)
 	if len(acs) >= 3 {
 		n := new(server.NewCharacter)
 		/*
@@ -475,7 +475,7 @@ func (g *Game) NewCharacter(s cellnet.Session, msg *client.NewCharacter) {
 	c.Class = msg.Class
 	c.Gender = msg.Gender
 	c.Hair = 1
-	c.CurrentMapId = 1
+	c.CurrentMapID = 1
 	c.CurrentLocationX = 284
 	c.CurrentLocationY = 608
 	c.Direction = common.MirDirectionDown
@@ -487,13 +487,13 @@ func (g *Game) NewCharacter(s cellnet.Session, msg *client.NewCharacter) {
 	g.DB.Table("character").Create(c)
 	g.DB.Table("character").Where("name = ?", msg.Name).Last(c)
 	ac := new(common.AccountCharacter)
-	ac.AccountId = p.AccountId
-	ac.CharacterId = int(c.Id)
+	ac.AccountID = p.AccountID
+	ac.CharacterID = int(c.ID)
 	g.DB.Table("account_character").Create(ac)
 	// log.Debugln(msg.Name, msg.Class, msg.Gender)
 	// user item
 	res := new(server.NewCharacterSuccess)
-	res.CharInfo.Index = uint32(c.Id)
+	res.CharInfo.Index = uint32(c.ID)
 	res.CharInfo.Name = msg.Name
 	res.CharInfo.Class = msg.Class
 	res.CharInfo.Gender = msg.Gender
@@ -509,14 +509,14 @@ func (g *Game) DeleteCharacter(s cellnet.Session, msg *client.DeleteCharacter) {
 
 	c := new(common.Character)
 	g.DB.Table("character").Where("id = ?", msg.CharacterIndex).Find(c)
-	if c.Id == 0 {
+	if c.ID == 0 {
 		res := new(server.DeleteCharacter)
 		res.Result = 4
 		s.Send(res)
 		return
 	}
 	g.DB.Table("character").Delete(c)
-	g.DB.Table("account_character").Where("character_id = ?", c.Id).Delete(common.Character{})
+	g.DB.Table("account_character").Where("character_id = ?", c.ID).Delete(common.Character{})
 	res := new(server.DeleteCharacterSuccess)
 	res.CharacterIndex = msg.CharacterIndex
 	s.Send(res)
@@ -531,13 +531,13 @@ func (g *Game) StartGame(s cellnet.Session, msg *client.StartGame) {
 
 	c := new(common.Character)
 	g.DB.Table("character").Where("id = ?", msg.CharacterIndex).Find(c)
-	if c.Id == 0 {
+	if c.ID == 0 {
 		return
 	}
 	p.Character = c
 	p.GameStage = GAME
 
-	m := g.Env.GetMap(int(p.Character.CurrentMapId))
+	m := g.Env.GetMap(int(p.Character.CurrentMapID))
 	m.AddObject(p)
 
 	// SetConcentration
@@ -555,7 +555,7 @@ func (g *Game) StartGame(s cellnet.Session, msg *client.StartGame) {
 
 	// MapInformation
 	mi := new(server.MapInformation)
-	pmi := g.Env.GameDB.GetMapInfoById(int(p.Character.CurrentMapId))
+	pmi := g.Env.GameDB.GetMapInfoByID(int(p.Character.CurrentMapID))
 	mi.FileName = pmi.Filename
 	mi.Title = pmi.Title
 	mi.MiniMap = uint16(pmi.MineIndex)
@@ -568,7 +568,7 @@ func (g *Game) StartGame(s cellnet.Session, msg *client.StartGame) {
 
 	ui := new(server.UserInformation)
 	ui.ObjectID = 66432 // TODO
-	ui.RealId = uint32(p.Character.Id)
+	ui.RealID = uint32(p.Character.ID)
 	ui.Name = p.Character.Name
 	ui.GuildName = ""
 	ui.GuildRank = ""
@@ -588,18 +588,18 @@ func (g *Game) StartGame(s cellnet.Session, msg *client.StartGame) {
 	ui.Credit = 100 // TODO
 
 	cui := make([]common.CharacterUserItem, 0, 100)
-	g.DB.Table("character_user_item").Where("character_id = ?", p.Character.Id).Find(&cui)
+	g.DB.Table("character_user_item").Where("character_id = ?", p.Character.ID).Find(&cui)
 	is := make([]int, 0, 46)
 	es := make([]int, 0, 14)
 	qs := make([]int, 0, 40)
 	for _, i := range cui {
 		switch common.UserItemType(i.Type) {
 		case common.UserItemTypeInventory:
-			is = append(is, i.UserItemId)
+			is = append(is, i.UserItemID)
 		case common.UserItemTypeEquipment:
-			es = append(es, i.UserItemId)
+			es = append(es, i.UserItemID)
 		case common.UserItemTypeQuestInventory:
-			qs = append(qs, i.UserItemId)
+			qs = append(qs, i.UserItemID)
 		}
 	}
 	ui.Inventory = make([]common.UserItem, 46)
@@ -613,17 +613,17 @@ func (g *Game) StartGame(s cellnet.Session, msg *client.StartGame) {
 	g.DB.Table("user_item").Where("id in (?)", qs).Find(&uiq)
 	for i, v := range uii {
 		ui.Inventory[i] = v
-		ii := g.Env.GameDB.GetItemInfoById(int(v.ItemId))
+		ii := g.Env.GameDB.GetItemInfoByID(int(v.ItemID))
 		s.Send(&server.NewItemInfo{Info: *ii})
 	}
 	for i, v := range uie {
 		ui.Equipment[i] = v
-		ii := g.Env.GameDB.GetItemInfoById(int(v.ItemId))
+		ii := g.Env.GameDB.GetItemInfoByID(int(v.ItemID))
 		s.Send(&server.NewItemInfo{Info: *ii})
 	}
 	for i, v := range uiq {
 		ui.QuestInventory[i] = v
-		ii := g.Env.GameDB.GetItemInfoById(int(v.ItemId))
+		ii := g.Env.GameDB.GetItemInfoByID(int(v.ItemID))
 		s.Send(&server.NewItemInfo{Info: *ii})
 	}
 	s.Send(ui)

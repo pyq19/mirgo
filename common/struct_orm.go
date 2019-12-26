@@ -2,20 +2,20 @@ package common
 
 // Account 账号
 type Account struct {
-	Id       int `gorm:"primary_key"`
+	ID       int `gorm:"primary_key"`
 	Username string
 	Password string
 }
 
 // AccountCharacter 账号角色关系
 type AccountCharacter struct {
-	Id          int `gorm:"primary_key"`
-	AccountId   int
-	CharacterId int
+	ID          int `gorm:"primary_key"`
+	AccountID   int
+	CharacterID int
 }
 
 type Basic struct {
-	Id            int `gorm:"primary_key"`
+	ID            int `gorm:"primary_key"`
 	GameVersion   int
 	CustomVersion int
 	MapIndex      int
@@ -29,13 +29,13 @@ type Basic struct {
 
 // Character 角色
 type Character struct {
-	Id               int32 `gorm:"primary_key"`
+	ID               int32 `gorm:"primary_key"`
 	Name             string
 	Level            uint16
 	Class            MirClass
 	Gender           MirGender
 	Hair             uint8
-	CurrentMapId     int32
+	CurrentMapID     int32
 	CurrentLocationX int32
 	CurrentLocationY int32
 	Direction        MirDirection
@@ -52,16 +52,16 @@ type CharacterMagic struct {
 
 // CharacterUserItem 角色物品关系
 type CharacterUserItem struct {
-	Id          int `gorm:"primary_key"`
-	CharacterId int
-	UserItemId  int
+	ID          int `gorm:"primary_key"`
+	CharacterID int
+	UserItemID  int
 	Type        int
 }
 
 // GameShopItem 游戏内商城物品
 type GameShopItem struct {
-	Id          int `gorm:"primary_key"`
-	ItemId      int
+	ID          int `gorm:"primary_key"`
+	ItemID      int
 	GoldPrice   int
 	CreditPrice int
 	Count       int
@@ -75,7 +75,7 @@ type GameShopItem struct {
 }
 
 type ItemInfo struct {
-	Id             int32 `gorm:"primary_key"`
+	ID             int32 `gorm:"primary_key"`
 	Name           string
 	Type           ItemType
 	Grade          ItemGrade
@@ -140,7 +140,7 @@ type ItemInfo struct {
 }
 
 type MagicInfo struct {
-	Id              int `gorm:"primary_key"`
+	ID              int `gorm:"primary_key"`
 	Name            string
 	Spell           int
 	BaseCost        int
@@ -164,7 +164,7 @@ type MagicInfo struct {
 }
 
 type MapInfo struct {
-	Id              int    `gorm:"primary_key"`
+	ID              int    `gorm:"primary_key"`
 	Filename        string `gorm:"Column:file_name"`
 	Title           string
 	MiniMap         int
@@ -206,7 +206,7 @@ type MapInfo struct {
 //}
 
 type MonsterInfo struct {
-	Id          int `gorm:"primary_key"`
+	ID          int `gorm:"primary_key"`
 	Name        string
 	Image       int
 	AI          int `gorm:"Column:ai"`
@@ -238,8 +238,8 @@ type MonsterInfo struct {
 }
 
 type MovementInfo struct {
-	Id            int `gorm:"primary_key"`
-	MapId         int
+	ID            int `gorm:"primary_key"`
+	MapID         int
 	SourceX       int `gorm:"Column:source_x"`
 	SourceY       int `gorm:"Column:source_y"`
 	DestinationX  int `gorm:"Column:destination_x"`
@@ -250,8 +250,8 @@ type MovementInfo struct {
 }
 
 type NpcInfo struct {
-	Id            int `gorm:"primary_key"`
-	MapId         int
+	ID            int `gorm:"primary_key"`
+	MapID         int
 	Filename      string `gorm:"Column:file_name"`
 	Name          string
 	LocationX     int `gorm:"Column:location_x"`
@@ -272,7 +272,7 @@ type NpcInfo struct {
 }
 
 type QuestInfo struct {
-	Id               int `gorm:"primary_key"`
+	ID               int `gorm:"primary_key"`
 	Name             string
 	QuestGroup       string
 	Filename         string `gorm:"Column:file_name"`
@@ -288,9 +288,9 @@ type QuestInfo struct {
 }
 
 type RespawnInfo struct {
-	Id              int `gorm:"primary_key"`
+	ID              int `gorm:"primary_key"`
 	MapId           int
-	MonsterId       int
+	MonsterID       int
 	LocationX       int
 	LocationY       int
 	Count           int
@@ -305,8 +305,8 @@ type RespawnInfo struct {
 }
 
 type SafeZoneInfo struct {
-	Id         int `gorm:"primary_key"`
-	MapId      int
+	ID         int `gorm:"primary_key"`
+	MapID      int
 	LocationX  int
 	LocationY  int
 	Size       int
@@ -314,8 +314,8 @@ type SafeZoneInfo struct {
 }
 
 type UserItem struct {
-	Id             uint64 `gorm:"primary_key"` // UniqueID
-	ItemId         int32
+	ID             uint64 `gorm:"primary_key"` // UniqueID
+	ItemID         int32
 	CurrentDura    uint16
 	MaxDura        uint16
 	Count          uint32
