@@ -13,7 +13,7 @@ type Environ struct {
 	Game               *Game
 	GameDB             *GameDB
 	SessionIDPlayerMap *sync.Map // map[int64]*Player
-	Maps               *sync.Map // map[int]*Map	// mapId: Map
+	Maps               *sync.Map // map[int]*Map	// mapID: Map
 }
 
 // NewEnviron ...
@@ -74,10 +74,11 @@ func (e *Environ) InitMaps() {
 	//e.Maps = make([]Map, 386)
 	e.Maps = new(sync.Map)
 	for _, mi := range e.GameDB.MapInfos {
-		if mi.Id == 1 {
+		mi := mi
+		if mi.ID == 1 {
 			m := GetMapV1(GetMapBytes(mapDirPath + mi.Filename + ".map"))
 			m.Env = e
-			m.Id = mi.Id
+			m.Info = &mi
 			e.Maps.Store(1, m)
 			break
 		}
@@ -94,8 +95,8 @@ func (e *Environ) InitMonsters() {
 
 }
 
-func (e *Environ) GetMap(mapId int) *Map {
-	v, ok := e.Maps.Load(mapId)
+func (e *Environ) GetMap(mapID int) *Map {
+	v, ok := e.Maps.Load(mapID)
 	if !ok {
 		return nil
 	}

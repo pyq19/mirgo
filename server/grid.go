@@ -13,9 +13,9 @@ type Grid struct {
 	MaxX     int       // 区域右边界坐标
 	MinY     int       // 区域上边界坐标
 	MaxY     int       // 区域下边界坐标
-	Players  *sync.Map // 当前区域内的玩家  {Player.Character.Id: *Player}
+	Players  *sync.Map // 当前区域内的玩家  {Player.Character.ID: *Player}
 	Monsters *sync.Map // 当前区域内的怪物
-	NPCs     *sync.Map // 当前区域内的 NPC  {NPC.Info.Id: *NPC}
+	NPCs     *sync.Map // 当前区域内的 NPC  {NPC.Info.ID: *NPC}
 }
 
 // NewGrid 初始化一个区域
@@ -50,16 +50,16 @@ func (g *Grid) String() string {
 
 // AddPlayer 向当前区域中添加一个玩家
 func (g *Grid) AddPlayer(p *Player) {
-	g.Players.Store(p.Character.Id, p)
+	g.Players.Store(p.Character.ID, p)
 }
 
 // DeletePlayer 从区域中删除一个玩家
 func (g *Grid) DeletePlayer(p *Player) {
-	v, ok := g.Players.Load(p.Character.Id)
+	v, ok := g.Players.Load(p.Character.ID)
 	if !ok {
 		return
 	}
-	g.Players.Delete(v.(*Player).Character.Id)
+	g.Players.Delete(v.(*Player).Character.ID)
 }
 
 func (g *Grid) AddNPC(n *NPC) {

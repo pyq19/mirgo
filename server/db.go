@@ -17,20 +17,20 @@ type GameDB struct {
 	SafeZoneInfos []common.SafeZoneInfo
 }
 
-// GetMapInfoById FIXME 改成从 map 取出
-func (db *GameDB) GetMapInfoById(mapId int) *common.MapInfo {
+// GetMapInfoByID FIXME 改成从 map 取出
+func (db *GameDB) GetMapInfoByID(mapID int) *common.MapInfo {
 	for _, v := range db.MapInfos {
-		if v.Id == mapId {
+		if v.ID == mapID {
 			return &v
 		}
 	}
 	return nil
 }
 
-// GetItemInfoById FIXME 改成从 map 取出
-func (db *GameDB) GetItemInfoById(itemId int) *common.ItemInfo {
+// GetItemInfoByID FIXME 改成从 map 取出
+func (db *GameDB) GetItemInfoByID(itemID int) *common.ItemInfo {
 	for _, v := range db.ItemInfos {
-		if v.Id == int32(itemId) {
+		if v.ID == int32(itemID) {
 			return &v
 		}
 	}
