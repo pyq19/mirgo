@@ -13,9 +13,9 @@ type Grid struct {
 	MaxX     int       // 区域右边界坐标
 	MinY     int       // 区域上边界坐标
 	MaxY     int       // 区域下边界坐标
-	Players  *sync.Map // 当前区域内的玩家 key=Player.ID value=*Player
-	Respawns *sync.Map // 当前区域内的怪物 key=Respawn.ID value=*Respawn
-	NPCs     *sync.Map // 当前区域内的 NPC
+	Players  *sync.Map // 当前区域内的玩家  {Player.Character.Id: *Player}
+	Monsters *sync.Map // 当前区域内的怪物
+	NPCs     *sync.Map // 当前区域内的 NPC  {NPC.Info.Id: *NPC}
 }
 
 // NewGrid 初始化一个区域
@@ -28,7 +28,7 @@ func NewGrid(aoi *AOIManager, gID, minX, maxX, minY, maxY int) *Grid {
 		MinY:     minY,
 		MaxY:     maxY,
 		Players:  new(sync.Map),
-		Respawns: new(sync.Map),
+		Monsters: new(sync.Map),
 		NPCs:     new(sync.Map),
 	}
 }
@@ -50,38 +50,18 @@ func (g *Grid) String() string {
 
 // AddPlayer 向当前区域中添加一个玩家
 func (g *Grid) AddPlayer(p *Player) {
-	g.Players.Store(p.ID, p)
+	g.Players.Store(p.Character.Id, p)
 }
 
 // DeletePlayer 从区域中删除一个玩家
 func (g *Grid) DeletePlayer(p *Player) {
-	v, ok := g.Players.Load(p.ID)
+	v, ok := g.Players.Load(p.Character.Id)
 	if !ok {
 		return
 	}
-	g.Players.Delete(v.(*Player).ID)
-}
-
-func (g *Grid) AddRespawn(r *Respawn) {
-	g.Respawns.Store(r.Info.Id, r)
-}
-
-func (g *Grid) DeleteRespawn(r *Respawn) {
-	v, ok := g.Respawns.Load(r.Info.Id)
-	if !ok {
-		return
-	}
-	g.Respawns.Delete(v.(*Respawn).Info.Id)
+	g.Players.Delete(v.(*Player).Character.Id)
 }
 
 func (g *Grid) AddNPC(n *NPC) {
-	g.NPCs.Store(n.ID, n)
-}
 
-func (g *Grid) DeleteNPC(n *NPC) {
-	v, ok := g.NPCs.Load(n.ID)
-	if !ok {
-		return
-	}
-	g.NPCs.Delete(v.(*NPC).ID)
 }

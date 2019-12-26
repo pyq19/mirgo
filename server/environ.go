@@ -23,7 +23,7 @@ func NewEnviron(g *Game) (env *Environ) {
 	env.InitGameDB()
 	env.InitMaps()
 	env.InitNPCs()
-	env.InitRespawns()
+	env.InitMonsters()
 	env.SessionIDPlayerMap = new(sync.Map)
 	return
 }
@@ -89,22 +89,9 @@ func (e *Environ) InitNPCs() {
 
 }
 
-// InitRespawns 初始化地图上的怪物
-func (e *Environ) InitRespawns() {
-	for _, ri := range e.GameDB.RespawnInfos {
-		ri := ri // 坑
-		// FIXME 只加载第一张地图 测试用
-		if ri.MapId != 1 {
-			continue
-		}
-		v, ok := e.Maps.Load(ri.MapId)
-		if !ok {
-			continue
-		}
-		r := new(Respawn)
-		r.Info = &ri
-		v.(*Map).AddObject(r)
-	}
+// InitMonsters 初始化地图上的怪物
+func (e *Environ) InitMonsters() {
+
 }
 
 func (e *Environ) GetMap(mapId int) *Map {

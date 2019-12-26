@@ -536,7 +536,6 @@ func (g *Game) StartGame(s cellnet.Session, msg *client.StartGame) {
 	}
 	p.Character = c
 	p.GameStage = GAME
-	p.ID = g.Rand.RandString(10)
 
 	m := g.Env.GetMap(int(p.Character.CurrentMapId))
 	m.AddObject(p)
