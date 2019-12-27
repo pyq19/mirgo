@@ -501,3 +501,13 @@ func TestDecodeUserInformation(t *testing.T) {
 	}
 	t.Log(msg)
 }
+
+// TODO
+func TestEncodeObjectPlayer(t *testing.T) {
+
+}
+
+// TODO
+func TestDecodeObjectPlayer(t *testing.T) {
+
+}

@@ -36,3 +36,22 @@ type SelectInfo struct {
 	Gender     MirGender
 	LastAccess int64
 }
+
+type Color struct {
+	R uint8
+	G uint8
+	B uint8
+	A uint8
+}
+
+func (c *Color) ToInt() int {
+	return 4294967295 // 255, 255, 255, 255
+}
+
+func (c *Color) ToInt32() int32 {
+	return int32(c.ToUint32())
+}
+
+func (c *Color) ToUint32() uint32 {
+	return 4294967295
+}

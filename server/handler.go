@@ -539,6 +539,7 @@ func (g *Game) StartGame(s cellnet.Session, msg *client.StartGame) {
 
 	m := g.Env.GetMap(int(p.Character.CurrentMapID))
 	m.AddObject(p)
+	p.Map = m
 
 	// SetConcentration
 	sc := new(server.SetConcentration)
@@ -572,7 +573,7 @@ func (g *Game) StartGame(s cellnet.Session, msg *client.StartGame) {
 	ui.Name = p.Character.Name
 	ui.GuildName = ""
 	ui.GuildRank = ""
-	ui.NameColour = 4294967295 // TODO [255,255,255,255]
+	ui.NameColour = common.Color{R: 255, G: 255, B: 255, A: 255}.ToUint32()
 	ui.Class = p.Character.Class
 	ui.Gender = p.Character.Gender
 	ui.Level = p.Character.Level
@@ -627,6 +628,43 @@ func (g *Game) StartGame(s cellnet.Session, msg *client.StartGame) {
 		s.Send(&server.NewItemInfo{Info: *ii})
 	}
 	s.Send(ui)
+
+	// TODO
+	g.Pool.Submit(NewTask(func(args ...interface{}) {
+		c := p.Character
+		p.NotifySurroundingPlayer(&server.ObjectPlayer{
+			ObjectID:         uint32(c.ID),
+			Name:             c.Name,
+			GuildName:        "",
+			GuildRankName:    "",
+			NameColour:       common.Color{R: 255, G: 255, B: 255, A: 255}.ToInt32(),
+			Class:            c.Class,
+			Gender:           c.Gender,
+			Level:            c.Level,
+			Location:         common.Point{X: uint32(c.CurrentLocationX), Y: uint32(c.CurrentLocationY)},
+			Direction:        c.Direction,
+			Hair:             c.Hair,
+			Light:            0, // TODO
+			Weapon:           0,
+			WeaponEffect:     0,
+			Armour:           0,
+			Poison:           0,
+			Dead:             false,
+			Hidden:           false,
+			Effect:           0,
+			WingEffect:       0,
+			Extra:            false,
+			MountType:        0,
+			RidingMount:      false,
+			Fishing:          false,
+			TransformType:    0,
+			ElementOrbEffect: 0,
+			ElementOrbLvl:    0,
+			ElementOrbMax:    0,
+			Buffs:            nil,
+			LevelEffects:     0,
+		})
+	}, p))
 }
 
 func (g *Game) LogOut(s cellnet.Session, msg *client.LogOut) {
