@@ -5,7 +5,7 @@ import (
 	"testing"
 )
 
-func TestGameMonster(t *testing.T) {
+func TestGameMonsters(t *testing.T) {
 	gopath := os.Getenv("GOPATH")
 	var addr = "0.0.0.0:7000"
 	var mirDB = "/src/github.com/yenkeia/mirgo/dotnettools/mir.sqlite"
@@ -52,5 +52,25 @@ func i(t *testing.T, o interface{}) {
 }
 
 func TestGameNPCs(t *testing.T) {
-
+	gopath := os.Getenv("GOPATH")
+	var addr = "0.0.0.0:7000"
+	var mirDB = "/src/github.com/yenkeia/mirgo/dotnettools/mir.sqlite"
+	conf := Config{addr, gopath + mirDB}
+	g := NewGame(conf)
+	v, _ := g.Env.Maps.Load(1)
+	count := 0
+	v.(*Map).AOI.grids.Range(func(k, v interface{}) bool {
+		g := v.(*Grid)
+		//t.Log(g.String())
+		g.NPCs.Range(func(k, v interface{}) bool {
+			n := v.(*NPC)
+			if n != nil {
+				t.Log(n.String())
+				count += 1
+			}
+			return true
+		})
+		return true
+	})
+	t.Log(count)
 }
