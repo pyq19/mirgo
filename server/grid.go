@@ -44,8 +44,16 @@ func (g *Grid) GetAllPlayer() (players []*Player) {
 
 // String 打印信息方法
 func (g *Grid) String() string {
-	return fmt.Sprintf("Grid id: %d, minX:%d, maxX:%d, minY:%d, maxY:%d \n",
+	res1 := fmt.Sprintf("Grid id: %d, minX:%d, maxX:%d, minY:%d, maxY:%d \n",
 		g.GID, g.MinX, g.MaxX, g.MinY, g.MaxY)
+	//res2 := fmt.Sprintf("Players: %v, NPCs: %v, Monsters: %v", g.Players, g.NPCs, g.Monsters)
+	res2 := ""
+	g.Monsters.Range(func(k, v interface{}) bool {
+		m := v.(*Monster)
+		res2 += fmt.Sprintf("Coordinate: %s, MonsterID: %s, ptr: %p\n", m.CurrentLocation.Coordinate(), m.ID, m)
+		return true
+	})
+	return res1 + "Monsters: \n" + res2
 }
 
 // AddPlayer 向当前区域中添加一个玩家
