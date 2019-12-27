@@ -2,8 +2,6 @@ package main
 
 import "github.com/yenkeia/mirgo/common"
 
-var G_GameDB *GameDB
-
 // GameDB ...
 type GameDB struct {
 	Basic         common.Basic

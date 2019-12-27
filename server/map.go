@@ -56,7 +56,7 @@ func (m *Map) InitNPCs() error {
 
 // InitMonsters 初始化地图上的怪物
 func (m *Map) InitMonsters() error {
-	for _, ri := range G_GameDB.RespawnInfos {
+	for _, ri := range m.Env.GameDB.RespawnInfos {
 		if ri.MapID == m.Info.ID {
 			r, err := NewRespawn(m, &ri)
 			if err != nil {
