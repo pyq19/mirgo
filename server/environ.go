@@ -130,7 +130,7 @@ func (e *Environ) StartLoop() {
 
 func (e *Environ) TimeTick() {
 	// 系统事件 广播 存档
-	systemEventTicker := time.NewTicker(time.Second)
+	systemBroadcastTicker := time.NewTicker(time.Second)
 
 	// 玩家事件 buff 等状态改变
 
@@ -138,19 +138,19 @@ func (e *Environ) TimeTick() {
 
 	for {
 		select {
-		case <-systemEventTicker.C:
-			e.Submit(NewTask(systemEvent, e))
+		case <-systemBroadcastTicker.C:
+			e.Submit(NewTask(systemBroadcast, e))
 		}
 	}
 }
 
-func systemEvent(args ...interface{}) {
+func systemBroadcast(args ...interface{}) {
 	e := args[0].(*Environ)
 	p := *e.Game.Peer
 	p.(cellnet.SessionAccessor).VisitSession(func(ses cellnet.Session) bool {
 		ses.Send(&server.Chat{
 			Message: "hello from server",
-			Type:    0,
+			Type:    common.ChatTypeSystem,
 		})
 		return true
 	})
