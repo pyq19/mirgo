@@ -12,9 +12,9 @@ type Monster struct {
 
 func NewMonster(r *Respawn) (m *Monster, err error) {
 	m = new(Monster)
-	m.ID = G_Rand.RandString(10)
 	m.Respawn = r
 	m.Info = r.Map.Env.GameDB.GetMonsterInfoByID(r.Info.MonsterID)
+	m.ID = m.Info.Name + "-" + G_Rand.RandString(10)
 	p, err := r.Map.GetValidPoint(r.Info.LocationX, r.Info.LocationY, r.Info.Spread)
 	if err != nil {
 		return nil, err
