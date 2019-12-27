@@ -392,3 +392,104 @@ const (
 	UserItemTypeEquipment                   = 1
 	UserItemTypeQuestInventory              = 2
 )
+
+type PoisonType uint16
+
+const (
+	PoisonTypeNone             PoisonType = 0
+	PoisonTypeGreen                       = 1
+	PoisonTypeRed                         = 2
+	PoisonTypeSlow                        = 4
+	PoisonTypeFrozen                      = 8
+	PoisonTypeStun                        = 16
+	PoisonTypeParalysis                   = 32
+	PoisonTypeDelayedExplosion            = 64
+	PoisonTypeBleeding                    = 128
+	PoisonTypeLRParalysis                 = 256
+)
+
+type SpellEffect uint8
+
+const (
+	SpellEffectNone SpellEffect = 0
+	SpellEffectFatalSword
+	SpellEffectTeleport
+	SpellEffectHealing
+	SpellEffectRedMoonEvil
+	SpellEffectTwinDrakeBlade
+	SpellEffectMagicShieldUp
+	SpellEffectMagicShieldDown
+	SpellEffectGreatFoxSpirit
+	SpellEffectEntrapment
+	SpellEffectReflect
+	SpellEffectCritical
+	SpellEffectMine
+	SpellEffectElementalBarrierUp
+	SpellEffectElementalBarrierDown
+	SpellEffectDelayedExplosion
+	SpellEffectMPEater
+	SpellEffectHemorrhage
+	SpellEffectBleeding
+	SpellEffectAwakeningSuccess
+	SpellEffectAwakeningFail
+	SpellEffectAwakeningMiss
+	SpellEffectAwakeningHit
+	SpellEffectStormEscape
+	SpellEffectTurtleKing
+	SpellEffectBehemoth
+	SpellEffectStunned
+	SpellEffectIcePillar
+)
+
+type BuffType uint8
+
+const (
+	BuffTypeNone         BuffType = 0
+	BuffTypeTemporalFlux          //magics
+	BuffTypeHiding
+	BuffTypeHaste
+	BuffTypeSwiftFeet
+	BuffTypeFury
+	BuffTypeSoulShield
+	BuffTypeBlessedArmour
+	BuffTypeLightBody
+	BuffTypeUltimateEnhancer
+	BuffTypeProtectionField
+	BuffTypeRage
+	BuffTypeCurse
+	BuffTypeMoonLight
+	BuffTypeDarkBody
+	BuffTypeConcentration
+	BuffTypeVampireShot
+	BuffTypePoisonShot
+	BuffTypeCounterAttack
+	BuffTypeMentalState
+	BuffTypeEnergyShield
+	BuffTypeMagicBooster
+	BuffTypePetEnhancer
+	BuffTypeImmortalSkin
+	BuffTypeMagicShield
+	BuffTypeGameMaster      = 100 //special
+	BuffTypeGeneral         = 101
+	BuffTypeExp             = 102
+	BuffTypeDrop            = 103
+	BuffTypeGold            = 104
+	BuffTypeBagWeight       = 105
+	BuffTypeTransform       = 106
+	BuffTypeRelationshipEXP = 107
+	BuffTypeMentee          = 108
+	BuffTypeMentor          = 109
+	BuffTypeGuild           = 110
+	BuffTypePrison          = 111
+	BuffTypeRested          = 112
+	BuffTypeImpact          = 200 //stats
+	BuffTypeMagic           = 201
+	BuffTypeTaoist          = 202
+	BuffTypeStorm           = 203
+	BuffTypeHealthAid       = 204
+	BuffTypeManaAid         = 205
+	BuffTypeDefence         = 206
+	BuffTypeMagicDefence    = 207
+	BuffTypeWonderDrug      = 208
+	BuffTypeKnapsack        = 209
+)

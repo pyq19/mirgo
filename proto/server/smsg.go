@@ -379,7 +379,39 @@ type UserLocation struct {
 	Direction common.MirDirection
 }
 
-type ObjectPlayer struct{}
+// TODO 测试编解码
+type ObjectPlayer struct {
+	ObjectID         uint32
+	Name             string
+	GuildName        string
+	GuildRankName    string
+	NameColour       int32 // = Color.FromArgb(reader.ReadInt32());
+	Class            common.MirClass
+	Gender           common.MirGender
+	Level            uint16
+	Location         common.Point
+	Direction        common.MirDirection
+	Hair             uint8
+	Light            uint8
+	Weapon           int16
+	WeaponEffect     int16
+	Armour           int16
+	Poison           common.PoisonType // = (PoisonType)reader.ReadUInt16()
+	Dead             bool
+	Hidden           bool
+	Effect           common.SpellEffect // = (SpellEffect)reader.ReadByte()
+	WingEffect       uint8
+	Extra            bool
+	MountType        int16
+	RidingMount      bool
+	Fishing          bool
+	TransformType    int16
+	ElementOrbEffect uint32
+	ElementOrbLvl    uint32
+	ElementOrbMax    uint32
+	Buffs            []common.BuffType
+	LevelEffects     common.LevelEffects
+}
 
 type ObjectRemove struct {
 	ObjectID uint32

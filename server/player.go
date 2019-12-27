@@ -14,6 +14,7 @@ const (
 
 // Player ...
 type Player struct {
+	Map       *Map
 	AccountID int
 	GameStage int
 	Session   *cellnet.Session
@@ -26,4 +27,21 @@ func (p *Player) Point() common.Point {
 	x := int(p.Character.CurrentLocationX)
 	y := int(p.Character.CurrentLocationY)
 	return *common.NewPoint(x, y)
+}
+
+func (p *Player) Send(msg interface{}) {
+	(*p.Session).Send(msg)
+}
+
+func (p *Player) NotifySurroundingPlayer(msg interface{}) {
+	grids := p.Map.AOI.GetSurroundGridsByCoordinate(p.Point().Coordinate())
+	for i := range grids {
+		grids[i].Players.Range(func(k, v interface{}) bool {
+			o := v.(*Player)
+			if p.Character.ID != o.Character.ID {
+				o.Send(msg)
+			}
+			return true
+		})
+	}
 }
