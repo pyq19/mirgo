@@ -1,11 +1,14 @@
 package main
 
 import (
+	"github.com/davyxu/cellnet"
 	_ "github.com/yenkeia/mirgo/codec/mircodec"
 	"github.com/yenkeia/mirgo/common"
 	_ "github.com/yenkeia/mirgo/proc/mirtcp"
+	"github.com/yenkeia/mirgo/proto/server"
 	"os"
 	"sync"
+	"time"
 )
 
 // Environ ...
@@ -115,23 +118,40 @@ func (e *Environ) GetMap(mapID int) *Map {
 	return v.(*Map)
 }
 
-// p := *e.Game.Peer
-// p.(cellnet.SessionAccessor).VisitSession(func(ses cellnet.Session) bool {
-// 	ses.Send(&ack)
-// 	return true
-// })
-
 func (e *Environ) Submit(t *Task) {
 	e.Game.Pool.EntryChan <- t
 }
 
 // StartLoop
 func (e *Environ) StartLoop() {
+	go e.TimeTick()
+	go e.Game.Pool.Run()
+}
+
+func (e *Environ) TimeTick() {
 	// 系统事件 广播 存档
+	systemEventTicker := time.NewTicker(time.Second)
 
 	// 玩家事件 buff 等状态改变
 
 	// 地图事件 怪物动作 刷怪 掉落物品
 
-	go e.Game.Pool.Run()
+	for {
+		select {
+		case <-systemEventTicker.C:
+			e.Submit(NewTask(systemEvent, e))
+		}
+	}
+}
+
+func systemEvent(args ...interface{}) {
+	e := args[0].(*Environ)
+	p := *e.Game.Peer
+	p.(cellnet.SessionAccessor).VisitSession(func(ses cellnet.Session) bool {
+		ses.Send(&server.Chat{
+			Message: "hello from server",
+			Type:    0,
+		})
+		return true
+	})
 }

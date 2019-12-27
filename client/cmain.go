@@ -38,6 +38,8 @@ func main() {
 			//log.Infof("<--- server.ClientVersion")
 		case *server.KeepAlive:
 			//log.Infof("<--- server.KeepAlive")
+		case *server.Chat:
+			log.Infoln("<--- server.Chat", msg.Message, msg.Type)
 		default:
 			log.Debugf("default: 客户端收到: %s", msg)
 		}
