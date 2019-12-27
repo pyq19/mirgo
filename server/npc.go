@@ -1,8 +1,12 @@
 package main
 
-import "github.com/yenkeia/mirgo/common"
+import (
+	"fmt"
+	"github.com/yenkeia/mirgo/common"
+)
 
 type NPC struct {
+	Map  *Map
 	Info *common.NpcInfo
 }
 
@@ -10,4 +14,15 @@ func (n *NPC) Point() common.Point {
 	x := n.Info.LocationX
 	y := n.Info.LocationY
 	return *common.NewPoint(x, y)
+}
+
+func NewNPC(m *Map, ni *common.NpcInfo) *NPC {
+	return &NPC{
+		Map:  m,
+		Info: ni,
+	}
+}
+
+func (n *NPC) String() string {
+	return fmt.Sprintf("NPC Coordinate: %s, ID: %d, name: %s\n", n.Point().Coordinate(), n.Info.ID, n.Info.Name)
 }

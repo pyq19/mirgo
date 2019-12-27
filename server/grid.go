@@ -53,7 +53,13 @@ func (g *Grid) String() string {
 		res2 += fmt.Sprintf("Coordinate: %s, MonsterID: %s, ptr: %p\n", m.CurrentLocation.Coordinate(), m.ID, m)
 		return true
 	})
-	return res1 + "Monsters: \n" + res2
+	res3 := ""
+	g.NPCs.Range(func(k, v interface{}) bool {
+		n := v.(*NPC)
+		res3 += fmt.Sprintf("NPC Coordinate: %s, ID: %d, name: %s\n", n.Point().Coordinate(), n.Info.ID, n.Info.Name)
+		return true
+	})
+	return res1 + "Monsters: \n" + res2 + "NPCs: \n" + res3
 }
 
 // AddPlayer 向当前区域中添加一个玩家

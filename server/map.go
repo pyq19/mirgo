@@ -50,7 +50,12 @@ func (m *Map) AddObject(obj interface{}) {
 
 // InitNPCs 初始化地图上的 NPC
 func (m *Map) InitNPCs() error {
-
+	for _, ni := range m.Env.GameDB.NpcInfos {
+		ni := ni
+		if ni.MapID == m.Info.ID {
+			m.AddObject(NewNPC(m, &ni))
+		}
+	}
 	return nil
 }
 
