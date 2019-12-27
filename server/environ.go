@@ -11,7 +11,6 @@ import (
 // Environ ...
 type Environ struct {
 	Game               *Game
-	GameDB             *GameDB
 	SessionIDPlayerMap *sync.Map // map[int64]*Player
 	Maps               *sync.Map // map[int]*Map	// mapID: Map
 }
@@ -22,8 +21,10 @@ func NewEnviron(g *Game) (env *Environ) {
 	env.Game = g
 	env.InitGameDB()
 	env.InitMaps()
-	env.InitNPCs()
-	env.InitMonsters()
+	err := env.InitObjects()
+	if err != nil {
+		panic(err)
+	}
 	env.SessionIDPlayerMap = new(sync.Map)
 	return
 }
@@ -31,7 +32,8 @@ func NewEnviron(g *Game) (env *Environ) {
 // InitGameDB ...
 func (e *Environ) InitGameDB() {
 	gdb := new(GameDB)
-	e.GameDB = gdb
+	G_GameDB = gdb
+
 	db := e.Game.DB
 	b := new(common.Basic)
 	db.Table("basic").Find(b)
@@ -73,7 +75,7 @@ func (e *Environ) InitMaps() {
 	mapDirPath := os.Getenv("GOPATH") + "/src/github.com/yenkeia/mirgo/dotnettools/database/Maps/"
 	//e.Maps = make([]Map, 386)
 	e.Maps = new(sync.Map)
-	for _, mi := range e.GameDB.MapInfos {
+	for _, mi := range G_GameDB.MapInfos {
 		mi := mi
 		if mi.ID == 1 {
 			m := GetMapV1(GetMapBytes(mapDirPath + mi.Filename + ".map"))
@@ -85,14 +87,24 @@ func (e *Environ) InitMaps() {
 	}
 }
 
-// InitNPCs 初始化地图上的 NPC
-func (e *Environ) InitNPCs() {
-
-}
-
-// InitMonsters 初始化地图上的怪物
-func (e *Environ) InitMonsters() {
-
+// InitObjects 初始化地图
+func (e *Environ) InitObjects() (err error) {
+	var maps []*Map
+	e.Maps.Range(func(k, v interface{}) bool {
+		maps = append(maps, v.(*Map))
+		return true
+	})
+	for _, m := range maps {
+		err = m.InitMonsters()
+		if err != nil {
+			return err
+		}
+		err = m.InitNPCs()
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func (e *Environ) GetMap(mapID int) *Map {

@@ -52,7 +52,7 @@ func TestDB(t *testing.T) {
 
 	var respawnInfo RespawnInfo
 	db.Table("respawn").Where("location_x = ?", 350).Find(&respawnInfo)
-	t.Log(respawnInfo.MapId, respawnInfo.RespawnIndex, respawnInfo.Count)
+	t.Log(respawnInfo.MapID, respawnInfo.RespawnIndex, respawnInfo.Count)
 
 	var safeZoneInfo SafeZoneInfo
 	db.Table("safe_zone").Where("map_id = ?", 1).Find(&safeZoneInfo)

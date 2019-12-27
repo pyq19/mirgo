@@ -65,3 +65,7 @@ func (g *Grid) DeletePlayer(p *Player) {
 func (g *Grid) AddNPC(n *NPC) {
 
 }
+
+func (g *Grid) AddMonster(m *Monster) {
+
+}

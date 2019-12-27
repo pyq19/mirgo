@@ -289,7 +289,7 @@ type QuestInfo struct {
 
 type RespawnInfo struct {
 	ID              int `gorm:"primary_key"`
-	MapId           int
+	MapID           int
 	MonsterID       int
 	LocationX       int
 	LocationY       int
