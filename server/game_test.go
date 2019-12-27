@@ -5,7 +5,7 @@ import (
 	"testing"
 )
 
-func TestGame(t *testing.T) {
+func TestGameMonster(t *testing.T) {
 	gopath := os.Getenv("GOPATH")
 	var addr = "0.0.0.0:7000"
 	var mirDB = "/src/github.com/yenkeia/mirgo/dotnettools/mir.sqlite"
@@ -49,4 +49,8 @@ func TestInterface(t *testing.T) {
 
 func i(t *testing.T, o interface{}) {
 	t.Logf("%p\n", o)
+}
+
+func TestGameNPCs(t *testing.T) {
+
 }
