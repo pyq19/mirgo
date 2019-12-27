@@ -3,6 +3,7 @@ package main
 import "github.com/yenkeia/mirgo/common"
 
 type Monster struct {
+	ID               string
 	Respawn          *Respawn
 	Info             *common.MonsterInfo
 	CurrentLocation  *common.Point
@@ -11,8 +12,9 @@ type Monster struct {
 
 func NewMonster(r *Respawn) (m *Monster, err error) {
 	m = new(Monster)
+	m.ID = G_Rand.RandString(10)
 	m.Respawn = r
-	m.Info = G_GameDB.GetMonsterInfoByID(r.Info.MonsterID)
+	m.Info = r.Map.Env.GameDB.GetMonsterInfoByID(r.Info.MonsterID)
 	p, err := r.Map.GetValidPoint(r.Info.LocationX, r.Info.LocationY, r.Info.Spread)
 	if err != nil {
 		return nil, err

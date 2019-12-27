@@ -67,5 +67,13 @@ func (g *Grid) AddNPC(n *NPC) {
 }
 
 func (g *Grid) AddMonster(m *Monster) {
+	g.Monsters.Store(m.ID, m)
+}
 
+func (g *Grid) DeleteMonster(m *Monster) {
+	v, ok := g.Monsters.Load(m.ID)
+	if !ok {
+		return
+	}
+	g.Monsters.Delete(v.(*Monster).ID)
 }

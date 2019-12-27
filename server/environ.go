@@ -11,6 +11,7 @@ import (
 // Environ ...
 type Environ struct {
 	Game               *Game
+	GameDB             *GameDB
 	SessionIDPlayerMap *sync.Map // map[int64]*Player
 	Maps               *sync.Map // map[int]*Map	// mapID: Map
 }
@@ -32,8 +33,7 @@ func NewEnviron(g *Game) (env *Environ) {
 // InitGameDB ...
 func (e *Environ) InitGameDB() {
 	gdb := new(GameDB)
-	G_GameDB = gdb
-
+	e.GameDB = gdb
 	db := e.Game.DB
 	b := new(common.Basic)
 	db.Table("basic").Find(b)
@@ -75,7 +75,7 @@ func (e *Environ) InitMaps() {
 	mapDirPath := os.Getenv("GOPATH") + "/src/github.com/yenkeia/mirgo/dotnettools/database/Maps/"
 	//e.Maps = make([]Map, 386)
 	e.Maps = new(sync.Map)
-	for _, mi := range G_GameDB.MapInfos {
+	for _, mi := range e.GameDB.MapInfos {
 		mi := mi
 		if mi.ID == 1 {
 			m := GetMapV1(GetMapBytes(mapDirPath + mi.Filename + ".map"))
