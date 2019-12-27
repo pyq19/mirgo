@@ -18,12 +18,12 @@ type Player struct {
 	GameStage int
 	Session   *cellnet.Session
 	Character *common.Character
-	Magics    *[]common.MagicInfo
-	UserItems *[]common.UserItem
+	Magics    []*common.MagicInfo
+	UserItems []*common.UserItem
 }
 
-func (p *Player) Point() *common.Point {
+func (p *Player) Point() common.Point {
 	x := int(p.Character.CurrentLocationX)
 	y := int(p.Character.CurrentLocationY)
-	return common.NewPoint(x, y)
+	return *common.NewPoint(x, y)
 }

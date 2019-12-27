@@ -7,11 +7,16 @@ import (
 )
 
 var (
-	r *rand.Rand
+	r      *rand.Rand
+	G_Rand *RandGenerator
 )
 
 func init() {
 	r = rand.New(rand.NewSource(time.Now().Unix()))
+	G_Rand = &RandGenerator{
+		used: make(map[string]bool),
+		lock: sync.RWMutex{},
+	}
 }
 
 type RandGenerator struct {
@@ -43,4 +48,11 @@ func randString(length int) string {
 		bytes[i] = byte(b)
 	}
 	return string(bytes)
+}
+
+func (g *RandGenerator) RandInt(min, max int) int {
+	if min <= 0 {
+		min = 0
+	}
+	return rand.Intn(max-min) + min
 }

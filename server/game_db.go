@@ -2,6 +2,8 @@ package main
 
 import "github.com/yenkeia/mirgo/common"
 
+var G_GameDB *GameDB
+
 // GameDB ...
 type GameDB struct {
 	Basic         common.Basic
@@ -31,6 +33,16 @@ func (db *GameDB) GetMapInfoByID(mapID int) *common.MapInfo {
 func (db *GameDB) GetItemInfoByID(itemID int) *common.ItemInfo {
 	for _, v := range db.ItemInfos {
 		if v.ID == int32(itemID) {
+			return &v
+		}
+	}
+	return nil
+}
+
+// GetMonsterInfoByID FIXME 改成从 map 取出
+func (db *GameDB) GetMonsterInfoByID(monsterID int) *common.MonsterInfo {
+	for _, v := range db.MonsterInfos {
+		if v.ID == monsterID {
 			return &v
 		}
 	}

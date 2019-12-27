@@ -14,11 +14,19 @@ type Cell struct {
 	lock       sync.RWMutex
 }
 
-func (c *Cell) Empty() bool {
+func (c *Cell) isEmpty() bool {
 	if c.Object == nil {
 		return true
 	}
 	return false
+}
+
+func (c *Cell) canWalk() bool {
+	return c.Attribute == common.CellAttributeWalk
+}
+
+func (c *Cell) IsValid() bool {
+	return c.canWalk() && c.isEmpty()
 }
 
 func (c *Cell) String() string {

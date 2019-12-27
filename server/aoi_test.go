@@ -1,6 +1,8 @@
 package main
 
-import "testing"
+import (
+	"testing"
+)
 
 /*
 m := NewAOIManager(0, 2000, 4, 0, 1200, 3)
