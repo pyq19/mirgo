@@ -44,14 +44,14 @@ type Color struct {
 	A uint8
 }
 
-func (c *Color) ToInt() int {
+func (c Color) ToInt() int {
 	return 4294967295 // 255, 255, 255, 255
 }
 
-func (c *Color) ToInt32() int32 {
+func (c Color) ToInt32() int32 {
 	return int32(c.ToUint32())
 }
 
-func (c *Color) ToUint32() uint32 {
+func (c Color) ToUint32() uint32 {
 	return 4294967295
 }

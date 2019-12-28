@@ -17,6 +17,8 @@ type Environ struct {
 	GameDB             *GameDB
 	SessionIDPlayerMap *sync.Map // map[int64]*Player
 	Maps               *sync.Map // map[int]*Map	// mapID: Map
+	ObjectID           int
+	lock               *sync.Mutex
 }
 
 // NewEnviron ...
@@ -25,6 +27,8 @@ func NewEnviron(g *Game) (env *Environ) {
 	env.Game = g
 	env.InitGameDB()
 	env.InitMaps()
+	env.ObjectID = 100000
+	env.lock = new(sync.Mutex)
 	err := env.InitObjects()
 	if err != nil {
 		panic(err)
@@ -88,6 +92,15 @@ func (e *Environ) InitMaps() {
 			break
 		}
 	}
+}
+
+func (e *Environ) NewObjectID() int {
+	var res int
+	e.lock.Lock()
+	res = e.ObjectID
+	e.ObjectID++
+	e.lock.Unlock()
+	return res
 }
 
 // InitObjects 初始化地图
