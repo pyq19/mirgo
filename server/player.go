@@ -62,3 +62,8 @@ func (p *Player) Turn(direction common.MirDirection) {
 func (p *Player) Walk(direction common.MirDirection) {
 
 }
+
+// TODO
+func (p *Player) Run(direction common.MirDirection) {
+
+}
