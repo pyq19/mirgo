@@ -29,7 +29,7 @@ func NewGame(conf Config) *Game {
 	}
 	//defer db.Close()
 	g.DB = db
-	g.Pool = NewPool(5)
+	g.Pool = NewPool(10)
 	g.Env = NewEnviron(g)
 	g.Env.StartLoop()
 	return g
