@@ -67,3 +67,87 @@ func (p *Player) Walk(direction common.MirDirection) {
 func (p *Player) Run(direction common.MirDirection) {
 
 }
+
+func (p *Player) Chat(message string) {
+
+}
+
+func (p *Player) MoveItem(grid common.MirGridType, from int32, to int32) {
+
+}
+
+func (p *Player) StoreItem(from int32, to int32) {
+
+}
+
+func (p *Player) DepositRefineItem(from int32, to int32) {
+
+}
+
+func (p *Player) RetrieveRefineItem(from int32, to int32) {
+
+}
+
+func (p *Player) RefineCancel() {
+
+}
+
+func (p *Player) RefineItem(id uint64) {
+
+}
+
+func (p *Player) CheckRefine(id uint64) {
+
+}
+
+func (p *Player) ReplaceWeddingRing(id uint64) {
+
+}
+
+func (p *Player) DepositTradeItem(from int32, to int32) {
+
+}
+
+func (p *Player) RetrieveTradeItem(from int32, to int32) {
+
+}
+
+func (p *Player) TakeBackItem(from int32, to int32) {
+
+}
+
+func (p *Player) MergeItem(from common.MirGridType, to common.MirGridType, from2 uint64, to2 uint64) {
+
+}
+
+func (p *Player) EquipItem(grid common.MirGridType, id uint64, to int32) {
+
+}
+
+func (p *Player) RemoveItem(grid common.MirGridType, id uint64, to int32) {
+
+}
+
+func (p *Player) RemoveSlotItem(grid common.MirGridType, id uint64, to int32, to2 common.MirGridType) {
+
+}
+
+func (p *Player) SplitItem(grid common.MirGridType, id uint64, count uint32) {
+
+}
+
+func (p *Player) UseItem(id uint64) {
+
+}
+
+func (p *Player) DropItem(id uint64, count uint32) {
+
+}
+
+func (p *Player) DropGold(amount uint32) {
+
+}
+
+func (p *Player) PickUp() {
+
+}
