@@ -672,11 +672,20 @@ func (g *Game) LogOut(s cellnet.Session, msg *client.LogOut) {
 }
 
 func (g *Game) Turn(s cellnet.Session, msg *client.Turn) {
+	p, ok := g.GetPlayer(s, GAME)
+	if !ok {
+		return
+	}
+	p.Turn(msg.Direction)
 
 }
 
 func (g *Game) Walk(s cellnet.Session, msg *client.Walk) {
-
+	p, ok := g.GetPlayer(s, GAME)
+	if !ok {
+		return
+	}
+	p.Walk(msg.Direction)
 }
 
 func (g *Game) Run(s cellnet.Session, msg *client.Run) {
