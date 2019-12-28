@@ -32,7 +32,7 @@ func TestGameMonsters(t *testing.T) {
 			o := v.(*Monster)
 			if o != nil {
 				count2 += 1
-				t.Logf("Coordinate: %s, MonsterID: %s, ptr: %p", o.CurrentLocation.Coordinate(), o.ID, o)
+				t.Logf("Coordinate: %s, MonsterID: %d, ptr: %p", o.CurrentLocation.Coordinate(), o.ID, o)
 			}
 			return true
 		})

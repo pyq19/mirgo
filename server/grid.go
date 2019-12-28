@@ -50,7 +50,7 @@ func (g *Grid) String() string {
 	res2 := ""
 	g.Monsters.Range(func(k, v interface{}) bool {
 		m := v.(*Monster)
-		res2 += fmt.Sprintf("Coordinate: %s, MonsterID: %s, ptr: %p\n", m.CurrentLocation.Coordinate(), m.ID, m)
+		res2 += fmt.Sprintf("Coordinate: %s, MonsterID: %d, ptr: %p\n", m.CurrentLocation.Coordinate(), m.ID, m)
 		return true
 	})
 	res3 := ""

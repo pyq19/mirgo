@@ -6,6 +6,7 @@ import (
 )
 
 type NPC struct {
+	ID   int
 	Map  *Map
 	Info *common.NpcInfo
 }
@@ -18,11 +19,12 @@ func (n *NPC) Point() common.Point {
 
 func NewNPC(m *Map, ni *common.NpcInfo) *NPC {
 	return &NPC{
+		ID:   m.Env.NewObjectID(),
 		Map:  m,
 		Info: ni,
 	}
 }
 
 func (n *NPC) String() string {
-	return fmt.Sprintf("NPC Coordinate: %s, ID: %d, name: %s\n", n.Point().Coordinate(), n.Info.ID, n.Info.Name)
+	return fmt.Sprintf("NPC Coordinate: %s, ID: %d, name: %s\n", n.Point().Coordinate(), n.ID, n.Info.Name)
 }
