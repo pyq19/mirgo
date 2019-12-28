@@ -691,87 +691,87 @@ func (g *Game) Run(p *Player, msg *client.Run) {
 }
 
 func (g *Game) Chat(p *Player, msg *client.Chat) {
-
+	p.Chat(msg.Message)
 }
 
 func (g *Game) MoveItem(p *Player, msg *client.MoveItem) {
-
+	p.MoveItem(msg.Grid, msg.From, msg.To)
 }
 
 func (g *Game) StoreItem(p *Player, msg *client.StoreItem) {
-
+	p.StoreItem(msg.From, msg.To)
 }
 
 func (g *Game) DepositRefineItem(p *Player, msg *client.DepositRefineItem) {
-
+	p.DepositRefineItem(msg.From, msg.To)
 }
 
 func (g *Game) RetrieveRefineItem(p *Player, msg *client.RetrieveRefineItem) {
-
+	p.RetrieveRefineItem(msg.From, msg.To)
 }
 
 func (g *Game) RefineCancel(p *Player, msg *client.RefineCancel) {
-
+	p.RefineCancel()
 }
 
 func (g *Game) RefineItem(p *Player, msg *client.RefineItem) {
-
+	p.RefineItem(msg.UniqueID)
 }
 
 func (g *Game) CheckRefine(p *Player, msg *client.CheckRefine) {
-
+	p.CheckRefine(msg.UniqueID)
 }
 
 func (g *Game) ReplaceWedRing(p *Player, msg *client.ReplaceWedRing) {
-
+	p.ReplaceWeddingRing(msg.UniqueID)
 }
 
 func (g *Game) DepositTradeItem(p *Player, msg *client.DepositTradeItem) {
-
+	p.DepositTradeItem(msg.From, msg.To)
 }
 
 func (g *Game) RetrieveTradeItem(p *Player, msg *client.RetrieveTradeItem) {
-
+	p.RetrieveTradeItem(msg.From, msg.To)
 }
 
 func (g *Game) TakeBackItem(p *Player, msg *client.TakeBackItem) {
-
+	p.TakeBackItem(msg.From, msg.To)
 }
 
 func (g *Game) MergeItem(p *Player, msg *client.MergeItem) {
-
+	p.MergeItem(msg.GridFrom, msg.GridTo, msg.IDFrom, msg.IDTo)
 }
 
 func (g *Game) EquipItem(p *Player, msg *client.EquipItem) {
-
+	p.EquipItem(msg.Grid, msg.UniqueID, msg.To)
 }
 
 func (g *Game) RemoveItem(p *Player, msg *client.RemoveItem) {
-
+	p.RemoveItem(msg.Grid, msg.UniqueID, msg.To)
 }
 
 func (g *Game) RemoveSlotItem(p *Player, msg *client.RemoveSlotItem) {
-
+	p.RemoveSlotItem(msg.Grid, msg.UniqueID, msg.To, msg.GridTo)
 }
 
 func (g *Game) SplitItem(p *Player, msg *client.SplitItem) {
-
+	p.SplitItem(msg.Grid, msg.UniqueID, msg.Count)
 }
 
 func (g *Game) UseItem(p *Player, msg *client.UseItem) {
-
+	p.UseItem(msg.UniqueID)
 }
 
 func (g *Game) DropItem(p *Player, msg *client.DropItem) {
-
+	p.DropItem(msg.UniqueID, msg.Count)
 }
 
 func (g *Game) DropGold(p *Player, msg *client.DropGold) {
-
+	p.DropGold(msg.Amount)
 }
 
 func (g *Game) PickUp(p *Player, msg *client.PickUp) {
-
+	p.PickUp()
 }
 
 func (g *Game) Inspect(p *Player, msg *client.Inspect) {
