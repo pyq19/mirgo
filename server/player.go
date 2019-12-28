@@ -3,6 +3,7 @@ package main
 import (
 	"github.com/davyxu/cellnet"
 	"github.com/yenkeia/mirgo/common"
+	"github.com/yenkeia/mirgo/proto/server"
 )
 
 const (
@@ -34,14 +35,30 @@ func (p *Player) Send(msg interface{}) {
 }
 
 func (p *Player) NotifySurroundingPlayer(msg interface{}) {
-	grids := p.Map.AOI.GetSurroundGridsByCoordinate(p.Point().Coordinate())
-	for i := range grids {
-		grids[i].Players.Range(func(k, v interface{}) bool {
-			o := v.(*Player)
-			if p.Character.ID != o.Character.ID {
-				o.Send(msg)
-			}
-			return true
-		})
-	}
+	p.Map.Submit(NewTask(func(args ...interface{}) {
+		grids := p.Map.AOI.GetSurroundGridsByCoordinate(p.Point().Coordinate())
+		for i := range grids {
+			grids[i].Players.Range(func(k, v interface{}) bool {
+				o := v.(*Player)
+				if p.Character.ID != o.Character.ID {
+					o.Send(msg)
+				}
+				return true
+			})
+		}
+	}))
+}
+
+// TODO
+func (p *Player) Turn(direction common.MirDirection) {
+	p.NotifySurroundingPlayer(server.ObjectTurn{
+		ObjectID:  uint32(p.Character.ID),
+		Location:  p.Point(),
+		Direction: direction,
+	})
+}
+
+// TODO
+func (p *Player) Walk(direction common.MirDirection) {
+
 }
