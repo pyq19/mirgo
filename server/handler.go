@@ -542,6 +542,7 @@ func (g *Game) StartGame(s cellnet.Session, msg *client.StartGame) {
 		return
 	}
 	p.Character = c
+	p.ID = uint32(c.ID)
 	p.GameStage = GAME
 
 	m := g.Env.GetMap(int(p.Character.CurrentMapID))
@@ -576,7 +577,7 @@ func (g *Game) StartGame(s cellnet.Session, msg *client.StartGame) {
 
 	ui := new(server.UserInformation)
 	ui.ObjectID = 66432 // TODO
-	ui.RealID = uint32(p.Character.ID)
+	ui.RealID = p.ID
 	ui.Name = p.Character.Name
 	ui.GuildName = ""
 	ui.GuildRank = ""

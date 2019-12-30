@@ -15,6 +15,7 @@ const (
 
 // Player ...
 type Player struct {
+	MapObject
 	Map       *Map
 	AccountID int
 	GameStage int
@@ -44,7 +45,7 @@ func (p *Player) NotifySurroundingPlayer(msg interface{}) {
 		for i := range grids {
 			grids[i].Players.Range(func(k, v interface{}) bool {
 				o := v.(*Player)
-				if p.Character.ID != o.Character.ID {
+				if p.ID != o.ID {
 					o.Send(msg)
 				}
 				return true
@@ -60,7 +61,7 @@ func (p *Player) CurrentCell() *Cell {
 // TODO
 func (p *Player) Turn(direction common.MirDirection) {
 	p.NotifySurroundingPlayer(server.ObjectTurn{
-		ObjectID:  uint32(p.Character.ID),
+		ObjectID:  uint32(p.ID),
 		Location:  p.Point(),
 		Direction: direction,
 	})
@@ -68,7 +69,7 @@ func (p *Player) Turn(direction common.MirDirection) {
 
 func (p *Player) Walk(direction common.MirDirection, point *common.Point) {
 	p.NotifySurroundingPlayer(&server.ObjectWalk{
-		ObjectID:  uint32(p.Character.ID),
+		ObjectID:  uint32(p.ID),
 		Location:  p.Point(),
 		Direction: direction,
 	})
@@ -79,7 +80,7 @@ func (p *Player) Walk(direction common.MirDirection, point *common.Point) {
 
 func (p *Player) Run(direction common.MirDirection, point *common.Point) {
 	p.NotifySurroundingPlayer(&server.ObjectRun{
-		ObjectID:  uint32(p.Character.ID),
+		ObjectID:  uint32(p.ID),
 		Location:  p.Point(),
 		Direction: direction,
 	})

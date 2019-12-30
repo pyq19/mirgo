@@ -3,7 +3,7 @@ package main
 import "github.com/yenkeia/mirgo/common"
 
 type Monster struct {
-	ID               uint32
+	MapObject
 	Respawn          *Respawn
 	Info             *common.MonsterInfo
 	CurrentLocation  *common.Point
