@@ -8,7 +8,6 @@ import (
 type Monster struct {
 	MapObject
 	Respawn *Respawn
-	Info    *common.MonsterInfo //仅在与数据库交互时使用
 }
 
 func (m *Monster) String() string {
@@ -18,9 +17,9 @@ func (m *Monster) String() string {
 func NewMonster(r *Respawn) (m *Monster, err error) {
 	m = new(Monster)
 	m.Respawn = r
-	m.Info = r.Map.Env.GameDB.GetMonsterInfoByID(r.Info.MonsterID)
+	mi := r.Map.Env.GameDB.GetMonsterInfoByID(r.Info.MonsterID)
 	m.ID = r.Map.Env.NewObjectID()
-	m.Name = m.Info.Name
+	m.Name = mi.Name
 	p, err := r.Map.GetValidPoint(r.Info.LocationX, r.Info.LocationY, r.Info.Spread)
 	if err != nil {
 		return nil, err

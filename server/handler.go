@@ -541,14 +541,13 @@ func (g *Game) StartGame(s cellnet.Session, msg *client.StartGame) {
 	if c.ID == 0 {
 		return
 	}
-	p.Character = c
 	p.ID = uint32(c.ID)
 	p.Name = c.Name
 	p.GameStage = GAME
 	p.CurrentDirection = c.Direction
 	p.CurrentLocation = common.NewPoint(int(c.CurrentLocationX), int(c.CurrentLocationY))
 
-	m := g.Env.GetMap(int(p.Character.CurrentMapID))
+	m := g.Env.GetMap(p.Map.Info.ID)
 	m.AddObject(p)
 	p.Map = m
 
@@ -581,26 +580,26 @@ func (g *Game) StartGame(s cellnet.Session, msg *client.StartGame) {
 	ui := new(server.UserInformation)
 	ui.ObjectID = 66432 // TODO
 	ui.RealID = p.ID
-	ui.Name = p.Character.Name
+	ui.Name = c.Name
 	ui.GuildName = ""
 	ui.GuildRank = ""
 	ui.NameColour = common.Color{R: 255, G: 255, B: 255, A: 255}.ToUint32()
-	ui.Class = p.Character.Class
-	ui.Gender = p.Character.Gender
-	ui.Level = p.Character.Level
+	ui.Class = c.Class
+	ui.Gender = c.Gender
+	ui.Level = c.Level
 	ui.Location = *p.CurrentLocation
 	ui.Direction = p.CurrentDirection
-	ui.Hair = p.Character.Hair
-	ui.HP = p.Character.HP
-	ui.MP = p.Character.MP
-	ui.Experience = p.Character.Experience
+	ui.Hair = c.Hair
+	ui.HP = c.HP
+	ui.MP = c.MP
+	ui.Experience = c.Experience
 	ui.MaxExperience = 100 // TODO
 	ui.LevelEffect = common.LevelEffects(1)
 	ui.Gold = 100   // TODO
 	ui.Credit = 100 // TODO
 
 	cui := make([]common.CharacterUserItem, 0, 100)
-	g.DB.Table("character_user_item").Where("character_id = ?", p.Character.ID).Find(&cui)
+	g.DB.Table("character_user_item").Where("character_id = ?", c.ID).Find(&cui)
 	is := make([]int, 0, 46)
 	es := make([]int, 0, 14)
 	qs := make([]int, 0, 40)

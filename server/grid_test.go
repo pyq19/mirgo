@@ -1,17 +1,14 @@
 package main
 
 import (
-	"github.com/yenkeia/mirgo/common"
 	"testing"
 )
 
 func TestGrid_GetPlayerID(t *testing.T) {
 	grid := NewGrid(nil, 1, 1, 1, 1, 1)
 	p1 := new(Player)
-	p1.Character = new(common.Character)
 	p1.ID = 1
 	p2 := new(Player)
-	p2.Character = new(common.Character)
 	p2.ID = 22
 	grid.AddPlayer(p1)
 	grid.AddPlayer(p2)
