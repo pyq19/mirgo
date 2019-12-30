@@ -34,3 +34,11 @@ func NewMonster(r *Respawn) (m *Monster, err error) {
 func (m *Monster) Point() common.Point {
 	return *m.CurrentLocation
 }
+
+func (m *Monster) Broadcast(msg interface{}) {
+
+}
+
+func (m *Monster) Process() {
+
+}
