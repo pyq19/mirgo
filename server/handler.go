@@ -680,11 +680,36 @@ func (g *Game) Turn(p *Player, msg *client.Turn) {
 }
 
 func (g *Game) Walk(p *Player, msg *client.Walk) {
-	p.Walk(msg.Direction)
+	c := p.Map.GetCell(p.Coordinate())
+	nc := p.Map.GetNextCell(c, msg.Direction, 1)
+	if nc == nil || !nc.IsValid() {
+		p.Send(&server.UserLocation{
+			Location:  p.Point(),
+			Direction: p.Character.Direction,
+		})
+		return
+	}
+	c.SetObject(nil)
+	nc.SetObject(p)
+	// TODO change AOI
+	p.Walk(msg.Direction, nc.Point())
 }
 
 func (g *Game) Run(p *Player, msg *client.Run) {
-	p.Run(msg.Direction)
+	c := p.Map.GetCell(p.Coordinate())
+	nc1 := p.Map.GetNextCell(c, msg.Direction, 1)
+	nc2 := p.Map.GetNextCell(c, msg.Direction, 2)
+	if nc1 == nil || nc2 == nil || !nc1.IsValid() || !nc2.IsValid() {
+		p.Send(&server.UserLocation{
+			Location:  p.Point(),
+			Direction: p.Character.Direction,
+		})
+		return
+	}
+	c.SetObject(nil)
+	nc2.SetObject(p)
+	// TODO change AOI
+	p.Run(msg.Direction, nc2.Point())
 }
 
 func (g *Game) Chat(p *Player, msg *client.Chat) {

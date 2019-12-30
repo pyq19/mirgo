@@ -5,6 +5,7 @@ import (
 	"github.com/yenkeia/mirgo/common"
 	"io/ioutil"
 	"os"
+	"sync"
 	"testing"
 )
 
@@ -53,4 +54,28 @@ func TestSaveMapText(t *testing.T) {
 		str = str + "\n"
 	}
 	ioutil.WriteFile(filePath, []byte(str), 0644)
+}
+
+func TestMap_GetNextCell(t *testing.T) {
+	m := GetMapV1(GetMapBytes(os.Getenv("GOPATH") + "/src/github.com/yenkeia/mirgo/dotnettools/database/Maps/0.map"))
+	c := &Cell{
+		Map:        m,
+		Coordinate: "100,200",
+		Attribute:  0,
+		Object:     nil,
+		lock:       sync.RWMutex{},
+	}
+	t.Log(c.Coordinate)
+	for i := 0; i < 8; i++ {
+		//MirDirectionUp        MirDirection = 0
+		//MirDirectionUpRight                = 1
+		//MirDirectionRight                  = 2
+		//MirDirectionDownRight              = 3
+		//MirDirectionDown                   = 4
+		//MirDirectionDownLeft               = 5
+		//MirDirectionLeft                   = 6
+		//MirDirectionUpLeft                 = 7
+		nc := m.GetNextCell(c, common.MirDirection(i), 3)
+		t.Log(nc.Coordinate)
+	}
 }

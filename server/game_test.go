@@ -2,6 +2,7 @@ package main
 
 import (
 	"os"
+	"sync"
 	"testing"
 )
 
@@ -73,4 +74,19 @@ func TestGameNPCs(t *testing.T) {
 		return true
 	})
 	t.Log(count)
+}
+
+func TestEnviron_NewObjectID(t *testing.T) {
+	var wg sync.WaitGroup
+	e := new(Environ)
+	e.ObjectID = 0
+	for i := 0; i < 1000; i++ {
+		wg.Add(1)
+		go func() {
+			e.NewObjectID()
+			wg.Done()
+		}()
+	}
+	wg.Wait()
+	t.Log(e.ObjectID)
 }

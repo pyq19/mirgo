@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/yenkeia/mirgo/common"
+	"strconv"
 	"sync"
 )
 
@@ -104,4 +105,33 @@ func (m *Map) GetValidPoint(x int, y int, spread int) (*common.Point, error) {
 		}
 		cnt += 1
 	}
+}
+
+func (m *Map) GetNextCell(cell *Cell, direction common.MirDirection, step uint32) *Cell {
+	p := cell.Point()
+	x := p.X
+	y := p.Y
+	switch direction {
+	case common.MirDirectionUp:
+		y = y - step
+	case common.MirDirectionUpRight:
+		x = x + step
+		y = y - step
+	case common.MirDirectionRight:
+		x = x + step
+	case common.MirDirectionDownRight:
+		x = x + step
+		y = y + step
+	case common.MirDirectionDown:
+		y = y + step
+	case common.MirDirectionDownLeft:
+		x = x - step
+		y = y + step
+	case common.MirDirectionLeft:
+		x = x - step
+	case common.MirDirectionUpLeft:
+		x = x - step
+		y = y - step
+	}
+	return m.GetCell(fmt.Sprintf("%s,%s", strconv.Itoa(int(x)), strconv.Itoa(int(y))))
 }

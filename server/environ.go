@@ -8,6 +8,7 @@ import (
 	"github.com/yenkeia/mirgo/proto/server"
 	"os"
 	"sync"
+	"sync/atomic"
 	"time"
 )
 
@@ -17,8 +18,7 @@ type Environ struct {
 	GameDB             *GameDB
 	SessionIDPlayerMap *sync.Map // map[int64]*Player
 	Maps               *sync.Map // map[int]*Map	// mapID: Map
-	ObjectID           int
-	lock               *sync.Mutex
+	ObjectID           uint32
 }
 
 // NewEnviron ...
@@ -28,7 +28,6 @@ func NewEnviron(g *Game) (env *Environ) {
 	env.InitGameDB()
 	env.InitMaps()
 	env.ObjectID = 100000
-	env.lock = new(sync.Mutex)
 	err := env.InitObjects()
 	if err != nil {
 		panic(err)
@@ -94,13 +93,8 @@ func (e *Environ) InitMaps() {
 	}
 }
 
-func (e *Environ) NewObjectID() int {
-	var res int
-	e.lock.Lock()
-	res = e.ObjectID
-	e.ObjectID++
-	e.lock.Unlock()
-	return res
+func (e *Environ) NewObjectID() uint32 {
+	return atomic.AddUint32(&e.ObjectID, 1)
 }
 
 // InitObjects 初始化地图

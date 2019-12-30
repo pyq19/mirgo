@@ -30,6 +30,10 @@ func (p *Player) Point() common.Point {
 	return *common.NewPoint(x, y)
 }
 
+func (p *Player) Coordinate() string {
+	return p.Point().Coordinate()
+}
+
 func (p *Player) Send(msg interface{}) {
 	(*p.Session).Send(msg)
 }
@@ -49,6 +53,10 @@ func (p *Player) NotifySurroundingPlayer(msg interface{}) {
 	}))
 }
 
+func (p *Player) CurrentCell() *Cell {
+	return p.Map.GetCell(p.Point().Coordinate())
+}
+
 // TODO
 func (p *Player) Turn(direction common.MirDirection) {
 	p.NotifySurroundingPlayer(server.ObjectTurn{
@@ -58,14 +66,26 @@ func (p *Player) Turn(direction common.MirDirection) {
 	})
 }
 
-// TODO
-func (p *Player) Walk(direction common.MirDirection) {
-
+func (p *Player) Walk(direction common.MirDirection, point *common.Point) {
+	p.NotifySurroundingPlayer(&server.ObjectWalk{
+		ObjectID:  uint32(p.Character.ID),
+		Location:  p.Point(),
+		Direction: direction,
+	})
+	p.Character.Direction = direction
+	p.Character.CurrentLocationX = int32(point.X)
+	p.Character.CurrentLocationY = int32(point.Y)
 }
 
-// TODO
-func (p *Player) Run(direction common.MirDirection) {
-
+func (p *Player) Run(direction common.MirDirection, point *common.Point) {
+	p.NotifySurroundingPlayer(&server.ObjectRun{
+		ObjectID:  uint32(p.Character.ID),
+		Location:  p.Point(),
+		Direction: direction,
+	})
+	p.Character.Direction = direction
+	p.Character.CurrentLocationX = int32(point.X)
+	p.Character.CurrentLocationY = int32(point.Y)
 }
 
 func (p *Player) Chat(message string) {
