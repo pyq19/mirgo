@@ -19,7 +19,6 @@ type Player struct {
 	AccountID int
 	GameStage int
 	Session   *cellnet.Session
-	Character *common.Character // 仅在与数据库交互时使用
 	Magics    []*common.MagicInfo
 	UserItems []*common.UserItem
 }

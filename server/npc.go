@@ -7,7 +7,6 @@ import (
 
 type NPC struct {
 	MapObject
-	Info *common.NpcInfo // 仅在与数据库交互时使用
 }
 
 func (n *NPC) Point() common.Point {
@@ -23,7 +22,6 @@ func NewNPC(m *Map, ni *common.NpcInfo) *NPC {
 			CurrentLocation:  common.NewPoint(ni.LocationX, ni.LocationY),
 			CurrentDirection: common.MirDirectionDown,
 		},
-		Info: ni,
 	}
 }
 
