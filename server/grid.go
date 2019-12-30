@@ -50,13 +50,13 @@ func (g *Grid) String() string {
 	res2 := ""
 	g.Monsters.Range(func(k, v interface{}) bool {
 		m := v.(*Monster)
-		res2 += fmt.Sprintf("Coordinate: %s, MonsterID: %d, ptr: %p\n", m.CurrentLocation.Coordinate(), m.ID, m)
+		res2 += fmt.Sprintf("%v", m)
 		return true
 	})
 	res3 := ""
 	g.NPCs.Range(func(k, v interface{}) bool {
 		n := v.(*NPC)
-		res3 += fmt.Sprintf("NPC Coordinate: %s, ID: %d, name: %s\n", n.Point().Coordinate(), n.Info.ID, n.Info.Name)
+		res3 += fmt.Sprintf("NPC Coordinate: %s, ID: %d, name: %s\n", n.Point().Coordinate(), n.ID, n.Name)
 		return true
 	})
 	return res1 + "Monsters: \n" + res2 + "NPCs: \n" + res3
@@ -77,15 +77,15 @@ func (g *Grid) DeletePlayer(p *Player) {
 }
 
 func (g *Grid) AddNPC(n *NPC) {
-	g.NPCs.Store(n.Info.ID, n)
+	g.NPCs.Store(n.ID, n)
 }
 
 func (g *Grid) DeleteNPC(n *NPC) {
-	v, ok := g.NPCs.Load(n.Info.ID)
+	v, ok := g.NPCs.Load(n.ID)
 	if !ok {
 		return
 	}
-	g.NPCs.Delete(v.(*NPC).Info.ID)
+	g.NPCs.Delete(v.(*NPC).ID)
 }
 
 func (g *Grid) AddMonster(m *Monster) {

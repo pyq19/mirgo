@@ -7,19 +7,18 @@ import (
 
 type NPC struct {
 	MapObject
-	Info *common.NpcInfo
+	Info *common.NpcInfo // 仅在与数据库交互时使用
 }
 
 func (n *NPC) Point() common.Point {
-	x := n.Info.LocationX
-	y := n.Info.LocationY
-	return *common.NewPoint(x, y)
+	return *n.CurrentLocation
 }
 
 func NewNPC(m *Map, ni *common.NpcInfo) *NPC {
 	return &NPC{
 		MapObject: MapObject{
 			ID:               m.Env.NewObjectID(),
+			Name:             ni.Name,
 			Map:              m,
 			CurrentLocation:  common.NewPoint(ni.LocationX, ni.LocationY),
 			CurrentDirection: common.MirDirectionDown,
@@ -29,5 +28,5 @@ func NewNPC(m *Map, ni *common.NpcInfo) *NPC {
 }
 
 func (n *NPC) String() string {
-	return fmt.Sprintf("NPC Coordinate: %s, ID: %d, name: %s\n", n.Point().Coordinate(), n.ID, n.Info.Name)
+	return fmt.Sprintf("NPC Coordinate: %s, ID: %d, name: %s\n", n.Point().Coordinate(), n.ID, n.Name)
 }
