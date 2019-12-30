@@ -1,6 +1,8 @@
 package main
 
-import "github.com/yenkeia/mirgo/common"
+import (
+	"github.com/yenkeia/mirgo/common"
+)
 
 type MapObject struct {
 	ID               uint32
@@ -24,9 +26,15 @@ type MapObject struct {
 }
 
 type Poison struct {
-	MapObject *MapObject
+	ObjectID   uint32
+	PoisonType common.PoisonType
+	Value      int
+	Duration
+	Time
+	TickTime
+	TickSpeed
 }
 
 type Buff struct {
-	MapObject *MapObject
+	ObjectID uint32
 }
