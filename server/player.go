@@ -16,7 +16,6 @@ const (
 // Player ...
 type Player struct {
 	MapObject
-	Map       *Map
 	AccountID int
 	GameStage int
 	Session   *cellnet.Session
@@ -26,9 +25,7 @@ type Player struct {
 }
 
 func (p *Player) Point() common.Point {
-	x := int(p.Character.CurrentLocationX)
-	y := int(p.Character.CurrentLocationY)
-	return *common.NewPoint(x, y)
+	return *p.CurrentLocation
 }
 
 func (p *Player) Coordinate() string {
