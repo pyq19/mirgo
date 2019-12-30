@@ -23,7 +23,10 @@ type MapObject struct {
 	MaxSC            uint16
 }
 
-type IMapObject interface {
-	Process()
-	Broadcast()
+type Poison struct {
+	MapObject *MapObject
+}
+
+type Buff struct {
+	MapObject *MapObject
 }

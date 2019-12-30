@@ -28,3 +28,11 @@ func NewNPC(m *Map, ni *common.NpcInfo) *NPC {
 func (n *NPC) String() string {
 	return fmt.Sprintf("NPC Coordinate: %s, ID: %d, name: %s\n", n.Point().Coordinate(), n.ID, n.Name)
 }
+
+func (n *NPC) Broadcast(msg interface{}) {
+
+}
+
+func (n *NPC) Process() {
+
+}

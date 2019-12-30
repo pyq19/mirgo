@@ -27,6 +27,10 @@ func (p *Player) Point() common.Point {
 	return *p.CurrentLocation
 }
 
+func (p *Player) CurrentCell() *Cell {
+	return p.Map.GetCell(p.Point().Coordinate())
+}
+
 func (p *Player) Coordinate() string {
 	return p.Point().Coordinate()
 }
@@ -50,8 +54,8 @@ func (p *Player) Broadcast(msg interface{}) {
 	}))
 }
 
-func (p *Player) CurrentCell() *Cell {
-	return p.Map.GetCell(p.Point().Coordinate())
+func (p *Player) Process() {
+
 }
 
 func (p *Player) Turn(direction common.MirDirection) {
