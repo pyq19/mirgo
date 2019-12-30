@@ -1,11 +1,18 @@
 package main
 
-import "github.com/yenkeia/mirgo/common"
+import (
+	"fmt"
+	"github.com/yenkeia/mirgo/common"
+)
 
 type Monster struct {
 	MapObject
-	Respawn          *Respawn
-	Info             *common.MonsterInfo
+	Respawn *Respawn
+	Info    *common.MonsterInfo //仅在与数据库交互时使用
+}
+
+func (m *Monster) String() string {
+	return fmt.Sprintf("Monster: %s, (%v), ID: %d, ptr: %p\n", m.Name, m.CurrentLocation, m.ID, m)
 }
 
 func NewMonster(r *Respawn) (m *Monster, err error) {
@@ -13,6 +20,7 @@ func NewMonster(r *Respawn) (m *Monster, err error) {
 	m.Respawn = r
 	m.Info = r.Map.Env.GameDB.GetMonsterInfoByID(r.Info.MonsterID)
 	m.ID = r.Map.Env.NewObjectID()
+	m.Name = m.Info.Name
 	p, err := r.Map.GetValidPoint(r.Info.LocationX, r.Info.LocationY, r.Info.Spread)
 	if err != nil {
 		return nil, err

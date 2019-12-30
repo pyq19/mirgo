@@ -11,6 +11,10 @@ type Point struct {
 	Y uint32
 }
 
+func (p *Point) String() string {
+	return p.Coordinate()
+}
+
 // Coordinate 点的坐标
 func (p Point) Coordinate() string {
 	return fmt.Sprintf("%d,%d", p.X, p.Y)

@@ -543,7 +543,10 @@ func (g *Game) StartGame(s cellnet.Session, msg *client.StartGame) {
 	}
 	p.Character = c
 	p.ID = uint32(c.ID)
+	p.Name = c.Name
 	p.GameStage = GAME
+	p.CurrentDirection = c.Direction
+	p.CurrentLocation = common.NewPoint(int(c.CurrentLocationX), int(c.CurrentLocationY))
 
 	m := g.Env.GetMap(int(p.Character.CurrentMapID))
 	m.AddObject(p)
@@ -564,7 +567,7 @@ func (g *Game) StartGame(s cellnet.Session, msg *client.StartGame) {
 
 	// MapInformation
 	mi := new(server.MapInformation)
-	pmi := g.Env.GameDB.GetMapInfoByID(int(p.Character.CurrentMapID))
+	pmi := p.Map.Info
 	mi.FileName = pmi.Filename
 	mi.Title = pmi.Title
 	mi.MiniMap = uint16(pmi.MineIndex)
@@ -585,8 +588,8 @@ func (g *Game) StartGame(s cellnet.Session, msg *client.StartGame) {
 	ui.Class = p.Character.Class
 	ui.Gender = p.Character.Gender
 	ui.Level = p.Character.Level
-	ui.Location = common.Point{X: uint32(p.Character.CurrentLocationX), Y: uint32(p.Character.CurrentLocationY)}
-	ui.Direction = p.Character.Direction
+	ui.Location = *p.CurrentLocation
+	ui.Direction = p.CurrentDirection
 	ui.Hair = p.Character.Hair
 	ui.HP = p.Character.HP
 	ui.MP = p.Character.MP
@@ -686,7 +689,7 @@ func (g *Game) Walk(p *Player, msg *client.Walk) {
 	if nc == nil || !nc.IsValid() {
 		p.Send(&server.UserLocation{
 			Location:  p.Point(),
-			Direction: p.Character.Direction,
+			Direction: p.CurrentDirection,
 		})
 		return
 	}
@@ -703,7 +706,7 @@ func (g *Game) Run(p *Player, msg *client.Run) {
 	if nc1 == nil || nc2 == nil || !nc1.IsValid() || !nc2.IsValid() {
 		p.Send(&server.UserLocation{
 			Location:  p.Point(),
-			Direction: p.Character.Direction,
+			Direction: p.CurrentDirection,
 		})
 		return
 	}

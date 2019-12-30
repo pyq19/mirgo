@@ -19,7 +19,7 @@ type Player struct {
 	AccountID int
 	GameStage int
 	Session   *cellnet.Session
-	Character *common.Character
+	Character *common.Character // 仅在与数据库交互时使用
 	Magics    []*common.MagicInfo
 	UserItems []*common.UserItem
 }
@@ -70,9 +70,8 @@ func (p *Player) Walk(direction common.MirDirection, point *common.Point) {
 		Location:  p.Point(),
 		Direction: direction,
 	})
-	p.Character.Direction = direction
-	p.Character.CurrentLocationX = int32(point.X)
-	p.Character.CurrentLocationY = int32(point.Y)
+	p.CurrentDirection = direction
+	p.CurrentLocation = point
 }
 
 func (p *Player) Run(direction common.MirDirection, point *common.Point) {
@@ -81,9 +80,8 @@ func (p *Player) Run(direction common.MirDirection, point *common.Point) {
 		Location:  p.Point(),
 		Direction: direction,
 	})
-	p.Character.Direction = direction
-	p.Character.CurrentLocationX = int32(point.X)
-	p.Character.CurrentLocationY = int32(point.Y)
+	p.CurrentDirection = direction
+	p.CurrentLocation = point
 }
 
 func (p *Player) Chat(message string) {
