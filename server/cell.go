@@ -14,6 +14,10 @@ type Cell struct {
 	lock       sync.RWMutex
 }
 
+func (c *Cell) Point() *common.Point {
+	return common.NewPointByCoordinate(c.Coordinate)
+}
+
 func (c *Cell) isEmpty() bool {
 	if c.Object == nil {
 		return true

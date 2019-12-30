@@ -6,7 +6,7 @@ import (
 )
 
 type NPC struct {
-	ID   int
+	ID   uint32
 	Map  *Map
 	Info *common.NpcInfo
 }
