@@ -6,8 +6,6 @@ type Monster struct {
 	MapObject
 	Respawn          *Respawn
 	Info             *common.MonsterInfo
-	CurrentLocation  *common.Point
-	CurrentDirection common.MirDirection
 }
 
 func NewMonster(r *Respawn) (m *Monster, err error) {

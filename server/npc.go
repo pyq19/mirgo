@@ -7,7 +7,6 @@ import (
 
 type NPC struct {
 	MapObject
-	Map  *Map
 	Info *common.NpcInfo
 }
 
@@ -19,8 +18,12 @@ func (n *NPC) Point() common.Point {
 
 func NewNPC(m *Map, ni *common.NpcInfo) *NPC {
 	return &NPC{
-		ID:   m.Env.NewObjectID(),
-		Map:  m,
+		MapObject: MapObject{
+			ID:               m.Env.NewObjectID(),
+			Map:              m,
+			CurrentLocation:  common.NewPoint(ni.LocationX, ni.LocationY),
+			CurrentDirection: common.MirDirectionDown,
+		},
 		Info: ni,
 	}
 }
