@@ -640,7 +640,7 @@ func (g *Game) StartGame(s cellnet.Session, msg *client.StartGame) {
 	s.Send(ui)
 
 	// TODO
-	p.NotifySurroundingPlayer(&server.ObjectPlayer{
+	p.Broadcast(&server.ObjectPlayer{
 		ObjectID:         uint32(c.ID),
 		Name:             c.Name,
 		GuildName:        "",

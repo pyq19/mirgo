@@ -52,6 +52,12 @@ func GetMapV1(bytes []byte) *Map {
 func newAOI(m *Map, width int, height int) (aoi *AOIManager) {
 	cntX := width / 20
 	cntY := height / 20
+	if width < 20 {
+		cntX = 1
+	}
+	if height < 20 {
+		cntY = 1
+	}
 	aoi = NewAOIManager(m, 0, width, cntX, 0, height, cntY)
 	return
 }
