@@ -21,6 +21,27 @@ func (m *Map) Submit(t *Task) {
 	m.Env.Game.Pool.EntryChan <- t
 }
 
+func (m *Map) GetAllPlayers() []*Player {
+	players := make([]*Player, 0)
+	m.AOI.grids.Range(func(k, v interface{}) bool {
+		g := v.(*Grid)
+		g.Players.Range(func(k, v interface{}) bool {
+			players = append(players, v.(*Player))
+			return true
+		})
+		return true
+	})
+	return players
+}
+
+// Broadcast send message to all players in this map
+func (m *Map) Broadcast(msg interface{}) {
+	players := m.GetAllPlayers()
+	for i := range players {
+		players[i].Send(msg)
+	}
+}
+
 func (m *Map) GetCell(coordinate string) *Cell {
 	v, ok := m.Cells.Load(coordinate)
 	if !ok {

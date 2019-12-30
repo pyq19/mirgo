@@ -129,6 +129,13 @@ func (e *Environ) Submit(t *Task) {
 	e.Game.Pool.EntryChan <- t
 }
 
+func (e *Environ) Broadcast(msg interface{}) {
+	e.Maps.Range(func(k, v interface{}) bool {
+		v.(*Map).Broadcast(msg)
+		return true
+	})
+}
+
 // StartLoop
 func (e *Environ) StartLoop() {
 	go e.TimeTick()

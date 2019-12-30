@@ -22,3 +22,8 @@ type MapObject struct {
 	MinSC            uint16 // 道术力
 	MaxSC            uint16
 }
+
+type IMapObject interface {
+	Process()
+	Broadcast()
+}

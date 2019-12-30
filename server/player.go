@@ -35,7 +35,7 @@ func (p *Player) Send(msg interface{}) {
 	(*p.Session).Send(msg)
 }
 
-func (p *Player) NotifySurroundingPlayer(msg interface{}) {
+func (p *Player) Broadcast(msg interface{}) {
 	p.Map.Submit(NewTask(func(args ...interface{}) {
 		grids := p.Map.AOI.GetSurroundGridsByCoordinate(p.Point().Coordinate())
 		for i := range grids {
@@ -54,18 +54,17 @@ func (p *Player) CurrentCell() *Cell {
 	return p.Map.GetCell(p.Point().Coordinate())
 }
 
-// TODO
 func (p *Player) Turn(direction common.MirDirection) {
-	p.NotifySurroundingPlayer(server.ObjectTurn{
-		ObjectID:  uint32(p.ID),
+	p.Broadcast(server.ObjectTurn{
+		ObjectID:  p.ID,
 		Location:  p.Point(),
 		Direction: direction,
 	})
 }
 
 func (p *Player) Walk(direction common.MirDirection, point *common.Point) {
-	p.NotifySurroundingPlayer(&server.ObjectWalk{
-		ObjectID:  uint32(p.ID),
+	p.Broadcast(&server.ObjectWalk{
+		ObjectID:  p.ID,
 		Location:  p.Point(),
 		Direction: direction,
 	})
@@ -74,8 +73,8 @@ func (p *Player) Walk(direction common.MirDirection, point *common.Point) {
 }
 
 func (p *Player) Run(direction common.MirDirection, point *common.Point) {
-	p.NotifySurroundingPlayer(&server.ObjectRun{
-		ObjectID:  uint32(p.ID),
+	p.Broadcast(&server.ObjectRun{
+		ObjectID:  p.ID,
 		Location:  p.Point(),
 		Direction: direction,
 	})
