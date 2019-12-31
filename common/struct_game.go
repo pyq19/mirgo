@@ -20,6 +20,12 @@ func (p Point) Coordinate() string {
 	return fmt.Sprintf("%d,%d", p.X, p.Y)
 }
 
+// TODO
+func (p *Point) NextPoint(dir MirDirection, step int) *Point {
+
+	return nil
+}
+
 // NewPointByCoordinate 坐标转换成点
 func NewPointByCoordinate(coordinate string) *Point {
 	strArr := strings.Split(coordinate, ",")
