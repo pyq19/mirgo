@@ -66,24 +66,42 @@ func (p *Player) Turn(direction common.MirDirection) {
 	})
 }
 
-func (p *Player) Walk(direction common.MirDirection, point *common.Point) {
+func (p *Player) Walk(direction common.MirDirection) {
+	n := p.Point().NextPoint(direction, 1)
+	ok := p.Map.UpdateObject(p, n)
+	if !ok {
+		p.Send(&server.UserLocation{
+			Location:  p.Point(),
+			Direction: p.CurrentDirection,
+		})
+		return
+	}
 	p.Broadcast(&server.ObjectWalk{
 		ObjectID:  p.ID,
 		Location:  p.Point(),
 		Direction: direction,
 	})
 	p.CurrentDirection = direction
-	p.CurrentLocation = point
+	p.CurrentLocation = n
 }
 
-func (p *Player) Run(direction common.MirDirection, point *common.Point) {
+func (p *Player) Run(direction common.MirDirection) {
+	n1 := p.Point().NextPoint(direction, 1)
+	n2 := p.Point().NextPoint(direction, 2)
+	if ok := p.Map.UpdateObject(p, n1, n2); !ok {
+		p.Send(&server.UserLocation{
+			Location:  p.Point(),
+			Direction: p.CurrentDirection,
+		})
+		return
+	}
 	p.Broadcast(&server.ObjectRun{
 		ObjectID:  p.ID,
 		Location:  p.Point(),
 		Direction: direction,
 	})
 	p.CurrentDirection = direction
-	p.CurrentLocation = point
+	p.CurrentLocation = n2
 }
 
 func (p *Player) Chat(message string) {
