@@ -70,6 +70,28 @@ func (m *Map) AddObject(obj interface{}) {
 	}
 }
 
+// UpdateObject 更新对象在 Cells, AOI 中的数据, 如果更新成功返回 true
+func (m *Map) UpdateObject(obj interface{}, points ...*common.Point) bool {
+	switch o := obj.(type) {
+	case *Player:
+		for i := range points {
+			c := m.GetCell(points[i].Coordinate())
+			if c == nil || !c.IsValid() {
+				return false
+			}
+		}
+		old := m.GetCell(o.Point().Coordinate())
+		old.SetObject(nil)
+		last := m.GetCell(points[len(points)-1].Coordinate())
+		last.SetObject(o)
+		// TODO change AOI
+		return true
+	case *NPC:
+	case *Monster:
+
+	}
+}
+
 // InitNPCs 初始化地图上的 NPC
 func (m *Map) InitNPCs() error {
 	for _, ni := range m.Env.GameDB.NpcInfos {
