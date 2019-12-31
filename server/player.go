@@ -66,24 +66,49 @@ func (p *Player) Turn(direction common.MirDirection) {
 	})
 }
 
-func (p *Player) Walk(direction common.MirDirection, point *common.Point) {
+func (p *Player) Walk(direction common.MirDirection) {
+	c := p.Map.GetCell(p.Coordinate())
+	nc := p.Map.GetNextCell(c, direction, 1)
+	if nc == nil || !nc.IsValid() {
+		p.Send(&server.UserLocation{
+			Location:  p.Point(),
+			Direction: p.CurrentDirection,
+		})
+		return
+	}
+	c.SetObject(nil)
+	nc.SetObject(p)
+	// TODO change AOI
 	p.Broadcast(&server.ObjectWalk{
 		ObjectID:  p.ID,
 		Location:  p.Point(),
 		Direction: direction,
 	})
 	p.CurrentDirection = direction
-	p.CurrentLocation = point
+	p.CurrentLocation = nc.Point()
 }
 
-func (p *Player) Run(direction common.MirDirection, point *common.Point) {
+func (p *Player) Run(direction common.MirDirection) {
+	c := p.Map.GetCell(p.Coordinate())
+	nc1 := p.Map.GetNextCell(c, direction, 1)
+	nc2 := p.Map.GetNextCell(c, direction, 2)
+	if nc1 == nil || nc2 == nil || !nc1.IsValid() || !nc2.IsValid() {
+		p.Send(&server.UserLocation{
+			Location:  p.Point(),
+			Direction: p.CurrentDirection,
+		})
+		return
+	}
+	c.SetObject(nil)
+	nc2.SetObject(p)
+	// TODO change AOI
 	p.Broadcast(&server.ObjectRun{
 		ObjectID:  p.ID,
 		Location:  p.Point(),
 		Direction: direction,
 	})
 	p.CurrentDirection = direction
-	p.CurrentLocation = point
+	p.CurrentLocation = nc2.Point()
 }
 
 func (p *Player) Chat(message string) {
