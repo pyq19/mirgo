@@ -20,10 +20,32 @@ func (p Point) Coordinate() string {
 	return fmt.Sprintf("%d,%d", p.X, p.Y)
 }
 
-// TODO
-func (p *Point) NextPoint(dir MirDirection, step int) *Point {
-
-	return nil
+func (p Point) NextPoint(direction MirDirection, step uint32) *Point {
+	x := p.X
+	y := p.Y
+	switch direction {
+	case MirDirectionUp:
+		y = y - step
+	case MirDirectionUpRight:
+		x = x + step
+		y = y - step
+	case MirDirectionRight:
+		x = x + step
+	case MirDirectionDownRight:
+		x = x + step
+		y = y + step
+	case MirDirectionDown:
+		y = y + step
+	case MirDirectionDownLeft:
+		x = x - step
+		y = y + step
+	case MirDirectionLeft:
+		x = x - step
+	case MirDirectionUpLeft:
+		x = x - step
+		y = y - step
+	}
+	return NewPointByCoordinate(fmt.Sprintf("%s,%s", strconv.Itoa(int(x)), strconv.Itoa(int(y))))
 }
 
 // NewPointByCoordinate 坐标转换成点
