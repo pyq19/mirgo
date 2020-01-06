@@ -4,6 +4,7 @@ import (
 	"github.com/davyxu/cellnet"
 	"github.com/yenkeia/mirgo/common"
 	"github.com/yenkeia/mirgo/proto/server"
+	"strings"
 )
 
 const (
@@ -35,8 +36,15 @@ func (p *Player) Coordinate() string {
 	return p.Point().Coordinate()
 }
 
-func (p *Player) Send(msg interface{}) {
+func (p *Player) Enqueue(msg interface{}) {
 	(*p.Session).Send(msg)
+}
+
+func (p *Player) ReceiveChat(text string, ct common.ChatType) {
+	p.Enqueue(server.Chat{
+		Message: text,
+		Type:    ct,
+	})
 }
 
 func (p *Player) Broadcast(msg interface{}) {
@@ -46,7 +54,7 @@ func (p *Player) Broadcast(msg interface{}) {
 			grids[i].Players.Range(func(k, v interface{}) bool {
 				o := v.(*Player)
 				if p.ID != o.ID {
-					o.Send(msg)
+					o.Enqueue(msg)
 				}
 				return true
 			})
@@ -58,25 +66,47 @@ func (p *Player) Process() {
 
 }
 
+func (p *Player) canMove() bool {
+	return true
+}
+
+func (p *Player) canWalk() bool {
+	return true
+}
+
 func (p *Player) Turn(direction common.MirDirection) {
-	p.Broadcast(server.ObjectTurn{
-		ObjectID:  p.ID,
+	if p.canMove() {
+		p.Broadcast(server.ObjectTurn{
+			ObjectID:  p.ID,
+			Location:  p.Point(),
+			Direction: direction,
+		})
+		p.CurrentDirection = direction
+	}
+	p.Enqueue(server.UserLocation{
 		Location:  p.Point(),
-		Direction: direction,
+		Direction: p.CurrentDirection,
 	})
 }
 
 func (p *Player) Walk(direction common.MirDirection) {
-	n := p.Point().NextPoint(direction, 1)
-	ok := p.Map.UpdateObject(p, n)
-	if !ok {
-		p.Send(&server.UserLocation{
+	if !p.canMove() || !p.canWalk() {
+		p.Enqueue(server.UserLocation{
 			Location:  p.Point(),
 			Direction: p.CurrentDirection,
 		})
 		return
 	}
-	p.Broadcast(&server.ObjectWalk{
+	n := p.Point().NextPoint(direction, 1)
+	ok := p.Map.UpdateObject(p, n)
+	if !ok {
+		p.Enqueue(server.UserLocation{
+			Location:  p.Point(),
+			Direction: p.CurrentDirection,
+		})
+		return
+	}
+	p.Broadcast(server.ObjectWalk{
 		ObjectID:  p.ID,
 		Location:  p.Point(),
 		Direction: direction,
@@ -89,13 +119,13 @@ func (p *Player) Run(direction common.MirDirection) {
 	n1 := p.Point().NextPoint(direction, 1)
 	n2 := p.Point().NextPoint(direction, 2)
 	if ok := p.Map.UpdateObject(p, n1, n2); !ok {
-		p.Send(&server.UserLocation{
+		p.Enqueue(server.UserLocation{
 			Location:  p.Point(),
 			Direction: p.CurrentDirection,
 		})
 		return
 	}
-	p.Broadcast(&server.ObjectRun{
+	p.Broadcast(server.ObjectRun{
 		ObjectID:  p.ID,
 		Location:  p.Point(),
 		Direction: direction,
@@ -105,7 +135,22 @@ func (p *Player) Run(direction common.MirDirection) {
 }
 
 func (p *Player) Chat(message string) {
-
+	// private message
+	if strings.HasPrefix(message, "/") {
+		return
+	}
+	// group
+	if strings.HasPrefix(message, "!!") {
+		return
+	}
+	message = p.Name + ":" + message
+	msg := server.ObjectChat{
+		ObjectID: p.ID,
+		Text:     message,
+		Type:     common.ChatTypeNormal,
+	}
+	p.Enqueue(msg)
+	p.Broadcast(msg)
 }
 
 func (p *Player) MoveItem(grid common.MirGridType, from int32, to int32) {

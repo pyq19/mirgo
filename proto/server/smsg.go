@@ -429,7 +429,7 @@ type ObjectWalk struct {
 	Direction common.MirDirection
 }
 
-type ObjectRun struct{
+type ObjectRun struct {
 	ObjectID  uint32
 	Location  common.Point
 	Direction common.MirDirection
@@ -440,7 +440,11 @@ type Chat struct {
 	Type    common.ChatType
 }
 
-type ObjectChat struct{}
+type ObjectChat struct {
+	ObjectID uint32
+	Text     string
+	Type     common.ChatType
+}
 
 type NewItemInfo struct {
 	Info common.ItemInfo

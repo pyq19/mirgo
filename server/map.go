@@ -37,7 +37,7 @@ func (m *Map) GetAllPlayers() []*Player {
 func (m *Map) Broadcast(msg interface{}) {
 	players := m.GetAllPlayers()
 	for i := range players {
-		players[i].Send(msg)
+		players[i].Enqueue(msg)
 	}
 }
 
