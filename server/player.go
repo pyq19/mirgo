@@ -265,6 +265,18 @@ func (p *Player) ChangeTrade(trade bool) {
 
 }
 
+func (p *Player) getAttackPower(minDC, maxDC uint16) int {
+	return 0
+}
+
+func (p *Player) isAttackTarget(attacker *Player) bool {
+	return true
+}
+
+func (p *Player) attacked(attacker *Player, finalDamage int, defenceType common.DefenceType, damageWeapon bool) {
+
+}
+
 func (p *Player) Attack(direction common.MirDirection, spell common.Spell) {
 	if !p.canAttack() {
 		p.Enqueue(server.UserLocation{
@@ -286,6 +298,30 @@ func (p *Player) Attack(direction common.MirDirection, spell common.Spell) {
 		Level:     0,
 		Type:      0,
 	})
+	target := p.Point().NextPoint(p.CurrentDirection, 1)
+	c := p.Map.GetCell(target.Coordinate())
+	if c == nil || c.IsEmpty() {
+		return
+	}
+	damageBase := p.getAttackPower(p.MinDC, p.MaxDC)
+	damageFinal := damageBase // TODO
+	for i := range c.Objects {
+		o := c.Objects[i]
+		switch c.GetRace(o) {
+		case common.ObjectTypePlayer:
+			ob := o.(*Player)
+			if !ob.isAttackTarget(p) {
+				continue
+			}
+			ob.attacked(p, damageFinal, common.DefenceTypeAgility, false)
+		case common.ObjectTypeMonster:
+			ob := o.(*Monster)
+			if !ob.isAttackTarget(p) {
+				continue
+			}
+			ob.attacked(p, damageFinal, common.DefenceTypeAgility, false)
+		}
+	}
 }
 
 func (p *Player) RangeAttack(direction common.MirDirection, location common.Point, id uint32) {
