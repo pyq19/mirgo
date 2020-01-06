@@ -74,6 +74,22 @@ func (p *Player) canWalk() bool {
 	return true
 }
 
+func (p *Player) canRun() bool {
+	return true
+}
+
+func (p *Player) canAttack() bool {
+	return true
+}
+
+func (p *Player) canRegen() bool {
+	return true
+}
+
+func (p *Player) canCast() bool {
+	return true
+}
+
 func (p *Player) Turn(direction common.MirDirection) {
 	if p.canMove() {
 		p.Broadcast(server.ObjectTurn{
@@ -250,7 +266,21 @@ func (p *Player) ChangeTrade(trade bool) {
 }
 
 func (p *Player) Attack(direction common.MirDirection, spell common.Spell) {
+	if !p.canAttack() {
+		p.Enqueue(server.UserLocation{
+			Location:  p.Point(),
+			Direction: p.CurrentDirection,
+		})
+		return
+	}
+	p.CurrentDirection = direction
+	p.Enqueue(server.UserLocation{
+		Location:  p.Point(),
+		Direction: direction,
+	})
+	p.Broadcast(server.ObjectAttack{
 
+	})
 }
 
 func (p *Player) RangeAttack(direction common.MirDirection, location common.Point, id uint32) {

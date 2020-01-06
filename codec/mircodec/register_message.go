@@ -1074,7 +1074,7 @@ func initServerMessage() {
 	})
 	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
 		Codec: mirCodec,
-		Type:  reflect.TypeOf((*server.ObjectNpc)(nil)).Elem(),
+		Type:  reflect.TypeOf((*server.ObjectNPC)(nil)).Elem(),
 		ID:    server.OBJECT_NPC,
 	})
 	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
