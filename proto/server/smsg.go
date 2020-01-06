@@ -450,161 +450,560 @@ type NewItemInfo struct {
 	Info common.ItemInfo
 }
 
-type MoveItem struct{}
-type EquipItem struct{}
-type MergeItem struct{}
-type RemoveItem struct{}
-type RemoveSlotItem struct{}
-type TakeBackItem struct{}
-type StoreItem struct{}
-type SplitItem struct{}
-type SplitItem1 struct{}
-type DepositRefineItem struct{}
-type RetrieveRefineItem struct{}
-type RefineCancel struct{}
-type RefineItem struct{}
-type DepositTradeItem struct{}
-type RetrieveTradeItem struct{}
-type UseItem struct{}
-type DropItem struct{}
-type PlayerUpdate struct{}
-type PlayerInspect struct{}
-type LogOutSuccess struct{}
-type LogOutFailed struct{}
-type TimeOfDay struct{}
-type ChangeAMode struct{}
-type ChangePMode struct{}
-type ObjectItem struct{}
-type ObjectGold struct{}
-type GainedItem struct{}
-type GainedGold struct{}
-type LoseGold struct{}
-type GainedCredit struct{}
-type LoseCredit struct{}
-type ObjectMonster struct{}
-type ObjectAttack struct{}
-type Struck struct{}
-type ObjectStruck struct{}
-type DamageIndicator struct{}
-type DuraChanged struct{}
-type HealthChanged struct{}
-type DeleteItem struct{}
-type Death struct{}
-type ObjectDied struct{}
-type ColourChanged struct{}
-type ObjectColourChanged struct{}
-type ObjectGuildNameChanged struct{}
-type GainExperience struct{}
-type LevelChanged struct{}
-type ObjectLeveled struct{}
-type ObjectHarvest struct{}
-type ObjectHarvested struct{}
-type ObjectNpc struct{}
+type MoveItem struct {
+	Grid    common.MirGridType
+	From    int32
+	To      int32
+	Success bool
+}
+
+type EquipItem struct {
+	Grid     common.MirGridType
+	UniqueID uint64
+	To       int32
+	Success  bool
+}
+
+type MergeItem struct {
+	GridFrom common.MirGridType
+	GridTo   common.MirGridType
+	IDFrom   uint64
+	IDTo     uint64
+	Success  bool
+}
+
+type RemoveItem struct {
+	Grid     common.MirGridType
+	UniqueID uint64
+	To       int32
+	Success  bool
+}
+
+type RemoveSlotItem struct {
+	Grid     common.MirGridType
+	GridTo   common.MirGridType
+	UniqueID uint64
+	To       int32
+	Success  bool
+}
+
+type TakeBackItem struct {
+	From    int32
+	To      int32
+	Success bool
+}
+
+type StoreItem struct {
+	From    int32
+	To      int32
+	Success bool
+}
+
+// TODO
+type SplitItem struct {
+	//Item common.UserItem
+	//Grid common.MirGridType
+}
+
+type SplitItem1 struct {
+	Grid     common.MirGridType
+	UniqueID uint64
+	Count    uint32
+	Success  bool
+}
+
+type DepositRefineItem struct {
+	From    int32
+	To      int32
+	Success bool
+}
+
+type RetrieveRefineItem struct {
+	From    int32
+	To      int32
+	Success bool
+}
+
+type RefineCancel struct {
+	Unlock bool
+}
+
+type RefineItem struct {
+	UniqueID uint64
+}
+
+type DepositTradeItem struct {
+	From    int32
+	To      int32
+	Success bool
+}
+
+type RetrieveTradeItem struct {
+	From    int32
+	To      int32
+	Success bool
+}
+
+type UseItem struct {
+	UniqueID uint64
+	Success  bool
+}
+
+type DropItem struct {
+	UniqueID uint64
+	Count    uint32
+	Success  bool
+}
+
+type PlayerUpdate struct {
+	ObjectID     uint32
+	Light        uint8
+	Weapon       int16
+	WeaponEffect int16
+	Armour       int16
+	WingEffect   uint8
+}
+
+// TODO
+type PlayerInspect struct {
+}
+
+// TODO
+type LogOutSuccess struct {
+}
+
+// TODO
+type LogOutFailed struct {
+}
+
+type TimeOfDay struct {
+	Lights common.LightSetting
+}
+
+type ChangeAMode struct {
+	Mode common.AttackMode
+}
+
+type ChangePMode struct {
+	Mode common.PetMode
+}
+
+type ObjectItem struct {
+	ObjectID  uint32
+	Name      string
+	NameColor common.Color
+	Location  common.Point
+	Image     uint16
+	Grade     common.ItemGrade
+}
+
+type ObjectGold struct {
+	ObjectID uint32
+	Gold     uint32
+	Location common.Point
+}
+
+type GainedItem struct {
+	Item common.UserItem
+}
+
+type GainedGold struct {
+	Gold uint32
+}
+
+type LoseGold struct {
+	Gold uint32
+}
+
+type GainedCredit struct {
+	Credit uint32
+}
+
+type LoseCredit struct {
+	Credit uint32
+}
+
+type ObjectMonster struct {
+	ObjectID          uint32
+	Name              string
+	NameColor         common.Color
+	Image             common.Monster
+	Direction         common.MirDirection
+	Effect            uint8
+	AI                uint8
+	Light             uint8
+	Dead              bool
+	Skeleton          bool
+	Poison            common.PoisonType
+	Hidden            bool
+	Extra             bool
+	ExtraByte         uint8
+	ShockTime         int64
+	BindingShotCenter bool
+}
+
+type ObjectAttack struct {
+	ObjectID  uint32
+	Location  common.Point
+	Direction common.MirDirection
+	Spell     common.Spell
+	Level     uint8
+	Type      uint8
+}
+
+type Struck struct {
+	AttackerID uint32
+}
+
+type ObjectStruck struct {
+	ObjectID   uint32
+	AttackerID uint32
+	Location   common.Point
+	Direction  common.MirDirection
+}
+
+type DamageIndicator struct {
+	Damage   int32
+	Type     common.DamageType
+	ObjectID uint32
+}
+
+type DuraChanged struct {
+	UniqueID    uint64
+	CurrentDura uint16
+}
+
+type HealthChanged struct {
+	HP uint16
+	MP uint16
+}
+
+type DeleteItem struct {
+	UniqueID uint64
+	Count    uint32
+}
+
+type Death struct {
+	Location  common.Point
+	Direction common.MirDirection
+}
+
+type ObjectDied struct {
+	ObjectID  uint32
+	Location  common.Point
+	Direction common.MirDirection
+	Type      uint8
+}
+
+type ColourChanged struct {
+	NameColor common.Color
+}
+
+type ObjectColourChanged struct {
+	ObjectID  uint32
+	NameColor common.Color
+}
+
+type ObjectGuildNameChanged struct {
+	ObjectID  uint32
+	GuildName string
+}
+
+type GainExperience struct {
+	Amount uint32
+}
+
+type LevelChanged struct {
+	Level         uint16
+	Experience    int64
+	MaxExperience int64
+}
+
+type ObjectLeveled struct {
+	ObjectID uint32
+}
+
+type ObjectHarvest struct {
+	ObjectID  uint32
+	Location  common.Point
+	Direction common.MirDirection
+}
+
+type ObjectHarvested struct {
+	ObjectID  uint32
+	Location  common.Point
+	Direction common.MirDirection
+}
+
+// TODO
+type ObjectNPC struct {
+	ObjectID  uint32
+	Name      string
+	NameColor common.Color
+	Image     uint16
+	Color     common.Color
+	Location  common.Point
+	Direction common.MirDirection
+	//QuestIDs TODO
+}
+
+// TODO
 type NPCResponse struct{}
-type ObjectHide struct{}
-type ObjectShow struct{}
-type Poisoned struct{}
-type ObjectPoisoned struct{}
-type MapChanged struct{}
-type ObjectTeleportOut struct{}
-type ObjectTeleportIn struct{}
+
+type ObjectHide struct {
+	ObjectID uint32
+}
+
+type ObjectShow struct {
+	ObjectID uint32
+}
+
+type Poisoned struct {
+	Poison common.PoisonType
+}
+
+type ObjectPoisoned struct {
+	ObjectID uint32
+	Poison   common.PoisonType
+}
+
+type MapChanged struct {
+	FileName     string
+	Title        string
+	MiniMap      uint16
+	BigMap       uint16
+	Music        uint16
+	Lights       common.LightSetting
+	Location     common.Point
+	Direction    common.MirDirection
+	MapDarkLight uint8
+}
+
+type ObjectTeleportOut struct {
+	ObjectID uint32
+	Type     uint8
+}
+
+type ObjectTeleportIn struct {
+	ObjectID uint32
+	Type     uint8
+}
+
 type TeleportIn struct{}
+
+// TODO
 type NPCGoods struct{}
+
+// TODO
 type NPCSell struct{}
+
+// TODO
 type NPCRepair struct{}
+
+// TODO
 type NPCSRepair struct{}
+
+// TODO
 type NPCRefine struct{}
+
+// TODO
 type NPCCheckRefine struct{}
+
+// TODO
 type NPCCollectRefine struct{}
+
+// TODO
 type NPCReplaceWedRing struct{}
+
+// TODO
 type NPCStorage struct{}
-type SellItem struct{}
-type CraftItem struct{}
-type RepairItem struct{}
-type ItemRepaired struct{}
+
+type SellItem struct {
+	UniqueID uint64
+	Count    uint32
+	Success  bool
+}
+
+type CraftItem struct {
+	Success bool
+}
+
+type RepairItem struct {
+	UniqueID uint64
+}
+
+type ItemRepaired struct {
+	UniqueID    uint64
+	MaxDura     uint16
+	CurrentDura uint16
+}
+
 type NewMagic struct{}
+
 type RemoveMagic struct{}
+
 type MagicLeveled struct{}
+
 type Magic struct{}
+
 type MagicDelay struct{}
+
 type MagicCast struct{}
+
 type ObjectMagic struct{}
+
 type ObjectEffect struct{}
+
 type RangeAttack struct{}
+
 type Pushed struct{}
+
 type ObjectPushed struct{}
+
 type ObjectName struct{}
+
 type UserStorage struct{}
+
 type SwitchGroup struct{}
+
 type DeleteGroup struct{}
+
 type DeleteMember struct{}
+
 type GroupInvite struct{}
+
 type AddMember struct{}
+
 type Revived struct{}
+
 type ObjectRevived struct{}
+
 type SpellToggle struct{}
+
 type ObjectHealth struct{}
+
 type MapEffect struct{}
+
 type ObjectRangeAttack struct{}
+
 type AddBuff struct{}
+
 type RemoveBuff struct{}
+
 type ObjectHidden struct{}
+
 type RefreshItem struct{}
+
 type ObjectSpell struct{}
+
 type UserDash struct{}
+
 type ObjectDash struct{}
+
 type UserDashFail struct{}
+
 type ObjectDashFail struct{}
+
 type NPCConsign struct{}
+
 type NPCMarket struct{}
+
 type NPCMarketPage struct{}
+
 type ConsignItem struct{}
+
 type MarketFail struct{}
+
 type MarketSuccess struct{}
+
 type ObjectSitDown struct{}
+
 type InTrapRock struct{}
+
 type BaseStatsInfo struct{}
+
 type UserName struct{}
+
 type ChatItemStats struct{}
+
 type GuildNoticeChange struct{}
+
 type GuildMemberChange struct{}
+
 type GuildStatus struct{}
+
 type GuildInvite struct{}
+
 type GuildExpGain struct{}
+
 type GuildNameRequest struct{}
+
 type GuildStorageGoldChange struct{}
+
 type GuildStorageItemChange struct{}
+
 type GuildStorageList struct{}
+
 type GuildRequestWar struct{}
+
 type DefaultNPC struct{}
+
 type NPCUpdate struct{}
+
 type NPCImageUpdate struct{}
+
 type MarriageRequest struct{}
+
 type DivorceRequest struct{}
+
 type MentorRequest struct{}
+
 type TradeRequest struct{}
+
 type TradeAccept struct{}
+
 type TradeGold struct{}
+
 type TradeItem struct{}
+
 type TradeConfirm struct{}
+
 type TradeCancel struct{}
+
 type MountUpdate struct{}
+
 type EquipSlotItem struct{}
+
 type FishingUpdate struct{}
+
 type ChangeQuest struct{}
+
 type CompleteQuest struct{}
+
 type ShareQuest struct{}
+
 type NewQuestInfo struct{}
+
 type GainedQuestItem struct{}
+
 type DeleteQuestItem struct{}
+
 type CancelReincarnation struct{}
+
 type RequestReincarnation struct{}
+
 type UserBackStep struct{}
+
 type ObjectBackStep struct{}
+
 type UserDashAttack struct{}
+
 type ObjectDashAttack struct{}
+
 type UserAttackMove struct{}
+
 type CombineItem struct{}
+
 type ItemUpgraded struct{}
 
 type SetConcentration struct {
