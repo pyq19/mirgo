@@ -232,3 +232,131 @@ func (p *Player) DropGold(amount uint32) {
 func (p *Player) PickUp() {
 
 }
+
+func (p *Player) Inspect(id uint32) {
+
+}
+
+func (p *Player) ChangeAMode(mode common.AttackMode) {
+
+}
+
+func (p *Player) ChangePMode(mode common.AttackMode) {
+
+}
+
+func (p *Player) ChangeTrade(trade bool) {
+
+}
+
+func (p *Player) Attack(direction common.MirDirection, spell common.Spell) {
+
+}
+
+func (p *Player) RangeAttack(direction common.MirDirection, location common.Point, id uint32) {
+
+}
+
+func (p *Player) Harvest(direction common.MirDirection) {
+
+}
+
+func (p *Player) CallNPC(id uint32, key string) {
+
+}
+
+func (p *Player) TalkMonsterNPC(id uint32) {
+
+}
+
+func (p *Player) BuyItem(index uint64, count uint32, panelType common.PanelType) {
+
+}
+
+func (p *Player) CraftItem() {
+
+}
+
+func (p *Player) SellItem(id uint64, count uint32) {
+
+}
+
+func (p *Player) RepairItem(id uint64) {
+
+}
+
+func (p *Player) BuyItemBack(id uint64, count uint32) {
+
+}
+
+func (p *Player) SRepairItem(id uint64) {
+
+}
+
+func (p *Player) MagicKey(spell common.Spell, key uint8) {
+
+}
+
+func (p *Player) Magic(spell common.Spell, direction common.MirDirection, id uint32, location common.Point) {
+
+}
+
+func (p *Player) SwitchGroup(group bool) {
+
+}
+
+func (p *Player) AddMember(name string) {
+
+}
+
+func (p *Player) DelMember(name string) {
+
+}
+
+func (p *Player) GroupInvite(invite bool) {
+
+}
+
+func (p *Player) TownRevive() {
+
+}
+
+func (p *Player) SpellToggle(spell common.Spell, use bool) {
+
+}
+
+func (p *Player) ConsignItem(id uint64, price uint32) {
+
+}
+
+func (p *Player) MarketSearch(match string) {
+
+}
+
+func (p *Player) MarketRefresh() {
+
+}
+
+func (p *Player) MarketPage(page int32) {
+
+}
+
+func (p *Player) MarketBuy(id uint64) {
+
+}
+
+func (p *Player) MarketGetBack(id uint64) {
+
+}
+
+func (p *Player) RequestUserName(id uint32) {
+
+}
+
+func (p *Player) RequestChatItem(id uint64) {
+
+}
+
+func (p *Player) EditGuildMember(name string, name2 string, index uint8, changeType uint8) {
+
+}

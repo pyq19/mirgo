@@ -775,259 +775,260 @@ func (g *Game) PickUp(p *Player, msg *client.PickUp) {
 }
 
 func (g *Game) Inspect(p *Player, msg *client.Inspect) {
-
+	p.Inspect(msg.ObjectID)
 }
 
 func (g *Game) ChangeAMode(p *Player, msg *client.ChangeAMode) {
-
+	p.ChangeAMode(msg.Mode)
 }
 
 func (g *Game) ChangePMode(p *Player, msg *client.ChangePMode) {
-
+	p.ChangePMode(msg.Mode)
 }
 
 func (g *Game) ChangeTrade(p *Player, msg *client.ChangeTrade) {
-
+	p.ChangeTrade(msg.AllowTrade)
 }
 
 func (g *Game) Attack(p *Player, msg *client.Attack) {
-
+	p.Attack(msg.Direction, msg.Spell)
 }
 
 func (g *Game) RangeAttack(p *Player, msg *client.RangeAttack) {
-
+	p.RangeAttack(msg.Direction, msg.TargetLocation, msg.TargetID)
 }
 
 func (g *Game) Harvest(p *Player, msg *client.Harvest) {
-
+	p.Harvest(msg.Direction)
 }
 
 func (g *Game) CallNPC(p *Player, msg *client.CallNPC) {
-
+	p.CallNPC(msg.ObjectID, msg.Key)
 }
 
 func (g *Game) TalkMonsterNPC(p *Player, msg *client.TalkMonsterNPC) {
-
+	p.TalkMonsterNPC(msg.ObjectID)
 }
 
 func (g *Game) BuyItem(p *Player, msg *client.BuyItem) {
-
+	p.BuyItem(msg.ItemIndex, msg.Count, msg.Type)
 }
 
+// TODO
 func (g *Game) CraftItem(p *Player, msg *client.CraftItem) {
-
+	p.CraftItem()
 }
 
 func (g *Game) SellItem(p *Player, msg *client.SellItem) {
-
+	p.SellItem(msg.UniqueID, msg.Count)
 }
 
 func (g *Game) RepairItem(p *Player, msg *client.RepairItem) {
-
+	p.RepairItem(msg.UniqueID)
 }
 
 func (g *Game) BuyItemBack(p *Player, msg *client.BuyItemBack) {
-
+	p.BuyItemBack(msg.UniqueID, msg.Count)
 }
 
 func (g *Game) SRepairItem(p *Player, msg *client.SRepairItem) {
-
+	p.SRepairItem(msg.UniqueID)
 }
 
 func (g *Game) MagicKey(p *Player, msg *client.MagicKey) {
-
+	p.MagicKey(msg.Spell, msg.Key)
 }
 
 func (g *Game) Magic(p *Player, msg *client.Magic) {
-
+	p.Magic(msg.Spell, msg.Direction, msg.TargetID, msg.Location)
 }
 
 func (g *Game) SwitchGroup(p *Player, msg *client.SwitchGroup) {
-
+	p.SwitchGroup(msg.AllowGroup)
 }
 
 func (g *Game) AddMember(p *Player, msg *client.AddMember) {
-
+	p.AddMember(msg.Name)
 }
 
 func (g *Game) DelMember(p *Player, msg *client.DelMember) {
-
+	p.DelMember(msg.Name)
 }
 
 func (g *Game) GroupInvite(p *Player, msg *client.GroupInvite) {
-
+	p.GroupInvite(msg.AcceptInvite)
 }
 
 func (g *Game) TownRevive(p *Player, msg *client.TownRevive) {
-
+	p.TownRevive()
 }
 
 func (g *Game) SpellToggle(p *Player, msg *client.SpellToggle) {
-
+	p.SpellToggle(msg.Spell, msg.CanUse)
 }
 
 func (g *Game) ConsignItem(p *Player, msg *client.ConsignItem) {
-
+	p.ConsignItem(msg.UniqueID, msg.Price)
 }
 
 func (g *Game) MarketSearch(p *Player, msg *client.MarketSearch) {
-
+	p.MarketSearch(msg.Match)
 }
 
 func (g *Game) MarketRefresh(p *Player, msg *client.MarketRefresh) {
-
+	p.MarketRefresh()
 }
 
 func (g *Game) MarketPage(p *Player, msg *client.MarketPage) {
-
+	p.MarketPage(msg.Page)
 }
 
 func (g *Game) MarketBuy(p *Player, msg *client.MarketBuy) {
-
+	p.MarketBuy(msg.AuctionID)
 }
 
 func (g *Game) MarketGetBack(p *Player, msg *client.MarketGetBack) {
-
+	p.MarketGetBack(msg.AuctionID)
 }
 
 func (g *Game) RequestUserName(p *Player, msg *client.RequestUserName) {
-
+	p.RequestUserName(msg.UserID)
 }
 
 func (g *Game) RequestChatItem(p *Player, msg *client.RequestChatItem) {
-
+	p.RequestChatItem(msg.ChatItemID)
 }
 
 func (g *Game) EditGuildMember(p *Player, msg *client.EditGuildMember) {
-
+	p.EditGuildMember(msg.Name, msg.RankName, msg.RankIndex, msg.ChangeType)
 }
 
 func (g *Game) EditGuildNotice(p *Player, msg *client.EditGuildNotice) {
-
+	//p.EditGuildNotice()
 }
 
 func (g *Game) GuildInvite(p *Player, msg *client.GuildInvite) {
-
+	//p.GuildInvite()
 }
 
 func (g *Game) RequestGuildInfo(p *Player, msg *client.RequestGuildInfo) {
-
+	//p.RequestGuildInfo()
 }
 
 func (g *Game) GuildNameReturn(p *Player, msg *client.GuildNameReturn) {
-
+	//p.GuildNameReturn()
 }
 
 func (g *Game) GuildStorageGoldChange(p *Player, msg *client.GuildStorageGoldChange) {
-
+	//p.GuildStorageGoldChange()
 }
 
 func (g *Game) GuildStorageItemChange(p *Player, msg *client.GuildStorageItemChange) {
-
+	//p.GuildStorageItemChange()
 }
 
 func (g *Game) GuildWarReturn(p *Player, msg *client.GuildWarReturn) {
-
+	//p.GuildWarReturn()
 }
 
 func (g *Game) MarriageRequest(p *Player, msg *client.MarriageRequest) {
-
+	//p.MarriageRequest()
 }
 
 func (g *Game) MarriageReply(p *Player, msg *client.MarriageReply) {
-
+	//p.MarriageReply()
 }
 
 func (g *Game) ChangeMarriage(p *Player, msg *client.ChangeMarriage) {
-
+	//p.ChangeMarriage()
 }
 
 func (g *Game) DivorceRequest(p *Player, msg *client.DivorceRequest) {
-
+	//p.DivorceRequest()
 }
 
 func (g *Game) DivorceReply(p *Player, msg *client.DivorceReply) {
-
+	//p.DivorceReply()
 }
 
 func (g *Game) AddMentor(p *Player, msg *client.AddMentor) {
-
+	//p.AddMentor()
 }
 
 func (g *Game) MentorReply(p *Player, msg *client.MentorReply) {
-
+	//p.MentorReply()
 }
 
 func (g *Game) AllowMentor(p *Player, msg *client.AllowMentor) {
-
+	//p.AllowMentor()
 }
 
 func (g *Game) CancelMentor(p *Player, msg *client.CancelMentor) {
-
+	//p.CancelMentor()
 }
 
 func (g *Game) TradeRequest(p *Player, msg *client.TradeRequest) {
-
+	//p.TradeRequest()
 }
 
 func (g *Game) TradeGold(p *Player, msg *client.TradeGold) {
-
+	//p.TradeGold()
 }
 
 func (g *Game) TradeReply(p *Player, msg *client.TradeReply) {
-
+	//p.TradeReply()
 }
 
 func (g *Game) TradeConfirm(p *Player, msg *client.TradeConfirm) {
-
+	//p.TradeConfirm()
 }
 
 func (g *Game) TradeCancel(p *Player, msg *client.TradeCancel) {
-
+	//p.TradeCancel()
 }
 
 func (g *Game) EquipSlotItem(p *Player, msg *client.EquipSlotItem) {
-
+	//p.EquipSlotItem()
 }
 
 func (g *Game) FishingCast(p *Player, msg *client.FishingCast) {
-
+	//p.FishingCast()
 }
 
 func (g *Game) FishingChangeAutocast(p *Player, msg *client.FishingChangeAutocast) {
-
+	//p.FishingChangeAutocast()
 }
 
 func (g *Game) AcceptQuest(p *Player, msg *client.AcceptQuest) {
-
+	//p.AcceptQuest()
 }
 
 func (g *Game) FinishQuest(p *Player, msg *client.FinishQuest) {
-
+	//p.FinishQuest()
 }
 
 func (g *Game) AbandonQuest(p *Player, msg *client.AbandonQuest) {
-
+	//p.AbandonQuest()
 }
 
 func (g *Game) ShareQuest(p *Player, msg *client.ShareQuest) {
-
+	//p.ShareQuest()
 }
 
 func (g *Game) AcceptReincarnation(p *Player, msg *client.AcceptReincarnation) {
-
+	//p.AcceptReincarnation()
 }
 
 func (g *Game) CancelReincarnation(p *Player, msg *client.CancelReincarnation) {
-
+	//p.CancelReincarnation()
 }
 
 func (g *Game) CombineItem(p *Player, msg *client.CombineItem) {
-
+	//p.CombineItem()
 }
 
 func (g *Game) SetConcentration(p *Player, msg *client.SetConcentration) {
-
+	//p.SetConcentration()
 }
 
 func (g *Game) AwakeningNeedMaterials(p *Player, msg *client.AwakeningNeedMaterials) {
