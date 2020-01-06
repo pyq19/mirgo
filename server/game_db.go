@@ -15,6 +15,7 @@ type GameDB struct {
 	QuestInfos    []common.QuestInfo
 	RespawnInfos  []common.RespawnInfo
 	SafeZoneInfos []common.SafeZoneInfo
+	UserMagics    []common.UserMagic
 }
 
 // GetMapInfoByID FIXME 改成从 map 取出

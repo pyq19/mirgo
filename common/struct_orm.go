@@ -46,16 +46,21 @@ type Character struct {
 	PetMode          PetMode
 }
 
-// CharacterMagic 角色魔法关系
-type CharacterMagic struct {
-}
-
 // CharacterUserItem 角色物品关系
 type CharacterUserItem struct {
 	ID          int `gorm:"primary_key"`
 	CharacterID int
 	UserItemID  int
 	Type        int
+}
+
+// CharacterUserMagic 角色魔法关系
+type CharacterUserMagic struct {
+	ID          int `gorm:"primary_key"`
+	CharacterID int
+	UserMagicID int
+	//Character   Character `gorm:"-"` // orm ignore
+	//UserMagic   UserMagic `gorm:"-"` // orm ignore
 }
 
 // GameShopItem 游戏内商城物品
@@ -342,4 +347,16 @@ type UserItem struct {
 	CriticalDamage uint8
 	Freezing       uint8
 	PoisonAttack   uint8
+}
+
+type UserMagic struct {
+	ID          int `gorm:"primary_key"`
+	MagicID     int
+	Spell       Spell
+	Level       int // byte
+	Key         int // byte
+	Experience  int // uint16
+	IsTempSpell bool
+	CastTime    int // int64
+	//Magic       MagicInfo `gorm:"-"` // orm ignore
 }

@@ -74,6 +74,9 @@ func (e *Environ) InitGameDB() {
 	si := make([]common.SafeZoneInfo, 19)
 	db.Table("safe_zone").Find(&si)
 	gdb.SafeZoneInfos = si
+	var um []common.UserMagic
+	db.Table("user_magic").Find(&um)
+	gdb.UserMagics = um
 }
 
 // InitMaps ...
