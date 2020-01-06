@@ -92,3 +92,17 @@ func TestCharacter(t *testing.T) {
 	db.Table("character").Where("id in (?)", ids).Find(&cs)
 	t.Log(cs)
 }
+
+
+func TestUserMagic(t *testing.T) {
+	path := os.Getenv("GOPATH") + "/src/github.com/yenkeia/mirgo/dotnettools/mir.sqlite"
+	db, err := gorm.Open("sqlite3", path)
+	if err != nil {
+		panic("failed to connect database")
+	}
+	defer db.Close()
+
+	var um UserMagic
+	db.Table("user_magic").Where("id = ?", "不存在").Find(&um)
+	t.Log(um)
+}
