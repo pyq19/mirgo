@@ -939,3 +939,28 @@ const (
 	DamageTypeMiss                = 1
 	DamageTypeCritical            = 2
 )
+
+type ObjectType uint8
+
+const (
+	ObjectTypeNone     ObjectType = 0
+	ObjectTypePlayer              = 1
+	ObjectTypeItem                = 2
+	ObjectTypeMerchant            = 3
+	ObjectTypeSpell               = 4
+	ObjectTypeMonster             = 5
+	ObjectTypeDeco                = 6
+	ObjectTypeCreature            = 7
+)
+
+type DefenceType uint8
+
+const (
+	DefenceTypeACAgility DefenceType = 0
+	DefenceTypeAC
+	DefenceTypeMACAgility
+	DefenceTypeMAC
+	DefenceTypeAgility
+	DefenceTypeRepulsion
+	DefenceTypeNone
+)

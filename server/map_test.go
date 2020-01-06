@@ -62,7 +62,7 @@ func TestMap_GetNextCell(t *testing.T) {
 		Map:        m,
 		Coordinate: "100,200",
 		Attribute:  0,
-		Object:     nil,
+		Objects:     nil,
 		lock:       sync.RWMutex{},
 	}
 	t.Log(c.Coordinate)

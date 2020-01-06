@@ -42,3 +42,11 @@ func (m *Monster) Broadcast(msg interface{}) {
 func (m *Monster) Process() {
 
 }
+
+func (m *Monster) isAttackTarget(attacker *Player) bool {
+	return true
+}
+
+func (m *Monster) attacked(attacker *Player, finalDamage int, defenceType common.DefenceType, damageWeapon bool) {
+
+}
