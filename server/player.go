@@ -279,7 +279,12 @@ func (p *Player) Attack(direction common.MirDirection, spell common.Spell) {
 		Direction: direction,
 	})
 	p.Broadcast(server.ObjectAttack{
-
+		ObjectID:  p.ID,
+		Location:  p.Point(),
+		Direction: p.CurrentDirection,
+		Spell:     common.SpellNone,
+		Level:     0,
+		Type:      0,
 	})
 }
 
