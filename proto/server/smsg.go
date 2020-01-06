@@ -838,76 +838,196 @@ type ItemRepaired struct {
 	CurrentDura uint16
 }
 
+// TODO
 type NewMagic struct{}
 
-type RemoveMagic struct{}
+type RemoveMagic struct {
+	PlaceID int32
+}
 
-type MagicLeveled struct{}
+type MagicLeveled struct {
+	Spell      common.Spell
+	Level      uint8
+	Experience uint16
+}
 
-type Magic struct{}
+type Magic struct {
+	Spell    common.Spell
+	TargetID uint32
+	Target   common.Point
+	Cast     bool
+	Level    uint8
+}
 
-type MagicDelay struct{}
+type MagicDelay struct {
+	Spell common.Spell
+	Delay int64
+}
 
-type MagicCast struct{}
+type MagicCast struct {
+	Spell common.Spell
+}
 
-type ObjectMagic struct{}
+type ObjectMagic struct {
+	ObjectID      uint32
+	Location      common.Point
+	Direction     common.MirDirection
+	Spell         common.Spell
+	TargetID      uint32
+	Target        common.Point
+	Cast          bool
+	Level         uint8
+	SelfBroadcast bool
+}
 
-type ObjectEffect struct{}
+type ObjectEffect struct {
+	ObjectID   uint32
+	Effect     common.SpellEffect
+	EffectType uint32
+	DelayTime  uint32
+	Time       uint32
+}
 
-type RangeAttack struct{}
+type RangeAttack struct {
+	TargetID uint32
+	Target   common.Point
+	Spell    common.Spell
+}
 
-type Pushed struct{}
+type Pushed struct {
+	Location  common.Point
+	Direction common.MirDirection
+}
 
-type ObjectPushed struct{}
+type ObjectPushed struct {
+	ObjectID  uint32
+	Location  common.Point
+	Direction common.MirDirection
+}
 
-type ObjectName struct{}
+type ObjectName struct {
+	ObjectID uint32
+	Name     string
+}
 
-type UserStorage struct{}
+type UserStorage struct {
+	Storage []common.UserItem
+}
 
-type SwitchGroup struct{}
+type SwitchGroup struct {
+	AllowGroup bool
+}
 
 type DeleteGroup struct{}
 
-type DeleteMember struct{}
+type DeleteMember struct {
+	Name string
+}
 
-type GroupInvite struct{}
+type GroupInvite struct {
+	Name string
+}
 
-type AddMember struct{}
+type AddMember struct {
+	Name string
+}
 
 type Revived struct{}
 
-type ObjectRevived struct{}
+type ObjectRevived struct {
+	ObjectID uint32
+	Effect   bool
+}
 
-type SpellToggle struct{}
+type SpellToggle struct {
+	Spell  common.Spell
+	CanUse bool
+}
 
-type ObjectHealth struct{}
+type ObjectHealth struct {
+	ObjectID uint32
+	Percent  uint8
+	Expire   uint8
+}
 
-type MapEffect struct{}
+type MapEffect struct {
+	Location common.Point
+	Effect   common.SpellEffect
+	Value    uint8
+}
 
-type ObjectRangeAttack struct{}
+type ObjectRangeAttack struct {
+	ObjectID  uint32
+	Location  common.Point
+	Direction common.MirDirection
+	TargetID  uint32
+	Target    common.Point
+	Type      uint8
+	Spell     common.Spell
+}
 
-type AddBuff struct{}
+// TODO check
+type AddBuff struct {
+	Type     common.BuffType
+	Caster   string
+	ObjectID uint32
+	Visible  bool
+	Expire   int64
+	Values   []int32
+	Infinite bool
+}
 
-type RemoveBuff struct{}
+type RemoveBuff struct {
+	Type     common.BuffType
+	ObjectID uint32
+}
 
-type ObjectHidden struct{}
+type ObjectHidden struct {
+	ObjectID uint32
+	Hidden   bool
+}
 
-type RefreshItem struct{}
+type RefreshItem struct {
+	Item common.UserItem
+}
 
-type ObjectSpell struct{}
+type ObjectSpell struct {
+	ObjectID  uint32
+	Location  common.Point
+	Spell     common.Spell
+	Direction common.MirDirection
+	Param     bool
+}
 
-type UserDash struct{}
+type UserDash struct {
+	Location  common.Point
+	Direction common.MirDirection
+}
 
-type ObjectDash struct{}
+type ObjectDash struct {
+	ObjectID  uint32
+	Location  common.Point
+	Direction common.MirDirection
+}
 
-type UserDashFail struct{}
+type UserDashFail struct {
+	Location  common.Point
+	Direction common.MirDirection
+}
 
-type ObjectDashFail struct{}
+type ObjectDashFail struct {
+	ObjectID  uint32
+	Location  common.Point
+	Direction common.MirDirection
+}
 
+// TODO
 type NPCConsign struct{}
 
+// TODO
 type NPCMarket struct{}
 
+// TODO
 type NPCMarketPage struct{}
 
 type ConsignItem struct{}
