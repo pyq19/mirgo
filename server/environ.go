@@ -6,7 +6,6 @@ import (
 	"github.com/yenkeia/mirgo/common"
 	_ "github.com/yenkeia/mirgo/proc/mirtcp"
 	"github.com/yenkeia/mirgo/proto/server"
-	"os"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -81,13 +80,12 @@ func (e *Environ) InitGameDB() {
 
 // InitMaps ...
 func (e *Environ) InitMaps() {
-	mapDirPath := os.Getenv("GOPATH") + "/src/github.com/yenkeia/mirgo/dotnettools/database/Maps/"
 	//e.Maps = make([]Map, 386)
 	e.Maps = new(sync.Map)
 	for _, mi := range e.GameDB.MapInfos {
 		mi := mi
 		if mi.ID == 1 {
-			m := GetMapV1(GetMapBytes(mapDirPath + mi.Filename + ".map"))
+			m := GetMapV1(GetMapBytes(e.Game.Conf.MapDirPath + mi.Filename + ".map"))
 			m.Env = e
 			m.Info = &mi
 			e.Maps.Store(1, m)

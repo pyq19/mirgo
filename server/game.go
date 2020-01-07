@@ -23,7 +23,7 @@ type Game struct {
 func NewGame(conf Config) *Game {
 	g := new(Game)
 	g.Conf = conf
-	db, err := gorm.Open("sqlite3", conf.MirDB)
+	db, err := gorm.Open("sqlite3", conf.DBPath)
 	if err != nil {
 		panic("failed to connect database")
 	}
