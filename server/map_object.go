@@ -9,7 +9,7 @@ type MapObject struct {
 	ID               uint32
 	Name             string
 	Map              *Map
-	CurrentLocation  *common.Point
+	CurrentLocation  common.Point
 	CurrentDirection common.MirDirection
 	Poisons          []*Poison
 	Buffs            []*Buff
@@ -54,7 +54,9 @@ type Buff struct {
 
 type IMapObject interface {
 	GetID() uint32
+	GetRace() common.ObjectType
 	GetCoordinate() string
-	GetPoint() *common.Point
+	GetPoint() common.Point
 	GetCell() *Cell
+	Broadcast(interface{})
 }

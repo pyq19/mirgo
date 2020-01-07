@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/yenkeia/mirgo/common"
 	"sync"
 )
 
@@ -63,13 +64,24 @@ func (g *Grid) String() string {
 }
 
 func (g *Grid) AddObject(obj IMapObject) {
-	switch o := obj.(type) {
-	case *Player:
-		g.AddPlayer(o)
-	case *NPC:
-		g.AddNPC(o)
-	case *Monster:
-		g.AddMonster(o)
+	switch obj.GetRace() {
+	case common.ObjectTypePlayer:
+		g.AddPlayer(obj.(*Player))
+	case common.ObjectTypeMerchant:
+		g.AddNPC(obj.(*NPC))
+	case common.ObjectTypeMonster:
+		g.AddMonster(obj.(*Monster))
+	}
+}
+
+func (g *Grid) DeleteObject(obj IMapObject) {
+	switch obj.GetRace() {
+	case common.ObjectTypePlayer:
+		g.DeletePlayer(obj.(*Player))
+	case common.ObjectTypeMerchant:
+		g.DeleteNPC(obj.(*NPC))
+	case common.ObjectTypeMonster:
+		g.DeleteMonster(obj.(*Monster))
 	}
 }
 

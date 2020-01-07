@@ -108,11 +108,9 @@ func (m *AOIManager) GetSurroundGridsByGridID(gID int) (grids []*Grid) {
 	return
 }
 
-// GetGridByCoordinate
-func (m *AOIManager) GetGridByCoordinate(coordinate string) (grid *Grid) {
-	p := common.NewPointByCoordinate(coordinate)
-	x := int(p.X)
-	y := int(p.Y)
+func (m *AOIManager) GetGridByPoint(point common.Point) (grid *Grid) {
+	x := int(point.X)
+	y := int(point.Y)
 	w := m.gridWidth()
 	h := m.gridHeight()
 	gridID := (y/h)*m.CntsX + (x / w)
@@ -122,6 +120,12 @@ func (m *AOIManager) GetGridByCoordinate(coordinate string) (grid *Grid) {
 	}
 	grid = v.(*Grid)
 	return grid
+}
+
+// GetGridByCoordinate
+func (m *AOIManager) GetGridByCoordinate(coordinate string) (grid *Grid) {
+	p := common.NewPointByCoordinate(coordinate)
+	return m.GetGridByPoint(p)
 }
 
 // GetSurroundGridsByCoordinate 根据坐标求出周边九宫格

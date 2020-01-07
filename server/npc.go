@@ -25,11 +25,15 @@ func (n *NPC) GetID() uint32 {
 	return n.ID
 }
 
+func (n *NPC) GetRace() common.ObjectType {
+	return common.ObjectTypeMerchant
+}
+
 func (n *NPC) GetCoordinate() string {
 	return n.GetPoint().Coordinate()
 }
 
-func (n *NPC) GetPoint() *common.Point {
+func (n *NPC) GetPoint() common.Point {
 	return n.CurrentLocation
 }
 

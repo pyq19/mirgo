@@ -57,7 +57,7 @@ func (m *Map) AddObject(obj IMapObject) {
 }
 
 // UpdateObject 更新对象在 Cells, AOI 中的数据, 如果更新成功返回 true
-func (m *Map) UpdateObject(obj IMapObject, points ...*common.Point) bool {
+func (m *Map) UpdateObject(obj IMapObject, points ...common.Point) bool {
 	for i := range points {
 		c := m.GetCell(points[i].Coordinate())
 		if c == nil || !c.CanWalkAndIsEmpty() {
@@ -68,12 +68,26 @@ func (m *Map) UpdateObject(obj IMapObject, points ...*common.Point) bool {
 	old.AddObject(nil)
 	last := m.GetCell(points[len(points)-1].Coordinate())
 	last.AddObject(obj)
-	m.ChangeAOI(obj, old, last)
+	m.changeAOI(obj, old, last)
 	return true
 }
 
-func (m *Map) ChangeAOI(obj IMapObject, old *Cell, last *Cell) {
-
+func (m *Map) changeAOI(obj IMapObject, old *Cell, last *Cell) {
+	g1 := m.AOI.GetGridByPoint(old.Point())
+	g2 := m.AOI.GetGridByPoint(last.Point())
+	if g1 == g2 {
+		return
+	}
+	g1.DeleteObject(obj)
+	g2.AddObject(obj)
+	switch obj.GetRace() {
+	case common.ObjectTypePlayer:
+		p := obj.(*Player)
+		p.Broadcast(ServerMessage{}.ObjectPlayer(p))
+	case common.ObjectTypeMonster:
+		m := obj.(*Monster)
+		m.Broadcast(ServerMessage{}.ObjectMonster(m))
+	}
 }
 
 // InitNPCs 初始化地图上的 NPC
@@ -105,14 +119,14 @@ func (m *Map) InitMonsters() error {
 }
 
 // GetValidPoint
-func (m *Map) GetValidPoint(x int, y int, spread int) (*common.Point, error) {
+func (m *Map) GetValidPoint(x int, y int, spread int) (common.Point, error) {
 	if spread == 0 {
 		//log.Debugf("GetValidPoint: (x: %d, y: %d), spread: %d\n", x, y, spread)
 		c := m.GetCell(common.Point{X: uint32(x), Y: uint32(y)}.Coordinate())
 		if c != nil && c.CanWalkAndIsEmpty() {
 			return common.NewPointByCoordinate(c.Coordinate), nil
 		}
-		return nil, fmt.Errorf("GetValidPoint: (x: %d, y: %d), spread: %d\n", x, y, spread)
+		return common.Point{}, fmt.Errorf("GetValidPoint: (x: %d, y: %d), spread: %d\n", x, y, spread)
 	}
 	minX := x - spread
 	maxX := x + spread
@@ -122,7 +136,7 @@ func (m *Map) GetValidPoint(x int, y int, spread int) (*common.Point, error) {
 	cnt := 0
 	for {
 		if cnt == 100 {
-			return nil, fmt.Errorf("no valid point in (%d,%d) spread: %d", x, y, spread)
+			return common.Point{}, fmt.Errorf("no valid point in (%d,%d) spread: %d", x, y, spread)
 		}
 		tryX := G_Rand.RandInt(minX, maxX)
 		tryY := G_Rand.RandInt(minY, maxY)
