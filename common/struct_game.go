@@ -11,7 +11,7 @@ type Point struct {
 	Y uint32
 }
 
-func (p *Point) String() string {
+func (p Point) String() string {
 	return p.Coordinate()
 }
 
@@ -20,7 +20,7 @@ func (p Point) Coordinate() string {
 	return fmt.Sprintf("%d,%d", p.X, p.Y)
 }
 
-func (p Point) NextPoint(direction MirDirection, step uint32) *Point {
+func (p Point) NextPoint(direction MirDirection, step uint32) Point {
 	x := p.X
 	y := p.Y
 	switch direction {
@@ -49,15 +49,15 @@ func (p Point) NextPoint(direction MirDirection, step uint32) *Point {
 }
 
 // NewPointByCoordinate 坐标转换成点
-func NewPointByCoordinate(coordinate string) *Point {
+func NewPointByCoordinate(coordinate string) Point {
 	strArr := strings.Split(coordinate, ",")
 	x, _ := strconv.Atoi(strArr[0])
 	y, _ := strconv.Atoi(strArr[1])
-	return &Point{X: uint32(x), Y: uint32(y)}
+	return Point{X: uint32(x), Y: uint32(y)}
 }
 
-func NewPoint(x, y int) *Point {
-	return &Point{uint32(x), uint32(y)}
+func NewPoint(x, y int) Point {
+	return Point{uint32(x), uint32(y)}
 }
 
 type SelectInfo struct {
@@ -69,6 +69,7 @@ type SelectInfo struct {
 	LastAccess int64
 }
 
+// TODO
 type Color struct {
 	R uint8
 	G uint8

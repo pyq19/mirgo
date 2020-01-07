@@ -587,7 +587,7 @@ func (g *Game) StartGame(s cellnet.Session, msg *client.StartGame) {
 	ui.Class = c.Class
 	ui.Gender = c.Gender
 	ui.Level = c.Level
-	ui.Location = *p.CurrentLocation
+	ui.Location = p.CurrentLocation
 	ui.Direction = p.CurrentDirection
 	ui.Hair = c.Hair
 	ui.HP = c.HP
@@ -625,53 +625,20 @@ func (g *Game) StartGame(s cellnet.Session, msg *client.StartGame) {
 	for i, v := range uii {
 		ui.Inventory[i] = v
 		ii := g.Env.GameDB.GetItemInfoByID(int(v.ItemID))
-		s.Send(&server.NewItemInfo{Info: *ii})
+		s.Send(server.NewItemInfo{Info: *ii})
 	}
 	for i, v := range uie {
 		ui.Equipment[i] = v
 		ii := g.Env.GameDB.GetItemInfoByID(int(v.ItemID))
-		s.Send(&server.NewItemInfo{Info: *ii})
+		s.Send(server.NewItemInfo{Info: *ii})
 	}
 	for i, v := range uiq {
 		ui.QuestInventory[i] = v
 		ii := g.Env.GameDB.GetItemInfoByID(int(v.ItemID))
-		s.Send(&server.NewItemInfo{Info: *ii})
+		s.Send(server.NewItemInfo{Info: *ii})
 	}
 	s.Send(ui)
-
-	// TODO
-	p.Broadcast(&server.ObjectPlayer{
-		ObjectID:         uint32(c.ID),
-		Name:             c.Name,
-		GuildName:        "",
-		GuildRankName:    "",
-		NameColour:       common.Color{R: 255, G: 255, B: 255, A: 255}.ToInt32(),
-		Class:            c.Class,
-		Gender:           c.Gender,
-		Level:            c.Level,
-		Location:         common.Point{X: uint32(c.CurrentLocationX), Y: uint32(c.CurrentLocationY)},
-		Direction:        c.Direction,
-		Hair:             c.Hair,
-		Light:            0, // TODO
-		Weapon:           0,
-		WeaponEffect:     0,
-		Armour:           0,
-		Poison:           0,
-		Dead:             false,
-		Hidden:           false,
-		Effect:           0,
-		WingEffect:       0,
-		Extra:            false,
-		MountType:        0,
-		RidingMount:      false,
-		Fishing:          false,
-		TransformType:    0,
-		ElementOrbEffect: 0,
-		ElementOrbLvl:    0,
-		ElementOrbMax:    0,
-		Buffs:            nil,
-		LevelEffects:     0,
-	})
+	p.Broadcast(ServerMessage{}.ObjectPlayer(p))
 }
 
 func (g *Game) LogOut(s cellnet.Session, msg *client.LogOut) {

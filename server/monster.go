@@ -35,11 +35,15 @@ func (m *Monster) GetID() uint32 {
 	return m.ID
 }
 
+func (m *Monster) GetRace() common.ObjectType {
+	return common.ObjectTypeMonster
+}
+
 func (m *Monster) GetCoordinate() string {
 	return m.GetPoint().Coordinate()
 }
 
-func (m *Monster) GetPoint() *common.Point {
+func (m *Monster) GetPoint() common.Point {
 	return m.CurrentLocation
 }
 

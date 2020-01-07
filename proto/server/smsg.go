@@ -626,7 +626,7 @@ type LoseCredit struct {
 type ObjectMonster struct {
 	ObjectID          uint32
 	Name              string
-	NameColor         common.Color
+	NameColor         int32
 	Image             common.Monster
 	Direction         common.MirDirection
 	Effect            uint8

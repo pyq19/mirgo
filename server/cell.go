@@ -14,7 +14,7 @@ type Cell struct {
 	Objects    *sync.Map
 }
 
-func (c *Cell) Point() *common.Point {
+func (c *Cell) Point() common.Point {
 	return common.NewPointByCoordinate(c.Coordinate)
 }
 
@@ -47,7 +47,7 @@ func (c *Cell) DeleteObject(obj IMapObject) {
 	c.Objects.Delete(obj.GetID())
 }
 
-func (c *Cell) GetRace(obj interface{}) common.ObjectType {
+func (c *Cell) GetRace(obj IMapObject) common.ObjectType {
 	switch obj.(type) {
 	case *Player:
 		return common.ObjectTypePlayer

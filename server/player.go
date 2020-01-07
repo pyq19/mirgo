@@ -16,26 +16,40 @@ const (
 
 // Player ...
 type Player struct {
-	MapObject
 	AccountID int
 	GameStage int
 	Session   *cellnet.Session
+	MapObject
+	Extra
 	Magics    []*common.MagicInfo
 	UserItems []*common.UserItem
 }
 
+type Extra struct {
+	GuildName     string
+	GuildRankName string
+	NameColour    common.Color
+	Class         common.MirClass
+	Gender        common.MirGender
+	Hair          uint8
+}
+
 func (p *Player) Point() common.Point {
-	return *p.GetPoint()
+	return p.GetPoint()
 }
 
 func (p *Player) GetID() uint32 {
 	return p.ID
 }
 
+func (p *Player) GetRace() common.ObjectType {
+	return common.ObjectTypePlayer
+}
+
 func (p *Player) GetCoordinate() string {
 	return p.GetPoint().Coordinate()
 }
-func (p *Player) GetPoint() *common.Point {
+func (p *Player) GetPoint() common.Point {
 	return p.CurrentLocation
 }
 
