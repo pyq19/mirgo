@@ -49,6 +49,7 @@ func (p *Player) GetRace() common.ObjectType {
 func (p *Player) GetCoordinate() string {
 	return p.GetPoint().Coordinate()
 }
+
 func (p *Player) GetPoint() common.Point {
 	return p.CurrentLocation
 }

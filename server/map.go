@@ -64,17 +64,17 @@ func (m *Map) UpdateObject(obj IMapObject, points ...common.Point) bool {
 			return false
 		}
 	}
-	old := obj.GetCell()
-	old.AddObject(nil)
-	last := m.GetCell(points[len(points)-1].Coordinate())
-	last.AddObject(obj)
-	m.changeAOI(obj, old, last)
+	c1 := obj.GetCell()
+	c1.DeleteObject(obj)
+	c2 := m.GetCell(points[len(points)-1].Coordinate())
+	c2.AddObject(obj)
+	m.changeAOI(obj, c1, c2)
 	return true
 }
 
-func (m *Map) changeAOI(obj IMapObject, old *Cell, last *Cell) {
-	g1 := m.AOI.GetGridByPoint(old.Point())
-	g2 := m.AOI.GetGridByPoint(last.Point())
+func (m *Map) changeAOI(obj IMapObject, c1 *Cell, c2 *Cell) {
+	g1 := m.AOI.GetGridByPoint(c1.Point())
+	g2 := m.AOI.GetGridByPoint(c2.Point())
 	if g1 == g2 {
 		return
 	}
