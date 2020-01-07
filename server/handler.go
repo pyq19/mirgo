@@ -535,69 +535,18 @@ func (g *Game) StartGame(s cellnet.Session, msg *client.StartGame) {
 	if !ok {
 		return
 	}
-
 	c := new(common.Character)
 	g.DB.Table("character").Where("id = ?", msg.CharacterIndex).Find(c)
 	if c.ID == 0 {
 		return
 	}
-	p.ID = uint32(c.ID)
-	p.Name = c.Name
-	p.GameStage = GAME
-	p.CurrentDirection = c.Direction
-	p.CurrentLocation = common.NewPoint(int(c.CurrentLocationX), int(c.CurrentLocationY))
-
+	UpdatePlayerInfo(p, c)
 	m := g.Env.GetMap(p.Map.Info.ID)
 	m.AddObject(p)
 	p.Map = m
-
-	// SetConcentration
-	sc := new(server.SetConcentration)
-	sc.ObjectID = 66432
-	sc.Enabled = false
-	sc.Interrupted = false
-	s.Send(sc)
-
-	// StartGame
-	sg := new(server.StartGame)
-	sg.Result = 4
-	sg.Resolution = 1024
-	s.Send(sg)
-
-	// MapInformation
-	mi := new(server.MapInformation)
-	pmi := p.Map.Info
-	mi.FileName = pmi.Filename
-	mi.Title = pmi.Title
-	mi.MiniMap = uint16(pmi.MineIndex)
-	mi.BigMap = uint16(pmi.BigMap)
-	mi.Music = uint16(pmi.Music)
-	mi.Lights = common.LightSetting(pmi.Light)
-	mi.Lightning = true
-	mi.MapDarkLight = 0
-	s.Send(mi)
-
-	ui := new(server.UserInformation)
-	ui.ObjectID = 66432 // TODO
-	ui.RealID = p.ID
-	ui.Name = c.Name
-	ui.GuildName = ""
-	ui.GuildRank = ""
-	ui.NameColour = common.Color{R: 255, G: 255, B: 255, A: 255}.ToUint32()
-	ui.Class = c.Class
-	ui.Gender = c.Gender
-	ui.Level = c.Level
-	ui.Location = p.CurrentLocation
-	ui.Direction = p.CurrentDirection
-	ui.Hair = c.Hair
-	ui.HP = c.HP
-	ui.MP = c.MP
-	ui.Experience = c.Experience
-	ui.MaxExperience = 100 // TODO
-	ui.LevelEffect = common.LevelEffects(1)
-	ui.Gold = 100   // TODO
-	ui.Credit = 100 // TODO
-
+	s.Send(ServerMessage{}.SetConcentration())
+	s.Send(ServerMessage{}.StartGame())
+	s.Send(ServerMessage{}.MapInformation(p.Map.Info))
 	cui := make([]common.CharacterUserItem, 0, 100)
 	g.DB.Table("character_user_item").Where("character_id = ?", c.ID).Find(&cui)
 	is := make([]int, 0, 46)
@@ -613,9 +562,11 @@ func (g *Game) StartGame(s cellnet.Session, msg *client.StartGame) {
 			qs = append(qs, i.UserItemID)
 		}
 	}
-	ui.Inventory = make([]common.UserItem, 46)
-	ui.Equipment = make([]common.UserItem, 14)
-	ui.QuestInventory = make([]common.UserItem, 40)
+	p.Inventory = make([]common.UserItem, 46)
+	p.Equipment = make([]common.UserItem, 14)
+	p.QuestInventory = make([]common.UserItem, 40)
+	p.Trade = make([]common.UserItem, 0)
+	p.Refine = make([]common.UserItem, 0)
 	uii := make([]common.UserItem, 0, 46)
 	uie := make([]common.UserItem, 0, 14)
 	uiq := make([]common.UserItem, 0, 40)
@@ -623,21 +574,21 @@ func (g *Game) StartGame(s cellnet.Session, msg *client.StartGame) {
 	g.DB.Table("user_item").Where("id in (?)", es).Find(&uie)
 	g.DB.Table("user_item").Where("id in (?)", qs).Find(&uiq)
 	for i, v := range uii {
-		ui.Inventory[i] = v
+		p.Inventory[i] = v
 		ii := g.Env.GameDB.GetItemInfoByID(int(v.ItemID))
 		s.Send(server.NewItemInfo{Info: *ii})
 	}
 	for i, v := range uie {
-		ui.Equipment[i] = v
+		p.Equipment[i] = v
 		ii := g.Env.GameDB.GetItemInfoByID(int(v.ItemID))
 		s.Send(server.NewItemInfo{Info: *ii})
 	}
 	for i, v := range uiq {
-		ui.QuestInventory[i] = v
+		p.QuestInventory[i] = v
 		ii := g.Env.GameDB.GetItemInfoByID(int(v.ItemID))
 		s.Send(server.NewItemInfo{Info: *ii})
 	}
-	s.Send(ui)
+	s.Send(ServerMessage{}.UserInformation(p))
 	p.Broadcast(ServerMessage{}.ObjectPlayer(p))
 }
 
