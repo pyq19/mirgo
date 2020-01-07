@@ -2,17 +2,20 @@ package main
 
 import "os"
 
-var addr = "0.0.0.0:7000"
-var mirDB = "/src/github.com/yenkeia/mirgo/dotnettools/mir.sqlite"
-
 type Config struct {
-	Addr  string
-	MirDB string
+	Addr          string
+	DBPath        string
+	MapDirPath    string
+	ScriptDirPath string
 }
 
 func main() {
 	gopath := os.Getenv("GOPATH")
-	conf := Config{addr, gopath + mirDB}
-	g := NewGame(conf)
+	g := NewGame(Config{
+		Addr:          "0.0.0.0:7000",
+		DBPath:        gopath + "/src/github.com/yenkeia/mirgo/dotnettools/mir.sqlite",
+		MapDirPath:    gopath + "/src/github.com/yenkeia/mirgo/dotnettools/database/Maps/",
+		ScriptDirPath: gopath + "/src/github.com/yenkeia/mirgo/script/",
+	})
 	g.ServerStart()
 }
