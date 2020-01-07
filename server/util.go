@@ -33,13 +33,15 @@ func GetMapV1(bytes []byte) *Map {
 			p := common.Point{X: uint32(i), Y: uint32(j)}
 			c := new(Cell)
 			c.Map = m
-			c.Objects = new(sync.Map)
 			c.Coordinate = p.Coordinate()
 			if (common.BytesToUint32(bytes[offset:offset+4])^0xAA38AA38)&0x20000000 != 0 {
 				c.Attribute = common.CellAttributeHighWall
 			}
 			if ((common.BytesToUint16(bytes[offset+6:offset+8]) ^ xor) & 0x8000) != 0 {
 				c.Attribute = common.CellAttributeLowWall
+			}
+			if c.Attribute == common.CellAttributeWalk {
+				c.Objects = new(sync.Map)
 			}
 			m.Cells.Store(p.Coordinate(), c)
 			offset += 15
