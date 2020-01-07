@@ -20,18 +20,36 @@ type Player struct {
 	GameStage int
 	Session   *cellnet.Session
 	MapObject
-	Extra
-	Magics    []*common.MagicInfo
-	UserItems []*common.UserItem
+	CharacterInfo
 }
 
-type Extra struct {
-	GuildName     string
-	GuildRankName string
-	NameColour    common.Color
-	Class         common.MirClass
-	Gender        common.MirGender
-	Hair          uint8
+type CharacterInfo struct {
+	HP             uint16
+	MP             uint16
+	Experience     int64
+	Gold           uint16
+	GuildName      string
+	GuildRankName  string
+	NameColour     common.Color
+	Class          common.MirClass
+	Gender         common.MirGender
+	Hair           uint8
+	Inventory      []common.UserItem
+	Equipment      []common.UserItem
+	QuestInventory []common.UserItem
+	Trade          []common.UserItem
+	Refine         []common.UserItem
+}
+
+func UpdatePlayerInfo(p *Player, c *common.Character) {
+	p.ID = uint32(c.ID)
+	p.Name = c.Name
+	p.GameStage = GAME
+	p.CurrentDirection = c.Direction
+	p.CurrentLocation = common.NewPoint(int(c.CurrentLocationX), int(c.CurrentLocationY))
+	p.HP = c.HP
+	p.MP = c.MP
+	p.Experience = c.Experience
 }
 
 func (p *Player) Point() common.Point {
