@@ -44,11 +44,11 @@ unrar x ../Daneo1989_Server.rar -pLOMCN -y
 编译
 ```bash
 cd $GOPATH/src/github.com/yenkeia/mirgo/server
-go build
+go build -o smain
 ```
 运行
 ```bash
-./server
+./smain
 ```
 
 #### 客户端
