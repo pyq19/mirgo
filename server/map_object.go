@@ -51,3 +51,10 @@ type Buff struct {
 	TickNum    int       // 总共跳几次
 	TickTime   int       // 当前第几跳
 }
+
+type IMapObject interface {
+	GetID() uint32
+	GetCoordinate() string
+	GetPoint() *common.Point
+	GetCell() *Cell
+}

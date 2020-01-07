@@ -56,10 +56,21 @@ func (g *Grid) String() string {
 	res3 := ""
 	g.NPCs.Range(func(k, v interface{}) bool {
 		n := v.(*NPC)
-		res3 += fmt.Sprintf("NPC Coordinate: %s, ID: %d, name: %s\n", n.Point().Coordinate(), n.ID, n.Name)
+		res3 += fmt.Sprintf("NPC Coordinate: %s, ID: %d, name: %s\n", n.GetPoint().Coordinate(), n.ID, n.Name)
 		return true
 	})
 	return res1 + "Monsters: \n" + res2 + "NPCs: \n" + res3
+}
+
+func (g *Grid) AddObject(obj IMapObject) {
+	switch o := obj.(type) {
+	case *Player:
+		g.AddPlayer(o)
+	case *NPC:
+		g.AddNPC(o)
+	case *Monster:
+		g.AddMonster(o)
+	}
 }
 
 // AddPlayer 向当前区域中添加一个玩家

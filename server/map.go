@@ -49,47 +49,31 @@ func (m *Map) GetCell(coordinate string) *Cell {
 	return v.(*Cell)
 }
 
-func (m *Map) AddObject(obj interface{}) {
-	switch o := obj.(type) {
-	case *Player:
-		coordinate := o.Point().Coordinate()
-		grid := m.AOI.GetGridByCoordinate(coordinate)
-		grid.AddPlayer(o)
-		m.GetCell(o.Point().Coordinate()).SetObject(o)
-	case *NPC:
-		coordinate := o.Point().Coordinate()
-		grid := m.AOI.GetGridByCoordinate(coordinate)
-		grid.AddNPC(o)
-		m.GetCell(o.Point().Coordinate()).SetObject(o)
-	case *Monster:
-		coordinate := o.Point().Coordinate()
-		grid := m.AOI.GetGridByCoordinate(coordinate)
-		grid.AddMonster(o)
-		m.GetCell(o.Point().Coordinate()).SetObject(o)
-	}
+func (m *Map) AddObject(obj IMapObject) {
+	coordinate := obj.GetCoordinate()
+	grid := m.AOI.GetGridByCoordinate(coordinate)
+	grid.AddObject(obj)
+	m.GetCell(coordinate).AddObject(obj)
 }
 
 // UpdateObject 更新对象在 Cells, AOI 中的数据, 如果更新成功返回 true
-func (m *Map) UpdateObject(obj interface{}, points ...*common.Point) bool {
-	switch o := obj.(type) {
-	case *Player:
-		for i := range points {
-			c := m.GetCell(points[i].Coordinate())
-			if c == nil || !c.IsValid() {
-				return false
-			}
+func (m *Map) UpdateObject(obj IMapObject, points ...*common.Point) bool {
+	for i := range points {
+		c := m.GetCell(points[i].Coordinate())
+		if c == nil || !c.CanWalkAndIsEmpty() {
+			return false
 		}
-		old := m.GetCell(o.Point().Coordinate())
-		old.SetObject(nil)
-		last := m.GetCell(points[len(points)-1].Coordinate())
-		last.SetObject(o)
-		// TODO change AOI
-		return true
-	case *NPC:
-	case *Monster:
-
 	}
-	return false
+	old := obj.GetCell()
+	old.AddObject(nil)
+	last := m.GetCell(points[len(points)-1].Coordinate())
+	last.AddObject(obj)
+	m.ChangeAOI(obj, old, last)
+	return true
+}
+
+func (m *Map) ChangeAOI(obj IMapObject, old *Cell, last *Cell) {
+
 }
 
 // InitNPCs 初始化地图上的 NPC
@@ -125,7 +109,7 @@ func (m *Map) GetValidPoint(x int, y int, spread int) (*common.Point, error) {
 	if spread == 0 {
 		//log.Debugf("GetValidPoint: (x: %d, y: %d), spread: %d\n", x, y, spread)
 		c := m.GetCell(common.Point{X: uint32(x), Y: uint32(y)}.Coordinate())
-		if c != nil && c.IsValid() {
+		if c != nil && c.CanWalkAndIsEmpty() {
 			return common.NewPointByCoordinate(c.Coordinate), nil
 		}
 		return nil, fmt.Errorf("GetValidPoint: (x: %d, y: %d), spread: %d\n", x, y, spread)
@@ -143,7 +127,7 @@ func (m *Map) GetValidPoint(x int, y int, spread int) (*common.Point, error) {
 		tryX := G_Rand.RandInt(minX, maxX)
 		tryY := G_Rand.RandInt(minY, maxY)
 		c := m.GetCell(common.Point{X: uint32(tryX), Y: uint32(tryY)}.Coordinate())
-		if c != nil && c.IsValid() {
+		if c != nil && c.CanWalkAndIsEmpty() {
 			return common.NewPointByCoordinate(c.Coordinate), nil
 		}
 		cnt += 1
