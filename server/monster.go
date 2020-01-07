@@ -27,12 +27,24 @@ func NewMonster(r *Respawn) (m *Monster, err error) {
 	m.CurrentLocation = p
 	m.CurrentDirection = common.MirDirection(G_Rand.RandInt(0, 7))
 	c := r.Map.GetCell(p.Coordinate())
-	c.SetObject(m)
+	c.AddObject(m)
 	return m, nil
 }
 
-func (m *Monster) Point() common.Point {
-	return *m.CurrentLocation
+func (m *Monster) GetID() uint32 {
+	return m.ID
+}
+
+func (m *Monster) GetCoordinate() string {
+	return m.GetPoint().Coordinate()
+}
+
+func (m *Monster) GetPoint() *common.Point {
+	return m.CurrentLocation
+}
+
+func (m *Monster) GetCell() *Cell {
+	return m.Map.GetCell(m.GetCoordinate())
 }
 
 func (m *Monster) Broadcast(msg interface{}) {

@@ -5,7 +5,6 @@ import (
 	"github.com/yenkeia/mirgo/common"
 	"io/ioutil"
 	"os"
-	"sync"
 	"testing"
 )
 
@@ -63,7 +62,6 @@ func TestMap_GetNextCell(t *testing.T) {
 		Coordinate: "100,200",
 		Attribute:  0,
 		Objects:     nil,
-		lock:       sync.RWMutex{},
 	}
 	t.Log(c.Coordinate)
 	for i := 0; i < 8; i++ {

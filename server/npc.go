@@ -9,10 +9,6 @@ type NPC struct {
 	MapObject
 }
 
-func (n *NPC) Point() common.Point {
-	return *n.CurrentLocation
-}
-
 func NewNPC(m *Map, ni *common.NpcInfo) *NPC {
 	return &NPC{
 		MapObject: MapObject{
@@ -25,8 +21,24 @@ func NewNPC(m *Map, ni *common.NpcInfo) *NPC {
 	}
 }
 
+func (n *NPC) GetID() uint32 {
+	return n.ID
+}
+
+func (n *NPC) GetCoordinate() string {
+	return n.GetPoint().Coordinate()
+}
+
+func (n *NPC) GetPoint() *common.Point {
+	return n.CurrentLocation
+}
+
+func (n *NPC) GetCell() *Cell {
+	return n.Map.GetCell(n.GetCoordinate())
+}
+
 func (n *NPC) String() string {
-	return fmt.Sprintf("NPC Coordinate: %s, ID: %d, name: %s\n", n.Point().Coordinate(), n.ID, n.Name)
+	return fmt.Sprintf("NPC Coordinate: %s, ID: %d, name: %s\n", n.GetPoint().Coordinate(), n.ID, n.Name)
 }
 
 func (n *NPC) Broadcast(msg interface{}) {

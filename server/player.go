@@ -25,15 +25,22 @@ type Player struct {
 }
 
 func (p *Player) Point() common.Point {
-	return *p.CurrentLocation
+	return *p.GetPoint()
 }
 
-func (p *Player) CurrentCell() *Cell {
-	return p.Map.GetCell(p.Point().Coordinate())
+func (p *Player) GetID() uint32 {
+	return p.ID
 }
 
-func (p *Player) Coordinate() string {
-	return p.Point().Coordinate()
+func (p *Player) GetCoordinate() string {
+	return p.GetPoint().Coordinate()
+}
+func (p *Player) GetPoint() *common.Point {
+	return p.CurrentLocation
+}
+
+func (p *Player) GetCell() *Cell {
+	return p.Map.GetCell(p.GetCoordinate())
 }
 
 func (p *Player) Enqueue(msg interface{}) {
@@ -303,25 +310,25 @@ func (p *Player) Attack(direction common.MirDirection, spell common.Spell) {
 	if c == nil || c.IsEmpty() {
 		return
 	}
-	damageBase := p.getAttackPower(p.MinDC, p.MaxDC)
-	damageFinal := damageBase // TODO
-	for i := range c.Objects {
-		o := c.Objects[i]
-		switch c.GetRace(o) {
-		case common.ObjectTypePlayer:
-			ob := o.(*Player)
-			if !ob.isAttackTarget(p) {
-				continue
-			}
-			ob.attacked(p, damageFinal, common.DefenceTypeAgility, false)
-		case common.ObjectTypeMonster:
-			ob := o.(*Monster)
-			if !ob.isAttackTarget(p) {
-				continue
-			}
-			ob.attacked(p, damageFinal, common.DefenceTypeAgility, false)
-		}
-	}
+	//damageBase := p.getAttackPower(p.MinDC, p.MaxDC)
+	//damageFinal := damageBase // TODO
+	//for i := range c.Objects {
+	//	o := c.Objects[i]
+	//	switch c.GetRace(o) {
+	//	case common.ObjectTypePlayer:
+	//		ob := o.(*Player)
+	//		if !ob.isAttackTarget(p) {
+	//			continue
+	//		}
+	//		ob.attacked(p, damageFinal, common.DefenceTypeAgility, false)
+	//	case common.ObjectTypeMonster:
+	//		ob := o.(*Monster)
+	//		if !ob.isAttackTarget(p) {
+	//			continue
+	//		}
+	//		ob.attacked(p, damageFinal, common.DefenceTypeAgility, false)
+	//	}
+	//}
 }
 
 func (p *Player) RangeAttack(direction common.MirDirection, location common.Point, id uint32) {
