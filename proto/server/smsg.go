@@ -965,7 +965,6 @@ type ObjectRangeAttack struct {
 	Spell     common.Spell
 }
 
-// TODO check
 type AddBuff struct {
 	Type     common.BuffType
 	Caster   string

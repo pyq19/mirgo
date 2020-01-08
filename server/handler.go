@@ -541,9 +541,7 @@ func (g *Game) StartGame(s cellnet.Session, msg *client.StartGame) {
 		return
 	}
 	UpdatePlayerInfo(p, c)
-	m := g.Env.GetMap(p.Map.Info.ID)
-	m.AddObject(p)
-	p.Map = m
+	p.Map = g.Env.GetMap(p.Map.Info.ID)
 	s.Send(ServerMessage{}.SetConcentration())
 	s.Send(ServerMessage{}.StartGame())
 	s.Send(ServerMessage{}.MapInformation(p.Map.Info))
@@ -589,7 +587,7 @@ func (g *Game) StartGame(s cellnet.Session, msg *client.StartGame) {
 		s.Send(server.NewItemInfo{Info: *ii})
 	}
 	s.Send(ServerMessage{}.UserInformation(p))
-	p.Broadcast(ServerMessage{}.ObjectPlayer(p))
+	p.StartGame()
 }
 
 func (g *Game) LogOut(s cellnet.Session, msg *client.LogOut) {
