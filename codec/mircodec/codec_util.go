@@ -82,6 +82,12 @@ func encodeValue(v reflect.Value) (bytes []byte, err error) {
 		switch vv := v.Interface().(type) {
 		case []uint8:
 			bytes = append(bytes, vv...)
+		case []string:
+			l := len(vv)
+			bytes = append(bytes, common.Uint32ToBytes(uint32(l))...)
+			for i := 0; i < l; i++ {
+				bytes = append(bytes, common.StringToBytes(vv[i])...)
+			}
 		default:
 			vvv := reflect.ValueOf(vv)
 			l := vvv.Len()
@@ -161,6 +167,18 @@ func decodeValue(f reflect.Value, bytes []byte) []byte {
 				sliceValue := reflect.New(slice.Type().Elem()).Elem()
 				bytes = decodeValue(sliceValue, bytes)
 				slice.Index(i).Set(sliceValue)
+			}
+			f.Set(slice)
+		} else if e.Kind() == reflect.String {
+			sl := int(common.BytesToUint32(bytes[:4]))
+			bytes = bytes[4:]
+			slice := reflect.MakeSlice(f.Type(), l, l)
+			for si := 0; si < sl; si++ {
+				sliceValue := reflect.New(slice.Type().Elem()).Elem()
+				i, s := common.ReadString(bytes, 0)
+				bytes = bytes[i:]
+				sliceValue.SetString(s)
+				slice.Index(si).Set(sliceValue)
 			}
 			f.Set(slice)
 		} else {
