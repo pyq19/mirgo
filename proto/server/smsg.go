@@ -747,8 +747,9 @@ type ObjectNPC struct {
 	//QuestIDs TODO
 }
 
-// TODO
-type NPCResponse struct{}
+type NPCResponse struct {
+	Page []string
+}
 
 type ObjectHide struct {
 	ObjectID uint32
