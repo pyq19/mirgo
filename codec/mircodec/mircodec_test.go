@@ -527,3 +527,24 @@ func TestEncodeDecodeNPCResponse(t *testing.T) {
 	}
 	t.Log(obj)
 }
+
+type SliceTest struct {
+	Nums []int
+}
+
+func TestEncodeDecodeSlice(t *testing.T) {
+	// []int
+	bytes := []byte{2, 0, 0, 0, 3, 0, 0, 0, 4, 0, 0, 0}
+	msg := new(SliceTest)
+	codec := new(MirCodec)
+	if err := codec.Decode(bytes, msg); err != nil {
+		panic(err)
+	}
+	t.Log(msg)
+
+	obj, err := codec.Encode(msg, *new(cellnet.ContextSet))
+	if err != nil {
+		t.Error(err)
+	}
+	t.Log(obj)
+}
