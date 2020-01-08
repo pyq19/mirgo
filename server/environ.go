@@ -18,6 +18,8 @@ type Environ struct {
 	SessionIDPlayerMap *sync.Map // map[int64]*Player
 	Maps               *sync.Map // map[int]*Map	// mapID: Map
 	ObjectID           uint32
+	Players            []*Player
+	lock               *sync.Mutex
 }
 
 // NewEnviron ...
@@ -27,6 +29,8 @@ func NewEnviron(g *Game) (env *Environ) {
 	env.InitGameDB()
 	env.InitMaps()
 	env.ObjectID = 100000
+	env.Players = make([]*Player, 10)
+	env.lock = new(sync.Mutex)
 	err := env.InitObjects()
 	if err != nil {
 		panic(err)
@@ -116,6 +120,25 @@ func (e *Environ) InitObjects() (err error) {
 		}
 	}
 	return nil
+}
+
+func (e *Environ) AddPlayer(p *Player) {
+	e.lock.Lock()
+	e.Players = append(e.Players, p)
+	e.lock.Unlock()
+}
+
+func (e *Environ) DeletePlayer(p *Player) {
+	e.lock.Lock()
+	for i := 0; i < len(e.Players); i++ {
+		o := e.Players[i]
+		if p.ID == o.ID {
+			e.Players[i] = e.Players[len(e.Players)-1]
+			e.Players = e.Players[:len(e.Players)-1]
+			break
+		}
+	}
+	e.lock.Unlock()
 }
 
 func (e *Environ) GetMap(mapID int) *Map {

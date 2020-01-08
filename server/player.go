@@ -130,6 +130,12 @@ func (p *Player) canCast() bool {
 	return true
 }
 
+func (p *Player) StartGame() {
+	p.Map.Env.AddPlayer(p)
+	p.Map.AddObject(p)
+	p.Broadcast(ServerMessage{}.ObjectPlayer(p))
+}
+
 func (p *Player) Turn(direction common.MirDirection) {
 	if p.canMove() {
 		p.Broadcast(server.ObjectTurn{
