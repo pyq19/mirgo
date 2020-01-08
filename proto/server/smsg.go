@@ -355,7 +355,7 @@ type UserInformation struct {
 	Name           string
 	GuildName      string
 	GuildRank      string
-	NameColour     uint32 // TODO []byte
+	NameColor      int32
 	Class          common.MirClass
 	Gender         common.MirGender
 	Level          uint16
@@ -379,13 +379,12 @@ type UserLocation struct {
 	Direction common.MirDirection
 }
 
-// TODO 测试编解码
 type ObjectPlayer struct {
 	ObjectID         uint32
 	Name             string
 	GuildName        string
 	GuildRankName    string
-	NameColour       int32 // = Color.FromArgb(reader.ReadInt32());
+	NameColor        int32 // = Color.FromArgb(reader.ReadInt32());
 	Class            common.MirClass
 	Gender           common.MirGender
 	Level            uint16
@@ -735,16 +734,15 @@ type ObjectHarvested struct {
 	Direction common.MirDirection
 }
 
-// TODO
 type ObjectNPC struct {
 	ObjectID  uint32
 	Name      string
-	NameColor common.Color
+	NameColor int32
 	Image     uint16
-	Color     common.Color
+	Color     int32
 	Location  common.Point
 	Direction common.MirDirection
-	//QuestIDs TODO
+	QuestIDs  []int32
 }
 
 type NPCResponse struct {

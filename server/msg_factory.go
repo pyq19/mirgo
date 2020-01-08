@@ -22,7 +22,7 @@ func (ServerMessage) ObjectPlayer(p *Player) server.ObjectPlayer {
 		Name:             p.Name,
 		GuildName:        p.GuildName,
 		GuildRankName:    p.GuildRankName,
-		NameColour:       p.NameColour.ToInt32(),
+		NameColor:        p.NameColour.ToInt32(),
 		Class:            p.Class,
 		Gender:           p.Gender,
 		Level:            p.Level,
@@ -100,7 +100,7 @@ func (ServerMessage) UserInformation(p *Player) server.UserInformation {
 	ui.Name = p.Name
 	ui.GuildName = p.GuildName
 	ui.GuildRank = p.GuildRankName
-	ui.NameColour = common.Color{R: 255, G: 255, B: 255, A: 255}.ToUint32()
+	ui.NameColor = common.Color{R: 255, G: 255, B: 255, A: 255}.ToInt32()
 	ui.Class = p.Class
 	ui.Gender = p.Gender
 	ui.Level = p.Level
