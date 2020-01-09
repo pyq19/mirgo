@@ -127,10 +127,12 @@ func main() {
 			//log.Infof("<--- server.ClientVersion")
 		case *server.KeepAlive:
 			//log.Infof("<--- server.KeepAlive")
+			session.Send(&client.KeepAlive{Time: 0})
 		case *server.Chat:
-			log.Infoln("<--- server.Chat. Type:", msg.Type, ", Text: ", msg.Message)
+			//log.Infoln("<--- server.Chat. Type:", msg.Type, ", Text: ", msg.Message)
 		default:
-			log.Debugf("default: 客户端收到: %s", msg)
+			//log.Debugf("default: 客户端收到: %s", msg)
+			_ = msg
 		}
 	})
 	p.Start()

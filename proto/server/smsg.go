@@ -1,6 +1,7 @@
 package server
 
 import (
+	"fmt"
 	"github.com/yenkeia/mirgo/common"
 
 	// 使用binary协议，因此匿名引用这个包，底层会自动注册
@@ -374,6 +375,10 @@ type UserInformation struct {
 	Credit         uint32
 }
 
+func (ui *UserInformation) String() string {
+	return fmt.Sprintf("UserInformation: %s(%d)\n", ui.Name, ui.ObjectID)
+}
+
 type UserLocation struct {
 	Location  common.Point
 	Direction common.MirDirection
@@ -410,6 +415,10 @@ type ObjectPlayer struct {
 	ElementOrbMax    uint32
 	Buffs            []common.BuffType
 	LevelEffects     common.LevelEffects
+}
+
+func (op *ObjectPlayer) String() string {
+	return fmt.Sprintf("ObjectPlayer Name: %s(%d)\n", op.Name, op.ObjectID)
 }
 
 type ObjectRemove struct {

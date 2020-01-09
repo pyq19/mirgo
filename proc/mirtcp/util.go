@@ -76,14 +76,15 @@ func ClientRecvLTVPacket(reader io.Reader, maxPacketSize int) (msg interface{}, 
 
 	allBytes := append(sizeBuffer, body...)
 	packetName := GetPacketName("server", int(common.BytesToUint16(body[:2])))
-	log.Debugln("<--- 客户端收到 (" + packetName + ") " + strconv.Itoa(len(allBytes)) + "字节: " + String(allBytes))
 
 	// 发生错误时返回
 	if err != nil {
+		log.Errorf("<--- !!err: %s\n客户端收到: [%s] (len:%s)\n字节: %s\n", err, packetName, strconv.Itoa(len(allBytes)), String(allBytes))
 		return
 	}
 
 	if len(body) < msgIDSize {
+		log.Errorf("<--- !!err: len(body) < msgIDSize\n客户端收到: [%s] (len:%s)\n字节: %s\n", packetName, strconv.Itoa(len(allBytes)), String(allBytes))
 		return nil, ErrShortMsgID
 	}
 
@@ -100,7 +101,7 @@ func ClientRecvLTVPacket(reader io.Reader, maxPacketSize int) (msg interface{}, 
 		// TODO 接收错误时，返回消息
 		return nil, err
 	}
-
+	log.Debugf("<--- 客户端收到: [%s] (len:%s)\n字节: %s\n字节转换得到结构体: %s\n", packetName, strconv.Itoa(len(allBytes)), String(allBytes), msg)
 	return
 }
 
