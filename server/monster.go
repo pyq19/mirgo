@@ -51,6 +51,10 @@ func (m *Monster) GetCell() *Cell {
 	return m.Map.GetCell(m.GetCoordinate())
 }
 
+func (m *Monster) GetDirection() common.MirDirection {
+	return m.CurrentDirection
+}
+
 func (m *Monster) Broadcast(msg interface{}) {
 
 }
