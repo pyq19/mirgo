@@ -35,30 +35,77 @@ func readConsole(callback func(string)) {
 func parse(str string) interface{} {
 	args := strings.Split(str, " ")
 	switch args[0] {
-	case "CLIENT_VERSION":
+	case "ClientVersion", "CLIENT_VERSION":
 		return &client.ClientVersion{VersionHash: []uint8{16, 0, 0, 0, 86, 92, 129, 20, 102, 64, 159, 148, 125, 97, 112, 85, 237, 250, 133, 162}}
-	case "KEEP_ALIVE":
+	case "KeepAlive", "KEEP_ALIVE":
 		return &client.KeepAlive{Time: 0}
-	case "LOGIN": // 5
+	case "NewAccount":
+		return &client.NewAccount{
+			AccountID:      args[1],
+			Password:       args[2],
+			DateTime:       0,
+			UserName:       "",
+			SecretQuestion: "",
+			SecretAnswer:   "",
+			EMailAddress:   "",
+		}
+	case "ChangePassword":
+	case "Login", "LOGIN": // 5
 		return &client.Login{
 			AccountID: args[1],
 			Password:  args[2],
 		}
-	case "NEW_CHARACTER":
+	case "NewCharacter":
 		return &client.NewCharacter{
 			Name:   args[1],
 			Gender: common.MirGenderMale,
 			Class:  common.MirClassTaoist,
 		}
-	case "START_GAME": // 8
-		i, _ := strconv.Atoi(args[1])
-		return &client.StartGame{CharacterIndex: int16(i)}
-	case "DELETE_CHARACTER":
+	case "DeleteCharacter":
 		i, _ := strconv.Atoi(args[1])
 		return &client.DeleteCharacter{CharacterIndex: int16(i)}
+	case "StartGame": // 8
+		i, _ := strconv.Atoi(args[1])
+		return &client.StartGame{CharacterIndex: int16(i)}
+	case "LogOut":
+	case "Turn":
+	case "Walk":
+	case "Run":
+	case "Chat":
+	case "MoveItem":
+	case "StoreItem":
+	case "DepositRefineItem":
+	case "RetrieveRefineItem":
+	case "RefineCancel":
+	case "RefineItem":
+	case "CheckRefine":
+	case "ReplaceWedRing":
+	case "DepositTradeItem":
+	case "RetrieveTradeItem":
+	case "TakeBackItem":
+	case "MergeItem":
+	case "EquipItem":
+	case "RemoveItem":
+	case "RemoveSlotItem":
+	case "SplitItem":
+	case "UseItem":
+	case "DropItem":
+	case "DropGold":
+	case "PickUp":
+	case "Inspect":
+	case "ChangeAMode":
+	case "ChangePMode":
+	case "ChangeTrade":
+	case "Attack":
+	case "RangeAttack":
+	case "Harvest":
+	case "CallNPC":
+	case "TalkMonsterNPC":
+	case "BuyItem":
 	default:
 		return nil
 	}
+	return nil
 }
 
 func main() {
