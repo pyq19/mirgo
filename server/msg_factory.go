@@ -119,3 +119,43 @@ func (ServerMessage) UserInformation(p *Player) *server.UserInformation {
 	ui.QuestInventory = p.QuestInventory
 	return ui
 }
+
+func (ServerMessage) UserLocation(p *Player) *server.UserLocation {
+	return &server.UserLocation{
+		Location:  p.Point(),
+		Direction: p.CurrentDirection,
+	}
+}
+
+func (ServerMessage) ObjectTurn(o IMapObject) *server.ObjectTurn {
+	return &server.ObjectTurn{
+		ObjectID:  o.GetID(),
+		Location:  o.GetPoint(),
+		Direction: o.GetDirection(),
+	}
+}
+
+func (ServerMessage) ObjectWalk(o IMapObject) *server.ObjectWalk {
+	return &server.ObjectWalk{
+		ObjectID:  o.GetID(),
+		Location:  o.GetPoint(),
+		Direction: o.GetDirection(),
+	}
+}
+
+func (ServerMessage) ObjectRun(o IMapObject) *server.ObjectRun {
+	return &server.ObjectRun{
+		ObjectID:  o.GetID(),
+		Location:  o.GetPoint(),
+		Direction: o.GetDirection(),
+	}
+}
+
+func (ServerMessage) ObjectChat(p *Player, message string, chatType common.ChatType) *server.ObjectChat {
+	text := p.Name + ":" + message
+	return &server.ObjectChat{
+		ObjectID: p.ID,
+		Text:     text,
+		Type:     chatType,
+	}
+}

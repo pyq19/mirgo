@@ -76,6 +76,10 @@ func (p *Player) GetCell() *Cell {
 	return p.Map.GetCell(p.GetCoordinate())
 }
 
+func (p *Player) GetDirection() common.MirDirection {
+	return p.CurrentDirection
+}
+
 func (p *Player) Enqueue(msg interface{}) {
 	(*p.Session).Send(msg)
 }
@@ -138,41 +142,24 @@ func (p *Player) StartGame() {
 
 func (p *Player) Turn(direction common.MirDirection) {
 	if p.canMove() {
-		p.Broadcast(&server.ObjectTurn{
-			ObjectID:  p.ID,
-			Location:  p.Point(),
-			Direction: direction,
-		})
+		p.Broadcast(ServerMessage{}.ObjectTurn(p))
 		p.CurrentDirection = direction
 	}
-	p.Enqueue(&server.UserLocation{
-		Location:  p.Point(),
-		Direction: p.CurrentDirection,
-	})
+	p.Enqueue(ServerMessage{}.UserLocation(p))
 }
 
 func (p *Player) Walk(direction common.MirDirection) {
 	if !p.canMove() || !p.canWalk() {
-		p.Enqueue(&server.UserLocation{
-			Location:  p.Point(),
-			Direction: p.CurrentDirection,
-		})
+		p.Enqueue(ServerMessage{}.UserLocation(p))
 		return
 	}
 	n := p.Point().NextPoint(direction, 1)
 	ok := p.Map.UpdateObject(p, n)
 	if !ok {
-		p.Enqueue(&server.UserLocation{
-			Location:  p.Point(),
-			Direction: p.CurrentDirection,
-		})
+		p.Enqueue(ServerMessage{}.UserLocation(p))
 		return
 	}
-	p.Broadcast(&server.ObjectWalk{
-		ObjectID:  p.ID,
-		Location:  p.Point(),
-		Direction: direction,
-	})
+	p.Broadcast(ServerMessage{}.ObjectWalk(p))
 	p.CurrentDirection = direction
 	p.CurrentLocation = n
 }
@@ -181,17 +168,10 @@ func (p *Player) Run(direction common.MirDirection) {
 	n1 := p.Point().NextPoint(direction, 1)
 	n2 := p.Point().NextPoint(direction, 2)
 	if ok := p.Map.UpdateObject(p, n1, n2); !ok {
-		p.Enqueue(&server.UserLocation{
-			Location:  p.Point(),
-			Direction: p.CurrentDirection,
-		})
+		p.Enqueue(ServerMessage{}.UserLocation(p))
 		return
 	}
-	p.Broadcast(&server.ObjectRun{
-		ObjectID:  p.ID,
-		Location:  p.Point(),
-		Direction: direction,
-	})
+	p.Broadcast(ServerMessage{}.ObjectRun(p))
 	p.CurrentDirection = direction
 	p.CurrentLocation = n2
 }
@@ -205,12 +185,7 @@ func (p *Player) Chat(message string) {
 	if strings.HasPrefix(message, "!!") {
 		return
 	}
-	message = p.Name + ":" + message
-	msg := &server.ObjectChat{
-		ObjectID: p.ID,
-		Text:     message,
-		Type:     common.ChatTypeNormal,
-	}
+	msg := ServerMessage{}.ObjectChat(p, message, common.ChatTypeNormal)
 	p.Enqueue(msg)
 	p.Broadcast(msg)
 }

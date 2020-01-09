@@ -41,6 +41,10 @@ func (n *NPC) GetCell() *Cell {
 	return n.Map.GetCell(n.GetCoordinate())
 }
 
+func (n *NPC) GetDirection() common.MirDirection {
+	return n.CurrentDirection
+}
+
 func (n *NPC) String() string {
 	return fmt.Sprintf("NPC Coordinate: %s, ID: %d, name: %s\n", n.GetPoint().Coordinate(), n.ID, n.Name)
 }
