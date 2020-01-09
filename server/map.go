@@ -75,7 +75,7 @@ func (m *Map) UpdateObject(obj IMapObject, points ...common.Point) bool {
 func (m *Map) changeAOI(obj IMapObject, c1 *Cell, c2 *Cell) {
 	g1 := m.AOI.GetGridByPoint(c1.Point())
 	g2 := m.AOI.GetGridByPoint(c2.Point())
-	if g1 == g2 {
+	if g1.GID == g2.GID {
 		return
 	}
 	g1.DeleteObject(obj)

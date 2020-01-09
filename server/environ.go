@@ -6,6 +6,7 @@ import (
 	"github.com/yenkeia/mirgo/common"
 	_ "github.com/yenkeia/mirgo/proc/mirtcp"
 	"github.com/yenkeia/mirgo/proto/server"
+	"strconv"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -141,6 +142,18 @@ func (e *Environ) DeletePlayer(p *Player) {
 	e.lock.Unlock()
 }
 
+func (e *Environ) GetPlayersCount() int {
+	e.lock.Lock()
+	c := 0
+	for i := range e.Players {
+		if e.Players[i] != nil {
+			c++
+		}
+	}
+	e.lock.Unlock()
+	return c
+}
+
 func (e *Environ) GetMap(mapID int) *Map {
 	v, ok := e.Maps.Load(mapID)
 	if !ok {
@@ -168,28 +181,36 @@ func (e *Environ) StartLoop() {
 
 func (e *Environ) TimeTick() {
 	// 系统事件 广播 存档
-	systemBroadcastTicker := time.NewTicker(time.Second)
+	systemBroadcastTicker := time.NewTicker(10 * time.Second)
 
 	// 玩家事件 buff 等状态改变
 
-	// 地图事件 怪物动作 刷怪 掉落物品
+	// 地图事件 刷怪 地图物品
+
+	// 怪物事件 移动 buff
+	monsterMoveTicker := time.NewTicker(500 * time.Millisecond)
 
 	for {
 		select {
 		case <-systemBroadcastTicker.C:
-			e.Submit(NewTask(systemBroadcast, e))
+			e.Submit(NewTask(e.systemBroadcast))
+		case <-monsterMoveTicker.C:
+			e.Submit(NewTask(e.monsterMove))
 		}
 	}
 }
 
-func systemBroadcast(args ...interface{}) {
-	e := args[0].(*Environ)
-	p := *e.Game.Peer
-	p.(cellnet.SessionAccessor).VisitSession(func(ses cellnet.Session) bool {
+func (e *Environ) systemBroadcast(...interface{}) {
+	text := "当前在线玩家人数: " + strconv.Itoa(e.GetPlayersCount())
+	(*e.Game.Peer).(cellnet.SessionAccessor).VisitSession(func(ses cellnet.Session) bool {
 		ses.Send(&server.Chat{
-			Message: "hello from server",
+			Message: text,
 			Type:    common.ChatTypeSystem,
 		})
 		return true
 	})
+}
+
+func (e *Environ) monsterMove(...interface{}) {
+
 }

@@ -7,17 +7,17 @@ import (
 
 type ServerMessage struct{}
 
-func (ServerMessage) SetConcentration() server.SetConcentration {
+func (ServerMessage) SetConcentration() *server.SetConcentration {
 	sc := new(server.SetConcentration)
 	sc.ObjectID = 66432
 	sc.Enabled = false
 	sc.Interrupted = false
-	return *sc
+	return sc
 }
 
 // TODO
-func (ServerMessage) ObjectPlayer(p *Player) server.ObjectPlayer {
-	return server.ObjectPlayer{
+func (ServerMessage) ObjectPlayer(p *Player) *server.ObjectPlayer {
+	return &server.ObjectPlayer{
 		ObjectID:         p.ID,
 		Name:             p.Name,
 		GuildName:        p.GuildName,
@@ -52,8 +52,8 @@ func (ServerMessage) ObjectPlayer(p *Player) server.ObjectPlayer {
 }
 
 // TODO
-func (ServerMessage) ObjectMonster(m *Monster) server.ObjectMonster {
-	return server.ObjectMonster{
+func (ServerMessage) ObjectMonster(m *Monster) *server.ObjectMonster {
+	return &server.ObjectMonster{
 		ObjectID:          m.ID,
 		Name:              m.Name,
 		NameColor:         common.Color{}.ToInt32(),
@@ -73,7 +73,7 @@ func (ServerMessage) ObjectMonster(m *Monster) server.ObjectMonster {
 	}
 }
 
-func (ServerMessage) MapInformation(info *common.MapInfo) server.MapInformation {
+func (ServerMessage) MapInformation(info *common.MapInfo) *server.MapInformation {
 	mi := new(server.MapInformation)
 	mi.FileName = info.Filename
 	mi.Title = info.Title
@@ -83,17 +83,17 @@ func (ServerMessage) MapInformation(info *common.MapInfo) server.MapInformation 
 	mi.Lights = common.LightSetting(info.Light)
 	mi.Lightning = true
 	mi.MapDarkLight = 0
-	return *mi
+	return mi
 }
 
-func (ServerMessage) StartGame() server.StartGame {
+func (ServerMessage) StartGame() *server.StartGame {
 	sg := new(server.StartGame)
 	sg.Result = 4
 	sg.Resolution = 1024
-	return *sg
+	return sg
 }
 
-func (ServerMessage) UserInformation(p *Player) server.UserInformation {
+func (ServerMessage) UserInformation(p *Player) *server.UserInformation {
 	ui := new(server.UserInformation)
 	ui.ObjectID = 66432 // TODO
 	ui.RealID = p.ID
@@ -117,5 +117,5 @@ func (ServerMessage) UserInformation(p *Player) server.UserInformation {
 	ui.Inventory = p.Inventory
 	ui.Equipment = p.Equipment
 	ui.QuestInventory = p.QuestInventory
-	return *ui
+	return ui
 }
