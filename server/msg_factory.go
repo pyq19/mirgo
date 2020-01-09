@@ -95,8 +95,8 @@ func (ServerMessage) StartGame() *server.StartGame {
 
 func (ServerMessage) UserInformation(p *Player) *server.UserInformation {
 	ui := new(server.UserInformation)
-	ui.ObjectID = 66432 // TODO
-	ui.RealID = p.ID
+	ui.ObjectID = p.GetID()
+	ui.RealID = p.GetID()
 	ui.Name = p.Name
 	ui.GuildName = p.GuildName
 	ui.GuildRank = p.GuildRankName
@@ -112,7 +112,7 @@ func (ServerMessage) UserInformation(p *Player) *server.UserInformation {
 	ui.Experience = p.Experience
 	ui.MaxExperience = 100 // TODO
 	ui.LevelEffect = common.LevelEffects(1)
-	ui.Gold = 100   // TODO
+	ui.Gold = uint32(p.Gold)
 	ui.Credit = 100 // TODO
 	ui.Inventory = p.Inventory
 	ui.Equipment = p.Equipment
