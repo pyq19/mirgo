@@ -374,7 +374,7 @@ func (g *Game) NewAccount(s cellnet.Session, msg *client.NewAccount) {
 		g.DB.Table("account").Create(&ac)
 		res = 8
 	}
-	s.Send(server.NewAccount{Result: res})
+	s.Send(&server.NewAccount{Result: res})
 }
 
 // ChangePassword 改密码
@@ -401,7 +401,7 @@ func (g *Game) ChangePassword(s cellnet.Session, msg *client.ChangePassword) {
 		g.DB.Table("account").Model(ac).Updates(common.Account{Password: msg.NewPassword})
 		res = 6
 	}
-	s.Send(server.ChangePassword{Result: res})
+	s.Send(&server.ChangePassword{Result: res})
 }
 
 // Login 登陆
@@ -421,7 +421,7 @@ func (g *Game) Login(s cellnet.Session, msg *client.Login) {
 	a := new(common.Account)
 	g.DB.Table("account").Where("username = ? AND password = ?", msg.AccountID, msg.Password).Find(a)
 	if a.ID == 0 {
-		s.Send(server.Login{Result: uint8(4)})
+		s.Send(&server.Login{Result: uint8(4)})
 		return
 	}
 
