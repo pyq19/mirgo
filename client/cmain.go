@@ -39,7 +39,7 @@ func main() {
 		case *server.KeepAlive:
 			//log.Infof("<--- server.KeepAlive")
 		case *server.Chat:
-			log.Infoln("<--- server.Chat", msg.Message, msg.Type)
+			log.Infoln("<--- server.Chat. Type:", msg.Type, ", Text: ", msg.Message)
 		default:
 			log.Debugf("default: 客户端收到: %s", msg)
 		}
@@ -68,7 +68,7 @@ func main() {
 			session.Send(&client.KeepAlive{
 				Time: 0,
 			})
-		case client.LOGIN:
+		case client.LOGIN: // 5
 			session.Send(&client.Login{
 				AccountID: "test",
 				Password:  "testt",
@@ -80,7 +80,7 @@ func main() {
 			//	Gender: common.MirGenderMale,
 			//	Class:  common.MirClassTaoist,
 			//})
-		case client.START_GAME:
+		case client.START_GAME: // 8
 			log.Debugln(idStr + " START_GAME")
 			session.Send(&client.StartGame{CharacterIndex: 1})
 		case client.DELETE_CHARACTER:

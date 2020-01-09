@@ -541,7 +541,7 @@ func (g *Game) StartGame(s cellnet.Session, msg *client.StartGame) {
 		return
 	}
 	UpdatePlayerInfo(p, c)
-	p.Map = g.Env.GetMap(p.Map.Info.ID)
+	p.Map = g.Env.GetMap(int(c.CurrentMapID))
 	s.Send(ServerMessage{}.SetConcentration())
 	s.Send(ServerMessage{}.StartGame())
 	s.Send(ServerMessage{}.MapInformation(p.Map.Info))
@@ -574,17 +574,17 @@ func (g *Game) StartGame(s cellnet.Session, msg *client.StartGame) {
 	for i, v := range uii {
 		p.Inventory[i] = v
 		ii := g.Env.GameDB.GetItemInfoByID(int(v.ItemID))
-		s.Send(server.NewItemInfo{Info: *ii})
+		s.Send(&server.NewItemInfo{Info: *ii})
 	}
 	for i, v := range uie {
 		p.Equipment[i] = v
 		ii := g.Env.GameDB.GetItemInfoByID(int(v.ItemID))
-		s.Send(server.NewItemInfo{Info: *ii})
+		s.Send(&server.NewItemInfo{Info: *ii})
 	}
 	for i, v := range uiq {
 		p.QuestInventory[i] = v
 		ii := g.Env.GameDB.GetItemInfoByID(int(v.ItemID))
-		s.Send(server.NewItemInfo{Info: *ii})
+		s.Send(&server.NewItemInfo{Info: *ii})
 	}
 	s.Send(ServerMessage{}.UserInformation(p))
 	p.StartGame()
