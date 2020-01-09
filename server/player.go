@@ -81,7 +81,7 @@ func (p *Player) Enqueue(msg interface{}) {
 }
 
 func (p *Player) ReceiveChat(text string, ct common.ChatType) {
-	p.Enqueue(server.Chat{
+	p.Enqueue(&server.Chat{
 		Message: text,
 		Type:    ct,
 	})
@@ -138,14 +138,14 @@ func (p *Player) StartGame() {
 
 func (p *Player) Turn(direction common.MirDirection) {
 	if p.canMove() {
-		p.Broadcast(server.ObjectTurn{
+		p.Broadcast(&server.ObjectTurn{
 			ObjectID:  p.ID,
 			Location:  p.Point(),
 			Direction: direction,
 		})
 		p.CurrentDirection = direction
 	}
-	p.Enqueue(server.UserLocation{
+	p.Enqueue(&server.UserLocation{
 		Location:  p.Point(),
 		Direction: p.CurrentDirection,
 	})
@@ -153,7 +153,7 @@ func (p *Player) Turn(direction common.MirDirection) {
 
 func (p *Player) Walk(direction common.MirDirection) {
 	if !p.canMove() || !p.canWalk() {
-		p.Enqueue(server.UserLocation{
+		p.Enqueue(&server.UserLocation{
 			Location:  p.Point(),
 			Direction: p.CurrentDirection,
 		})
@@ -162,13 +162,13 @@ func (p *Player) Walk(direction common.MirDirection) {
 	n := p.Point().NextPoint(direction, 1)
 	ok := p.Map.UpdateObject(p, n)
 	if !ok {
-		p.Enqueue(server.UserLocation{
+		p.Enqueue(&server.UserLocation{
 			Location:  p.Point(),
 			Direction: p.CurrentDirection,
 		})
 		return
 	}
-	p.Broadcast(server.ObjectWalk{
+	p.Broadcast(&server.ObjectWalk{
 		ObjectID:  p.ID,
 		Location:  p.Point(),
 		Direction: direction,
@@ -181,13 +181,13 @@ func (p *Player) Run(direction common.MirDirection) {
 	n1 := p.Point().NextPoint(direction, 1)
 	n2 := p.Point().NextPoint(direction, 2)
 	if ok := p.Map.UpdateObject(p, n1, n2); !ok {
-		p.Enqueue(server.UserLocation{
+		p.Enqueue(&server.UserLocation{
 			Location:  p.Point(),
 			Direction: p.CurrentDirection,
 		})
 		return
 	}
-	p.Broadcast(server.ObjectRun{
+	p.Broadcast(&server.ObjectRun{
 		ObjectID:  p.ID,
 		Location:  p.Point(),
 		Direction: direction,
@@ -206,7 +206,7 @@ func (p *Player) Chat(message string) {
 		return
 	}
 	message = p.Name + ":" + message
-	msg := server.ObjectChat{
+	msg := &server.ObjectChat{
 		ObjectID: p.ID,
 		Text:     message,
 		Type:     common.ChatTypeNormal,
@@ -325,18 +325,18 @@ func (p *Player) attacked(attacker *Player, finalDamage int, defenceType common.
 
 func (p *Player) Attack(direction common.MirDirection, spell common.Spell) {
 	if !p.canAttack() {
-		p.Enqueue(server.UserLocation{
+		p.Enqueue(&server.UserLocation{
 			Location:  p.Point(),
 			Direction: p.CurrentDirection,
 		})
 		return
 	}
 	p.CurrentDirection = direction
-	p.Enqueue(server.UserLocation{
+	p.Enqueue(&server.UserLocation{
 		Location:  p.Point(),
 		Direction: direction,
 	})
-	p.Broadcast(server.ObjectAttack{
+	p.Broadcast(&server.ObjectAttack{
 		ObjectID:  p.ID,
 		Location:  p.Point(),
 		Direction: p.CurrentDirection,
@@ -431,7 +431,7 @@ func (p *Player) Magic(spell common.Spell, direction common.MirDirection, id uin
 	}
 	// TODO
 err:
-	p.Enqueue(server.UserLocation{
+	p.Enqueue(&server.UserLocation{
 		Location:  p.Point(),
 		Direction: p.CurrentDirection,
 	})
