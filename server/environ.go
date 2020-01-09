@@ -181,7 +181,7 @@ func (e *Environ) StartLoop() {
 
 func (e *Environ) TimeTick() {
 	// 系统事件 广播 存档
-	systemBroadcastTicker := time.NewTicker(10 * time.Second)
+	//systemBroadcastTicker := time.NewTicker(10 * time.Second)
 
 	// 玩家事件 buff 等状态改变
 
@@ -192,8 +192,8 @@ func (e *Environ) TimeTick() {
 
 	for {
 		select {
-		case <-systemBroadcastTicker.C:
-			e.Submit(NewTask(e.systemBroadcast))
+		//case <-systemBroadcastTicker.C:
+		//	e.Submit(NewTask(e.systemBroadcast))
 		case <-monsterMoveTicker.C:
 			e.Submit(NewTask(e.monsterMove))
 		}
