@@ -33,10 +33,10 @@ func (ServerMessage) ObjectPlayer(p *Player) *server.ObjectPlayer {
 		Weapon:           0,
 		WeaponEffect:     0,
 		Armour:           0,
-		Poison:           0,
+		Poison:           common.PoisonTypeNone,
 		Dead:             false,
 		Hidden:           false,
-		Effect:           0,
+		Effect:           common.SpellEffectNone,
 		WingEffect:       0,
 		Extra:            false,
 		MountType:        0,
@@ -47,7 +47,7 @@ func (ServerMessage) ObjectPlayer(p *Player) *server.ObjectPlayer {
 		ElementOrbLvl:    0,
 		ElementOrbMax:    0,
 		Buffs:            nil,
-		LevelEffects:     0,
+		LevelEffects:     common.LevelEffectsNone,
 	}
 }
 

@@ -52,14 +52,32 @@ func encodeValue(v reflect.Value) (bytes []byte, err error) {
 		vv := uint8(v.Interface().(int8))
 		bytes = append(bytes, vv)
 	case reflect.Int16:
-		vv := uint16(v.Interface().(int16))
-		bytes = append(bytes, common.Uint16ToBytes(vv)...)
+		//vv := uint16(v.Interface().(int16))
+		//bytes = append(bytes, common.Uint16ToBytes(vv)...)
+		if vv, ok := v.Interface().(int16); ok {
+			bytes = append(bytes, common.Uint16ToBytes(uint16(vv))...)
+		} else {
+			vvv := reflect.ValueOf(vv).Uint()
+			bytes = append(bytes, common.Uint16ToBytes(uint16(vvv))...)
+		}
 	case reflect.Int32:
-		vv := uint32(v.Interface().(int32))
-		bytes = append(bytes, common.Uint32ToBytes(vv)...)
+		//vv := uint32(v.Interface().(int32))
+		//bytes = append(bytes, common.Uint32ToBytes(vv)...)
+		if vv, ok := v.Interface().(int32); ok {
+			bytes = append(bytes, common.Uint32ToBytes(uint32(vv))...)
+		} else {
+			vvv := reflect.ValueOf(vv).Uint()
+			bytes = append(bytes, common.Uint32ToBytes(uint32(vvv))...)
+		}
 	case reflect.Int64:
-		vv := uint64(v.Interface().(int64))
-		bytes = append(bytes, common.Uint64ToBytes(vv)...)
+		//vv := uint64(v.Interface().(int64))
+		//bytes = append(bytes, common.Uint64ToBytes(vv)...)
+		if vv, ok := v.Interface().(int64); ok {
+			bytes = append(bytes, common.Uint64ToBytes(uint64(vv))...)
+		} else {
+			vvv := reflect.ValueOf(vv).Uint()
+			bytes = append(bytes, common.Uint64ToBytes(uint64(vvv))...)
+		}
 	case reflect.Uint8:
 		switch vv := v.Interface().(type) {
 		case uint8:
@@ -69,14 +87,26 @@ func encodeValue(v reflect.Value) (bytes []byte, err error) {
 			bytes = append(bytes, uint8(vvv))
 		}
 	case reflect.Uint16:
-		vv := v.Interface().(uint16)
-		bytes = append(bytes, common.Uint16ToBytes(vv)...)
+		if vv, ok := v.Interface().(uint16); ok {
+			bytes = append(bytes, common.Uint16ToBytes(vv)...)
+		} else {
+			vvv := reflect.ValueOf(vv).Uint()
+			bytes = append(bytes, common.Uint16ToBytes(uint16(vvv))...)
+		}
 	case reflect.Uint32:
-		vv := v.Interface().(uint32)
-		bytes = append(bytes, common.Uint32ToBytes(vv)...)
+		if vv, ok := v.Interface().(uint32); ok {
+			bytes = append(bytes, common.Uint32ToBytes(vv)...)
+		} else {
+			vvv := reflect.ValueOf(vv).Uint()
+			bytes = append(bytes, common.Uint32ToBytes(uint32(vvv))...)
+		}
 	case reflect.Uint64:
-		vv := v.Interface().(uint64)
-		bytes = append(bytes, common.Uint64ToBytes(vv)...)
+		if vv, ok := v.Interface().(uint64); ok {
+			bytes = append(bytes, common.Uint64ToBytes(vv)...)
+		} else {
+			vvv := reflect.ValueOf(vv).Uint()
+			bytes = append(bytes, common.Uint64ToBytes(uint64(vvv))...)
+		}
 	case reflect.Slice:
 		// FIXME 还有别的类型可能会报错
 		switch vv := v.Interface().(type) {

@@ -113,6 +113,7 @@ func main() {
 	//addr := "192.168.31.242:7000"
 	addr := "127.0.0.1:7000"
 	p := peer.NewGenericPeer("tcp.Connector", "client", addr, queue)
+	session := p.(interface{ Session() cellnet.Session }).Session()
 	proc.BindProcessorHandler(p, "mir.client.tcp", func(ev cellnet.Event) {
 		switch msg := ev.Message().(type) {
 		case *cellnet.SessionConnected:
@@ -121,6 +122,7 @@ func main() {
 			//log.Debugln("client error")
 		case *server.Connected:
 			//log.Infof("<--- server.Connected")
+			session.Send(&client.ClientVersion{VersionHash: []uint8{16, 0, 0, 0, 86, 92, 129, 20, 102, 64, 159, 148, 125, 97, 112, 85, 237, 250, 133, 162}})
 		case *server.ClientVersion:
 			//log.Infof("<--- server.ClientVersion")
 		case *server.KeepAlive:
@@ -135,7 +137,6 @@ func main() {
 	queue.StartLoop()
 	log.Debugln("Ready to chat!")
 	readConsole(func(str string) {
-		session := p.(interface{ Session() cellnet.Session }).Session()
 		msg := parse(str)
 		if msg == nil {
 			return
