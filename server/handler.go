@@ -540,6 +540,12 @@ func (g *Game) StartGame(s cellnet.Session, msg *client.StartGame) {
 	if c.ID == 0 {
 		return
 	}
+	ac := new(common.AccountCharacter)
+	g.DB.Table("account_character").Where("account_id = ? and character_id = ?", p.AccountID, c.ID).Find(&ac)
+	if ac.ID == 0 {
+		s.Send(&server.StartGame{Result: 2, Resolution: 1024})
+		return
+	}
 	UpdatePlayerInfo(p, c)
 	p.Map = g.Env.GetMap(int(c.CurrentMapID))
 	s.Send(ServerMessage{}.SetConcentration())

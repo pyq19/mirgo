@@ -159,9 +159,9 @@ func (p *Player) Walk(direction common.MirDirection) {
 		p.Enqueue(ServerMessage{}.UserLocation(p))
 		return
 	}
-	p.Broadcast(ServerMessage{}.ObjectWalk(p))
 	p.CurrentDirection = direction
 	p.CurrentLocation = n
+	p.Broadcast(ServerMessage{}.ObjectWalk(p))
 }
 
 func (p *Player) Run(direction common.MirDirection) {
@@ -171,9 +171,9 @@ func (p *Player) Run(direction common.MirDirection) {
 		p.Enqueue(ServerMessage{}.UserLocation(p))
 		return
 	}
-	p.Broadcast(ServerMessage{}.ObjectRun(p))
 	p.CurrentDirection = direction
 	p.CurrentLocation = n2
+	p.Broadcast(ServerMessage{}.ObjectRun(p))
 }
 
 func (p *Player) Chat(message string) {

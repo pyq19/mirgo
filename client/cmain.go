@@ -50,7 +50,7 @@ func parse(str string) interface{} {
 			EMailAddress:   "",
 		}
 	case "ChangePassword":
-	case "Login", "LOGIN": // 5
+	case "Login", "login": // 5
 		return &client.Login{
 			AccountID: args[1],
 			Password:  args[2],
@@ -64,14 +64,18 @@ func parse(str string) interface{} {
 	case "DeleteCharacter":
 		i, _ := strconv.Atoi(args[1])
 		return &client.DeleteCharacter{CharacterIndex: int16(i)}
-	case "StartGame": // 8
+	case "StartGame", "start", "startgame": // 8
 		i, _ := strconv.Atoi(args[1])
 		return &client.StartGame{CharacterIndex: int16(i)}
 	case "LogOut":
-	case "Turn":
-	case "Walk":
-	case "Run":
-	case "Chat":
+	case "Turn", "turn":
+		return &client.Turn{Direction: direction(args[1])}
+	case "Walk", "walk":
+		return &client.Walk{Direction: direction(args[1])}
+	case "Run", "run":
+		return &client.Run{Direction: direction(args[1])}
+	case "Chat", "chat":
+		return &client.Chat{Message: args[1]}
 	case "MoveItem":
 	case "StoreItem":
 	case "DepositRefineItem":
@@ -97,6 +101,10 @@ func parse(str string) interface{} {
 	case "ChangePMode":
 	case "ChangeTrade":
 	case "Attack":
+		return &client.Attack{
+			Direction: direction(args[1]),
+			Spell:     common.SpellNone,
+		}
 	case "RangeAttack":
 	case "Harvest":
 	case "CallNPC":
@@ -106,6 +114,29 @@ func parse(str string) interface{} {
 		return nil
 	}
 	return nil
+}
+
+func direction(s string) common.MirDirection {
+	switch s {
+	case "up":
+		return common.MirDirectionUp
+	case "upright":
+		return common.MirDirectionUpRight
+	case "right":
+		return common.MirDirectionRight
+	case "downright":
+		return common.MirDirectionDownRight
+	case "down":
+		return common.MirDirectionDown
+	case "downleft":
+		return common.MirDirectionDownLeft
+	case "left":
+		return common.MirDirectionLeft
+	case "upleft":
+		return common.MirDirectionUpLeft
+	default:
+		return common.MirDirectionUp
+	}
 }
 
 func main() {
