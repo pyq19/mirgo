@@ -24,10 +24,7 @@ func (m *Map) GetAllPlayers() []*Player {
 	players := make([]*Player, 0)
 	m.AOI.grids.Range(func(k, v interface{}) bool {
 		g := v.(*Grid)
-		g.Players.Range(func(k, v interface{}) bool {
-			players = append(players, v.(*Player))
-			return true
-		})
+		players = append(players, g.GetAllPlayer()...)
 		return true
 	})
 	return players
@@ -151,4 +148,14 @@ func (m *Map) GetValidPoint(x int, y int, spread int) (common.Point, error) {
 func (m *Map) GetNextCell(cell *Cell, direction common.MirDirection, step uint32) *Cell {
 	p := cell.Point().NextPoint(direction, step)
 	return m.GetCell(p.Coordinate())
+}
+
+// GetAreaMapObjects 传入一个点，获取该点附近 9 个 AOI 区域内 MapObject
+func (m *Map) GetAreaObjects(p common.Point) (objs []IMapObject) {
+	grids := m.AOI.GetSurroundGridsByCoordinate(p.Coordinate())
+	for i := range grids {
+		g := grids[i]
+		objs = append(objs, g.GetAllObjects()...)
+	}
+	return
 }

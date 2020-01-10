@@ -8,117 +8,81 @@ import (
 
 // Grid 一个地图中的区域类
 type Grid struct {
-	AOI      *AOIManager
-	GID      int       // 区域ID
-	MinX     int       // 区域左边界坐标
-	MaxX     int       // 区域右边界坐标
-	MinY     int       // 区域上边界坐标
-	MaxY     int       // 区域下边界坐标
-	Players  *sync.Map // 当前区域内的玩家  {Player.ID: *Player}
-	Monsters *sync.Map // 当前区域内的怪物
-	NPCs     *sync.Map // 当前区域内的 NPC  {NPC.Info.ID: *NPC}
+	AOI     *AOIManager
+	GID     int       // 区域ID
+	MinX    int       // 区域左边界坐标
+	MaxX    int       // 区域右边界坐标
+	MinY    int       // 区域上边界坐标
+	MaxY    int       // 区域下边界坐标
+	Objects *sync.Map // 当前区域内的玩家
 }
 
 // NewGrid 初始化一个区域
 func NewGrid(aoi *AOIManager, gID, minX, maxX, minY, maxY int) *Grid {
 	return &Grid{
-		AOI:      aoi,
-		GID:      gID,
-		MinX:     minX,
-		MaxX:     maxX,
-		MinY:     minY,
-		MaxY:     maxY,
-		Players:  new(sync.Map),
-		Monsters: new(sync.Map),
-		NPCs:     new(sync.Map),
+		AOI:     aoi,
+		GID:     gID,
+		MinX:    minX,
+		MaxX:    maxX,
+		MinY:    minY,
+		MaxY:    maxY,
+		Objects: new(sync.Map),
 	}
 }
 
-// GetPlayerID 得到当前区域中所有的玩家
+// String 打印信息方法
+func (g *Grid) String() string {
+	var (
+		players  []*Player
+		monsters []*Monster
+		npcs     []*NPC
+	)
+	gridInfo := fmt.Sprintf("Grid id: %d, minX:%d, maxX:%d, minY:%d, maxY:%d \n",
+		g.GID, g.MinX, g.MaxX, g.MinY, g.MaxY)
+	g.Objects.Range(func(k, v interface{}) bool {
+		o := v.(IMapObject)
+		switch o.GetRace() {
+		case common.ObjectTypePlayer:
+			players = append(players, o.(*Player))
+		case common.ObjectTypeMonster:
+			monsters = append(monsters, o.(*Monster))
+		case common.ObjectTypeMerchant:
+			npcs = append(npcs, o.(*NPC))
+		}
+		return true
+	})
+	return fmt.Sprintf("%s\nPlayers: %v\nMonsters: %v\nNPCs: %v\n", gridInfo, players, monsters, npcs)
+}
+
+func (g *Grid) AddObject(obj IMapObject) {
+	g.Objects.Store(obj.GetID(), obj)
+}
+
+func (g *Grid) DeleteObject(obj IMapObject) {
+	v, ok := g.Objects.Load(obj.GetID())
+	if !ok {
+		return
+	}
+	g.Objects.Delete(v.(IMapObject).GetID())
+}
+
+// GetAllPlayer 得到当前区域中所有的玩家
 func (g *Grid) GetAllPlayer() (players []*Player) {
-	g.Players.Range(func(k, v interface{}) bool {
-		players = append(players, v.(*Player))
+	g.Objects.Range(func(k, v interface{}) bool {
+		o := v.(IMapObject)
+		if o.GetRace() == common.ObjectTypePlayer {
+			players = append(players, o.(*Player))
+		}
 		return true
 	})
 	return
 }
 
-// String 打印信息方法
-func (g *Grid) String() string {
-	res1 := fmt.Sprintf("Grid id: %d, minX:%d, maxX:%d, minY:%d, maxY:%d \n",
-		g.GID, g.MinX, g.MaxX, g.MinY, g.MaxY)
-	//res2 := fmt.Sprintf("Players: %v, NPCs: %v, Monsters: %v", g.Players, g.NPCs, g.Monsters)
-	res2 := ""
-	g.Monsters.Range(func(k, v interface{}) bool {
-		m := v.(*Monster)
-		res2 += fmt.Sprintf("%v", m)
+func (g *Grid) GetAllObjects() (objs []IMapObject) {
+	g.Objects.Range(func(k, v interface{}) bool {
+		o := v.(IMapObject)
+		objs = append(objs, o)
 		return true
 	})
-	res3 := ""
-	g.NPCs.Range(func(k, v interface{}) bool {
-		n := v.(*NPC)
-		res3 += fmt.Sprintf("NPC Coordinate: %s, ID: %d, name: %s\n", n.GetPoint().Coordinate(), n.ID, n.Name)
-		return true
-	})
-	return res1 + "Monsters: \n" + res2 + "NPCs: \n" + res3
-}
-
-func (g *Grid) AddObject(obj IMapObject) {
-	switch obj.GetRace() {
-	case common.ObjectTypePlayer:
-		g.AddPlayer(obj.(*Player))
-	case common.ObjectTypeMerchant:
-		g.AddNPC(obj.(*NPC))
-	case common.ObjectTypeMonster:
-		g.AddMonster(obj.(*Monster))
-	}
-}
-
-func (g *Grid) DeleteObject(obj IMapObject) {
-	switch obj.GetRace() {
-	case common.ObjectTypePlayer:
-		g.DeletePlayer(obj.(*Player))
-	case common.ObjectTypeMerchant:
-		g.DeleteNPC(obj.(*NPC))
-	case common.ObjectTypeMonster:
-		g.DeleteMonster(obj.(*Monster))
-	}
-}
-
-// AddPlayer 向当前区域中添加一个玩家
-func (g *Grid) AddPlayer(p *Player) {
-	g.Players.Store(p.ID, p)
-}
-
-// DeletePlayer 从区域中删除一个玩家
-func (g *Grid) DeletePlayer(p *Player) {
-	v, ok := g.Players.Load(p.ID)
-	if !ok {
-		return
-	}
-	g.Players.Delete(v.(*Player).ID)
-}
-
-func (g *Grid) AddNPC(n *NPC) {
-	g.NPCs.Store(n.ID, n)
-}
-
-func (g *Grid) DeleteNPC(n *NPC) {
-	v, ok := g.NPCs.Load(n.ID)
-	if !ok {
-		return
-	}
-	g.NPCs.Delete(v.(*NPC).ID)
-}
-
-func (g *Grid) AddMonster(m *Monster) {
-	g.Monsters.Store(m.ID, m)
-}
-
-func (g *Grid) DeleteMonster(m *Monster) {
-	v, ok := g.Monsters.Load(m.ID)
-	if !ok {
-		return
-	}
-	g.Monsters.Delete(v.(*Monster).ID)
+	return
 }

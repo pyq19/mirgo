@@ -6,9 +6,12 @@ import (
 
 func _GetMapForTest() *Map {
 	gopath := os.Getenv("GOPATH")
-	var addr = "0.0.0.0:7000"
-	var mirDB = "/src/github.com/yenkeia/mirgo/dotnettools/mir.sqlite"
-	conf := Config{addr, gopath + mirDB}
+	conf := Config{
+		Addr:          "0.0.0.0:7000",
+		DBPath:        gopath + "/src/github.com/yenkeia/mirgo/dotnettools/mir.sqlite",
+		MapDirPath:    gopath + "/src/github.com/yenkeia/mirgo/dotnettools/database/Maps/",
+		ScriptDirPath: gopath + "/src/github.com/yenkeia/mirgo/script/",
+	}
 	g := NewGame(conf)
 	v, _ := g.Env.Maps.Load(1)
 	m := v.(*Map)

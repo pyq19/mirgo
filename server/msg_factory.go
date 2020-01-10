@@ -159,3 +159,16 @@ func (ServerMessage) ObjectChat(p *Player, message string, chatType common.ChatT
 		Type:     chatType,
 	}
 }
+
+func (ServerMessage) ObjectNPC(n *NPC) *server.ObjectNPC {
+	return &server.ObjectNPC{
+		ObjectID:  0,
+		Name:      "",
+		NameColor: 0,
+		Image:     0,
+		Color:     0,
+		Location:  common.Point{},
+		Direction: 0,
+		QuestIDs:  nil,
+	}
+}

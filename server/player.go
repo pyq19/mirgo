@@ -80,6 +80,10 @@ func (p *Player) GetDirection() common.MirDirection {
 	return p.CurrentDirection
 }
 
+func (p *Player) GetInfo() interface{} {
+	return ServerMessage{}.ObjectPlayer(p)
+}
+
 func (p *Player) Enqueue(msg interface{}) {
 	(*p.Session).Send(msg)
 }
@@ -95,13 +99,10 @@ func (p *Player) Broadcast(msg interface{}) {
 	p.Map.Submit(NewTask(func(args ...interface{}) {
 		grids := p.Map.AOI.GetSurroundGridsByCoordinate(p.Point().Coordinate())
 		for i := range grids {
-			grids[i].Players.Range(func(k, v interface{}) bool {
-				o := v.(*Player)
-				if p.ID != o.ID {
-					o.Enqueue(msg)
-				}
-				return true
-			})
+			areaPlayers := grids[i].GetAllPlayer()
+			for i := range areaPlayers {
+				areaPlayers[i].Enqueue(msg)
+			}
 		}
 	}))
 }
@@ -137,6 +138,14 @@ func (p *Player) canCast() bool {
 func (p *Player) StartGame() {
 	p.Map.Env.AddPlayer(p)
 	p.Map.AddObject(p)
+	objs := p.Map.GetAreaObjects(p.GetPoint())
+	for i := range objs {
+		o := objs[i]
+		if p.GetID() == o.GetID() {
+			continue
+		}
+		p.Enqueue(o.GetInfo())
+	}
 	p.Broadcast(ServerMessage{}.ObjectPlayer(p))
 }
 
