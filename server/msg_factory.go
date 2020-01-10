@@ -162,13 +162,13 @@ func (ServerMessage) ObjectChat(p *Player, message string, chatType common.ChatT
 
 func (ServerMessage) ObjectNPC(n *NPC) *server.ObjectNPC {
 	return &server.ObjectNPC{
-		ObjectID:  0,
-		Name:      "",
-		NameColor: 0,
-		Image:     0,
-		Color:     0,
-		Location:  common.Point{},
-		Direction: 0,
-		QuestIDs:  nil,
+		ObjectID:  n.ID,
+		Name:      n.Name,
+		NameColor: common.Color{R: 255, G: 255, B: 255, A: 255}.ToInt32(), // TODO
+		Image:     0,                                                      // TODO
+		Color:     common.Color{R: 255, G: 255, B: 255, A: 255}.ToInt32(), // TODO
+		Location:  n.GetPoint(),
+		Direction: n.CurrentDirection,
+		QuestIDs:  nil, // TODO
 	}
 }
