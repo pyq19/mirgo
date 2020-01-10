@@ -375,8 +375,8 @@ type UserInformation struct {
 	Credit         uint32
 }
 
-func (ui *UserInformation) String() string {
-	return fmt.Sprintf("UserInformation: %s(%d)\n", ui.Name, ui.ObjectID)
+func (msg *UserInformation) String() string {
+	return fmt.Sprintf("UserInformation: %s(%d)\n", msg.Name, msg.ObjectID)
 }
 
 type UserLocation struct {
@@ -417,8 +417,8 @@ type ObjectPlayer struct {
 	LevelEffects     common.LevelEffects
 }
 
-func (op *ObjectPlayer) String() string {
-	return fmt.Sprintf("ObjectPlayer Name: %s(%d)\n", op.Name, op.ObjectID)
+func (msg *ObjectPlayer) String() string {
+	return fmt.Sprintf("ObjectPlayer Name: %s(%d), Location: %s\n", msg.Name, msg.ObjectID, msg.Location)
 }
 
 type ObjectRemove struct {
@@ -635,6 +635,7 @@ type ObjectMonster struct {
 	ObjectID          uint32
 	Name              string
 	NameColor         int32
+	Location          common.Point
 	Image             common.Monster
 	Direction         common.MirDirection
 	Effect            uint8
@@ -648,6 +649,10 @@ type ObjectMonster struct {
 	ExtraByte         uint8
 	ShockTime         int64
 	BindingShotCenter bool
+}
+
+func (msg *ObjectMonster) String() string {
+	return fmt.Sprintf("ObjectMonster Name: %s, ObjectID: %d, Location: %s\n", msg.Name, msg.ObjectID, msg.Location)
 }
 
 type ObjectAttack struct {
@@ -752,6 +757,10 @@ type ObjectNPC struct {
 	Location  common.Point
 	Direction common.MirDirection
 	QuestIDs  []int32
+}
+
+func (msg *ObjectNPC) String() string {
+	return fmt.Sprintf("ObjectNPC Name: %s, ObjectID: %d\n, Location: %s", msg.Name, msg.ObjectID, msg.Location)
 }
 
 type NPCResponse struct {

@@ -101,6 +101,9 @@ func (p *Player) Broadcast(msg interface{}) {
 		for i := range grids {
 			areaPlayers := grids[i].GetAllPlayer()
 			for i := range areaPlayers {
+				if p.GetID() == areaPlayers[i].GetID() {
+					continue
+				}
 				areaPlayers[i].Enqueue(msg)
 			}
 		}

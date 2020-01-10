@@ -57,6 +57,7 @@ func (ServerMessage) ObjectMonster(m *Monster) *server.ObjectMonster {
 		ObjectID:          m.ID,
 		Name:              m.Name,
 		NameColor:         common.Color{}.ToInt32(),
+		Location:          m.CurrentLocation,
 		Image:             0,
 		Direction:         0,
 		Effect:            0,
