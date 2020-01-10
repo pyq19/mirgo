@@ -55,6 +55,10 @@ func (m *Monster) GetDirection() common.MirDirection {
 	return m.CurrentDirection
 }
 
+func (m *Monster) GetInfo() interface{} {
+	return ServerMessage{}.ObjectMonster(m)
+}
+
 func (m *Monster) Broadcast(msg interface{}) {
 
 }

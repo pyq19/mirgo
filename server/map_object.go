@@ -60,4 +60,5 @@ type IMapObject interface {
 	GetCell() *Cell
 	Broadcast(interface{})
 	GetDirection() common.MirDirection
+	GetInfo() interface{}
 }

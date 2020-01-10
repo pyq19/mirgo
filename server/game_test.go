@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/yenkeia/mirgo/common"
 	"os"
 	"sync"
 	"testing"
@@ -8,9 +9,12 @@ import (
 
 func TestGameMonsters(t *testing.T) {
 	gopath := os.Getenv("GOPATH")
-	var addr = "0.0.0.0:7000"
-	var mirDB = "/src/github.com/yenkeia/mirgo/dotnettools/mir.sqlite"
-	conf := Config{addr, gopath + mirDB}
+	conf := Config{
+		Addr:          "0.0.0.0:7000",
+		DBPath:        gopath + "/src/github.com/yenkeia/mirgo/dotnettools/mir.sqlite",
+		MapDirPath:    gopath + "/src/github.com/yenkeia/mirgo/dotnettools/database/Maps/",
+		ScriptDirPath: gopath + "/src/github.com/yenkeia/mirgo/script/",
+	}
 	g := NewGame(conf)
 
 	//v, _ := g.Env.Maps.Load(1)
@@ -29,11 +33,13 @@ func TestGameMonsters(t *testing.T) {
 	v.(*Map).AOI.grids.Range(func(k, v interface{}) bool {
 		g := v.(*Grid)
 		t.Log(g.String())
-		g.Monsters.Range(func(k, v interface{}) bool {
-			o := v.(*Monster)
-			if o != nil {
-				count2 += 1
-				t.Logf("Coordinate: %s, MonsterID: %d, ptr: %p", o.CurrentLocation.Coordinate(), o.ID, o)
+		g.Objects.Range(func(k, v interface{}) bool {
+			if v.(IMapObject).GetRace() == common.ObjectTypeMonster {
+				o := v.(*Monster)
+				if o != nil {
+					count2 += 1
+					t.Logf("Coordinate: %s, MonsterID: %d, ptr: %p", o.CurrentLocation.Coordinate(), o.ID, o)
+				}
 			}
 			return true
 		})
@@ -54,20 +60,25 @@ func i(t *testing.T, o interface{}) {
 
 func TestGameNPCs(t *testing.T) {
 	gopath := os.Getenv("GOPATH")
-	var addr = "0.0.0.0:7000"
-	var mirDB = "/src/github.com/yenkeia/mirgo/dotnettools/mir.sqlite"
-	conf := Config{addr, gopath + mirDB}
+	conf := Config{
+		Addr:          "0.0.0.0:7000",
+		DBPath:        gopath + "/src/github.com/yenkeia/mirgo/dotnettools/mir.sqlite",
+		MapDirPath:    gopath + "/src/github.com/yenkeia/mirgo/dotnettools/database/Maps/",
+		ScriptDirPath: gopath + "/src/github.com/yenkeia/mirgo/script/",
+	}
 	g := NewGame(conf)
 	v, _ := g.Env.Maps.Load(1)
 	count := 0
 	v.(*Map).AOI.grids.Range(func(k, v interface{}) bool {
 		g := v.(*Grid)
 		//t.Log(g.String())
-		g.NPCs.Range(func(k, v interface{}) bool {
-			n := v.(*NPC)
-			if n != nil {
-				t.Log(n.String())
-				count += 1
+		g.Objects.Range(func(k, v interface{}) bool {
+			if v.(IMapObject).GetRace() == common.ObjectTypeMerchant {
+				n := v.(*NPC)
+				if n != nil {
+					t.Log(n.String())
+					count += 1
+				}
 			}
 			return true
 		})
