@@ -141,11 +141,13 @@ func (p *Player) StartGame() {
 }
 
 func (p *Player) Turn(direction common.MirDirection) {
-	if p.canMove() {
-		p.Broadcast(ServerMessage{}.ObjectTurn(p))
-		p.CurrentDirection = direction
+	if !p.canMove() {
+		p.Enqueue(ServerMessage{}.UserLocation(p))
+		return
 	}
+	p.CurrentDirection = direction
 	p.Enqueue(ServerMessage{}.UserLocation(p))
+	p.Broadcast(ServerMessage{}.ObjectTurn(p))
 }
 
 func (p *Player) Walk(direction common.MirDirection) {

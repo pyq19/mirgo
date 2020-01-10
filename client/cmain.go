@@ -138,6 +138,27 @@ func direction(s string) common.MirDirection {
 		return common.MirDirectionUp
 	}
 }
+func directionIcon(d common.MirDirection) string {
+	switch d {
+	case common.MirDirectionUp:
+		return "↑↑↑"
+	case common.MirDirectionUpRight:
+		return "↗↗↗"
+	case common.MirDirectionRight:
+		return "→→→"
+	case common.MirDirectionDownRight:
+		return "↘↘↘"
+	case common.MirDirectionDown:
+		return "↓↓↓"
+	case common.MirDirectionDownLeft:
+		return "↙↙↙"
+	case common.MirDirectionLeft:
+		return "←←←"
+	case common.MirDirectionUpLeft:
+		return "↖↖↖"
+	}
+	panic("error direction")
+}
 
 func main() {
 	queue := cellnet.NewEventQueue()
@@ -160,7 +181,12 @@ func main() {
 			//log.Infof("<--- server.KeepAlive")
 			session.Send(&client.KeepAlive{Time: 0})
 		case *server.Chat:
-			//log.Infoln("<--- server.Chat. Type:", msg.Type, ", Text: ", msg.Message)
+		case *server.ObjectTurn:
+			log.Infof("<--- server.ObjectTurn %d, %s\n", msg.ObjectID, directionIcon(msg.Direction))
+		case *server.ObjectWalk:
+			log.Infof("<--- server.ObjectWalk %d, %s\n", msg.ObjectID, directionIcon(msg.Direction))
+		case *server.ObjectRun:
+			log.Infof("<--- server.ObjectRun %d, %s\n", msg.ObjectID, directionIcon(msg.Direction))
 		default:
 			//log.Debugf("default: 客户端收到: %s", msg)
 			_ = msg
