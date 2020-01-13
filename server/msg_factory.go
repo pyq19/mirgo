@@ -180,3 +180,17 @@ func (ServerMessage) NewItemInfo(item *common.ItemInfo) *server.NewItemInfo {
 	}
 	return &server.NewItemInfo{Info: *item}
 }
+
+func (ServerMessage) PlayerInspect(p *Player) *server.PlayerInspect {
+	return &server.PlayerInspect{
+		Name:      p.Name,
+		GuildName: p.GuildName,
+		GuildRank: p.GuildRankName,
+		Equipment: p.Equipment,
+		Class:     p.Class,
+		Gender:    p.Gender,
+		Hair:      p.Hair,
+		Level:     p.Level,
+		LoverName: "",
+	}
+}
