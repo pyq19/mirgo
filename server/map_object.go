@@ -26,6 +26,9 @@ type MapObject struct {
 	MaxMC            uint16
 	MinSC            uint16 // 道术力
 	MaxSC            uint16
+	Accuracy         uint8
+	Agility          uint8
+	Light            uint8
 }
 
 type Poison struct {
