@@ -129,6 +129,18 @@ func (e *Environ) AddPlayer(p *Player) {
 	e.lock.Unlock()
 }
 
+func (e *Environ) GetPlayer(ID uint32) *Player {
+	e.lock.Lock()
+	for i := 0; i < len(e.Players); i++ {
+		o := e.Players[i]
+		if ID == o.ID {
+			return o
+		}
+	}
+	e.lock.Unlock()
+	return nil
+}
+
 func (e *Environ) DeletePlayer(p *Player) {
 	e.lock.Lock()
 	for i := 0; i < len(e.Players); i++ {

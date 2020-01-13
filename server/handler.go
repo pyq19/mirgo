@@ -550,7 +550,6 @@ func (g *Game) StartGame(s cellnet.Session, msg *client.StartGame) {
 	p.Map = g.Env.GetMap(int(c.CurrentMapID))
 	s.Send(ServerMessage{}.SetConcentration())
 	s.Send(ServerMessage{}.StartGame())
-	s.Send(ServerMessage{}.MapInformation(p.Map.Info))
 	cui := make([]common.CharacterUserItem, 0, 100)
 	g.DB.Table("character_user_item").Where("character_id = ?", c.ID).Find(&cui)
 	is := make([]int, 0, 46)
@@ -592,7 +591,6 @@ func (g *Game) StartGame(s cellnet.Session, msg *client.StartGame) {
 		ii := g.Env.GameDB.GetItemInfoByID(int(v.ItemID))
 		s.Send(&server.NewItemInfo{Info: *ii})
 	}
-	s.Send(ServerMessage{}.UserInformation(p))
 	p.StartGame()
 }
 
