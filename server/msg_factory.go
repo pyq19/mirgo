@@ -26,8 +26,8 @@ func (ServerMessage) ObjectPlayer(p *Player) *server.ObjectPlayer {
 		Class:            p.Class,
 		Gender:           p.Gender,
 		Level:            p.Level,
-		Location:         p.CurrentLocation,
-		Direction:        p.CurrentDirection,
+		Location:         p.GetPoint(),
+		Direction:        p.GetDirection(),
 		Hair:             p.Hair,
 		Light:            0, // TODO
 		Weapon:           0,
@@ -57,9 +57,9 @@ func (ServerMessage) ObjectMonster(m *Monster) *server.ObjectMonster {
 		ObjectID:          m.ID,
 		Name:              m.Name,
 		NameColor:         common.Color{}.ToInt32(),
-		Location:          m.CurrentLocation,
+		Location:          m.GetPoint(),
 		Image:             0,
-		Direction:         0,
+		Direction:         m.GetDirection(),
 		Effect:            0,
 		AI:                0,
 		Light:             0,
@@ -169,7 +169,7 @@ func (ServerMessage) ObjectNPC(n *NPC) *server.ObjectNPC {
 		Image:     0,                                                      // TODO
 		Color:     common.Color{R: 255, G: 255, B: 255, A: 255}.ToInt32(), // TODO
 		Location:  n.GetPoint(),
-		Direction: n.CurrentDirection,
+		Direction: n.GetDirection(),
 		QuestIDs:  nil, // TODO
 	}
 }
