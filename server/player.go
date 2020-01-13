@@ -219,6 +219,7 @@ func (p *Player) Walk(direction common.MirDirection) {
 	}
 	p.CurrentDirection = direction
 	p.CurrentLocation = n
+	p.Enqueue(ServerMessage{}.UserLocation(p))
 	p.Broadcast(ServerMessage{}.ObjectWalk(p))
 }
 
@@ -231,6 +232,7 @@ func (p *Player) Run(direction common.MirDirection) {
 	}
 	p.CurrentDirection = direction
 	p.CurrentLocation = n2
+	p.Enqueue(ServerMessage{}.UserLocation(p))
 	p.Broadcast(ServerMessage{}.ObjectRun(p))
 }
 
