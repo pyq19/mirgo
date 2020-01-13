@@ -549,8 +549,9 @@ func TestEncodeDecodeSlice(t *testing.T) {
 	t.Log(obj)
 }
 
+// TODO
 func TestEncodeDecodePlayerInspect(t *testing.T) {
-	codec := new(MirCodec)
+	codec := new(MirPlayerInspectCodec)
 	msg := &server.PlayerInspect{
 		Name:      "testName",
 		GuildName: "testGuildName",
