@@ -152,6 +152,10 @@ func (ServerMessage) ObjectRun(o IMapObject) *server.ObjectRun {
 	}
 }
 
+func (ServerMessage) ObjectRemove(o IMapObject) *server.ObjectRemove {
+	return &server.ObjectRemove{ObjectID: o.GetID()}
+}
+
 func (ServerMessage) ObjectChat(p *Player, message string, chatType common.ChatType) *server.ObjectChat {
 	text := p.Name + ":" + message
 	return &server.ObjectChat{

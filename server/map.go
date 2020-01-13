@@ -53,6 +53,13 @@ func (m *Map) AddObject(obj IMapObject) {
 	m.GetCell(coordinate).AddObject(obj)
 }
 
+func (m *Map) DeleteObject(obj IMapObject) {
+	coordinate := obj.GetCoordinate()
+	grid := m.AOI.GetGridByCoordinate(coordinate)
+	grid.DeleteObject(obj)
+	m.GetCell(coordinate).DeleteObject(obj)
+}
+
 // UpdateObject 更新对象在 Cells, AOI 中的数据, 如果更新成功返回 true
 func (m *Map) UpdateObject(obj IMapObject, points ...common.Point) bool {
 	for i := range points {
