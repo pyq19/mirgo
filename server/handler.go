@@ -579,17 +579,17 @@ func (g *Game) StartGame(s cellnet.Session, msg *client.StartGame) {
 	for i, v := range uii {
 		p.Inventory[i] = v
 		ii := g.Env.GameDB.GetItemInfoByID(int(v.ItemID))
-		s.Send(&server.NewItemInfo{Info: *ii})
+		p.Enqueue(ServerMessage{}.NewItemInfo(ii))
 	}
 	for i, v := range uie {
 		p.Equipment[i] = v
 		ii := g.Env.GameDB.GetItemInfoByID(int(v.ItemID))
-		s.Send(&server.NewItemInfo{Info: *ii})
+		p.Enqueue(ServerMessage{}.NewItemInfo(ii))
 	}
 	for i, v := range uiq {
 		p.QuestInventory[i] = v
 		ii := g.Env.GameDB.GetItemInfoByID(int(v.ItemID))
-		s.Send(&server.NewItemInfo{Info: *ii})
+		p.Enqueue(ServerMessage{}.NewItemInfo(ii))
 	}
 	p.StartGame()
 }

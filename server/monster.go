@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"github.com/yenkeia/mirgo/common"
 )
@@ -18,6 +19,9 @@ func NewMonster(r *Respawn) (m *Monster, err error) {
 	m = new(Monster)
 	m.Respawn = r
 	mi := r.Map.Env.GameDB.GetMonsterInfoByID(r.Info.MonsterID)
+	if mi == nil {
+		return nil, errors.New("new monster error")
+	}
 	m.ID = r.Map.Env.NewObjectID()
 	m.Name = mi.Name
 	p, err := r.Map.GetValidPoint(r.Info.LocationX, r.Info.LocationY, r.Info.Spread)
