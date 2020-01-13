@@ -150,6 +150,46 @@ func (p *Player) StartGame() {
 		p.Enqueue(o.GetInfo())
 	}
 	p.Broadcast(ServerMessage{}.ObjectPlayer(p))
+	p.enqueueItemInfos()
+	p.Enqueue(ServerMessage{}.MapInformation(p.Map.Info))
+	p.Enqueue(ServerMessage{}.UserInformation(p))
+}
+
+func (p *Player) enqueueItemInfos() {
+	gdb := p.Map.Env.GameDB
+	itemInfos := make([]*common.ItemInfo, 100)
+	for i := range p.Inventory {
+		itemID := int(p.Inventory[i].ItemID)
+		if itemID == 0 {
+			continue
+		}
+		itemInfos = append(itemInfos, gdb.GetItemInfoByID(itemID))
+	}
+	for i := range p.Equipment {
+		itemID := int(p.Equipment[i].ItemID)
+		if itemID == 0 {
+			continue
+		}
+		itemInfos = append(itemInfos, gdb.GetItemInfoByID(itemID))
+	}
+	for i := range p.QuestInventory {
+		itemID := int(p.QuestInventory[i].ItemID)
+		if itemID == 0 {
+			continue
+		}
+		itemInfos = append(itemInfos, gdb.GetItemInfoByID(itemID))
+	}
+	for i := range itemInfos {
+		p.enqueueItemInfo(itemInfos[i])
+	}
+}
+
+func (p *Player) enqueueItemInfo(i *common.ItemInfo) {
+	// TODO
+	//if (Connection.SentItemInfo.Contains(info)) return;
+	//Enqueue(new S.NewItemInfo { Info = info });
+	//Connection.SentItemInfo.Add(info)
+	p.Enqueue(ServerMessage{}.NewItemInfo(i))
 }
 
 func (p *Player) Turn(direction common.MirDirection) {
@@ -285,7 +325,11 @@ func (p *Player) PickUp() {
 }
 
 func (p *Player) Inspect(id uint32) {
-
+	o := p.Map.Env.GetPlayer(id)
+	if o.Map.Info.ID != p.Map.Info.ID {
+		return
+	}
+	return
 }
 
 func (p *Player) ChangeAMode(mode common.AttackMode) {

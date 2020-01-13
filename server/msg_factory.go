@@ -173,3 +173,7 @@ func (ServerMessage) ObjectNPC(n *NPC) *server.ObjectNPC {
 		QuestIDs:  nil, // TODO
 	}
 }
+
+func (ServerMessage) NewItemInfo(item *common.ItemInfo) *server.NewItemInfo {
+	return &server.NewItemInfo{Info: *item}
+}
