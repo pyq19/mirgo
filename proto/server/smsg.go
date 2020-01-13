@@ -584,8 +584,8 @@ type PlayerInspect struct {
 	LoverName string
 }
 
-// TODO
 type LogOutSuccess struct {
+	Characters []common.SelectInfo
 }
 
 // TODO

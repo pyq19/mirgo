@@ -128,6 +128,7 @@ func (e *Environ) AddPlayer(p *Player) {
 	e.lock.Lock()
 	e.Players = append(e.Players, p)
 	e.lock.Unlock()
+	p.Map.AddObject(p)
 }
 
 func (e *Environ) GetPlayer(ID uint32) *Player {
