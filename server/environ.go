@@ -81,6 +81,7 @@ func (e *Environ) InitGameDB() {
 	var um []common.UserMagic
 	db.Table("user_magic").Find(&um)
 	gdb.UserMagics = um
+	gdb.Init()
 }
 
 // InitMaps ...

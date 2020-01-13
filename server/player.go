@@ -85,6 +85,10 @@ func (p *Player) GetInfo() interface{} {
 }
 
 func (p *Player) Enqueue(msg interface{}) {
+	if msg == nil {
+		log.Errorln("warning: enqueue nil message")
+		return
+	}
 	(*p.Session).Send(msg)
 }
 
