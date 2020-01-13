@@ -7,8 +7,12 @@ import (
 )
 
 type Monster struct {
-	MapObject
 	Respawn *Respawn
+	MapObject
+	Image  common.Monster
+	AI     int
+	Effect int
+	Poison common.PoisonType
 }
 
 func (m *Monster) String() string {
@@ -24,6 +28,10 @@ func NewMonster(r *Respawn) (m *Monster, err error) {
 	}
 	m.ID = r.Map.Env.NewObjectID()
 	m.Name = mi.Name
+	m.Image = common.Monster(mi.Image)
+	m.AI = mi.AI
+	m.Effect = mi.Effect
+	m.Light = uint8(mi.Light)
 	p, err := r.Map.GetValidPoint(r.Info.LocationX, r.Info.LocationY, r.Info.Spread)
 	if err != nil {
 		return nil, err
@@ -65,6 +73,14 @@ func (m *Monster) GetInfo() interface{} {
 
 func (m *Monster) Broadcast(msg interface{}) {
 
+}
+
+func (m *Monster) IsDead() bool {
+	return false
+}
+
+func (m *Monster) IsSkeleton() bool {
+	return false
 }
 
 func (m *Monster) Process() {

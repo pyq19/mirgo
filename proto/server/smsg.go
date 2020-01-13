@@ -653,10 +653,10 @@ type ObjectMonster struct {
 	Skeleton          bool
 	Poison            common.PoisonType
 	Hidden            bool
-	Extra             bool
-	ExtraByte         uint8
 	ShockTime         int64
 	BindingShotCenter bool
+	Extra             bool
+	ExtraByte         uint8
 }
 
 func (msg *ObjectMonster) String() string {

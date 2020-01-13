@@ -29,8 +29,8 @@ func (ServerMessage) ObjectPlayer(p *Player) *server.ObjectPlayer {
 		Location:         p.GetPoint(),
 		Direction:        p.GetDirection(),
 		Hair:             p.Hair,
-		Light:            0, // TODO
-		Weapon:           0,
+		Light:            p.Light,
+		Weapon:           0, // TODO
 		WeaponEffect:     0,
 		Armour:           0,
 		Poison:           common.PoisonTypeNone,
@@ -51,26 +51,25 @@ func (ServerMessage) ObjectPlayer(p *Player) *server.ObjectPlayer {
 	}
 }
 
-// TODO
 func (ServerMessage) ObjectMonster(m *Monster) *server.ObjectMonster {
 	return &server.ObjectMonster{
 		ObjectID:          m.ID,
 		Name:              m.Name,
 		NameColor:         common.Color{}.ToInt32(),
 		Location:          m.GetPoint(),
-		Image:             0,
+		Image:             m.Image,
 		Direction:         m.GetDirection(),
-		Effect:            0,
-		AI:                0,
-		Light:             0,
-		Dead:              false,
-		Skeleton:          false,
-		Poison:            0,
-		Hidden:            false,
-		Extra:             false,
-		ExtraByte:         0,
-		ShockTime:         0,
-		BindingShotCenter: false,
+		Effect:            uint8(m.Effect),
+		AI:                uint8(m.AI),
+		Light:             m.Light,
+		Dead:              m.IsDead(),
+		Skeleton:          m.IsSkeleton(),
+		Poison:            m.Poison,
+		Hidden:            false, // TODO
+		ShockTime:         0,     // TODO
+		BindingShotCenter: false, // TODO
+		Extra:             false, // TODO
+		ExtraByte:         nil,   // TODO
 	}
 }
 
@@ -170,7 +169,7 @@ func (ServerMessage) ObjectNPC(n *NPC) *server.ObjectNPC {
 		ObjectID:  n.ID,
 		Name:      n.Name,
 		NameColor: common.Color{R: 255, G: 255, B: 255, A: 255}.ToInt32(), // TODO
-		Image:     0,                                                      // TODO
+		Image:     uint16(n.Image),
 		Color:     common.Color{R: 255, G: 255, B: 255, A: 255}.ToInt32(), // TODO
 		Location:  n.GetPoint(),
 		Direction: n.GetDirection(),

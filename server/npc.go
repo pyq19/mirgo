@@ -7,6 +7,7 @@ import (
 
 type NPC struct {
 	MapObject
+	Image int
 }
 
 func NewNPC(m *Map, ni *common.NpcInfo) *NPC {
@@ -17,7 +18,9 @@ func NewNPC(m *Map, ni *common.NpcInfo) *NPC {
 			Map:              m,
 			CurrentLocation:  common.NewPoint(ni.LocationX, ni.LocationY),
 			CurrentDirection: common.MirDirectionDown,
+			Light:            0, // TODO
 		},
+		Image: ni.Image,
 	}
 }
 
