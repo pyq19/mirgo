@@ -548,3 +548,29 @@ func TestEncodeDecodeSlice(t *testing.T) {
 	}
 	t.Log(obj)
 }
+
+func TestEncodeDecodePlayerInspect(t *testing.T) {
+	codec := new(MirCodec)
+	msg := &server.PlayerInspect{
+		Name:      "testName",
+		GuildName: "testGuildName",
+		GuildRank: "testGuildRank",
+		Equipment: nil,
+		Class:     common.MirClassTaoist,
+		Gender:    common.MirGenderFemale,
+		Hair:      1,
+		Level:     10,
+		LoverName: "testLoverName",
+	}
+	obj, err := codec.Encode(msg, *new(cellnet.ContextSet))
+	if err != nil {
+		t.Error(err)
+	}
+	bytes := obj.([]byte)
+	t.Log(bytes)
+
+	if err := codec.Decode(bytes, msg); err != nil {
+		panic(err)
+	}
+	t.Log(msg)
+}

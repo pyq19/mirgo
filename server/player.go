@@ -332,10 +332,11 @@ func (p *Player) PickUp() {
 
 func (p *Player) Inspect(id uint32) {
 	o := p.Map.Env.GetPlayer(id)
-	if o.Map.Info.ID != p.Map.Info.ID {
-		return
+	for i := range o.Equipment {
+		item := p.Map.Env.GameDB.GetItemInfoByID(int(o.Equipment[i].ItemID))
+		p.enqueueItemInfo(item)
 	}
-	return
+	p.Enqueue(ServerMessage{}.PlayerInspect(o))
 }
 
 func (p *Player) ChangeAMode(mode common.AttackMode) {

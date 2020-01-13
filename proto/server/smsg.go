@@ -572,8 +572,16 @@ type PlayerUpdate struct {
 	WingEffect   uint8
 }
 
-// TODO
 type PlayerInspect struct {
+	Name      string
+	GuildName string
+	GuildRank string
+	Equipment []common.UserItem
+	Class     common.MirClass
+	Gender    common.MirGender
+	Hair      uint8
+	Level     uint16
+	LoverName string
 }
 
 // TODO
