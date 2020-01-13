@@ -147,6 +147,9 @@ func (e *Environ) DeletePlayer(p *Player) {
 	e.lock.Lock()
 	for i := 0; i < len(e.Players); i++ {
 		o := e.Players[i]
+		if o == nil {
+			continue
+		}
 		if p.ID == o.ID {
 			e.Players[i] = e.Players[len(e.Players)-1]
 			e.Players = e.Players[:len(e.Players)-1]
@@ -154,6 +157,7 @@ func (e *Environ) DeletePlayer(p *Player) {
 		}
 	}
 	e.lock.Unlock()
+	p.Map.DeleteObject(p)
 }
 
 func (e *Environ) GetPlayersCount() int {
@@ -195,7 +199,9 @@ func (e *Environ) StartLoop() {
 
 func (e *Environ) TimeTick() {
 	// 系统事件 广播 存档
-	//systemBroadcastTicker := time.NewTicker(10 * time.Second)
+	systemBroadcastTicker := time.NewTicker(1 * time.Hour)
+
+	debugTicker := time.NewTicker(10 * time.Second)
 
 	// 玩家事件 buff 等状态改变
 
@@ -206,8 +212,10 @@ func (e *Environ) TimeTick() {
 
 	for {
 		select {
-		//case <-systemBroadcastTicker.C:
-		//	e.Submit(NewTask(e.systemBroadcast))
+		case <-systemBroadcastTicker.C:
+			e.Submit(NewTask(e.systemBroadcast))
+		case <-debugTicker.C:
+			e.debug()
 		case <-monsterMoveTicker.C:
 			e.Submit(NewTask(e.monsterMove))
 		}
@@ -215,7 +223,8 @@ func (e *Environ) TimeTick() {
 }
 
 func (e *Environ) systemBroadcast(...interface{}) {
-	text := "当前在线玩家人数: " + strconv.Itoa(e.GetPlayersCount())
+	envPlayerCount := e.GetPlayersCount()
+	text := "当前在线玩家人数: " + strconv.Itoa(envPlayerCount)
 	(*e.Game.Peer).(cellnet.SessionAccessor).VisitSession(func(ses cellnet.Session) bool {
 		ses.Send(&server.Chat{
 			Message: text,
@@ -223,6 +232,22 @@ func (e *Environ) systemBroadcast(...interface{}) {
 		})
 		return true
 	})
+
+}
+
+func (e *Environ) debug() {
+	envPlayerCount := e.GetPlayersCount()
+	allPlayer := make([]*Player, 0)
+	e.Maps.Range(func(k, v interface{}) bool {
+		m := v.(*Map)
+		allPlayer = append(allPlayer, m.GetAllPlayers()...)
+		return true
+	})
+	if len(allPlayer) != envPlayerCount {
+		log.Errorf("!!! warning envPlayerCount: %d != map allPlayer: %d\n", envPlayerCount, len(allPlayer))
+	} else {
+		log.Debugf("envPlayerCount: %d, map allPlayer: %d\n", envPlayerCount, len(allPlayer))
+	}
 }
 
 func (e *Environ) monsterMove(...interface{}) {

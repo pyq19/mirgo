@@ -148,7 +148,7 @@ func (p *Player) StartGame() {
 
 func (p *Player) enqueueItemInfos() {
 	gdb := p.Map.Env.GameDB
-	itemInfos := make([]*common.ItemInfo, 100)
+	itemInfos := make([]*common.ItemInfo, 0)
 	for i := range p.Inventory {
 		itemID := int(p.Inventory[i].ItemID)
 		if itemID == 0 {
@@ -184,7 +184,7 @@ func (p *Player) enqueueItemInfo(i *common.ItemInfo) {
 }
 
 func (p *Player) StopGame(reason int) {
-
+	p.Broadcast(ServerMessage{}.ObjectRemove(p))
 }
 
 func (p *Player) Turn(direction common.MirDirection) {
