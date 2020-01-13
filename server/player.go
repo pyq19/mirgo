@@ -41,17 +41,6 @@ type CharacterInfo struct {
 	Refine         []common.UserItem
 }
 
-func UpdatePlayerInfo(p *Player, c *common.Character) {
-	p.ID = uint32(c.ID)
-	p.Name = c.Name
-	p.GameStage = GAME
-	p.CurrentDirection = c.Direction
-	p.CurrentLocation = common.NewPoint(int(c.CurrentLocationX), int(c.CurrentLocationY))
-	p.HP = c.HP
-	p.MP = c.MP
-	p.Experience = c.Experience
-}
-
 func (p *Player) Point() common.Point {
 	return p.GetPoint()
 }
@@ -143,8 +132,6 @@ func (p *Player) canCast() bool {
 }
 
 func (p *Player) StartGame() {
-	p.Map.Env.AddPlayer(p)
-	p.Map.AddObject(p)
 	objs := p.Map.GetAreaObjects(p.GetPoint())
 	for i := range objs {
 		o := objs[i]
@@ -194,6 +181,10 @@ func (p *Player) enqueueItemInfo(i *common.ItemInfo) {
 	//Enqueue(new S.NewItemInfo { Info = info });
 	//Connection.SentItemInfo.Add(info)
 	p.Enqueue(ServerMessage{}.NewItemInfo(i))
+}
+
+func (p *Player) StopGame(reason int) {
+
 }
 
 func (p *Player) Turn(direction common.MirDirection) {

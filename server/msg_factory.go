@@ -194,3 +194,60 @@ func (ServerMessage) PlayerInspect(p *Player) *server.PlayerInspect {
 		LoverName: "",
 	}
 }
+
+func (ServerMessage) Login(result int) *server.Login {
+	/*
+	 * 0: Disabled
+	 * 1: Bad AccountID
+	 * 2: Bad Password
+	 * 3: Account Not Exist
+	 * 4: Wrong Password
+	 */
+	return &server.Login{Result: uint8(result)}
+}
+
+func (ServerMessage) NewCharacter(result int) interface{} {
+	/*
+	 * 0: Disabled.
+	 * 1: Bad Character Name
+	 * 2: Bad Gender
+	 * 3: Bad Class
+	 * 4: Max Characters
+	 * 5: Character Exists.
+	 * */
+	return &server.NewCharacter{Result: uint8(result)}
+}
+
+func (ServerMessage) NewCharacterSuccess(g *Game, AccountID int, name string, class common.MirClass, gender common.MirGender) *server.NewCharacterSuccess {
+	c := new(common.Character)
+	c.Name = name
+	c.Level = 8
+	c.Class = class
+	c.Gender = gender
+	c.Hair = 1
+	c.CurrentMapID = 1
+	c.CurrentLocationX = 284
+	c.CurrentLocationY = 608
+	c.Direction = common.MirDirectionDown
+	c.HP = 15
+	c.MP = 17
+	c.Experience = 0
+	c.AttackMode = common.AttackModeAll
+	c.PetMode = common.PetModeBoth
+	g.DB.Table("character").Create(c)
+	g.DB.Table("character").Where("name = ?", name).Last(c)
+	ac := new(common.AccountCharacter)
+	ac.AccountID = AccountID
+	ac.CharacterID = int(c.ID)
+	g.DB.Table("account_character").Create(ac)
+	res := new(server.NewCharacterSuccess)
+	res.CharInfo.Index = uint32(c.ID)
+	res.CharInfo.Name = name
+	res.CharInfo.Class = class
+	res.CharInfo.Gender = gender
+	return res
+}
+
+func (ServerMessage) LogOutSuccess(characters []common.SelectInfo) *server.LogOutSuccess {
+	return &server.LogOutSuccess{Characters: characters}
+}
