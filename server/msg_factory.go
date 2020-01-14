@@ -38,16 +38,16 @@ func (ServerMessage) ObjectPlayer(p *Player) *server.ObjectPlayer {
 		Hidden:           p.IsHidden(),
 		Effect:           common.SpellEffectNone, // TODO
 		WingEffect:       uint8(p.LooksWings),
-		Extra:            false,                   // TODO
-		MountType:        0,                       // TODO
-		RidingMount:      false,                   // TODO
-		Fishing:          false,                   // TODO
-		TransformType:    0,                       // TODO
-		ElementOrbEffect: 0,                       // TODO
-		ElementOrbLvl:    0,                       // TODO
-		ElementOrbMax:    0,                       // TODO
-		Buffs:            nil,                     // TODO
-		LevelEffects:     common.LevelEffectsNone, // TODO
+		Extra:            false,                      // TODO
+		MountType:        0,                          // TODO
+		RidingMount:      false,                      // TODO
+		Fishing:          false,                      // TODO
+		TransformType:    0,                          // TODO
+		ElementOrbEffect: 0,                          // TODO
+		ElementOrbLvl:    0,                          // TODO
+		ElementOrbMax:    0,                          // TODO
+		Buffs:            make([]common.BuffType, 0), // TODO
+		LevelEffects:     common.LevelEffectsNone,    // TODO
 	}
 }
 
