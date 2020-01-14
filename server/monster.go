@@ -83,6 +83,10 @@ func (m *Monster) IsSkeleton() bool {
 	return false
 }
 
+func (m *Monster) IsHidden() bool {
+	return false
+}
+
 func (m *Monster) Process() {
 
 }

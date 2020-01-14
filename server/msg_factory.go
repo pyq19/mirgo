@@ -30,24 +30,24 @@ func (ServerMessage) ObjectPlayer(p *Player) *server.ObjectPlayer {
 		Direction:        p.GetDirection(),
 		Hair:             p.Hair,
 		Light:            p.Light,
-		Weapon:           0, // TODO
-		WeaponEffect:     0,
-		Armour:           0,
-		Poison:           common.PoisonTypeNone,
-		Dead:             false,
-		Hidden:           false,
-		Effect:           common.SpellEffectNone,
-		WingEffect:       0,
-		Extra:            false,
-		MountType:        0,
-		RidingMount:      false,
-		Fishing:          false,
-		TransformType:    0,
-		ElementOrbEffect: 0,
-		ElementOrbLvl:    0,
-		ElementOrbMax:    0,
-		Buffs:            nil,
-		LevelEffects:     common.LevelEffectsNone,
+		Weapon:           int16(p.LooksWeapon),
+		WeaponEffect:     int16(p.LooksWeaponEffect),
+		Armour:           int16(p.LooksArmour),
+		Poison:           common.PoisonTypeNone, // TODO
+		Dead:             p.IsDead(),
+		Hidden:           p.IsHidden(),
+		Effect:           common.SpellEffectNone, // TODO
+		WingEffect:       uint8(p.LooksWings),
+		Extra:            false,                   // TODO
+		MountType:        0,                       // TODO
+		RidingMount:      false,                   // TODO
+		Fishing:          false,                   // TODO
+		TransformType:    0,                       // TODO
+		ElementOrbEffect: 0,                       // TODO
+		ElementOrbLvl:    0,                       // TODO
+		ElementOrbMax:    0,                       // TODO
+		Buffs:            nil,                     // TODO
+		LevelEffects:     common.LevelEffectsNone, // TODO
 	}
 }
 
@@ -65,11 +65,11 @@ func (ServerMessage) ObjectMonster(m *Monster) *server.ObjectMonster {
 		Dead:              m.IsDead(),
 		Skeleton:          m.IsSkeleton(),
 		Poison:            m.Poison,
-		Hidden:            false, // TODO
+		Hidden:            m.IsHidden(),
 		ShockTime:         0,     // TODO
 		BindingShotCenter: false, // TODO
 		Extra:             false, // TODO
-		ExtraByte:         nil,   // TODO
+		ExtraByte:         0,     // TODO
 	}
 }
 
