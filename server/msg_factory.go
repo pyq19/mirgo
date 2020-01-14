@@ -86,10 +86,17 @@ func (ServerMessage) MapInformation(info *common.MapInfo) *server.MapInformation
 	return mi
 }
 
-func (ServerMessage) StartGame() *server.StartGame {
+func (ServerMessage) StartGame(result, resolution int) *server.StartGame {
+	/*
+	 * 0: Disabled.
+	 * 1: Not logged in
+	 * 2: Character not found.
+	 * 3: Start Game Error
+	 * 4: Success
+	 * */
 	sg := new(server.StartGame)
-	sg.Result = 4
-	sg.Resolution = 1024
+	sg.Result = uint8(result)
+	sg.Resolution = int32(resolution)
 	return sg
 }
 
