@@ -30,7 +30,7 @@ func NewEnviron(g *Game) (env *Environ) {
 	env.InitGameDB()
 	env.InitMaps()
 	env.ObjectID = 100000
-	env.Players = make([]*Player, 10)
+	env.Players = make([]*Player, 0)
 	env.lock = new(sync.Mutex)
 	err := env.InitObjects()
 	if err != nil {

@@ -32,6 +32,7 @@ func NewMonster(r *Respawn) (m *Monster, err error) {
 	m.AI = mi.AI
 	m.Effect = mi.Effect
 	m.Light = uint8(mi.Light)
+	m.Poison = common.PoisonTypeNone
 	p, err := r.Map.GetValidPoint(r.Info.LocationX, r.Info.LocationY, r.Info.Spread)
 	if err != nil {
 		return nil, err
