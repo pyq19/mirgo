@@ -20,25 +20,37 @@ type Player struct {
 	GameStage int
 	Session   *cellnet.Session
 	MapObject
-	CharacterInfo
+	Character
 }
 
-type CharacterInfo struct {
-	HP             uint16
-	MP             uint16
-	Experience     int64
-	Gold           uint16
-	GuildName      string
-	GuildRankName  string
-	NameColour     common.Color
-	Class          common.MirClass
-	Gender         common.MirGender
-	Hair           uint8
-	Inventory      []common.UserItem
-	Equipment      []common.UserItem
-	QuestInventory []common.UserItem
-	Trade          []common.UserItem
-	Refine         []common.UserItem
+func (p *Player) Enqueue(msg interface{}) {
+	if msg == nil {
+		log.Errorln("warning: enqueue nil message")
+		return
+	}
+	(*p.Session).Send(msg)
+}
+
+func (p *Player) ReceiveChat(text string, ct common.ChatType) {
+	p.Enqueue(&server.Chat{
+		Message: text,
+		Type:    ct,
+	})
+}
+
+func (p *Player) Broadcast(msg interface{}) {
+	p.Map.Submit(NewTask(func(args ...interface{}) {
+		grids := p.Map.AOI.GetSurroundGridsByCoordinate(p.Point().Coordinate())
+		for i := range grids {
+			areaPlayers := grids[i].GetAllPlayer()
+			for i := range areaPlayers {
+				if p.GetID() == areaPlayers[i].GetID() {
+					continue
+				}
+				areaPlayers[i].Enqueue(msg)
+			}
+		}
+	}))
 }
 
 func (p *Player) Point() common.Point {
@@ -73,64 +85,6 @@ func (p *Player) GetInfo() interface{} {
 	return ServerMessage{}.ObjectPlayer(p)
 }
 
-func (p *Player) Enqueue(msg interface{}) {
-	if msg == nil {
-		log.Errorln("warning: enqueue nil message")
-		return
-	}
-	(*p.Session).Send(msg)
-}
-
-func (p *Player) ReceiveChat(text string, ct common.ChatType) {
-	p.Enqueue(&server.Chat{
-		Message: text,
-		Type:    ct,
-	})
-}
-
-func (p *Player) Broadcast(msg interface{}) {
-	p.Map.Submit(NewTask(func(args ...interface{}) {
-		grids := p.Map.AOI.GetSurroundGridsByCoordinate(p.Point().Coordinate())
-		for i := range grids {
-			areaPlayers := grids[i].GetAllPlayer()
-			for i := range areaPlayers {
-				if p.GetID() == areaPlayers[i].GetID() {
-					continue
-				}
-				areaPlayers[i].Enqueue(msg)
-			}
-		}
-	}))
-}
-
-func (p *Player) Process() {
-
-}
-
-func (p *Player) canMove() bool {
-	return true
-}
-
-func (p *Player) canWalk() bool {
-	return true
-}
-
-func (p *Player) canRun() bool {
-	return true
-}
-
-func (p *Player) canAttack() bool {
-	return true
-}
-
-func (p *Player) canRegen() bool {
-	return true
-}
-
-func (p *Player) canCast() bool {
-	return true
-}
-
 func (p *Player) StartGame() {
 	objs := p.Map.GetAreaObjects(p.GetPoint())
 	for i := range objs {
@@ -140,47 +94,11 @@ func (p *Player) StartGame() {
 		}
 		p.Enqueue(o.GetInfo())
 	}
+	p.EnqueueItemInfos()
+	p.RefreshStats()
 	p.Broadcast(ServerMessage{}.ObjectPlayer(p))
-	p.enqueueItemInfos()
 	p.Enqueue(ServerMessage{}.MapInformation(p.Map.Info))
 	p.Enqueue(ServerMessage{}.UserInformation(p))
-}
-
-func (p *Player) enqueueItemInfos() {
-	gdb := p.Map.Env.GameDB
-	itemInfos := make([]*common.ItemInfo, 0)
-	for i := range p.Inventory {
-		itemID := int(p.Inventory[i].ItemID)
-		if itemID == 0 {
-			continue
-		}
-		itemInfos = append(itemInfos, gdb.GetItemInfoByID(itemID))
-	}
-	for i := range p.Equipment {
-		itemID := int(p.Equipment[i].ItemID)
-		if itemID == 0 {
-			continue
-		}
-		itemInfos = append(itemInfos, gdb.GetItemInfoByID(itemID))
-	}
-	for i := range p.QuestInventory {
-		itemID := int(p.QuestInventory[i].ItemID)
-		if itemID == 0 {
-			continue
-		}
-		itemInfos = append(itemInfos, gdb.GetItemInfoByID(itemID))
-	}
-	for i := range itemInfos {
-		p.enqueueItemInfo(itemInfos[i])
-	}
-}
-
-func (p *Player) enqueueItemInfo(i *common.ItemInfo) {
-	// TODO
-	//if (Connection.SentItemInfo.Contains(info)) return;
-	//Enqueue(new S.NewItemInfo { Info = info });
-	//Connection.SentItemInfo.Add(info)
-	p.Enqueue(ServerMessage{}.NewItemInfo(i))
 }
 
 func (p *Player) StopGame(reason int) {
@@ -188,7 +106,7 @@ func (p *Player) StopGame(reason int) {
 }
 
 func (p *Player) Turn(direction common.MirDirection) {
-	if !p.canMove() {
+	if !p.CanMove() {
 		p.Enqueue(ServerMessage{}.UserLocation(p))
 		return
 	}
@@ -198,7 +116,7 @@ func (p *Player) Turn(direction common.MirDirection) {
 }
 
 func (p *Player) Walk(direction common.MirDirection) {
-	if !p.canMove() || !p.canWalk() {
+	if !p.CanMove() || !p.CanWalk() {
 		p.Enqueue(ServerMessage{}.UserLocation(p))
 		return
 	}
@@ -325,7 +243,7 @@ func (p *Player) Inspect(id uint32) {
 	o := p.Map.Env.GetPlayer(id)
 	for i := range o.Equipment {
 		item := p.Map.Env.GameDB.GetItemInfoByID(int(o.Equipment[i].ItemID))
-		p.enqueueItemInfo(item)
+		p.EnqueueItemInfo(item)
 	}
 	p.Enqueue(ServerMessage{}.PlayerInspect(o))
 }
@@ -355,7 +273,7 @@ func (p *Player) attacked(attacker *Player, finalDamage int, defenceType common.
 }
 
 func (p *Player) Attack(direction common.MirDirection, spell common.Spell) {
-	if !p.canAttack() {
+	if !p.CanAttack() {
 		p.Enqueue(&server.UserLocation{
 			Location:  p.Point(),
 			Direction: p.CurrentDirection,
@@ -453,7 +371,7 @@ func (p *Player) Magic(spell common.Spell, direction common.MirDirection, id uin
 	var (
 		um *common.UserMagic
 	)
-	if !p.canCast() {
+	if !p.CanCast() {
 		goto err
 	}
 	um = p.getMagic(spell)
