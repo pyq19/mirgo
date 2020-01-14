@@ -534,7 +534,8 @@ type SliceTest struct {
 
 func TestEncodeDecodeSlice(t *testing.T) {
 	// []int
-	bytes := []byte{2, 0, 0, 0, 3, 0, 0, 0, 4, 0, 0, 0}
+	//bytes := []byte{2, 0, 0, 0, 3, 0, 0, 0, 4, 0, 0, 0}
+	bytes := []byte{}
 	msg := new(SliceTest)
 	codec := new(MirCodec)
 	if err := codec.Decode(bytes, msg); err != nil {
@@ -549,14 +550,13 @@ func TestEncodeDecodeSlice(t *testing.T) {
 	t.Log(obj)
 }
 
-// TODO
 func TestEncodeDecodePlayerInspect(t *testing.T) {
 	codec := new(MirPlayerInspectCodec)
 	msg := &server.PlayerInspect{
 		Name:      "testName",
 		GuildName: "testGuildName",
 		GuildRank: "testGuildRank",
-		Equipment: nil,
+		Equipment: make([]common.UserItem, 14),
 		Class:     common.MirClassTaoist,
 		Gender:    common.MirGenderFemale,
 		Hair:      1,
