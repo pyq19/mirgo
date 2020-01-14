@@ -186,7 +186,7 @@ func (ServerMessage) ObjectNPC(n *NPC) *server.ObjectNPC {
 
 func (ServerMessage) NewItemInfo(item *common.ItemInfo) *server.NewItemInfo {
 	if item == nil {
-		return nil
+		panic("new item info, item = nil !!!")
 	}
 	return &server.NewItemInfo{Info: *item}
 }

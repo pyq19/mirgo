@@ -243,6 +243,9 @@ func (p *Player) Inspect(id uint32) {
 	o := p.Map.Env.GetPlayer(id)
 	for i := range o.Equipment {
 		item := p.Map.Env.GameDB.GetItemInfoByID(int(o.Equipment[i].ItemID))
+		if item == nil {
+			continue
+		}
 		p.EnqueueItemInfo(item)
 	}
 	p.Enqueue(ServerMessage{}.PlayerInspect(o))

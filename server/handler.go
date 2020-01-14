@@ -492,8 +492,10 @@ func (g *Game) DeleteCharacter(s cellnet.Session, msg *client.DeleteCharacter) {
 
 func updatePlayerInfo(g *Game, p *Player, c *common.Character) {
 	p.ID = uint32(c.ID)
-	p.Name = c.Name
 	p.GameStage = GAME
+	p.Name = c.Name
+	p.Gender = c.Gender
+	p.Level = c.Level
 	p.CurrentDirection = c.Direction
 	p.CurrentLocation = common.NewPoint(int(c.CurrentLocationX), int(c.CurrentLocationY))
 	p.HP = c.HP
