@@ -107,6 +107,7 @@ func (p *Player) StartGame() {
 		}
 		p.Enqueue(o.GetInfo())
 	}
+	p.Enqueue(ServerMessage{}.NPCResponse([]string{}))
 	p.Broadcast(ServerMessage{}.ObjectPlayer(p))
 }
 

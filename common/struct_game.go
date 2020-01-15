@@ -82,7 +82,7 @@ func (c Color) ToInt() int {
 }
 
 func (c Color) ToInt32() int32 {
-	return int32(c.ToUint32())
+	return -16711936
 }
 
 func (c Color) ToUint32() uint32 {
