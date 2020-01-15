@@ -90,6 +90,9 @@ func (p *Player) GetCurrentGrid() *Grid {
 }
 
 func (p *Player) StartGame() {
+	p.ReceiveChat("这是一个以学习为目的传奇服务端", common.ChatTypeSystem)
+	p.ReceiveChat("如有任何建议、疑问欢迎交流", common.ChatTypeSystem)
+	p.ReceiveChat("源码地址 https://github.com/yenkeia/mirgo", common.ChatTypeSystem)
 	p.EnqueueItemInfos()
 	p.RefreshStats()
 	p.EnqueueQuestInfo()
