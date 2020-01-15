@@ -85,6 +85,10 @@ func (p *Player) GetInfo() interface{} {
 	return ServerMessage{}.ObjectPlayer(p)
 }
 
+func (p *Player) GetCurrentGrid() *Grid {
+	return p.Map.AOI.GetGridByPoint(p.Point())
+}
+
 func (p *Player) StartGame() {
 	p.EnqueueItemInfos()
 	p.RefreshStats()

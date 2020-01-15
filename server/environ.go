@@ -203,26 +203,31 @@ func (e *Environ) TimeTick() {
 
 	debugTicker := time.NewTicker(10 * time.Second)
 
-	// 玩家事件 buff 等状态改变
-
 	// 地图事件 刷怪 地图物品
 
+	// 玩家事件 buff 等状态改变
+
 	// 怪物事件 移动 buff
-	monsterMoveTicker := time.NewTicker(500 * time.Millisecond)
+	monsterProcessTicker := time.NewTicker(500 * time.Millisecond)
+
+	// NPC
+	npcProcessTicker := time.NewTicker(500 * time.Millisecond)
 
 	for {
 		select {
 		case <-systemBroadcastTicker.C:
-			e.Submit(NewTask(e.systemBroadcast))
+			e.Submit(NewTask(e.SystemBroadcast))
 		case <-debugTicker.C:
-			e.debug()
-		case <-monsterMoveTicker.C:
-			e.Submit(NewTask(e.monsterMove))
+			e.Debug()
+		case <-monsterProcessTicker.C:
+			e.Submit(NewTask(e.MonstersProcess))
+		case <-npcProcessTicker.C:
+			e.Submit(NewTask(e.NPCsProcess))
 		}
 	}
 }
 
-func (e *Environ) systemBroadcast(...interface{}) {
+func (e *Environ) SystemBroadcast(...interface{}) {
 	envPlayerCount := e.GetPlayersCount()
 	text := "当前在线玩家人数: " + strconv.Itoa(envPlayerCount)
 	(*e.Game.Peer).(cellnet.SessionAccessor).VisitSession(func(ses cellnet.Session) bool {
@@ -235,7 +240,7 @@ func (e *Environ) systemBroadcast(...interface{}) {
 
 }
 
-func (e *Environ) debug() {
+func (e *Environ) Debug() {
 	envPlayerCount := e.GetPlayersCount()
 	allPlayer := make([]*Player, 0)
 	e.Maps.Range(func(k, v interface{}) bool {
@@ -250,6 +255,44 @@ func (e *Environ) debug() {
 	}
 }
 
-func (e *Environ) monsterMove(...interface{}) {
+func (e *Environ) GetActiveObjects() (monster []*Monster, npc []*NPC) {
+	e.lock.Lock()
+	defer e.lock.Unlock()
+	gridMap := make(map[int]*Grid)
+	for i := range e.Players {
+		g := e.Players[i].GetCurrentGrid()
+		gridMap[g.GID] = g
+	}
+	grids := make([]*Grid, 0)
+	for _, g := range gridMap {
+		grids = append(grids, g)
+	}
+	for i := range grids {
+		g := grids[i]
+		objs := g.GetAllObjects()
+		for i := range objs {
+			o := objs[i]
+			switch o.GetRace() {
+			case common.ObjectTypeMonster:
+				monster = append(monster, o.(*Monster))
+			case common.ObjectTypeMerchant:
+				npc = append(npc, o.(*NPC))
+			}
+		}
+	}
+	return
+}
 
+func (e *Environ) MonstersProcess(...interface{}) {
+	monsters, _ := e.GetActiveObjects()
+	for i := range monsters {
+		monsters[i].Process()
+	}
+}
+
+func (e *Environ) NPCsProcess(...interface{}) {
+	_, npcs := e.GetActiveObjects()
+	for i := range npcs {
+		npcs[i].Process()
+	}
 }
