@@ -94,6 +94,10 @@ func (c *Character) EnqueueItemInfo(i *common.ItemInfo) {
 	c.Player.Enqueue(ServerMessage{}.NewItemInfo(i))
 }
 
+func (c *Character) EnqueueQuestInfo() {
+
+}
+
 func (c *Character) RefreshStats() {
 	c.RefreshLevelStats()
 	c.RefreshBagWeight()
