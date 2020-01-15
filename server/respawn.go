@@ -6,12 +6,12 @@ import (
 
 type Respawn struct {
 	Map          *Map
-	Info         *common.RespawnInfo
+	Info         common.RespawnInfo
 	AliveMonster []*Monster
 	DeadMonster  []*Monster
 }
 
-func NewRespawn(m *Map, ri *common.RespawnInfo) (r *Respawn, err error) {
+func NewRespawn(m *Map, ri common.RespawnInfo) (r *Respawn, err error) {
 	r = &Respawn{
 		Map:          m,
 		Info:         ri,

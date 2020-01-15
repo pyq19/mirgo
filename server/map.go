@@ -109,7 +109,7 @@ func (m *Map) InitNPCs() error {
 func (m *Map) InitMonsters() error {
 	for _, ri := range m.Env.GameDB.RespawnInfos {
 		if ri.MapID == m.Info.ID {
-			r, err := NewRespawn(m, &ri)
+			r, err := NewRespawn(m, ri)
 			if err != nil {
 				return err
 			}
