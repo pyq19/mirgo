@@ -261,3 +261,7 @@ func (ServerMessage) NewCharacterSuccess(g *Game, AccountID int, name string, cl
 func (ServerMessage) LogOutSuccess(characters []common.SelectInfo) *server.LogOutSuccess {
 	return &server.LogOutSuccess{Characters: characters}
 }
+
+func (ServerMessage) TimeOfDay(light common.LightSetting) *server.TimeOfDay {
+	return &server.TimeOfDay{Lights: light}
+}

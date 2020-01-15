@@ -86,6 +86,12 @@ func (p *Player) GetInfo() interface{} {
 }
 
 func (p *Player) StartGame() {
+	p.EnqueueItemInfos()
+	p.RefreshStats()
+	p.EnqueueQuestInfo()
+	p.Enqueue(ServerMessage{}.MapInformation(p.Map.Info))
+	p.Enqueue(ServerMessage{}.UserInformation(p))
+	p.Enqueue(ServerMessage{}.TimeOfDay(common.LightSettingDay))
 	objs := p.Map.GetAreaObjects(p.GetPoint())
 	for i := range objs {
 		o := objs[i]
@@ -94,11 +100,7 @@ func (p *Player) StartGame() {
 		}
 		p.Enqueue(o.GetInfo())
 	}
-	p.EnqueueItemInfos()
-	p.RefreshStats()
 	p.Broadcast(ServerMessage{}.ObjectPlayer(p))
-	p.Enqueue(ServerMessage{}.MapInformation(p.Map.Info))
-	p.Enqueue(ServerMessage{}.UserInformation(p))
 }
 
 func (p *Player) StopGame(reason int) {
