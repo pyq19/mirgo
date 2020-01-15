@@ -54,8 +54,8 @@ go build -o smain
 
 #### 客户端
 代码: https://github.com/yenkeia/mir2
-
-资源链接: https://pan.baidu.com/s/12hpQDbOO6uNYNJDSyHbgDg  密码:86zz
+链接：https://pan.baidu.com/s/1ELI8pO278v9JRyt6lS-A8Q
+提取码：0nc3
 
 #### 参考资料
 - [Zinx应用-MMO游戏案例-(2)AOI兴趣点算法](https://www.jianshu.com/p/e5b5db9fa6fe)
