@@ -503,13 +503,20 @@ func TestDecodeUserInformation(t *testing.T) {
 }
 
 // TODO
-func TestEncodeObjectPlayer(t *testing.T) {
+func TestDecodeEncodeObjectPlayer(t *testing.T) {
+	bytes := []byte{} // TODO
+	msg := new(server.ObjectPlayer)
+	codec := new(MirCodec)
+	if err := codec.Decode(bytes, msg); err != nil {
+		panic(err)
+	}
+	t.Log(msg)
 
-}
-
-// TODO
-func TestDecodeObjectPlayer(t *testing.T) {
-
+	obj, err := codec.Encode(msg, *new(cellnet.ContextSet))
+	if err != nil {
+		t.Error(err)
+	}
+	t.Log(obj)
 }
 
 func TestEncodeDecodeNPCResponse(t *testing.T) {
@@ -600,4 +607,20 @@ func TestDecodeEncodeObjectMonster(t *testing.T) {
 	//255 255 255 255
 	//24 1 0 0 86 2 0 0
 	//4 0 1 0 2 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0]
+}
+
+func TestDecodeEncodePlayerUpdate(t *testing.T) {
+	bytes := []byte{129, 3, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0}
+	codec := new(MirCodec)
+	msg := &server.PlayerUpdate{}
+	if err := codec.Decode(bytes, msg); err != nil {
+		panic(err)
+	}
+	t.Log(msg)
+
+	obj, err := codec.Encode(msg, *new(cellnet.ContextSet))
+	if err != nil {
+		t.Error(err)
+	}
+	t.Log(obj.([]byte))
 }
