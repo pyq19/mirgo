@@ -502,11 +502,17 @@ func TestDecodeUserInformation(t *testing.T) {
 	t.Log(msg)
 }
 
-// TODO
 func TestDecodeEncodeObjectPlayer(t *testing.T) {
-	bytes := []byte{} // TODO
+	bytes := []byte{1, 0, 0, 0,
+		6, 232, 140, 131, 233, 151, 178,
+		0, 0,
+		255, 255, 255, 255,
+		0, 0,
+		20, 0,
+		28, 1, 0, 0, 96, 2, 0, 0,
+		1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0} // TODO
 	msg := new(server.ObjectPlayer)
-	codec := new(MirCodec)
+	codec := new(MirObjectPlayerCodec)
 	if err := codec.Decode(bytes, msg); err != nil {
 		panic(err)
 	}
@@ -517,6 +523,14 @@ func TestDecodeEncodeObjectPlayer(t *testing.T) {
 		t.Error(err)
 	}
 	t.Log(obj)
+	//[1 0 0 0
+	//6 232 140 131 233 151 178
+	//0 0
+	//255 255 255 255
+	//0 0
+	//20 0
+	//28 1 0 0 96 2 0 0
+	//1 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0]
 }
 
 func TestEncodeDecodeNPCResponse(t *testing.T) {
