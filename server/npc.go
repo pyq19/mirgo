@@ -3,11 +3,13 @@ package main
 import (
 	"fmt"
 	"github.com/yenkeia/mirgo/common"
+	"time"
 )
 
 type NPC struct {
 	MapObject
-	Image int
+	Image    int
+	TurnTime time.Time
 }
 
 func NewNPC(m *Map, ni *common.NpcInfo) *NPC {
@@ -20,7 +22,8 @@ func NewNPC(m *Map, ni *common.NpcInfo) *NPC {
 			CurrentDirection: common.MirDirectionDown,
 			Light:            0, // TODO
 		},
-		Image: ni.Image,
+		Image:    ni.Image,
+		TurnTime: time.Now(),
 	}
 }
 
@@ -57,9 +60,21 @@ func (n *NPC) String() string {
 }
 
 func (n *NPC) Broadcast(msg interface{}) {
-
+	n.Map.Submit(NewTask(func(args ...interface{}) {
+		grids := n.Map.AOI.GetSurroundGridsByCoordinate(n.GetCoordinate())
+		for i := range grids {
+			areaPlayers := grids[i].GetAllPlayer()
+			for i := range areaPlayers {
+				areaPlayers[i].Enqueue(msg)
+			}
+		}
+	}))
 }
 
 func (n *NPC) Process() {
-
+	if n.TurnTime.Before(time.Now()) {
+		n.TurnTime = time.Now().Add(time.Second * time.Duration(G_Rand.RandInt(5, 15)))
+		n.CurrentDirection = common.MirDirection(G_Rand.RandInt(0, 7))
+		n.Broadcast(ServerMessage{}.ObjectTurn(n))
+	}
 }
