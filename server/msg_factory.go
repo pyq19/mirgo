@@ -177,12 +177,12 @@ func (ServerMessage) ObjectNPC(n *NPC) *server.ObjectNPC {
 	return &server.ObjectNPC{
 		ObjectID:  n.ID,
 		Name:      n.Name,
-		NameColor: common.Color{R: 255, G: 255, B: 255, A: 255}.ToInt32(), // TODO
+		NameColor: -16711936, // TODO
 		Image:     uint16(n.Image),
-		Color:     common.Color{R: 255, G: 255, B: 255, A: 255}.ToInt32(), // TODO
+		Color:     0, // TODO
 		Location:  n.GetPoint(),
 		Direction: n.GetDirection(),
-		QuestIDs:  nil, // TODO
+		QuestIDs:  []int32{}, // TODO
 	}
 }
 
@@ -266,4 +266,8 @@ func (ServerMessage) LogOutSuccess(characters []common.SelectInfo) *server.LogOu
 
 func (ServerMessage) TimeOfDay(light common.LightSetting) *server.TimeOfDay {
 	return &server.TimeOfDay{Lights: light}
+}
+
+func (ServerMessage) NPCResponse(page []string) *server.NPCResponse {
+	return &server.NPCResponse{Page: page}
 }

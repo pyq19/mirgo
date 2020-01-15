@@ -255,6 +255,7 @@ func (e *Environ) Debug() {
 	}
 }
 
+// TODO 待优化
 func (e *Environ) GetActiveObjects() (monster []*Monster, npc []*NPC) {
 	e.lock.Lock()
 	defer e.lock.Unlock()

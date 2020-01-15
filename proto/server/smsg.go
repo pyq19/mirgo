@@ -768,7 +768,8 @@ type ObjectNPC struct {
 }
 
 func (msg *ObjectNPC) String() string {
-	return fmt.Sprintf("ObjectNPC Name: %s, ObjectID: %d\n, Location: %s", msg.Name, msg.ObjectID, msg.Location)
+	return fmt.Sprintf("\nObjectNPC: ID(%d) Name(%s) NameColor(%d) Image(%d) Color(%d) Location(%s) Direction(%d) QuestIDs(%v)\n",
+		msg.ObjectID, msg.Name, msg.NameColor, msg.Image, msg.Color, msg.Location, msg.Direction, msg.QuestIDs)
 }
 
 type NPCResponse struct {
