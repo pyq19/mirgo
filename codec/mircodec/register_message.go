@@ -687,6 +687,7 @@ func initServerMessage() {
 	mirCodec := new(MirCodec)
 	mirUserInformationCodec := new(MirUserInformationCodec)
 	mirPlayerInspectCodec := new(MirPlayerInspectCodec)
+	mirObjectPlayerCodec := new(MirObjectPlayerCodec)
 
 	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
 		Codec: mirCodec,
@@ -789,7 +790,7 @@ func initServerMessage() {
 		ID:    server.USER_LOCATION,
 	})
 	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
-		Codec: mirCodec,
+		Codec: mirObjectPlayerCodec,
 		Type:  reflect.TypeOf((*server.ObjectPlayer)(nil)).Elem(),
 		ID:    server.OBJECT_PLAYER,
 	})

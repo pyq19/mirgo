@@ -16,8 +16,8 @@ func (ServerMessage) SetConcentration() *server.SetConcentration {
 }
 
 // TODO
-func (ServerMessage) ObjectPlayer(p *Player) *server.ObjectPlayer {
-	return &server.ObjectPlayer{
+func (ServerMessage) ObjectPlayer(p *Player) (res *server.ObjectPlayer) {
+	res = &server.ObjectPlayer{
 		ObjectID:         p.ID,
 		Name:             p.Name,
 		GuildName:        p.GuildName,
@@ -49,6 +49,7 @@ func (ServerMessage) ObjectPlayer(p *Player) *server.ObjectPlayer {
 		Buffs:            make([]common.BuffType, 0), // TODO
 		LevelEffects:     common.LevelEffectsNone,    // TODO
 	}
+	return
 }
 
 func (ServerMessage) ObjectMonster(m *Monster) (res *server.ObjectMonster) {
