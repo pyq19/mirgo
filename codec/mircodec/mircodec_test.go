@@ -575,3 +575,29 @@ func TestEncodeDecodePlayerInspect(t *testing.T) {
 	}
 	t.Log(msg)
 }
+
+func TestDecodeEncodeObjectMonster(t *testing.T) {
+	bytes := []byte{
+		34, 6, 0, 0,
+		4, 68, 101, 101, 114,
+		255, 255, 255, 255,
+		24, 1, 0, 0, 86, 2, 0, 0,
+		4, 0, 1, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
+	codec := new(MirCodec)
+	msg := &server.ObjectMonster{}
+	if err := codec.Decode(bytes, msg); err != nil {
+		panic(err)
+	}
+	t.Log(msg)
+
+	obj, err := codec.Encode(msg, *new(cellnet.ContextSet))
+	if err != nil {
+		t.Error(err)
+	}
+	t.Log(obj.([]byte))
+	//34 6 0 0
+	//4 68 101 101 114
+	//255 255 255 255
+	//24 1 0 0 86 2 0 0
+	//4 0 1 0 2 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0]
+}

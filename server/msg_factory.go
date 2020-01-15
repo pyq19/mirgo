@@ -51,8 +51,8 @@ func (ServerMessage) ObjectPlayer(p *Player) *server.ObjectPlayer {
 	}
 }
 
-func (ServerMessage) ObjectMonster(m *Monster) *server.ObjectMonster {
-	return &server.ObjectMonster{
+func (ServerMessage) ObjectMonster(m *Monster) (res *server.ObjectMonster) {
+	res = &server.ObjectMonster{
 		ObjectID:          m.ID,
 		Name:              m.Name,
 		NameColor:         common.Color{}.ToInt32(),
@@ -71,6 +71,7 @@ func (ServerMessage) ObjectMonster(m *Monster) *server.ObjectMonster {
 		Extra:             false, // TODO
 		ExtraByte:         0,     // TODO
 	}
+	return
 }
 
 func (ServerMessage) MapInformation(info *common.MapInfo) *server.MapInformation {
