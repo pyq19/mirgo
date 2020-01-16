@@ -82,7 +82,39 @@ func (p *Player) GetDirection() common.MirDirection {
 }
 
 func (p *Player) GetInfo() interface{} {
-	return ServerMessage{}.ObjectPlayer(p)
+	res := &server.ObjectPlayer{
+		ObjectID:         p.ID,
+		Name:             p.Name,
+		GuildName:        p.GuildName,
+		GuildRankName:    p.GuildRankName,
+		NameColor:        p.NameColor.ToInt32(),
+		Class:            p.Class,
+		Gender:           p.Gender,
+		Level:            p.Level,
+		Location:         p.GetPoint(),
+		Direction:        p.GetDirection(),
+		Hair:             p.Hair,
+		Light:            p.Light,
+		Weapon:           int16(p.LooksWeapon),
+		WeaponEffect:     int16(p.LooksWeaponEffect),
+		Armour:           int16(p.LooksArmour),
+		Poison:           common.PoisonTypeNone, // TODO
+		Dead:             p.IsDead(),
+		Hidden:           p.IsHidden(),
+		Effect:           common.SpellEffectNone, // TODO
+		WingEffect:       uint8(p.LooksWings),
+		Extra:            false,                      // TODO
+		MountType:        0,                          // TODO
+		RidingMount:      false,                      // TODO
+		Fishing:          false,                      // TODO
+		TransformType:    0,                          // TODO
+		ElementOrbEffect: 0,                          // TODO
+		ElementOrbLvl:    0,                          // TODO
+		ElementOrbMax:    0,                          // TODO
+		Buffs:            make([]common.BuffType, 0), // TODO
+		LevelEffects:     common.LevelEffectsNone,    // TODO
+	}
+	return res
 }
 
 func (p *Player) GetCurrentGrid() *Grid {
@@ -105,7 +137,14 @@ func (p *Player) StartGame() {
 		if p.GetID() == o.GetID() {
 			continue
 		}
-		p.Enqueue(o.GetInfo())
+		switch o.GetRace() {
+		case common.ObjectTypePlayer:
+			p.Enqueue(ServerMessage{}.ObjectPlayer(o))
+		case common.ObjectTypeMerchant:
+			p.Enqueue(ServerMessage{}.ObjectNPC(o))
+		case common.ObjectTypeMonster:
+			p.Enqueue(ServerMessage{}.ObjectMonster(o))
+		}
 	}
 	p.Enqueue(ServerMessage{}.NPCResponse([]string{}))
 	p.Broadcast(ServerMessage{}.ObjectPlayer(p))

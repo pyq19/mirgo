@@ -501,6 +501,7 @@ func updatePlayerInfo(g *Game, p *Player, c *common.Character) {
 	p.HP = c.HP
 	p.MP = c.MP
 	p.Experience = c.Experience
+	p.NameColor = common.Color{R: 255, G: 255, B: 255}
 	cui := make([]common.CharacterUserItem, 0, 100)
 	g.DB.Table("character_user_item").Where("character_id = ?", c.ID).Find(&cui)
 	is := make([]int, 0, 46)
