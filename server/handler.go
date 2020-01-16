@@ -556,11 +556,12 @@ func (g *Game) StartGame(s cellnet.Session, msg *client.StartGame) {
 		s.Send(ServerMessage{}.StartGame(2, 1024))
 		return
 	}
-	updatePlayerInfo(g, p, c)
-	p.Map = g.Env.GetMap(int(c.CurrentMapID))
-	p.Character.Player = p
 	s.Send(ServerMessage{}.SetConcentration())
 	s.Send(ServerMessage{}.StartGame(4, 1024))
+	updatePlayerInfo(g, p, c)
+	log.Debugf("player login, AccountID(%d) Name(%s)\n", p.AccountID, p.Name)
+	p.Map = g.Env.GetMap(int(c.CurrentMapID))
+	p.Character.Player = p
 	g.Env.AddPlayer(p)
 	p.StartGame()
 }
