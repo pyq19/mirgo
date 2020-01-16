@@ -27,7 +27,7 @@ func (ServerMessage) MapInformation(info *common.MapInfo) *server.MapInformation
 	mi := new(server.MapInformation)
 	mi.FileName = info.Filename
 	mi.Title = info.Title
-	mi.MiniMap = uint16(info.MineIndex)
+	mi.MiniMap = uint16(info.MiniMap)
 	mi.BigMap = uint16(info.BigMap)
 	mi.Music = uint16(info.Music)
 	mi.Lights = common.LightSetting(info.Light)
