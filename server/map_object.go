@@ -8,6 +8,7 @@ import (
 type MapObject struct {
 	ID               uint32
 	Name             string
+	NameColor        common.Color
 	Map              *Map
 	CurrentLocation  common.Point
 	CurrentDirection common.MirDirection

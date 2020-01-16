@@ -15,64 +15,12 @@ func (ServerMessage) SetConcentration() *server.SetConcentration {
 	return sc
 }
 
-// TODO
-func (ServerMessage) ObjectPlayer(p *Player) (res *server.ObjectPlayer) {
-	res = &server.ObjectPlayer{
-		ObjectID:         p.ID,
-		Name:             p.Name,
-		GuildName:        p.GuildName,
-		GuildRankName:    p.GuildRankName,
-		NameColor:        p.NameColour.ToInt32(),
-		Class:            p.Class,
-		Gender:           p.Gender,
-		Level:            p.Level,
-		Location:         p.GetPoint(),
-		Direction:        p.GetDirection(),
-		Hair:             p.Hair,
-		Light:            p.Light,
-		Weapon:           int16(p.LooksWeapon),
-		WeaponEffect:     int16(p.LooksWeaponEffect),
-		Armour:           int16(p.LooksArmour),
-		Poison:           common.PoisonTypeNone, // TODO
-		Dead:             p.IsDead(),
-		Hidden:           p.IsHidden(),
-		Effect:           common.SpellEffectNone, // TODO
-		WingEffect:       uint8(p.LooksWings),
-		Extra:            false,                      // TODO
-		MountType:        0,                          // TODO
-		RidingMount:      false,                      // TODO
-		Fishing:          false,                      // TODO
-		TransformType:    0,                          // TODO
-		ElementOrbEffect: 0,                          // TODO
-		ElementOrbLvl:    0,                          // TODO
-		ElementOrbMax:    0,                          // TODO
-		Buffs:            make([]common.BuffType, 0), // TODO
-		LevelEffects:     common.LevelEffectsNone,    // TODO
-	}
-	return
+func (ServerMessage) ObjectPlayer(o IMapObject) (res *server.ObjectPlayer) {
+	return o.GetInfo().(*server.ObjectPlayer)
 }
 
-func (ServerMessage) ObjectMonster(m *Monster) (res *server.ObjectMonster) {
-	res = &server.ObjectMonster{
-		ObjectID:          m.ID,
-		Name:              m.Name,
-		NameColor:         common.Color{}.ToInt32(),
-		Location:          m.GetPoint(),
-		Image:             m.Image,
-		Direction:         m.GetDirection(),
-		Effect:            uint8(m.Effect),
-		AI:                uint8(m.AI),
-		Light:             m.Light,
-		Dead:              m.IsDead(),
-		Skeleton:          m.IsSkeleton(),
-		Poison:            m.Poison,
-		Hidden:            m.IsHidden(),
-		ShockTime:         0,     // TODO
-		BindingShotCenter: false, // TODO
-		Extra:             false, // TODO
-		ExtraByte:         0,     // TODO
-	}
-	return
+func (ServerMessage) ObjectMonster(o IMapObject) *server.ObjectMonster {
+	return o.GetInfo().(*server.ObjectMonster)
 }
 
 func (ServerMessage) MapInformation(info *common.MapInfo) *server.MapInformation {
@@ -109,7 +57,7 @@ func (ServerMessage) UserInformation(p *Player) *server.UserInformation {
 	ui.Name = p.Name
 	ui.GuildName = p.GuildName
 	ui.GuildRank = p.GuildRankName
-	ui.NameColor = common.Color{R: 255, G: 255, B: 255, A: 255}.ToInt32()
+	ui.NameColor = common.Color{R: 255, G: 255, B: 255}.ToInt32()
 	ui.Class = p.Class
 	ui.Gender = p.Gender
 	ui.Level = p.Level
@@ -173,17 +121,9 @@ func (ServerMessage) ObjectChat(p *Player, message string, chatType common.ChatT
 	}
 }
 
-func (ServerMessage) ObjectNPC(n *NPC) *server.ObjectNPC {
-	return &server.ObjectNPC{
-		ObjectID:  n.ID,
-		Name:      n.Name,
-		NameColor: -16711936, // TODO
-		Image:     uint16(n.Image),
-		Color:     0, // TODO
-		Location:  n.GetPoint(),
-		Direction: n.GetDirection(),
-		QuestIDs:  []int32{}, // TODO
-	}
+func (ServerMessage) ObjectNPC(o IMapObject) *server.ObjectNPC {
+	return o.GetInfo().(*server.ObjectNPC)
+
 }
 
 func (ServerMessage) NewItemInfo(item *common.ItemInfo) *server.NewItemInfo {

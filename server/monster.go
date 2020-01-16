@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/yenkeia/mirgo/common"
+	"github.com/yenkeia/mirgo/proto/server"
 )
 
 type Monster struct {
@@ -28,6 +29,7 @@ func NewMonster(r *Respawn) (m *Monster, err error) {
 	}
 	m.ID = r.Map.Env.NewObjectID()
 	m.Name = mi.Name
+	m.NameColor = common.Color{R: 255, G: 255, B: 255}
 	m.Image = common.Monster(mi.Image)
 	m.AI = mi.AI
 	m.Effect = mi.Effect
@@ -69,7 +71,26 @@ func (m *Monster) GetDirection() common.MirDirection {
 }
 
 func (m *Monster) GetInfo() interface{} {
-	return ServerMessage{}.ObjectMonster(m)
+	res := &server.ObjectMonster{
+		ObjectID:          m.ID,
+		Name:              m.Name,
+		NameColor:         m.NameColor.ToInt32(),
+		Location:          m.GetPoint(),
+		Image:             m.Image,
+		Direction:         m.GetDirection(),
+		Effect:            uint8(m.Effect),
+		AI:                uint8(m.AI),
+		Light:             m.Light,
+		Dead:              m.IsDead(),
+		Skeleton:          m.IsSkeleton(),
+		Poison:            m.Poison,
+		Hidden:            m.IsHidden(),
+		ShockTime:         0,     // TODO
+		BindingShotCenter: false, // TODO
+		Extra:             false, // TODO
+		ExtraByte:         0,     // TODO
+	}
+	return res
 }
 
 func (m *Monster) Broadcast(msg interface{}) {

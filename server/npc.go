@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/yenkeia/mirgo/common"
+	"github.com/yenkeia/mirgo/proto/server"
 	"time"
 )
 
@@ -17,6 +18,7 @@ func NewNPC(m *Map, ni *common.NpcInfo) *NPC {
 		MapObject: MapObject{
 			ID:               m.Env.NewObjectID(),
 			Name:             ni.Name,
+			NameColor:        common.Color{R: 255, G: 255, B: 255},
 			Map:              m,
 			CurrentLocation:  common.NewPoint(ni.LocationX, ni.LocationY),
 			CurrentDirection: common.MirDirectionDown,
@@ -52,7 +54,17 @@ func (n *NPC) GetDirection() common.MirDirection {
 }
 
 func (n *NPC) GetInfo() interface{} {
-	return ServerMessage{}.ObjectNPC(n)
+	res := &server.ObjectNPC{
+		ObjectID:  n.ID,
+		Name:      n.Name,
+		NameColor: -16711936, // TODO
+		Image:     uint16(n.Image),
+		Color:     0, // TODO
+		Location:  n.GetPoint(),
+		Direction: n.GetDirection(),
+		QuestIDs:  []int32{}, // TODO
+	}
+	return res
 }
 
 func (n *NPC) String() string {

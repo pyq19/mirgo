@@ -10,7 +10,6 @@ type Character struct {
 	Gold              uint16
 	GuildName         string
 	GuildRankName     string
-	NameColour        common.Color
 	Class             common.MirClass
 	Gender            common.MirGender
 	Hair              uint8
