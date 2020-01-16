@@ -21,7 +21,7 @@ func NewNPC(m *Map, ni *common.NpcInfo) *NPC {
 			NameColor:        common.Color{R: 255, G: 255, B: 255},
 			Map:              m,
 			CurrentLocation:  common.NewPoint(ni.LocationX, ni.LocationY),
-			CurrentDirection: common.MirDirectionDown,
+			CurrentDirection: common.MirDirection(G_Rand.RandInt(0, 2)),
 			Light:            0, // TODO
 		},
 		Image:    ni.Image,
@@ -86,7 +86,7 @@ func (n *NPC) Broadcast(msg interface{}) {
 func (n *NPC) Process() {
 	if n.TurnTime.Before(time.Now()) {
 		n.TurnTime = time.Now().Add(time.Second * time.Duration(G_Rand.RandInt(20, 60)))
-		n.CurrentDirection = common.MirDirection(G_Rand.RandInt(0, 7))
+		n.CurrentDirection = common.MirDirection(G_Rand.RandInt(0, 2))
 		n.Broadcast(ServerMessage{}.ObjectTurn(n))
 	}
 }
