@@ -6,7 +6,9 @@ import (
 	"github.com/yenkeia/mirgo/common"
 	_ "github.com/yenkeia/mirgo/proc/mirtcp"
 	"github.com/yenkeia/mirgo/proto/server"
+	"os"
 	"strconv"
+	"strings"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -37,7 +39,34 @@ func NewEnviron(g *Game) (env *Environ) {
 		panic(err)
 	}
 	env.SessionIDPlayerMap = new(sync.Map)
+	PrintEnviron(env)
 	return
+}
+
+func PrintEnviron(env *Environ) {
+	mapCount := 0
+	monsterCount := 0
+	npcCount := 0
+	env.Maps.Range(func(k, v interface{}) bool {
+		mapCount++
+		m := v.(*Map)
+		m.AOI.grids.Range(func(k, v interface{}) bool {
+			g := v.(*Grid)
+			objs := g.GetAllObjects()
+			for i := range objs {
+				o := objs[i]
+				switch o.GetRace() {
+				case common.ObjectTypeMonster:
+					monsterCount++
+				case common.ObjectTypeMerchant:
+					npcCount++
+				}
+			}
+			return true
+		})
+		return true
+	})
+	log.Debugf("共加载了 %d 张地图，%d 怪物，%d NPC\n", mapCount, monsterCount, npcCount)
 }
 
 // InitGameDB ...
@@ -86,17 +115,45 @@ func (e *Environ) InitGameDB() {
 
 // InitMaps ...
 func (e *Environ) InitMaps() {
+	mapDirPath := e.Game.Conf.MapDirPath
+	uppercaseNameRealNameMap := make(map[string]string) // 目录下的文件名大写与该文件的真实文件名对应关系
+	f, err := os.OpenFile(mapDirPath, os.O_RDONLY, os.ModeDir)
+	if err != nil {
+		panic(err)
+	}
+	fileInfo, _ := f.Readdir(-1)
+	for _, info := range fileInfo {
+		if !info.IsDir() {
+			uppercaseNameRealNameMap[strings.ToUpper(info.Name())] = info.Name()
+		}
+	}
+	err = f.Close()
+	if err != nil {
+		panic(err)
+	}
+	// FIXME get map v2 v3 ??
+	skipMap := map[string]bool{
+		"R05":   true,
+		"R07":   true,
+		"R08":   true,
+		"R10":   true,
+		"R11":   true,
+		"EM000": true,
+		"EM001": true,
+		"EM002": true,
+		"EM003": true,
+	}
 	//e.Maps = make([]Map, 386)
 	e.Maps = new(sync.Map)
-	for _, mi := range e.GameDB.MapInfos {
-		mi := mi
-		if mi.ID == 1 {
-			m := GetMapV1(GetMapBytes(e.Game.Conf.MapDirPath + mi.Filename + ".map"))
-			m.Env = e
-			m.Info = &mi
-			e.Maps.Store(1, m)
-			break
+	for i := range e.GameDB.MapInfos {
+		mi := e.GameDB.MapInfos[i]
+		if skipMap[strings.ToUpper(mi.Filename)] {
+			continue
 		}
+		m := GetMapV1(GetMapBytes(mapDirPath + uppercaseNameRealNameMap[strings.ToUpper(mi.Filename+".map")]))
+		m.Env = e
+		m.Info = &mi
+		e.Maps.Store(mi.ID, m)
 	}
 }
 

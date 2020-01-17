@@ -5,6 +5,7 @@ import (
 	"github.com/yenkeia/mirgo/common"
 	"io/ioutil"
 	"os"
+	"strings"
 	"testing"
 )
 
@@ -61,7 +62,7 @@ func TestMap_GetNextCell(t *testing.T) {
 		Map:        m,
 		Coordinate: "100,200",
 		Attribute:  0,
-		Objects:     nil,
+		Objects:    nil,
 	}
 	t.Log(c.Coordinate)
 	for i := 0; i < 8; i++ {
@@ -75,5 +76,27 @@ func TestMap_GetNextCell(t *testing.T) {
 		//MirDirectionUpLeft                 = 7
 		nc := m.GetNextCell(c, common.MirDirection(i), 3)
 		t.Log(nc.Coordinate)
+	}
+}
+
+func TestEnviron_LoadAllMap(t *testing.T) {
+	mapDirPath := os.Getenv("GOPATH") + "/src/github.com/yenkeia/mirgo/dotnettools/database/Maps/"
+	uppercaseNameRealNameMap := make(map[string]string) // 目录下的文件名大写与该文件的真实文件名对应关系
+	f, err := os.OpenFile(mapDirPath, os.O_RDONLY, os.ModeDir)
+	if err != nil {
+		panic(err)
+	}
+	fileInfo, _ := f.Readdir(-1)
+	for _, info := range fileInfo {
+		if !info.IsDir() {
+			uppercaseNameRealNameMap[strings.ToUpper(info.Name())] = info.Name()
+		}
+	}
+	err = f.Close()
+	if err != nil {
+		panic(err)
+	}
+	for k, v := range uppercaseNameRealNameMap {
+		t.Log(k, v)
 	}
 }

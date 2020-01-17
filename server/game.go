@@ -5,10 +5,13 @@ import (
 	"github.com/davyxu/cellnet/peer"
 	_ "github.com/davyxu/cellnet/peer/tcp"
 	"github.com/davyxu/cellnet/proc"
+	"github.com/davyxu/golog"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/sqlite"
 	_ "github.com/yenkeia/mirgo/proc/mirtcp"
 )
+
+var log = golog.New("server.game")
 
 // Game ...
 type Game struct {

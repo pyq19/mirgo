@@ -16,6 +16,10 @@ type Map struct {
 	Cells  *sync.Map // key=Cell.Coordinate  value=*Cell
 }
 
+func (m *Map) String() string {
+	return fmt.Sprintf("Map(%d, Filename: %s, Title: %s, Width: %d, Height: %d)", m.Info.ID, m.Info.Filename, m.Info.Title, m.Width, m.Height)
+}
+
 func (m *Map) Submit(t *Task) {
 	m.Env.Game.Pool.EntryChan <- t
 }
@@ -125,31 +129,25 @@ func (m *Map) InitMonsters() error {
 // GetValidPoint
 func (m *Map) GetValidPoint(x int, y int, spread int) (common.Point, error) {
 	if spread == 0 {
-		//log.Debugf("GetValidPoint: (x: %d, y: %d), spread: %d\n", x, y, spread)
 		c := m.GetCell(common.Point{X: uint32(x), Y: uint32(y)}.Coordinate())
 		if c != nil && c.CanWalkAndIsEmpty() {
 			return common.NewPointByCoordinate(c.Coordinate), nil
 		}
 		return common.Point{}, fmt.Errorf("GetValidPoint: (x: %d, y: %d), spread: %d\n", x, y, spread)
 	}
-	minX := x - spread
-	maxX := x + spread
-	minY := y - spread
-	maxY := y + spread
-	//log.Debugf("(%d,%d,%d)(%d,%d,%d,%d)\n", x, y, spread, minX, maxX, minY, maxY)
-	cnt := 0
-	for {
-		if cnt == 100 {
-			return common.Point{}, fmt.Errorf("no valid point in (%d,%d) spread: %d", x, y, spread)
+
+	for i := 0; i < 500; i++ {
+		p := common.Point{
+			X: uint32(x + G_Rand.RandInt(-spread, spread+1)),
+			Y: uint32(y + G_Rand.RandInt(-spread, spread+1)),
 		}
-		tryX := G_Rand.RandInt(minX, maxX)
-		tryY := G_Rand.RandInt(minY, maxY)
-		c := m.GetCell(common.Point{X: uint32(tryX), Y: uint32(tryY)}.Coordinate())
-		if c != nil && c.CanWalkAndIsEmpty() {
-			return common.NewPointByCoordinate(c.Coordinate), nil
+		c := m.GetCell(p.Coordinate())
+		if c == nil || !c.CanWalk() {
+			continue
 		}
-		cnt += 1
+		return p, nil
 	}
+	return common.Point{}, fmt.Errorf("map(%v) no valid point in (%d,%d) spread: %d", m, x, y, spread)
 }
 
 func (m *Map) GetNextCell(cell *Cell, direction common.MirDirection, step uint32) *Cell {

@@ -19,9 +19,9 @@ func NewRespawn(m *Map, ri common.RespawnInfo) (r *Respawn, err error) {
 		DeadMonster:  []*Monster{},
 	}
 	for i := 0; i < r.Info.Count; i++ {
-		m, err := NewMonster(r)
-		if err != nil {
-			return nil, err
+		m := NewMonster(r)
+		if m == nil {
+			continue
 		}
 		r.AliveMonster = append(r.AliveMonster, m)
 	}
