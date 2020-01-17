@@ -248,12 +248,43 @@ func (p *Player) Chat(message string) {
 	p.Broadcast(msg)
 }
 
-func (p *Player) MoveItem(grid common.MirGridType, from int32, to int32) {
-
+func (p *Player) MoveItem(mirGridType common.MirGridType, from int32, to int32) {
+	msg := &server.MoveItem{
+		Grid:    mirGridType,
+		From:    from,
+		To:      to,
+		Success: false,
+	}
+	switch mirGridType {
+	case common.MirGridTypeInventory:
+		l := len(p.Inventory)
+		if from > 0 && to > 0 && int(from) < l && int(to) < l {
+			array := p.Inventory
+			i := array[to]
+			array[to] = array[from]
+			array[from] = i
+			msg.Success = true
+		}
+	case common.MirGridTypeStorage:
+		// TODO
+	case common.MirGridTypeTrade:
+		// TODO
+	case common.MirGridTypeRefine:
+		// TODO
+	default:
+		msg.Success = false
+	}
+	p.Enqueue(msg)
 }
 
+// TODO
 func (p *Player) StoreItem(from int32, to int32) {
-
+	msg := &server.StoreItem{
+		From:    from,
+		To:      to,
+		Success: false,
+	}
+	p.Enqueue(msg)
 }
 
 func (p *Player) DepositRefineItem(from int32, to int32) {
