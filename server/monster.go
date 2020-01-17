@@ -7,7 +7,7 @@ import (
 )
 
 type Monster struct {
-	Respawn *Respawn
+	RespawnID int
 	MapObject
 	Image  common.Monster
 	AI     int
@@ -19,15 +19,10 @@ func (m *Monster) String() string {
 	return fmt.Sprintf("Monster: %s, (%v), ID: %d, ptr: %p\n", m.Name, m.CurrentLocation, m.ID, m)
 }
 
-func NewMonster(r *Respawn) (m *Monster) {
+func NewMonster(mp *Map, p common.Point, mi *common.MonsterInfo, ri int) (m *Monster) {
 	m = new(Monster)
-	m.Respawn = r
-	mi := r.Map.Env.GameDB.GetMonsterInfoByID(r.Info.MonsterID)
-	if mi == nil {
-		log.Warnln("new monster error")
-		return nil
-	}
-	m.ID = r.Map.Env.NewObjectID()
+	m.RespawnID = ri
+	m.ID = mp.Env.NewObjectID()
 	m.Name = mi.Name
 	m.NameColor = common.Color{R: 255, G: 255, B: 255}
 	m.Image = common.Monster(mi.Image)
@@ -35,15 +30,8 @@ func NewMonster(r *Respawn) (m *Monster) {
 	m.Effect = mi.Effect
 	m.Light = uint8(mi.Light)
 	m.Poison = common.PoisonTypeNone
-	p, err := r.Map.GetValidPoint(r.Info.LocationX, r.Info.LocationY, r.Info.Spread)
-	if err != nil {
-		//log.Warnln(err.Error())
-		return nil
-	}
 	m.CurrentLocation = p
 	m.CurrentDirection = common.MirDirection(G_Rand.RandInt(0, 7))
-	c := r.Map.GetCell(p.Coordinate())
-	c.AddObject(m)
 	return m
 }
 

@@ -122,14 +122,15 @@ func (m *Map) InitNPCs() error {
 // InitMonsters 初始化地图上的怪物
 func (m *Map) InitMonsters() error {
 	for _, ri := range m.Env.GameDB.RespawnInfos {
+		ri := ri
 		if ri.MapID == m.Info.ID {
-			r, err := NewRespawn(m, ri)
-			if err != nil {
-				return err
-			}
-			for _, a := range r.AliveMonster {
-				a := a
-				m.AddObject(a)
+			cnt := ri.Count
+			for i := 0; i < cnt; i++ {
+				p, err := m.GetValidPoint(ri.LocationX, ri.LocationY, ri.Spread)
+				if err != nil {
+					continue
+				}
+				m.AddObject(NewMonster(m, p, m.Env.GameDB.GetMonsterInfoByID(ri.MonsterID), ri.ID))
 			}
 		}
 	}
