@@ -102,6 +102,7 @@ func (m *Map) changeAOI(obj IMapObject, c1 *Cell, c2 *Cell) {
 	case common.ObjectTypePlayer:
 		p := obj.(*Player)
 		p.Broadcast(ServerMessage{}.ObjectPlayer(p))
+		p.EnqueueAreaObjects(g1, g2)
 	case common.ObjectTypeMonster:
 		m := obj.(*Monster)
 		m.Broadcast(ServerMessage{}.ObjectMonster(m))
