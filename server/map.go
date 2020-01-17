@@ -54,14 +54,24 @@ func (m *Map) AddObject(obj IMapObject) {
 	coordinate := obj.GetCoordinate()
 	grid := m.AOI.GetGridByCoordinate(coordinate)
 	grid.AddObject(obj)
-	m.GetCell(coordinate).AddObject(obj)
+	c := m.GetCell(coordinate)
+	if c == nil {
+		// FIXME
+		//log.Warnf("coordinate: %s is not walkable\n", coordinate)
+		return
+	}
+	c.AddObject(obj)
 }
 
 func (m *Map) DeleteObject(obj IMapObject) {
 	coordinate := obj.GetCoordinate()
 	grid := m.AOI.GetGridByCoordinate(coordinate)
 	grid.DeleteObject(obj)
-	m.GetCell(coordinate).DeleteObject(obj)
+	c := m.GetCell(coordinate)
+	if c == nil {
+		return
+	}
+	c.DeleteObject(obj)
 }
 
 // UpdateObject 更新对象在 Cells, AOI 中的数据, 如果更新成功返回 true

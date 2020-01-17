@@ -41,7 +41,9 @@ func GetMapV1(bytes []byte) *Map {
 			if ((common.BytesToUint16(bytes[offset+6:offset+8]) ^ xor) & 0x8000) != 0 {
 				c.Attribute = common.CellAttributeLowWall
 			}
-			m.Cells.Store(p.Coordinate(), c)
+			if c.Attribute == common.CellAttributeWalk {
+				m.Cells.Store(p.Coordinate(), c)
+			}
 			offset += 15
 		}
 	}
