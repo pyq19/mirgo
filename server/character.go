@@ -13,11 +13,11 @@ type Character struct {
 	Class             common.MirClass
 	Gender            common.MirGender
 	Hair              uint8
-	Inventory         []common.UserItem
-	Equipment         []common.UserItem
-	QuestInventory    []common.UserItem
-	Trade             []common.UserItem
-	Refine            []common.UserItem
+	Inventory         []common.UserItem // 46
+	Equipment         []common.UserItem // 14
+	QuestInventory    []common.UserItem // 40
+	Trade             []common.UserItem // 10
+	Refine            []common.UserItem // 16
 	LooksArmour       int
 	LooksWings        int
 	LooksWeapon       int
