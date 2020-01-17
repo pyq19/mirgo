@@ -211,3 +211,16 @@ func (ServerMessage) TimeOfDay(light common.LightSetting) *server.TimeOfDay {
 func (ServerMessage) NPCResponse(page []string) *server.NPCResponse {
 	return &server.NPCResponse{Page: page}
 }
+
+func (m ServerMessage) Object(obj IMapObject) interface{} {
+	switch obj.GetRace() {
+	case common.ObjectTypePlayer:
+		return m.ObjectPlayer(obj)
+	case common.ObjectTypeMonster:
+		return m.ObjectMonster(obj)
+	case common.ObjectTypeMerchant:
+		return m.ObjectNPC(obj)
+	default:
+		panic("unknown object")
+	}
+}

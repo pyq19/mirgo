@@ -121,6 +121,60 @@ func (p *Player) GetCurrentGrid() *Grid {
 	return p.Map.AOI.GetGridByPoint(p.Point())
 }
 
+func (p *Player) EnqueueAreaObjects(oldGrid, newGrid *Grid) {
+	oldAreaGrids := make([]*Grid, 0)
+	if oldGrid != nil {
+		oldAreaGrids = p.Map.AOI.GetSurroundGridsByGridID(oldGrid.GID)
+	}
+	newAreaGrids := p.Map.AOI.GetSurroundGridsByGridID(newGrid.GID)
+	send := make(map[int]bool)
+	for i := range newAreaGrids {
+		ng := newAreaGrids[i]
+		send[ng.GID] = true
+		for j := range oldAreaGrids {
+			og := oldAreaGrids[j]
+			if ng.GID == og.GID {
+				send[ng.GID] = false
+			}
+		}
+	}
+	newAreaObjects := make([]IMapObject, 0)
+	for i := range newAreaGrids {
+		ng := newAreaGrids[i]
+		if send[ng.GID] {
+			newAreaObjects = append(newAreaObjects, ng.GetAllObjects()...)
+		}
+	}
+	for i := range newAreaObjects {
+		if o := newAreaObjects[i]; o.GetID() != p.GetID() {
+			p.Enqueue(ServerMessage{}.Object(o))
+		}
+	}
+	drop := make(map[int]bool)
+	for i := range oldAreaGrids {
+		og := oldAreaGrids[i]
+		drop[og.GID] = true
+		for j := range newAreaGrids {
+			ng := newAreaGrids[j]
+			if og.GID == ng.GID {
+				drop[og.GID] = false
+			}
+		}
+	}
+	oldAreaObjects := make([]IMapObject, 0)
+	for i := range oldAreaGrids {
+		og := oldAreaGrids[i]
+		if drop[og.GID] {
+			oldAreaObjects = append(oldAreaObjects, og.GetAllObjects()...)
+		}
+	}
+	for i := range oldAreaObjects {
+		if o := oldAreaObjects[i]; o.GetID() != p.GetID() {
+			p.Enqueue(ServerMessage{}.ObjectRemove(o))
+		}
+	}
+}
+
 func (p *Player) StartGame() {
 	p.ReceiveChat("这是一个以学习为目的传奇服务端", common.ChatTypeSystem)
 	p.ReceiveChat("如有任何建议、疑问欢迎交流", common.ChatTypeSystem)
@@ -131,21 +185,7 @@ func (p *Player) StartGame() {
 	p.Enqueue(ServerMessage{}.MapInformation(p.Map.Info))
 	p.Enqueue(ServerMessage{}.UserInformation(p))
 	p.Enqueue(ServerMessage{}.TimeOfDay(common.LightSettingDay))
-	objs := p.Map.GetAreaObjects(p.GetPoint())
-	for i := range objs {
-		o := objs[i]
-		if p.GetID() == o.GetID() {
-			continue
-		}
-		switch o.GetRace() {
-		case common.ObjectTypePlayer:
-			p.Enqueue(ServerMessage{}.ObjectPlayer(o))
-		case common.ObjectTypeMerchant:
-			p.Enqueue(ServerMessage{}.ObjectNPC(o))
-		case common.ObjectTypeMonster:
-			p.Enqueue(ServerMessage{}.ObjectMonster(o))
-		}
-	}
+	p.EnqueueAreaObjects(nil, p.Map.AOI.GetGridByPoint(p.GetPoint()))
 	p.Enqueue(ServerMessage{}.NPCResponse([]string{}))
 	p.Broadcast(ServerMessage{}.ObjectPlayer(p))
 }
