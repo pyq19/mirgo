@@ -1,7 +1,6 @@
 package main
 
 import (
-	"errors"
 	"fmt"
 	"github.com/yenkeia/mirgo/common"
 	"github.com/yenkeia/mirgo/proto/server"
@@ -20,12 +19,13 @@ func (m *Monster) String() string {
 	return fmt.Sprintf("Monster: %s, (%v), ID: %d, ptr: %p\n", m.Name, m.CurrentLocation, m.ID, m)
 }
 
-func NewMonster(r *Respawn) (m *Monster, err error) {
+func NewMonster(r *Respawn) (m *Monster) {
 	m = new(Monster)
 	m.Respawn = r
 	mi := r.Map.Env.GameDB.GetMonsterInfoByID(r.Info.MonsterID)
 	if mi == nil {
-		return nil, errors.New("new monster error")
+		log.Warnln("new monster error")
+		return nil
 	}
 	m.ID = r.Map.Env.NewObjectID()
 	m.Name = mi.Name
@@ -37,13 +37,14 @@ func NewMonster(r *Respawn) (m *Monster, err error) {
 	m.Poison = common.PoisonTypeNone
 	p, err := r.Map.GetValidPoint(r.Info.LocationX, r.Info.LocationY, r.Info.Spread)
 	if err != nil {
-		return nil, err
+		//log.Warnln(err.Error())
+		return nil
 	}
 	m.CurrentLocation = p
 	m.CurrentDirection = common.MirDirection(G_Rand.RandInt(0, 7))
 	c := r.Map.GetCell(p.Coordinate())
 	c.AddObject(m)
-	return m, nil
+	return m
 }
 
 func (m *Monster) GetID() uint32 {

@@ -2,15 +2,12 @@ package main
 
 import (
 	"github.com/davyxu/cellnet"
-	"github.com/davyxu/golog"
 	_ "github.com/yenkeia/mirgo/codec/mircodec"
 	"github.com/yenkeia/mirgo/common"
 	_ "github.com/yenkeia/mirgo/proc/mirtcp"
 	"github.com/yenkeia/mirgo/proto/client"
 	"github.com/yenkeia/mirgo/proto/server"
 )
-
-var log = golog.New("server.handler")
 
 func (g *Game) HandleEvent(ev cellnet.Event) {
 	g.Pool.Submit(NewTask(_HandleEvent, g, ev))
