@@ -150,10 +150,15 @@ func (e *Environ) InitMaps() {
 		if skipMap[strings.ToUpper(mi.Filename)] {
 			continue
 		}
+		// FIXME 开发只加载第一张地图
+		if mi.ID != 1 {
+			continue
+		}
 		m := GetMapV1(GetMapBytes(mapDirPath + uppercaseNameRealNameMap[strings.ToUpper(mi.Filename+".map")]))
 		m.Env = e
 		m.Info = &mi
 		e.Maps.Store(mi.ID, m)
+		break
 	}
 }
 
