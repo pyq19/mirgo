@@ -271,8 +271,6 @@ func (p *Player) MoveItem(mirGridType common.MirGridType, from int32, to int32) 
 		// TODO
 	case common.MirGridTypeRefine:
 		// TODO
-	default:
-		msg.Success = false
 	}
 	p.Enqueue(msg)
 }
@@ -327,12 +325,44 @@ func (p *Player) MergeItem(from common.MirGridType, to common.MirGridType, from2
 
 }
 
-func (p *Player) EquipItem(grid common.MirGridType, id uint64, to int32) {
-
+// GetUserItemByID 获取物品，返回该物品在容器的索引和是否成功
+func (p *Player) GetUserItemByID(mirGridType common.MirGridType, id uint64) (index int, item *common.UserItem) {
+	return 0, nil
 }
 
-func (p *Player) RemoveItem(grid common.MirGridType, id uint64, to int32) {
+func (p *Player) EquipItem(mirGridType common.MirGridType, id uint64, to int32) {
+	var msg = &server.EquipItem{
+		Grid:     mirGridType,
+		UniqueID: id,
+		To:       to,
+		Success:  false,
+	}
+	if l := len(p.Equipment); to < 0 || int(to) >= l {
+		p.Enqueue(msg)
+		return
+	}
+	switch mirGridType {
+	case common.MirGridTypeInventory:
+		index, item := p.GetUserItemByID(mirGridType, id)
+		p.Inventory[index] = p.Equipment[to]
+		p.Equipment[to] = *item
+		msg.Success = true
+		p.RefreshStats()
+	case common.MirGridTypeStorage:
+		// TODO
+	}
+	p.Enqueue(msg)
+}
 
+// TODO
+func (p *Player) RemoveItem(mirGridType common.MirGridType, id uint64, to int32) {
+	msg := &server.RemoveItem{
+		Grid:     mirGridType,
+		UniqueID: id,
+		To:       to,
+		Success:  false,
+	}
+	p.Enqueue(msg)
 }
 
 func (p *Player) RemoveSlotItem(grid common.MirGridType, id uint64, to int32, to2 common.MirGridType) {
