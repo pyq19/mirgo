@@ -27,6 +27,17 @@ func (c *Cell) IsEmpty() bool {
 	return cnt == 0
 }
 
+func (c *Cell) HasItemObject() bool {
+	var cnt int32
+	c.Objects.Range(func(k, v interface{}) bool {
+		if v.(IMapObject).GetRace() == common.ObjectTypeItem {
+			atomic.AddInt32(&cnt, 1)
+		}
+		return true
+	})
+	return cnt == 0
+}
+
 func (c *Cell) CanWalk() bool {
 	return c.Attribute == common.CellAttributeWalk
 }

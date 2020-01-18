@@ -607,16 +607,18 @@ type ChangePMode struct {
 type ObjectItem struct {
 	ObjectID  uint32
 	Name      string
-	NameColor common.Color
-	Location  common.Point
+	NameColor int32
+	LocationX int32
+	LocationY int32
 	Image     uint16
 	Grade     common.ItemGrade
 }
 
 type ObjectGold struct {
-	ObjectID uint32
-	Gold     uint32
-	Location common.Point
+	ObjectID  uint32
+	Gold      uint32
+	LocationX int32
+	LocationY int32
 }
 
 type GainedItem struct {
