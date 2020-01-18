@@ -31,8 +31,16 @@ func (i *ItemObject) GetCell() *Cell {
 	return i.Map.GetCell(i.GetCoordinate())
 }
 
-func (i *ItemObject) Broadcast(interface{}) {
-	return
+func (i *ItemObject) Broadcast(msg interface{}) {
+	i.Map.Submit(NewTask(func(args ...interface{}) {
+		grids := i.Map.AOI.GetSurroundGridsByCoordinate(i.GetCoordinate())
+		for i := range grids {
+			areaPlayers := grids[i].GetAllPlayer()
+			for i := range areaPlayers {
+				areaPlayers[i].Enqueue(msg)
+			}
+		}
+	}))
 }
 
 func (i *ItemObject) GetDirection() common.MirDirection {
@@ -42,17 +50,19 @@ func (i *ItemObject) GetDirection() common.MirDirection {
 func (i *ItemObject) GetInfo() interface{} {
 	if i.UserItem == nil {
 		res := &server.ObjectGold{
-			ObjectID: i.GetID(),
-			Gold:     uint32(i.Gold),
-			Location: i.GetPoint(),
+			ObjectID:  i.GetID(),
+			Gold:      uint32(i.Gold),
+			LocationX: int32(i.GetPoint().X),
+			LocationY: int32(i.GetPoint().Y),
 		}
 		return res
 	} else {
 		res := &server.ObjectItem{
 			ObjectID:  i.GetID(),
 			Name:      i.Name,
-			NameColor: i.NameColor,
-			Location:  i.GetPoint(),
+			NameColor: i.NameColor.ToInt32(),
+			LocationX: int32(i.GetPoint().X),
+			LocationY: int32(i.GetPoint().Y),
 			Image:     0,                    // TODO
 			Grade:     common.ItemGradeNone, // TODO
 		}
@@ -60,10 +70,36 @@ func (i *ItemObject) GetInfo() interface{} {
 	}
 }
 
-// TODO
-// Drop 物品加入到地图上，传入中心点 p，范围 r
-func (i *ItemObject) Drop(p common.Point, r int) (string, bool) {
-	i.Map.AddObject(i)
-	i.Broadcast(i.GetInfo())
-	return "", true
+// Drop 物品加入到地图上，传入中心点 center，范围 distance
+func (i *ItemObject) Drop(center common.Point, distance int) (string, bool) {
+	// 以 p 为中心，向外获取点，放入集合
+	minX := int(center.X) - distance
+	maxX := int(center.X) + distance
+	minY := int(center.Y) - distance
+	maxY := int(center.Y) + distance
+	if minX < 0 {
+		minX = 0
+	}
+	if minY < 0 {
+		minY = 0
+	}
+	points := make([]common.Point, 0)
+	tmpX := maxX - minX
+	tmpY := maxY - minY
+	for m := 0; tmpY >= m; m++ {
+		for n := 0; tmpX >= n; n++ {
+			points = append(points, common.Point{X: uint32(minX + m), Y: uint32(minY + n)})
+		}
+	}
+	for j := range points {
+		p := points[j]
+		c := i.Map.GetCell(p.Coordinate())
+		if c == nil || c.HasItemObject() {
+			continue
+		}
+		i.Map.AddObject(i)
+		i.Broadcast(i.GetInfo())
+		return "", true
+	}
+	return "附近没有合适的点放置物品", false
 }
