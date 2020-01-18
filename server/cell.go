@@ -11,7 +11,7 @@ type Cell struct {
 	Map        *Map
 	Coordinate string // 坐标 x,y
 	Attribute  common.CellAttribute
-	Objects    *sync.Map
+	Objects    *sync.Map // map[IMapObject.ID]IMapObject
 }
 
 func (c *Cell) Point() common.Point {
