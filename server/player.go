@@ -355,8 +355,35 @@ func (p *Player) DropGold(amount uint32) {
 
 }
 
-func (p *Player) PickUp() {
+// GainItem 为玩家增加物品，增加成功返回 true
+func (p *Player) GainItem(ui *common.UserItem) bool {
+	return true
+}
 
+// GainGold 为玩家增加金币，增加成功返回 true
+func (p *Player) GainGold(gold uint64) bool {
+	return true
+}
+
+func (p *Player) PickUp() {
+	if p.IsDead() {
+		return
+	}
+	c := p.GetCell()
+	if c == nil {
+		return
+	}
+	c.Objects.Range(func(k, v interface{}) bool {
+		if o, ok := v.(*ItemObject); ok {
+			if !p.GainItem(o.UserItem) {
+				return true
+			}
+			p.Map.DeleteObject(o)
+			o.Broadcast(ServerMessage{}.ObjectRemove(o))
+			p.GainGold(o.Gold)
+		}
+		return true
+	})
 }
 
 func (p *Player) Inspect(id uint32) {
