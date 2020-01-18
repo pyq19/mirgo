@@ -50,17 +50,17 @@ func (m *Map) GetCell(coordinate string) *Cell {
 	return v.(*Cell)
 }
 
-func (m *Map) AddObject(obj IMapObject) {
+func (m *Map) AddObject(obj IMapObject) (string, bool) {
 	coordinate := obj.GetCoordinate()
 	grid := m.AOI.GetGridByCoordinate(coordinate)
 	grid.AddObject(obj)
 	c := m.GetCell(coordinate)
 	if c == nil {
 		// FIXME
-		//log.Warnf("coordinate: %s is not walkable\n", coordinate)
-		return
+		return fmt.Sprintf("coordinate: %s is not walkable\n", coordinate), false
 	}
 	c.AddObject(obj)
+	return "", true
 }
 
 func (m *Map) DeleteObject(obj IMapObject) {

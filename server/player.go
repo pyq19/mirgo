@@ -325,26 +325,6 @@ func (p *Player) MergeItem(from common.MirGridType, to common.MirGridType, from2
 
 }
 
-// GetUserItemByID 获取物品，返回该物品在容器的索引和是否成功
-func (p *Player) GetUserItemByID(mirGridType common.MirGridType, id uint64) (index int, item *common.UserItem) {
-	var arr []common.UserItem
-	switch mirGridType {
-	case common.MirGridTypeInventory:
-		arr = p.Inventory
-	case common.MirGridTypeEquipment:
-		arr = p.Equipment
-	default:
-		panic("error mirGridType")
-	}
-	for i := range arr {
-		item := arr[i]
-		if item.ID == id {
-			return i, &item
-		}
-	}
-	return -1, nil
-}
-
 func (p *Player) EquipItem(mirGridType common.MirGridType, id uint64, to int32) {
 	var msg = &server.EquipItem{
 		Grid:     mirGridType,
@@ -407,6 +387,18 @@ func (p *Player) DropItem(id uint64, count uint32) {
 		p.Enqueue(msg)
 		return
 	}
+	obj := &ItemObject{
+		MapObject: MapObject{
+			ID:  p.Map.Env.NewObjectID(),
+			Map: p.Map,
+		},
+		Gold:     0,
+		UserItem: item,
+	}
+	if dropMsg, ok := obj.Drop(p.GetPoint(), 1); !ok {
+		p.ReceiveChat(dropMsg, common.ChatTypeSystem)
+		return
+	}
 	if count >= item.Count {
 		p.Inventory[index] = common.UserItem{}
 	} else {
@@ -417,18 +409,24 @@ func (p *Player) DropItem(id uint64, count uint32) {
 	p.Enqueue(msg)
 }
 
-func (p *Player) DropGold(amount uint32) {
-
-}
-
-// GainItem 为玩家增加物品，增加成功返回 true
-func (p *Player) GainItem(ui *common.UserItem) bool {
-	return true
-}
-
-// GainGold 为玩家增加金币，增加成功返回 true
-func (p *Player) GainGold(gold uint64) bool {
-	return true
+func (p *Player) DropGold(gold uint64) {
+	if p.Gold < gold {
+		return
+	}
+	obj := &ItemObject{
+		MapObject: MapObject{
+			ID:  p.Map.Env.NewObjectID(),
+			Map: p.Map,
+		},
+		Gold:     gold,
+		UserItem: nil,
+	}
+	if dropMsg, ok := obj.Drop(p.GetPoint(), 5); !ok {
+		p.ReceiveChat(dropMsg, common.ChatTypeSystem)
+		return
+	}
+	p.Gold -= gold
+	p.Enqueue(&server.LoseGold{Gold: uint32(gold)})
 }
 
 func (p *Player) PickUp() {

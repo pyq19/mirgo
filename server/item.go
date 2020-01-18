@@ -40,13 +40,30 @@ func (i *ItemObject) GetDirection() common.MirDirection {
 }
 
 func (i *ItemObject) GetInfo() interface{} {
-	res := &server.ObjectItem{
-		ObjectID:  i.GetID(),
-		Name:      i.Name,
-		NameColor: i.NameColor,
-		Location:  i.CurrentLocation,
-		Image:     nil,                  // TODO
-		Grade:     common.ItemGradeNone, // TODO
+	if i.UserItem == nil {
+		res := &server.ObjectGold{
+			ObjectID: i.GetID(),
+			Gold:     uint32(i.Gold),
+			Location: i.GetPoint(),
+		}
+		return res
+	} else {
+		res := &server.ObjectItem{
+			ObjectID:  i.GetID(),
+			Name:      i.Name,
+			NameColor: i.NameColor,
+			Location:  i.GetPoint(),
+			Image:     0,                    // TODO
+			Grade:     common.ItemGradeNone, // TODO
+		}
+		return res
 	}
-	return res
+}
+
+// TODO
+// Drop 物品加入到地图上，传入中心点 p，范围 r
+func (i *ItemObject) Drop(p common.Point, r int) (string, bool) {
+	i.Map.AddObject(i)
+	i.Broadcast(i.GetInfo())
+	return "", true
 }

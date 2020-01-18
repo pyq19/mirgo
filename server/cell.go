@@ -47,6 +47,7 @@ func (c *Cell) DeleteObject(obj IMapObject) {
 	c.Objects.Delete(obj.GetID())
 }
 
+/*
 func (c *Cell) GetRace(obj IMapObject) common.ObjectType {
 	switch obj.(type) {
 	case *Player:
@@ -58,3 +59,4 @@ func (c *Cell) GetRace(obj IMapObject) common.ObjectType {
 	}
 	return common.ObjectTypeNone
 }
+*/
