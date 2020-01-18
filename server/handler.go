@@ -662,7 +662,7 @@ func (g *Game) DropItem(p *Player, msg *client.DropItem) {
 }
 
 func (g *Game) DropGold(p *Player, msg *client.DropGold) {
-	p.DropGold(msg.Amount)
+	p.DropGold(uint64(msg.Amount))
 }
 
 func (g *Game) PickUp(p *Player, msg *client.PickUp) {

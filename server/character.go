@@ -7,7 +7,7 @@ type Character struct {
 	HP                uint16
 	MP                uint16
 	Experience        int64
-	Gold              uint16
+	Gold              uint64
 	GuildName         string
 	GuildRankName     string
 	Class             common.MirClass
@@ -162,4 +162,34 @@ func (c *Character) RefreshMountStats() {
 
 func (c *Character) RefreshGuildBuffs() {
 
+}
+
+// GetUserItemByID 获取物品，返回该物品在容器的索引和是否成功
+func (c *Character) GetUserItemByID(mirGridType common.MirGridType, id uint64) (index int, item *common.UserItem) {
+	var arr []common.UserItem
+	switch mirGridType {
+	case common.MirGridTypeInventory:
+		arr = c.Inventory
+	case common.MirGridTypeEquipment:
+		arr = c.Equipment
+	default:
+		panic("error mirGridType")
+	}
+	for i := range arr {
+		item := arr[i]
+		if item.ID == id {
+			return i, &item
+		}
+	}
+	return -1, nil
+}
+
+// GainItem 为玩家增加物品，增加成功返回 true
+func (c *Character) GainItem(ui *common.UserItem) bool {
+	return true
+}
+
+// GainGold 为玩家增加金币，增加成功返回 true
+func (c *Character) GainGold(gold uint64) bool {
+	return true
 }
