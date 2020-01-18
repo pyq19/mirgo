@@ -5,33 +5,33 @@ import (
 	"github.com/yenkeia/mirgo/proto/server"
 )
 
-type ItemObject struct {
+type Item struct {
 	MapObject
 	Gold     uint64
 	UserItem *common.UserItem
 }
 
-func (i *ItemObject) GetID() uint32 {
+func (i *Item) GetID() uint32 {
 	return i.ID
 }
 
-func (i *ItemObject) GetRace() common.ObjectType {
+func (i *Item) GetRace() common.ObjectType {
 	return common.ObjectTypeItem
 }
 
-func (i *ItemObject) GetCoordinate() string {
+func (i *Item) GetCoordinate() string {
 	return i.CurrentLocation.Coordinate()
 }
 
-func (i *ItemObject) GetPoint() common.Point {
+func (i *Item) GetPoint() common.Point {
 	return i.CurrentLocation
 }
 
-func (i *ItemObject) GetCell() *Cell {
+func (i *Item) GetCell() *Cell {
 	return i.Map.GetCell(i.GetCoordinate())
 }
 
-func (i *ItemObject) Broadcast(msg interface{}) {
+func (i *Item) Broadcast(msg interface{}) {
 	i.Map.Submit(NewTask(func(args ...interface{}) {
 		grids := i.Map.AOI.GetSurroundGridsByCoordinate(i.GetCoordinate())
 		for i := range grids {
@@ -43,11 +43,11 @@ func (i *ItemObject) Broadcast(msg interface{}) {
 	}))
 }
 
-func (i *ItemObject) GetDirection() common.MirDirection {
+func (i *Item) GetDirection() common.MirDirection {
 	return i.CurrentDirection
 }
 
-func (i *ItemObject) GetInfo() interface{} {
+func (i *Item) GetInfo() interface{} {
 	if i.UserItem == nil {
 		res := &server.ObjectGold{
 			ObjectID:  i.GetID(),
@@ -71,7 +71,7 @@ func (i *ItemObject) GetInfo() interface{} {
 }
 
 // Drop 物品加入到地图上，传入中心点 center，范围 distance
-func (i *ItemObject) Drop(center common.Point, distance int) (string, bool) {
+func (i *Item) Drop(center common.Point, distance int) (string, bool) {
 	// 以 p 为中心，向外获取点，放入集合
 	minX := int(center.X) - distance
 	maxX := int(center.X) + distance
@@ -94,7 +94,7 @@ func (i *ItemObject) Drop(center common.Point, distance int) (string, bool) {
 	for j := range points {
 		p := points[j]
 		c := i.Map.GetCell(p.Coordinate())
-		if c == nil || c.HasItemObject() {
+		if c == nil || c.HasItem() {
 			continue
 		}
 		i.Map.AddObject(i)

@@ -23,6 +23,14 @@ func (ServerMessage) ObjectMonster(o IMapObject) *server.ObjectMonster {
 	return o.GetInfo().(*server.ObjectMonster)
 }
 
+func (ServerMessage) ObjectGold(o IMapObject) *server.ObjectGold {
+	return o.GetInfo().(*server.ObjectGold)
+}
+
+func (ServerMessage) ObjectItem(o IMapObject) *server.ObjectItem {
+	return o.GetInfo().(*server.ObjectItem)
+}
+
 func (ServerMessage) MapInformation(info *common.MapInfo) *server.MapInformation {
 	mi := new(server.MapInformation)
 	mi.FileName = info.Filename
@@ -220,6 +228,13 @@ func (m ServerMessage) Object(obj IMapObject) interface{} {
 		return m.ObjectMonster(obj)
 	case common.ObjectTypeMerchant:
 		return m.ObjectNPC(obj)
+	case common.ObjectTypeItem:
+		item := obj.(*Item)
+		if item.UserItem == nil {
+			return m.ObjectGold(item)
+		} else {
+			return m.ObjectItem(item)
+		}
 	default:
 		panic("unknown object")
 	}

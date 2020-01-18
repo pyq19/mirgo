@@ -387,7 +387,7 @@ func (p *Player) DropItem(id uint64, count uint32) {
 		p.Enqueue(msg)
 		return
 	}
-	obj := &ItemObject{
+	obj := &Item{
 		MapObject: MapObject{
 			ID:  p.Map.Env.NewObjectID(),
 			Map: p.Map,
@@ -413,7 +413,7 @@ func (p *Player) DropGold(gold uint64) {
 	if p.Gold < gold {
 		return
 	}
-	obj := &ItemObject{
+	obj := &Item{
 		MapObject: MapObject{
 			ID:  p.Map.Env.NewObjectID(),
 			Map: p.Map,
@@ -438,7 +438,7 @@ func (p *Player) PickUp() {
 		return
 	}
 	c.Objects.Range(func(k, v interface{}) bool {
-		if o, ok := v.(*ItemObject); ok {
+		if o, ok := v.(*Item); ok {
 			if !p.GainItem(o.UserItem) {
 				return true
 			}

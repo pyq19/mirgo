@@ -27,7 +27,7 @@ func (c *Cell) IsEmpty() bool {
 	return cnt == 0
 }
 
-func (c *Cell) HasItemObject() bool {
+func (c *Cell) HasItem() bool {
 	var cnt int32
 	c.Objects.Range(func(k, v interface{}) bool {
 		if v.(IMapObject).GetRace() == common.ObjectTypeItem {
