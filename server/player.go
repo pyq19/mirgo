@@ -327,7 +327,22 @@ func (p *Player) MergeItem(from common.MirGridType, to common.MirGridType, from2
 
 // GetUserItemByID 获取物品，返回该物品在容器的索引和是否成功
 func (p *Player) GetUserItemByID(mirGridType common.MirGridType, id uint64) (index int, item *common.UserItem) {
-	return 0, nil
+	var arr []common.UserItem
+	switch mirGridType {
+	case common.MirGridTypeInventory:
+		arr = p.Inventory
+	case common.MirGridTypeEquipment:
+		arr = p.Equipment
+	default:
+		panic("error mirGridType")
+	}
+	for i := range arr {
+		item := arr[i]
+		if item.ID == id {
+			return i, &item
+		}
+	}
+	return -1, nil
 }
 
 func (p *Player) EquipItem(mirGridType common.MirGridType, id uint64, to int32) {
@@ -344,6 +359,10 @@ func (p *Player) EquipItem(mirGridType common.MirGridType, id uint64, to int32) 
 	switch mirGridType {
 	case common.MirGridTypeInventory:
 		index, item := p.GetUserItemByID(mirGridType, id)
+		if item == nil {
+			p.Enqueue(msg)
+			return
+		}
 		p.Inventory[index] = p.Equipment[to]
 		p.Equipment[to] = *item
 		msg.Success = true
@@ -378,7 +397,24 @@ func (p *Player) UseItem(id uint64) {
 }
 
 func (p *Player) DropItem(id uint64, count uint32) {
-
+	msg := &server.DropItem{
+		UniqueID: id,
+		Count:    count,
+		Success:  false,
+	}
+	index, item := p.GetUserItemByID(common.MirGridTypeInventory, id)
+	if item == nil || item.ID == 0 {
+		p.Enqueue(msg)
+		return
+	}
+	if count >= item.Count {
+		p.Inventory[index] = common.UserItem{}
+	} else {
+		p.Inventory[index].Count -= count
+	}
+	p.RefreshBagWeight()
+	msg.Success = true
+	p.Enqueue(msg)
 }
 
 func (p *Player) DropGold(amount uint32) {
