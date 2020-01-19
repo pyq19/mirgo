@@ -243,3 +243,7 @@ func (m ServerMessage) Object(obj IMapObject) interface{} {
 func (ServerMessage) GainedItem(ui *common.UserItem) *server.GainedItem {
 	return &server.GainedItem{Item: *ui}
 }
+
+func (m ServerMessage) GainedGold(gold uint64) *server.GainedGold {
+	return &server.GainedGold{Gold: uint32(gold)}
+}

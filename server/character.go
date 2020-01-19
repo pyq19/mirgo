@@ -204,6 +204,12 @@ func (c *Character) GainItem(ui *common.UserItem) bool {
 		item.Type == common.ItemTypeScript ||
 		item.Type == common.ItemTypeAmulet {
 		i = 0
+		j = 4
+	} else if item.Type == common.ItemTypeAmulet {
+		i = 4
+		j = 6
+	} else {
+		i = 6
 	}
 	for i < j {
 		if c.Inventory[i].ID != 0 {
@@ -219,7 +225,11 @@ func (c *Character) GainItem(ui *common.UserItem) bool {
 	return true
 }
 
-// GainGold 为玩家增加金币，增加成功返回 true
-func (c *Character) GainGold(gold uint64) bool {
-	return true
+// GainGold 为玩家增加金币
+func (c *Character) GainGold(gold uint64) {
+	if gold <= 0 {
+		return
+	}
+	c.Gold += gold
+	c.Player.Enqueue(ServerMessage{}.GainedGold(gold))
 }
