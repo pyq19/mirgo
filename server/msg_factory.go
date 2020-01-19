@@ -239,3 +239,7 @@ func (m ServerMessage) Object(obj IMapObject) interface{} {
 		panic("unknown object")
 	}
 }
+
+func (ServerMessage) GainedItem(ui *common.UserItem) *server.GainedItem {
+	return &server.GainedItem{Item: *ui}
+}

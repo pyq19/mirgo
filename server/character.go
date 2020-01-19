@@ -22,6 +22,7 @@ type Character struct {
 	LooksWings        int
 	LooksWeapon       int
 	LooksWeaponEffect int
+	SendItemInfo      []common.ItemInfo
 }
 
 func (c *Character) IsDead() bool {
@@ -81,16 +82,23 @@ func (c *Character) EnqueueItemInfos() {
 		itemInfos = append(itemInfos, gdb.GetItemInfoByID(itemID))
 	}
 	for i := range itemInfos {
-		c.EnqueueItemInfo(itemInfos[i])
+		c.EnqueueItemInfo(itemInfos[i].ID)
 	}
 }
 
-func (c *Character) EnqueueItemInfo(i *common.ItemInfo) {
-	// TODO
-	//if (Connection.SentItemInfo.Contains(info)) return;
-	//Enqueue(new S.NewItemInfo { Info = info });
-	//Connection.SentItemInfo.Add(info)
-	c.Player.Enqueue(ServerMessage{}.NewItemInfo(i))
+func (c *Character) EnqueueItemInfo(itemID int32) {
+	for m := range c.SendItemInfo {
+		s := c.SendItemInfo[m]
+		if s.ID == itemID {
+			return
+		}
+	}
+	item := c.Player.Map.Env.GameDB.GetItemInfoByID(int(itemID))
+	if item == nil {
+		return
+	}
+	c.Player.Enqueue(ServerMessage{}.NewItemInfo(item))
+	c.SendItemInfo = append(c.SendItemInfo, *item)
 }
 
 func (c *Character) EnqueueQuestInfo() {
@@ -186,6 +194,28 @@ func (c *Character) GetUserItemByID(mirGridType common.MirGridType, id uint64) (
 
 // GainItem 为玩家增加物品，增加成功返回 true
 func (c *Character) GainItem(ui *common.UserItem) bool {
+	item := c.Player.Map.Env.GameDB.GetItemInfoByID(int(ui.ItemID))
+	if item == nil {
+		return false
+	}
+	i, j := 6, 46
+	if item.Type == common.ItemTypePotion ||
+		item.Type == common.ItemTypeScroll ||
+		item.Type == common.ItemTypeScript ||
+		item.Type == common.ItemTypeAmulet {
+		i = 0
+	}
+	for i < j {
+		if c.Inventory[i].ID != 0 {
+			i++
+			continue
+		}
+		c.Inventory[i] = *ui
+		break
+	}
+	c.EnqueueItemInfo(ui.ItemID)
+	c.Player.Enqueue(ServerMessage{}.GainedItem(ui))
+	c.RefreshBagWeight()
 	return true
 }
 
