@@ -491,49 +491,10 @@ func updatePlayerInfo(g *Game, p *Player, c *common.Character) {
 	p.ID = uint32(c.ID)
 	p.GameStage = GAME
 	p.Name = c.Name
-	p.Gender = c.Gender
-	p.Level = c.Level
+	p.NameColor = common.Color{R: 255, G: 255, B: 255}
 	p.CurrentDirection = c.Direction
 	p.CurrentLocation = common.NewPoint(int(c.CurrentLocationX), int(c.CurrentLocationY))
-	p.HP = c.HP
-	p.MP = c.MP
-	p.Experience = c.Experience
-	p.NameColor = common.Color{R: 255, G: 255, B: 255}
-	cui := make([]common.CharacterUserItem, 0, 100)
-	g.DB.Table("character_user_item").Where("character_id = ?", c.ID).Find(&cui)
-	is := make([]int, 0, 46)
-	es := make([]int, 0, 14)
-	qs := make([]int, 0, 40)
-	for _, i := range cui {
-		switch common.UserItemType(i.Type) {
-		case common.UserItemTypeInventory:
-			is = append(is, i.UserItemID)
-		case common.UserItemTypeEquipment:
-			es = append(es, i.UserItemID)
-		case common.UserItemTypeQuestInventory:
-			qs = append(qs, i.UserItemID)
-		}
-	}
-	p.Inventory = make([]common.UserItem, 46)
-	p.Equipment = make([]common.UserItem, 14)
-	p.QuestInventory = make([]common.UserItem, 40)
-	p.Trade = make([]common.UserItem, 0)
-	p.Refine = make([]common.UserItem, 0)
-	uii := make([]common.UserItem, 0, 46)
-	uie := make([]common.UserItem, 0, 14)
-	uiq := make([]common.UserItem, 0, 40)
-	g.DB.Table("user_item").Where("id in (?)", is).Find(&uii)
-	g.DB.Table("user_item").Where("id in (?)", es).Find(&uie)
-	g.DB.Table("user_item").Where("id in (?)", qs).Find(&uiq)
-	for i, v := range uii {
-		p.Inventory[i] = v
-	}
-	for i, v := range uie {
-		p.Equipment[i] = v
-	}
-	for i, v := range uiq {
-		p.QuestInventory[i] = v
-	}
+	p.Character = NewCharacter(g, p, c)
 }
 
 // StartGame 开始游戏
