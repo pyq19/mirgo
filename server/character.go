@@ -3,26 +3,126 @@ package main
 import "github.com/yenkeia/mirgo/common"
 
 type Character struct {
-	Player            *Player
-	HP                uint16
-	MP                uint16
-	Experience        int64
-	Gold              uint64
-	GuildName         string
-	GuildRankName     string
-	Class             common.MirClass
-	Gender            common.MirGender
-	Hair              uint8
-	Inventory         []common.UserItem // 46
-	Equipment         []common.UserItem // 14
-	QuestInventory    []common.UserItem // 40
-	Trade             []common.UserItem // 10
-	Refine            []common.UserItem // 16
-	LooksArmour       int
-	LooksWings        int
-	LooksWeapon       int
-	LooksWeaponEffect int
-	SendItemInfo      []common.ItemInfo
+	Player             *Player
+	HP                 uint16
+	MP                 uint16
+	Level              uint16
+	Experience         int64
+	Gold               uint64
+	GuildName          string
+	GuildRankName      string
+	Class              common.MirClass
+	Gender             common.MirGender
+	Hair               uint8
+	Light              uint8
+	Inventory          []common.UserItem // 46
+	Equipment          []common.UserItem // 14
+	QuestInventory     []common.UserItem // 40
+	Trade              []common.UserItem // 10
+	Refine             []common.UserItem // 16
+	LooksArmour        int
+	LooksWings         int
+	LooksWeapon        int
+	LooksWeaponEffect  int
+	SendItemInfo       []common.ItemInfo
+	MaxHP              uint16
+	MaxMP              uint16
+	MinAC              uint16 // 物理防御力
+	MaxAC              uint16
+	MinMAC             uint16 // 魔法防御力
+	MaxMAC             uint16
+	MinDC              uint16 // 攻击力
+	MaxDC              uint16
+	MinMC              uint16 // 魔法力
+	MaxMC              uint16
+	MinSC              uint16 // 道术力
+	MaxSC              uint16
+	MaxExperience      int64
+	Accuracy           uint8
+	Agility            uint8
+	CriticalRate       uint8
+	CriticalDamage     uint8
+	MaxBagWeight       uint16 //Other Stats;
+	MaxWearWeight      uint16
+	MaxHandWeight      uint16
+	ASpeed             int8
+	Luck               int8
+	LifeOnHit          uint8
+	HpDrainRate        uint8
+	Reflect            uint8
+	MagicResist        uint8
+	PoisonResist       uint8
+	HealthRecovery     uint8
+	SpellRecovery      uint8
+	PoisonRecovery     uint8
+	Holy               uint8
+	Freezing           uint8
+	PoisonAttack       uint8
+	ExpRateOffset      float32
+	ItemDropRateOffset float32
+	MineRate           uint8
+	GemRate            uint8
+	FishRate           uint8
+	CraftRate          uint8
+	GoldDropRateOffset float32
+	AttackBonus        uint8
+}
+
+func NewCharacter(g *Game, p *Player, c *common.Character) Character {
+	cui := make([]common.CharacterUserItem, 0, 100)
+	g.DB.Table("character_user_item").Where("character_id = ?", c.ID).Find(&cui)
+	is := make([]int, 0, 46)
+	es := make([]int, 0, 14)
+	qs := make([]int, 0, 40)
+	for _, i := range cui {
+		switch common.UserItemType(i.Type) {
+		case common.UserItemTypeInventory:
+			is = append(is, i.UserItemID)
+		case common.UserItemTypeEquipment:
+			es = append(es, i.UserItemID)
+		case common.UserItemTypeQuestInventory:
+			qs = append(qs, i.UserItemID)
+		}
+	}
+	inventory := make([]common.UserItem, 46)
+	equipment := make([]common.UserItem, 14)
+	questInventory := make([]common.UserItem, 40)
+	trade := make([]common.UserItem, 0)
+	refine := make([]common.UserItem, 0)
+	uii := make([]common.UserItem, 0, 46)
+	uie := make([]common.UserItem, 0, 14)
+	uiq := make([]common.UserItem, 0, 40)
+	g.DB.Table("user_item").Where("id in (?)", is).Find(&uii)
+	g.DB.Table("user_item").Where("id in (?)", es).Find(&uie)
+	g.DB.Table("user_item").Where("id in (?)", qs).Find(&uiq)
+	for i, v := range uii {
+		inventory[i] = v
+	}
+	for i, v := range uie {
+		equipment[i] = v
+	}
+	for i, v := range uiq {
+		questInventory[i] = v
+	}
+	return Character{
+		Player:         p,
+		HP:             c.HP,
+		MP:             c.MP,
+		Level:          c.Level,
+		Experience:     c.Experience,
+		Gold:           0,  // TODO
+		GuildName:      "", // TODO
+		GuildRankName:  "", // TODO
+		Class:          c.Class,
+		Gender:         c.Gender,
+		Hair:           c.Hair,
+		Inventory:      inventory,
+		Equipment:      equipment,
+		QuestInventory: questInventory,
+		Trade:          trade,
+		Refine:         refine,
+		SendItemInfo:   make([]common.ItemInfo, 0),
+	}
 }
 
 func (c *Character) IsDead() bool {

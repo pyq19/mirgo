@@ -10,6 +10,7 @@ import (
 type NPC struct {
 	MapObject
 	Image    int
+	Light    uint8
 	TurnTime time.Time
 }
 
@@ -22,9 +23,9 @@ func NewNPC(m *Map, ni *common.NpcInfo) *NPC {
 			Map:              m,
 			CurrentLocation:  common.NewPoint(ni.LocationX, ni.LocationY),
 			CurrentDirection: common.MirDirection(G_Rand.RandInt(0, 2)),
-			Light:            0, // TODO
 		},
 		Image:    ni.Image,
+		Light:    0, // TODO
 		TurnTime: time.Now(),
 	}
 }
