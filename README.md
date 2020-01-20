@@ -1,6 +1,25 @@
 #### 传奇服务端 go 语言实现
 参照 C# Mir2 (https://github.com/Suprcode/mir2)
 
+#### 开发进度
+- [x] 注册/登陆/创建角色/进游戏
+- [ ] 玩家退出时保存角色信息
+- [ ] 定时保存游戏数据
+- [x] 地图/怪物/NPC加载
+- [x] 玩家移动
+- [ ] 玩家背包
+- [ ] 玩家装备
+- [ ] 玩家属性(升级/基础属性/装备属性计算)
+- [ ] 玩家攻击(PK)
+- [ ] 技能
+- [ ] 玩家/怪物状态(Buff/Poison)
+- [ ] 怪物属性
+- [ ] NPC 交互
+- [ ] 怪物 AI
+- [ ] BUG: 背包物品顺序
+- [ ] BUG: 别的玩家装备显示不正确
+- [ ] BUG: 怪物加载重叠
+
 #### 用到的开源库/工具
 - [Cellnet](https://github.com/davyxu/cellnet)
 - [GORM](https://github.com/jinzhu/gorm)
