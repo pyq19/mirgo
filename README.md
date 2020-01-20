@@ -68,6 +68,9 @@ go build -o smain
 ./smain
 ```
 
+#### 联系方式
+欢迎 issue 交流
+
 #### 客户端
 代码: https://github.com/yenkeia/mir2
 链接: https://pan.baidu.com/s/1ELI8pO278v9JRyt6lS-A8Q
