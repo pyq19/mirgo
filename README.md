@@ -1,11 +1,7 @@
-#### 传奇2 服务端 go 语言实现
+#### 传奇服务端 go 语言实现
 参照 C# Mir2 (https://github.com/Suprcode/mir2)
-![image](https://github.com/yenkeia/mirgo/blob/master/img/img1.png)
 
 #### 用到的开源库/工具
-- .NET Core 3.0
-- [SqlSugar](https://github.com/sunkaixuan/SqlSugar)
-- SQLite
 - [Cellnet](https://github.com/davyxu/cellnet)
 - [GORM](https://github.com/jinzhu/gorm)
 
@@ -54,8 +50,11 @@ go build -o smain
 
 #### 客户端
 代码: https://github.com/yenkeia/mir2
-链接：https://pan.baidu.com/s/1ELI8pO278v9JRyt6lS-A8Q
-提取码：0nc3
+链接: https://pan.baidu.com/s/1ELI8pO278v9JRyt6lS-A8Q
+提取码: 0nc3
+
+#### 截图
+![image](https://github.com/yenkeia/mirgo/blob/master/img/img1.png)
 
 #### 参考资料
 - [Zinx应用-MMO游戏案例-(2)AOI兴趣点算法](https://www.jianshu.com/p/e5b5db9fa6fe)

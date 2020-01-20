@@ -45,7 +45,7 @@ func (p Point) NextPoint(direction MirDirection, step uint32) Point {
 		x = x - step
 		y = y - step
 	}
-	return NewPointByCoordinate(fmt.Sprintf("%s,%s", strconv.Itoa(int(x)), strconv.Itoa(int(y))))
+	return Point{X: x, Y: y}
 }
 
 // NewPointByCoordinate 坐标转换成点
