@@ -30,7 +30,12 @@ func (c *Cell) IsEmpty() bool {
 func (c *Cell) HasItem() bool {
 	var cnt int32
 	c.Objects.Range(func(k, v interface{}) bool {
-		if v.(IMapObject).GetRace() == common.ObjectTypeItem {
+		objectType := v.(IMapObject).GetRace()
+		if objectType == common.ObjectTypeItem {
+			atomic.AddInt32(&cnt, 1)
+		}
+		// 有 NPC 的 cell 也不能放置物品
+		if objectType == common.ObjectTypeMerchant {
 			atomic.AddInt32(&cnt, 1)
 		}
 		return true
