@@ -72,23 +72,25 @@ func (i *Item) GetInfo() interface{} {
 
 // Drop 物品加入到地图上，传入中心点 center，范围 distance
 func (i *Item) Drop(center common.Point, distance int) (string, bool) {
-	// 以 p 为中心，向外获取点，放入集合
-	minX := int(center.X) - distance
-	maxX := int(center.X) + distance
-	minY := int(center.Y) - distance
-	maxY := int(center.Y) + distance
-	if minX < 0 {
-		minX = 0
-	}
-	if minY < 0 {
-		minY = 0
-	}
+	// 以 center 为中心，向外获取点，放入集合
+	x := int(center.X)
+	y := int(center.Y)
 	points := make([]common.Point, 0)
-	tmpX := maxX - minX
-	tmpY := maxY - minY
-	for m := 0; tmpY >= m; m++ {
-		for n := 0; tmpX >= n; n++ {
-			points = append(points, common.Point{X: uint32(minX + m), Y: uint32(minY + n)})
+	if distance == 0 {
+		points = append(points, center)
+	} else {
+		for k := 1; k <= distance; k++ {
+			minX := x - k
+			maxX := x + k
+			minY := y - k
+			maxY := y + k
+			for n := minY; maxY >= n; n++ {
+				for m := minX; maxX >= m; m++ {
+					if m == minX || m == maxX || n == minY || n == maxY {
+						points = append(points, common.Point{X: uint32(m), Y: uint32(n)})
+					}
+				}
+			}
 		}
 	}
 	for j := range points {
@@ -97,6 +99,7 @@ func (i *Item) Drop(center common.Point, distance int) (string, bool) {
 		if c == nil || c.HasItem() {
 			continue
 		}
+		i.CurrentLocation = p
 		i.Map.AddObject(i)
 		i.Broadcast(i.GetInfo())
 		return "", true

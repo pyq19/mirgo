@@ -421,7 +421,7 @@ func (p *Player) DropGold(gold uint64) {
 		Gold:     gold,
 		UserItem: nil,
 	}
-	if dropMsg, ok := obj.Drop(p.GetPoint(), 5); !ok {
+	if dropMsg, ok := obj.Drop(p.GetPoint(), 3); !ok {
 		p.ReceiveChat(dropMsg, common.ChatTypeSystem)
 		return
 	}
