@@ -93,7 +93,6 @@ func TestCharacter(t *testing.T) {
 	t.Log(cs)
 }
 
-
 func TestUserMagic(t *testing.T) {
 	path := os.Getenv("GOPATH") + "/src/github.com/yenkeia/mirgo/dotnettools/mir.sqlite"
 	db, err := gorm.Open("sqlite3", path)

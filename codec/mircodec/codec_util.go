@@ -12,6 +12,10 @@ func encode(obj interface{}) (bytes []byte, err error) {
 		v = v.Elem()
 	}
 	for i := 0; i < v.NumField(); i++ {
+		tag := v.Type().Field(i).Tag.Get("encode")
+		if tag == "-" {
+			continue
+		}
 		encodeBytes, err := encodeValue(v.Field(i))
 		if err != nil {
 			return bytes, err

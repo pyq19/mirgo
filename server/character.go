@@ -110,7 +110,7 @@ func NewCharacter(g *Game, p *Player, c *common.Character) Character {
 		MP:             c.MP,
 		Level:          c.Level,
 		Experience:     c.Experience,
-		Gold:           0,  // TODO
+		Gold:           c.Gold,
 		GuildName:      "", // TODO
 		GuildRankName:  "", // TODO
 		Class:          c.Class,

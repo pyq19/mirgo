@@ -313,7 +313,7 @@ func (e *Environ) Debug() {
 	if len(allPlayer) != envPlayerCount {
 		log.Errorf("!!! warning envPlayerCount: %d != map allPlayer: %d\n", envPlayerCount, len(allPlayer))
 	} else {
-		log.Debugf("envPlayerCount: %d, map allPlayer: %d\n", envPlayerCount, len(allPlayer))
+		// log.Debugf("envPlayerCount: %d, map allPlayer: %d\n", envPlayerCount, len(allPlayer))
 	}
 }
 

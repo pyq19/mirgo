@@ -731,3 +731,23 @@ func TestDecodeEncodeObjectNPC_3(t *testing.T) {
 	}
 	t.Log(obj.([]byte))
 }
+
+func TestEncodeCharacter(t *testing.T) {
+	path := os.Getenv("GOPATH") + "/src/github.com/yenkeia/mirgo/dotnettools/mir.sqlite"
+	db, err := gorm.Open("sqlite3", path)
+	if err != nil {
+		panic("failed to connect database")
+	}
+	defer db.Close()
+
+	c := new(common.Character)
+	db.Table("character").Where("id = ?", 1).Find(&c)
+	t.Log(c)
+
+	codec := new(MirCodec)
+	obj, err := codec.Encode(c, *new(cellnet.ContextSet))
+	if err != nil {
+		t.Error(err)
+	}
+	t.Log(obj.([]byte))
+}
