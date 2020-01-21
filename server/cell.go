@@ -35,7 +35,7 @@ func (c *Cell) HasItem() bool {
 		}
 		return true
 	})
-	return cnt == 0
+	return cnt > 0
 }
 
 func (c *Cell) CanWalk() bool {

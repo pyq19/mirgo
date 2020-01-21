@@ -4,7 +4,6 @@ import (
 	"github.com/davyxu/cellnet"
 	"github.com/davyxu/cellnet/codec"
 	"github.com/davyxu/golog"
-	"reflect"
 )
 
 var log = golog.New("codec.mircodec")
@@ -26,11 +25,11 @@ func (m *MirCodec) MimeType() string {
 // Encode 将数据转换为字节数组
 func (*MirCodec) Encode(msgObj interface{}, ctx cellnet.ContextSet) (data interface{}, err error) {
 	// TODO 测试用
-	v := reflect.ValueOf(msgObj)
-	if v.Kind() == reflect.Ptr {
-		v = v.Elem()
-	}
-	log.Debugf("Encode %v\n", v.Type().Name())
+	//v := reflect.ValueOf(msgObj)
+	//if v.Kind() == reflect.Ptr {
+	//	v = v.Elem()
+	//}
+	//log.Debugf("Encode %v\n", v.Type().Name())
 
 	return encode(msgObj)
 }
