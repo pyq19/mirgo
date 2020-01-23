@@ -63,7 +63,7 @@ func (i *Item) GetInfo() interface{} {
 			NameColor: i.NameColor.ToInt32(),
 			LocationX: int32(i.GetPoint().X),
 			LocationY: int32(i.GetPoint().Y),
-			Image:     i.GetImage(),         // TODO
+			Image:     i.GetImage(),
 			Grade:     common.ItemGradeNone, // TODO
 		}
 		return res
