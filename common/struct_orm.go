@@ -52,7 +52,8 @@ type CharacterUserItem struct {
 	ID          int `gorm:"primary_key"`
 	CharacterID int
 	UserItemID  int
-	Type        int
+	Type        int // 	类型: Inventory / Equipment / QuestInventory
+	Index       int //	所在类型格子的索引，比如在 Inventory 的第几个格子
 }
 
 // CharacterUserMagic 角色魔法关系
