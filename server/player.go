@@ -506,11 +506,11 @@ func (p *Player) Attack(direction common.MirDirection, spell common.Spell) {
 		Level:     0,
 		Type:      0,
 	})
-	target := p.Point().NextPoint(p.CurrentDirection, 1)
-	c := p.Map.GetCell(target.Coordinate())
-	if c == nil || c.IsEmpty() {
-		return
-	}
+	//target := p.Point().NextPoint(p.CurrentDirection, 1)
+	//c := p.Map.GetCell(target.Coordinate())
+	//if c == nil || c.IsEmpty() {
+	//	return
+	//}
 	//damageBase := p.getAttackPower(p.MinDC, p.MaxDC)
 	//damageFinal := damageBase // TODO
 	//for i := range c.Objects {
