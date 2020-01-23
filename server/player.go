@@ -353,7 +353,6 @@ func (p *Player) EquipItem(mirGridType common.MirGridType, id uint64, to int32) 
 	p.Enqueue(msg)
 }
 
-// TODO
 func (p *Player) RemoveItem(mirGridType common.MirGridType, id uint64, to int32) {
 	msg := &server.RemoveItem{
 		Grid:     mirGridType,
@@ -361,6 +360,35 @@ func (p *Player) RemoveItem(mirGridType common.MirGridType, id uint64, to int32)
 		To:       to,
 		Success:  false,
 	}
+	if l := len(p.Inventory); to < 0 || int(to) >= l {
+		p.Enqueue(msg)
+		return
+	}
+	switch mirGridType {
+	case common.MirGridTypeInventory:
+		index, item := p.GetUserItemByID(common.MirGridTypeEquipment, id)
+		if item == nil {
+			p.Enqueue(msg)
+			return
+		}
+		invItem := p.Inventory[to]
+		if invItem.ID == 0 {
+			p.Inventory[to], p.Equipment[index] = p.Equipment[index], p.Inventory[to]
+			break
+		}
+		for i := range p.Inventory[6:] {
+			tmp := p.Inventory[6:][i]
+			if tmp.ID != 0 {
+				continue
+			}
+			p.Inventory[6:][i], p.Equipment[index] = p.Equipment[index], p.Inventory[6:][i]
+			break
+		}
+	case common.MirGridTypeStorage:
+		// TODO
+	}
+	msg.Success = true
+	p.RefreshStats()
 	p.Enqueue(msg)
 }
 
