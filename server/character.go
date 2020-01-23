@@ -69,6 +69,7 @@ type Character struct {
 }
 
 func NewCharacter(g *Game, p *Player, c *common.Character) Character {
+	userItemIDIndexMap := make(map[int]int)
 	cui := make([]common.CharacterUserItem, 0, 100)
 	g.DB.Table("character_user_item").Where("character_id = ?", c.ID).Find(&cui)
 	is := make([]int, 0, 46)
@@ -83,6 +84,7 @@ func NewCharacter(g *Game, p *Player, c *common.Character) Character {
 		case common.UserItemTypeQuestInventory:
 			qs = append(qs, i.UserItemID)
 		}
+		userItemIDIndexMap[i.UserItemID] = i.Index
 	}
 	inventory := make([]common.UserItem, 46)
 	equipment := make([]common.UserItem, 14)
@@ -95,14 +97,14 @@ func NewCharacter(g *Game, p *Player, c *common.Character) Character {
 	g.DB.Table("user_item").Where("id in (?)", is).Find(&uii)
 	g.DB.Table("user_item").Where("id in (?)", es).Find(&uie)
 	g.DB.Table("user_item").Where("id in (?)", qs).Find(&uiq)
-	for i, v := range uii {
-		inventory[i] = v
+	for _, v := range uii {
+		inventory[userItemIDIndexMap[int(v.ID)]] = v
 	}
-	for i, v := range uie {
-		equipment[i] = v
+	for _, v := range uie {
+		equipment[userItemIDIndexMap[int(v.ID)]] = v
 	}
-	for i, v := range uiq {
-		questInventory[i] = v
+	for _, v := range uiq {
+		questInventory[userItemIDIndexMap[int(v.ID)]] = v
 	}
 	return Character{
 		Player:         p,
