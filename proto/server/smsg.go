@@ -1159,7 +1159,12 @@ type SetConcentration struct {
 	Interrupted bool
 }
 
-type SetObjectConcentration struct{}
+type SetObjectConcentration struct {
+	ObjectID    uint32
+	Enabled     bool
+	Interrupted bool
+}
+
 type SetElemental struct{}
 type SetObjectElemental struct{}
 type RemoveDelayedExplosion struct{}

@@ -345,12 +345,14 @@ func (p *Player) EquipItem(mirGridType common.MirGridType, id uint64, to int32) 
 		}
 		p.Inventory[index] = p.Equipment[to]
 		p.Equipment[to] = *item
-		msg.Success = true
-		p.RefreshStats()
 	case common.MirGridTypeStorage:
 		// TODO
 	}
+	msg.Success = true
+	p.RefreshStats()
 	p.Enqueue(msg)
+	p.UpdateConcentration()
+	p.Broadcast(ServerMessage{}.PlayerUpdate(p))
 }
 
 func (p *Player) RemoveItem(mirGridType common.MirGridType, id uint64, to int32) {
@@ -390,6 +392,8 @@ func (p *Player) RemoveItem(mirGridType common.MirGridType, id uint64, to int32)
 	msg.Success = true
 	p.RefreshStats()
 	p.Enqueue(msg)
+	p.UpdateConcentration()
+	p.Broadcast(ServerMessage{}.PlayerUpdate(p))
 }
 
 func (p *Player) RemoveSlotItem(grid common.MirGridType, id uint64, to int32, to2 common.MirGridType) {

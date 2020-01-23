@@ -335,3 +335,8 @@ func (c *Character) GainGold(gold uint64) {
 	c.Gold += gold
 	c.Player.Enqueue(ServerMessage{}.GainedGold(gold))
 }
+
+func (c *Character) UpdateConcentration() {
+	c.Player.Enqueue(ServerMessage{}.SetConcentration(c.Player))
+	c.Player.Broadcast(ServerMessage{}.SetObjectConcentration(c.Player))
+}

@@ -514,7 +514,7 @@ func (g *Game) StartGame(s cellnet.Session, msg *client.StartGame) {
 		s.Send(ServerMessage{}.StartGame(2, 1024))
 		return
 	}
-	s.Send(ServerMessage{}.SetConcentration())
+	s.Send(ServerMessage{}.SetConcentration(p))
 	s.Send(ServerMessage{}.StartGame(4, 1024))
 	updatePlayerInfo(g, p, c)
 	log.Debugf("player login, AccountID(%d) Name(%s)\n", p.AccountID, p.Name)

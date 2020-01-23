@@ -7,12 +7,20 @@ import (
 
 type ServerMessage struct{}
 
-func (ServerMessage) SetConcentration() *server.SetConcentration {
+func (ServerMessage) SetConcentration(p *Player) *server.SetConcentration {
 	sc := new(server.SetConcentration)
-	sc.ObjectID = 66432
+	sc.ObjectID = p.GetID()
 	sc.Enabled = false
 	sc.Interrupted = false
 	return sc
+}
+
+func (ServerMessage) SetObjectConcentration(p *Player) *server.SetObjectConcentration {
+	return &server.SetObjectConcentration{
+		ObjectID:    p.GetID(),
+		Enabled:     false,
+		Interrupted: false,
+	}
 }
 
 func (ServerMessage) ObjectPlayer(o IMapObject) (res *server.ObjectPlayer) {
@@ -246,4 +254,15 @@ func (ServerMessage) GainedItem(ui *common.UserItem) *server.GainedItem {
 
 func (m ServerMessage) GainedGold(gold uint64) *server.GainedGold {
 	return &server.GainedGold{Gold: uint32(gold)}
+}
+
+func (ServerMessage) PlayerUpdate(p *Player) *server.PlayerUpdate {
+	return &server.PlayerUpdate{
+		ObjectID:     p.GetID(),
+		Light:        p.Light,
+		Weapon:       int16(p.LooksWeapon),
+		WeaponEffect: int16(p.LooksWeaponEffect),
+		Armour:       int16(p.LooksArmour),
+		WingEffect:   uint8(p.LooksWings),
+	}
 }
