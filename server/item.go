@@ -63,11 +63,60 @@ func (i *Item) GetInfo() interface{} {
 			NameColor: i.NameColor.ToInt32(),
 			LocationX: int32(i.GetPoint().X),
 			LocationY: int32(i.GetPoint().Y),
-			Image:     0,                    // TODO
+			Image:     i.GetImage(),         // TODO
 			Grade:     common.ItemGradeNone, // TODO
 		}
 		return res
 	}
+}
+
+func (i *Item) GetItemInfo() common.ItemInfo {
+	return *i.Map.Env.GameDB.GetItemInfoByID(int(i.UserItem.ItemID))
+}
+
+func (i *Item) GetImage() uint16 {
+	info := i.GetItemInfo()
+	switch info.Type {
+	case common.ItemTypeAmulet:
+		if info.StackSize > 0 {
+			switch info.Shape {
+			case 0: //Amulet
+				if i.UserItem.Count >= 300 {
+					return 3662
+				}
+				if i.UserItem.Count >= 200 {
+					return 3661
+				}
+				if i.UserItem.Count >= 100 {
+					return 3660
+				}
+				return 3660
+			case 1: //Grey Poison
+				if i.UserItem.Count >= 150 {
+					return 3675
+				}
+				if i.UserItem.Count >= 100 {
+					return 2960
+				}
+				if i.UserItem.Count >= 50 {
+					return 3674
+				}
+				return 3673
+			case 2: //Yellow Poison
+				if i.UserItem.Count >= 150 {
+					return 3672
+				}
+				if i.UserItem.Count >= 100 {
+					return 2961
+				}
+				if i.UserItem.Count >= 50 {
+					return 3671
+				}
+				return 3670
+			}
+		}
+	}
+	return info.Image
 }
 
 // Drop 物品加入到地图上，传入中心点 center，范围 distance
