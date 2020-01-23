@@ -27,6 +27,7 @@ func (c *Cell) IsEmpty() bool {
 	return cnt == 0
 }
 
+// HasItem 判断是否有游戏物品/装备/金币
 func (c *Cell) HasItem() bool {
 	var cnt int32
 	c.Objects.Range(func(k, v interface{}) bool {
@@ -43,12 +44,23 @@ func (c *Cell) HasItem() bool {
 	return cnt > 0
 }
 
-func (c *Cell) CanWalk() bool {
-	return c.Attribute == common.CellAttributeWalk
+// HasObject 判断是否有游戏对象 Player NPC Monster
+func (c *Cell) HasObject() bool {
+	var cnt int32
+	c.Objects.Range(func(k, v interface{}) bool {
+		objectType := v.(IMapObject).GetRace()
+		if objectType == common.ObjectTypePlayer ||
+			objectType == common.ObjectTypeMerchant ||
+			objectType == common.ObjectTypeMonster {
+			atomic.AddInt32(&cnt, 1)
+		}
+		return true
+	})
+	return cnt > 0
 }
 
-func (c *Cell) CanWalkAndIsEmpty() bool {
-	return c.CanWalk() && c.IsEmpty()
+func (c *Cell) CanWalk() bool {
+	return c.Attribute == common.CellAttributeWalk
 }
 
 func (c *Cell) String() string {

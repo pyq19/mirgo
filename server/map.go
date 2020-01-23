@@ -78,7 +78,7 @@ func (m *Map) DeleteObject(obj IMapObject) {
 func (m *Map) UpdateObject(obj IMapObject, points ...common.Point) bool {
 	for i := range points {
 		c := m.GetCell(points[i].Coordinate())
-		if c == nil || !c.CanWalkAndIsEmpty() {
+		if c == nil || !c.CanWalk() || c.HasObject() {
 			return false
 		}
 	}
@@ -142,7 +142,7 @@ func (m *Map) InitMonsters() error {
 func (m *Map) GetValidPoint(x int, y int, spread int) (common.Point, error) {
 	if spread == 0 {
 		c := m.GetCell(common.Point{X: uint32(x), Y: uint32(y)}.Coordinate())
-		if c != nil && c.CanWalkAndIsEmpty() {
+		if c != nil && c.CanWalk() && !c.HasObject() {
 			return common.NewPointByCoordinate(c.Coordinate), nil
 		}
 		return common.Point{}, fmt.Errorf("GetValidPoint: (x: %d, y: %d), spread: %d\n", x, y, spread)
