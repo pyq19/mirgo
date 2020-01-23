@@ -12,7 +12,7 @@ func encode(obj interface{}) (bytes []byte, err error) {
 		v = v.Elem()
 	}
 	for i := 0; i < v.NumField(); i++ {
-		tag := v.Type().Field(i).Tag.Get("encode")
+		tag := v.Type().Field(i).Tag.Get("codec")
 		if tag == "-" {
 			continue
 		}
@@ -262,6 +262,10 @@ func decode(obj interface{}, bytes []byte) (err error) {
 		v = v.Elem()
 	}
 	for i := 0; i < v.NumField(); i++ {
+		tag := v.Type().Field(i).Tag.Get("codec")
+		if tag == "-" {
+			continue
+		}
 		bytes = decodeValue(v.Field(i), bytes)
 	}
 	return

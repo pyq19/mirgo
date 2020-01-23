@@ -44,7 +44,7 @@ type Character struct {
 	Experience       int64
 	AttackMode       AttackMode
 	PetMode          PetMode
-	Gold             uint64 `encode:"-"` // 编码时，忽略这个字段，只用在数据库查询
+	Gold             uint64 `codec:"-"` // 编码时，忽略这个字段，只用在数据库查询
 }
 
 // CharacterUserItem 角色物品关系
