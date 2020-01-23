@@ -437,17 +437,25 @@ func (p *Player) PickUp() {
 	if c == nil {
 		return
 	}
+	items := make([]*Item, 0)
 	c.Objects.Range(func(k, v interface{}) bool {
 		if o, ok := v.(*Item); ok {
-			if !p.GainItem(o.UserItem) {
-				return true
+			if o.UserItem == nil {
+				p.GainGold(o.Gold)
+				items = append(items, o)
+			} else {
+				if p.GainItem(o.UserItem) {
+					items = append(items, o)
+				}
 			}
-			p.Map.DeleteObject(o)
-			o.Broadcast(ServerMessage{}.ObjectRemove(o))
-			p.GainGold(o.Gold)
 		}
 		return true
 	})
+	for i := range items {
+		o := items[i]
+		p.Map.DeleteObject(o)
+		o.Broadcast(ServerMessage{}.ObjectRemove(o))
+	}
 }
 
 func (p *Player) Inspect(id uint32) {
