@@ -18,6 +18,7 @@ func init() {
 		ScriptDirPath: gopath + "/src/github.com/yenkeia/mirgo/script/",
 	}
 	// TODO
+	BaseStats = make(map[common.MirClass]baseStats)
 	BaseStats[common.MirClassWarrior] = baseStats{}
 	BaseStats[common.MirClassWizard] = baseStats{}
 	BaseStats[common.MirClassTaoist] = baseStats{}
