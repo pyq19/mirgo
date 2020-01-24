@@ -1,26 +1,14 @@
 package main
 
 import (
-	"github.com/yenkeia/mirgo/common"
-	"os"
 	"sync"
 	"testing"
+
+	"github.com/yenkeia/mirgo/common"
 )
 
-func getTestGame() *Game {
-	gopath := os.Getenv("GOPATH")
-	conf := Config{
-		Addr:          "0.0.0.0:7000",
-		DBPath:        gopath + "/src/github.com/yenkeia/mirgo/dotnettools/mir.sqlite",
-		MapDirPath:    gopath + "/src/github.com/yenkeia/mirgo/dotnettools/database/Maps/",
-		ScriptDirPath: gopath + "/src/github.com/yenkeia/mirgo/script/",
-	}
-	g := NewGame(conf)
-	return g
-}
-
 func TestGameMonsters(t *testing.T) {
-	g := getTestGame()
+	g := NewGame()
 
 	//v, _ := g.Env.Maps.Load(1)
 	//count1 := 0
@@ -64,7 +52,7 @@ func i(t *testing.T, o interface{}) {
 }
 
 func TestGameNPCs(t *testing.T) {
-	g := getTestGame()
+	g := NewGame()
 	v, _ := g.Env.Maps.Load(1)
 	count := 0
 	v.(*Map).AOI.grids.Range(func(k, v interface{}) bool {
@@ -101,7 +89,7 @@ func TestEnviron_NewObjectID(t *testing.T) {
 }
 
 func TestGameDB_GetItemInfoByID(t *testing.T) {
-	g := getTestGame()
+	g := NewGame()
 	gdb := g.Env.GameDB
 	i1 := gdb.GetItemInfoByID(1)
 	i2 := gdb.GetItemInfoByID(2)
@@ -110,7 +98,7 @@ func TestGameDB_GetItemInfoByID(t *testing.T) {
 }
 
 func TestGameDB_GetMonsterInfoByID(t *testing.T) {
-	g := getTestGame()
+	g := NewGame()
 	gdb := g.Env.GameDB
 	m1 := gdb.GetMonsterInfoByID(1)
 	m2 := gdb.GetMonsterInfoByID(2)

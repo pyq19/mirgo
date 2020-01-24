@@ -2,6 +2,8 @@ package main
 
 import "github.com/yenkeia/mirgo/common"
 
+import "github.com/yenkeia/mirgo/setting"
+
 type Character struct {
 	Player             *Player
 	HP                 uint16
@@ -221,7 +223,37 @@ func (c *Character) RefreshStats() {
 }
 
 func (c *Character) RefreshLevelStats() {
-
+	baseStats := setting.BaseStats[c.Class]
+	c.Accuracy = uint8(baseStats.StartAccuracy)
+	c.Agility = uint8(baseStats.StartAgility)
+	c.CriticalRate = uint8(baseStats.StartCriticalRate)
+	c.CriticalDamage = uint8(baseStats.StartCriticalDamage)
+	c.MaxExperience = 100
+	c.MaxHP = uint16(14 + (float32(c.Level)/baseStats.HpGain+baseStats.HpGainRate)*float32(c.Level))
+	c.MinAC = uint16(int(c.Level) / baseStats.MinAc)
+	c.MaxAC = uint16(int(c.Level) / baseStats.MaxAc)
+	c.MinMAC = uint16(int(c.Level) / baseStats.MinMac)
+	c.MaxMAC = uint16(int(c.Level) / baseStats.MaxMac)
+	c.MinDC = uint16(int(c.Level) / baseStats.MinDc)
+	c.MaxDC = uint16(int(c.Level) / baseStats.MaxDc)
+	c.MinMC = uint16(int(c.Level) / baseStats.MinMc)
+	c.MaxMC = uint16(int(c.Level) / baseStats.MaxMc)
+	c.MinSC = uint16(int(c.Level) / baseStats.MinSc)
+	c.MaxSC = uint16(int(c.Level) / baseStats.MaxSc)
+	c.CriticalRate = uint8(float32(c.CriticalRate) + (float32(c.Level) / baseStats.CritialRateGain))
+	c.CriticalDamage = uint8(float32(c.CriticalDamage) + (float32(c.Level) / baseStats.CriticalDamageGain))
+	c.MaxBagWeight = uint16(float32(50) + float32(c.Level)/baseStats.BagWeightGain*float32(c.Level))
+	c.MaxWearWeight = uint16(float32(15) + float32(c.Level)/baseStats.WearWeightGain*float32(c.Level))
+	c.MaxHandWeight = uint16(float32(12) + float32(c.Level)/baseStats.HandWeightGain*float32(c.Level))
+	switch c.Class {
+	case common.MirClassWarrior:
+		c.MaxHP = uint16(14.0 + (float32(c.Level)/baseStats.HpGain+baseStats.HpGainRate+float32(c.Level)/20.0)*float32(c.Level))
+		c.MaxMP = uint16(11.0 + (float32(c.Level) * 3.5) + (float32(c.Level) * baseStats.MpGainRate))
+	case common.MirClassWizard:
+		c.MaxMP = uint16(13.0 + (float32(c.Level/5.0+2.0) * 2.2 * float32(c.Level)) + (float32(c.Level) * baseStats.MpGainRate))
+	case common.MirClassTaoist:
+		c.MaxMP = uint16((13 + float32(c.Level)/8.0*2.2*float32(c.Level)) + (float32(c.Level) * baseStats.MpGainRate))
+	}
 }
 
 func (c *Character) RefreshBagWeight() {

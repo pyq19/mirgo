@@ -9,13 +9,13 @@ import (
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/sqlite"
 	_ "github.com/yenkeia/mirgo/proc/mirtcp"
+	"github.com/yenkeia/mirgo/setting"
 )
 
 var log = golog.New("server.game")
 
 // Game ...
 type Game struct {
-	Conf Config
 	DB   *gorm.DB
 	Pool *Pool
 	Env  *Environ
@@ -23,10 +23,9 @@ type Game struct {
 }
 
 // NewGame ...
-func NewGame(conf Config) *Game {
+func NewGame() *Game {
 	g := new(Game)
-	g.Conf = conf
-	db, err := gorm.Open("sqlite3", conf.DBPath)
+	db, err := gorm.Open("sqlite3", setting.Conf.DBPath)
 	if err != nil {
 		panic("failed to connect database")
 	}
@@ -41,7 +40,7 @@ func NewGame(conf Config) *Game {
 // ServerStart ...
 func (g *Game) ServerStart() {
 	queue := cellnet.NewEventQueue()
-	p := peer.NewGenericPeer("tcp.Acceptor", "server", g.Conf.Addr, queue)
+	p := peer.NewGenericPeer("tcp.Acceptor", "server", setting.Conf.Addr, queue)
 	g.Peer = &p
 	proc.BindProcessorHandler(p, "mir.server.tcp", g.HandleEvent)
 	p.Start()         // 开始侦听
