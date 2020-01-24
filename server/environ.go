@@ -6,6 +6,7 @@ import (
 	"github.com/yenkeia/mirgo/common"
 	_ "github.com/yenkeia/mirgo/proc/mirtcp"
 	"github.com/yenkeia/mirgo/proto/server"
+	"github.com/yenkeia/mirgo/setting"
 	"os"
 	"strconv"
 	"strings"
@@ -115,7 +116,7 @@ func (e *Environ) InitGameDB() {
 
 // InitMaps ...
 func (e *Environ) InitMaps() {
-	mapDirPath := e.Game.Conf.MapDirPath
+	mapDirPath := setting.Conf.MapDirPath
 	uppercaseNameRealNameMap := make(map[string]string) // 目录下的文件名大写与该文件的真实文件名对应关系
 	f, err := os.OpenFile(mapDirPath, os.O_RDONLY, os.ModeDir)
 	if err != nil {
