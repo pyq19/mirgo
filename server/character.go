@@ -242,9 +242,9 @@ func (c *Character) RefreshLevelStats() {
 	c.MaxSC = uint16(int(c.Level) / baseStats.MaxSc)
 	c.CriticalRate = uint8(float32(c.CriticalRate) + (float32(c.Level) / baseStats.CritialRateGain))
 	c.CriticalDamage = uint8(float32(c.CriticalDamage) + (float32(c.Level) / baseStats.CriticalDamageGain))
-	c.MaxBagWeight = uint16(float32(50) + float32(c.Level)/baseStats.BagWeightGain*float32(c.Level))
-	c.MaxWearWeight = uint16(float32(15) + float32(c.Level)/baseStats.WearWeightGain*float32(c.Level))
-	c.MaxHandWeight = uint16(float32(12) + float32(c.Level)/baseStats.HandWeightGain*float32(c.Level))
+	c.MaxBagWeight = uint16(50.0 + float32(c.Level)/baseStats.BagWeightGain*float32(c.Level))
+	c.MaxWearWeight = uint16(15.0 + float32(c.Level)/baseStats.WearWeightGain*float32(c.Level))
+	c.MaxHandWeight = uint16(12.0 + float32(c.Level)/baseStats.HandWeightGain*float32(c.Level))
 	switch c.Class {
 	case common.MirClassWarrior:
 		c.MaxHP = uint16(14.0 + (float32(c.Level)/baseStats.HpGain+baseStats.HpGainRate+float32(c.Level)/20.0)*float32(c.Level))
