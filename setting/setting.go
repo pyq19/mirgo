@@ -17,11 +17,79 @@ func init() {
 		MapDirPath:    gopath + "/src/github.com/yenkeia/mirgo/dotnettools/database/Maps/",
 		ScriptDirPath: gopath + "/src/github.com/yenkeia/mirgo/script/",
 	}
-	// TODO
 	BaseStats = make(map[common.MirClass]baseStats)
-	BaseStats[common.MirClassWarrior] = baseStats{}
-	BaseStats[common.MirClassWizard] = baseStats{}
-	BaseStats[common.MirClassTaoist] = baseStats{}
+	BaseStats[common.MirClassWarrior] = baseStats{
+		HpGain:              4,
+		HpGainRate:          4.5,
+		MpGainRate:          0,
+		BagWeightGain:       3,
+		WearWeightGain:      20,
+		HandWeightGain:      13,
+		MinAc:               0,
+		MaxAc:               7,
+		MinMac:              0,
+		MaxMac:              0,
+		MinDc:               5,
+		MaxDc:               5,
+		MinMc:               0,
+		MaxMc:               0,
+		MinSc:               0,
+		MaxSc:               0,
+		StartAgility:        15,
+		StartAccuracy:       5,
+		StartCriticalRate:   0,
+		StartCriticalDamage: 0,
+		CritialRateGain:     0,
+		CriticalDamageGain:  0,
+	}
+	BaseStats[common.MirClassWizard] = baseStats{
+		HpGain:              15,
+		HpGainRate:          1.8,
+		MpGainRate:          0,
+		BagWeightGain:       5,
+		WearWeightGain:      100,
+		HandWeightGain:      90,
+		MinAc:               0,
+		MaxAc:               0,
+		MinMac:              0,
+		MaxMac:              0,
+		MinDc:               7,
+		MaxDc:               7,
+		MinMc:               7,
+		MaxMc:               7,
+		MinSc:               0,
+		MaxSc:               0,
+		StartAgility:        15,
+		StartAccuracy:       5,
+		StartCriticalRate:   0,
+		StartCriticalDamage: 0,
+		CritialRateGain:     0,
+		CriticalDamageGain:  0,
+	}
+	BaseStats[common.MirClassTaoist] = baseStats{
+		HpGain:              6,
+		HpGainRate:          2.5,
+		MpGainRate:          0,
+		BagWeightGain:       4,
+		WearWeightGain:      50,
+		HandWeightGain:      42,
+		MinAc:               0,
+		MaxAc:               0,
+		MinMac:              12,
+		MaxMac:              6,
+		MinDc:               7,
+		MaxDc:               7,
+		MinMc:               0,
+		MaxMc:               0,
+		MinSc:               7,
+		MaxSc:               7,
+		StartAgility:        18,
+		StartAccuracy:       5,
+		StartCriticalRate:   0,
+		StartCriticalDamage: 0,
+		CritialRateGain:     0,
+		CriticalDamageGain:  0,
+	}
 }
 
 type config struct {
