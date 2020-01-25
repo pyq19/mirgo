@@ -27,6 +27,7 @@ type Character struct {
 	LooksWeapon        int
 	LooksWeaponEffect  int
 	SendItemInfo       []common.ItemInfo
+	CurrentBagWeight   int
 	MaxHP              uint16
 	MaxMP              uint16
 	MinAC              uint16 // 物理防御力
@@ -257,7 +258,14 @@ func (c *Character) RefreshLevelStats() {
 }
 
 func (c *Character) RefreshBagWeight() {
-
+	c.CurrentBagWeight = 0
+	for i := range c.Inventory {
+		ui := c.Inventory[i]
+		if ui.ID != 0 {
+			it := c.Player.Map.Env.GameDB.GetItemInfoByID(int(ui.ItemID))
+			c.CurrentBagWeight += int(it.Weight)
+		}
+	}
 }
 
 func (c *Character) RefreshEquipmentStats() {
