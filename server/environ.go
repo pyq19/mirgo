@@ -210,7 +210,7 @@ func (e *Environ) DeletePlayer(p *Player) {
 	e.lock.Lock()
 	for i := 0; i < len(e.Players); i++ {
 		o := e.Players[i]
-		if o == nil {
+		if o == nil || o.ID == 0 {
 			continue
 		}
 		if p.ID == o.ID {

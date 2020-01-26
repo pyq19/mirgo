@@ -117,6 +117,11 @@ func (p *Player) GetInfo() interface{} {
 	return res
 }
 
+// IsAttackTarget 判断玩家是否是攻击者的攻击对象
+func (p *Player) IsAttackTarget(attacker IMapObject) bool {
+	return false
+}
+
 func (p *Player) GetCurrentGrid() *Grid {
 	return p.Map.AOI.GetGridByPoint(p.Point())
 }
@@ -517,59 +522,34 @@ func (p *Player) getAttackPower(minDC, maxDC uint16) int {
 	return 0
 }
 
-func (p *Player) isAttackTarget(attacker *Player) bool {
-	return true
-}
-
-func (p *Player) attacked(attacker *Player, finalDamage int, defenceType common.DefenceType, damageWeapon bool) {
-
-}
-
 func (p *Player) Attack(direction common.MirDirection, spell common.Spell) {
 	if !p.CanAttack() {
-		p.Enqueue(&server.UserLocation{
-			Location:  p.Point(),
-			Direction: p.CurrentDirection,
-		})
+		p.Enqueue(ServerMessage{}.UserLocation(p))
 		return
 	}
 	p.CurrentDirection = direction
-	p.Enqueue(&server.UserLocation{
-		Location:  p.Point(),
-		Direction: direction,
+	p.Enqueue(ServerMessage{}.UserLocation(p))
+	p.Broadcast(ServerMessage{}.ObjectAttack(p, common.SpellNone, 0, 0))
+	target := p.GetPoint().NextPoint(p.GetDirection(), 1)
+	damageBase := p.GetAttackPower(int(p.MinDC), int(p.MaxDC)) // = the original damage from your gear (+ bonus from moonlight and darkbody)
+	damageFinal := damageBase                                  // = the damage you're gonna do with skills added
+	cell := p.Map.GetCell(target.Coordinate())
+	if !cell.CanWalk() {
+		return
+	}
+	cell.Objects.Range(func(k, v interface{}) bool {
+		o := v.(IMapObject)
+		if !o.IsAttackTarget(p) {
+			return true
+		}
+		switch o.GetRace() {
+		case common.ObjectTypePlayer:
+			o.(*Player).Attacked(p, damageFinal, common.DefenceTypeAgility, false)
+		case common.ObjectTypeMonster:
+			o.(*Monster).Attacked(p, damageFinal, common.DefenceTypeAgility, false)
+		}
+		return true
 	})
-	p.Broadcast(&server.ObjectAttack{
-		ObjectID:  p.ID,
-		Location:  p.Point(),
-		Direction: p.CurrentDirection,
-		Spell:     common.SpellNone,
-		Level:     0,
-		Type:      0,
-	})
-	//target := p.Point().NextPoint(p.CurrentDirection, 1)
-	//c := p.Map.GetCell(target.Coordinate())
-	//if c == nil || c.IsEmpty() {
-	//	return
-	//}
-	//damageBase := p.getAttackPower(p.MinDC, p.MaxDC)
-	//damageFinal := damageBase // TODO
-	//for i := range c.Objects {
-	//	o := c.Objects[i]
-	//	switch c.GetRace(o) {
-	//	case common.ObjectTypePlayer:
-	//		ob := o.(*Player)
-	//		if !ob.isAttackTarget(p) {
-	//			continue
-	//		}
-	//		ob.attacked(p, damageFinal, common.DefenceTypeAgility, false)
-	//	case common.ObjectTypeMonster:
-	//		ob := o.(*Monster)
-	//		if !ob.isAttackTarget(p) {
-	//			continue
-	//		}
-	//		ob.attacked(p, damageFinal, common.DefenceTypeAgility, false)
-	//	}
-	//}
 }
 
 func (p *Player) RangeAttack(direction common.MirDirection, location common.Point, id uint32) {
