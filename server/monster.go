@@ -48,21 +48,21 @@ func NewMonster(mp *Map, p common.Point, mi *common.MonsterInfo, ri int) (m *Mon
 	m.Poison = common.PoisonTypeNone
 	m.CurrentLocation = p
 	m.CurrentDirection = common.MirDirection(G_Rand.RandInt(0, 7))
-	m.MaxHP = 0
-	m.MinAC = 0
-	m.MaxAC = 0
-	m.MinMAC = 0
-	m.MaxMAC = 0
-	m.MinDC = 0
-	m.MaxDC = 0
-	m.MinMC = 0
-	m.MaxMC = 0
-	m.MinSC = 0
-	m.MaxSC = 0
-	m.Accuracy = 0
-	m.Agility = 0
-	m.MoveSpeed = 0
-	m.AttackSpeed = 0
+	m.MaxHP = uint32(mi.HP)
+	m.MinAC = uint16(mi.MinAC)
+	m.MaxAC = uint16(mi.MaxAC)
+	m.MinMAC = uint16(mi.MinMAC)
+	m.MaxMAC = uint16(mi.MaxMAC)
+	m.MinDC = uint16(mi.MinDC)
+	m.MaxDC = uint16(mi.MaxDC)
+	m.MinMC = uint16(mi.MinMC)
+	m.MaxMC = uint16(mi.MaxMC)
+	m.MinSC = uint16(mi.MinSC)
+	m.MaxSC = uint16(mi.MaxSC)
+	m.Accuracy = uint8(mi.Accuracy)
+	m.Agility = uint8(mi.Agility)
+	m.MoveSpeed = uint16(mi.MoveSpeed)
+	m.AttackSpeed = int32(mi.AttackSpeed)
 	return m
 }
 
@@ -113,6 +113,10 @@ func (m *Monster) GetInfo() interface{} {
 	return res
 }
 
+func (m *Monster) IsAttackTarget(attacker IMapObject) bool {
+	return false
+}
+
 func (m *Monster) Broadcast(msg interface{}) {
 
 }
@@ -133,10 +137,6 @@ func (m *Monster) Process() {
 
 }
 
-func (m *Monster) isAttackTarget(attacker *Player) bool {
-	return true
-}
-
-func (m *Monster) attacked(attacker *Player, finalDamage int, defenceType common.DefenceType, damageWeapon bool) {
+func (m *Monster) Attacked(attacker IMapObject, damageFinal int, defenceType common.DefenceType, damageWeapon bool) {
 
 }

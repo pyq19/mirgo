@@ -266,3 +266,15 @@ func (ServerMessage) PlayerUpdate(p *Player) *server.PlayerUpdate {
 		WingEffect:   uint8(p.LooksWings),
 	}
 }
+
+func (ServerMessage) ObjectAttack(obj IMapObject, spell common.Spell, level int, typ int) *server.ObjectAttack {
+	return &server.ObjectAttack{
+		ObjectID:  obj.GetID(),
+		LocationX: obj.GetPoint().X,
+		LocationY: obj.GetPoint().Y,
+		Direction: obj.GetDirection(),
+		Spell:     spell,
+		Level:     uint8(level),
+		Type:      uint8(typ),
+	}
+}

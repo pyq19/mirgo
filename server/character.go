@@ -380,3 +380,11 @@ func (c *Character) UpdateConcentration() {
 	c.Player.Enqueue(ServerMessage{}.SetConcentration(c.Player))
 	c.Player.Broadcast(ServerMessage{}.SetObjectConcentration(c.Player))
 }
+
+func (c *Character) GetAttackPower(min, max int) int {
+	return 0
+}
+
+func (c *Character) Attacked(attacker IMapObject, damageFinal int, defenceType common.DefenceType, damageWeapon bool) {
+
+}

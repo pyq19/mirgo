@@ -64,6 +64,9 @@ func (m *Map) AddObject(obj IMapObject) (string, bool) {
 }
 
 func (m *Map) DeleteObject(obj IMapObject) {
+	if obj.GetID() == 0 {
+		return
+	}
 	coordinate := obj.GetCoordinate()
 	grid := m.AOI.GetGridByCoordinate(coordinate)
 	grid.DeleteObject(obj)

@@ -667,7 +667,8 @@ func (msg *ObjectMonster) String() string {
 
 type ObjectAttack struct {
 	ObjectID  uint32
-	Location  common.Point
+	LocationX uint32
+	LocationY uint32
 	Direction common.MirDirection
 	Spell     common.Spell
 	Level     uint8
