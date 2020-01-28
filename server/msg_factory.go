@@ -321,3 +321,19 @@ func (ServerMessage) HealthChanged(hp, mp uint16) *server.HealthChanged {
 		MP: mp,
 	}
 }
+
+func (ServerMessage) GainExperience(amount uint32) *server.GainExperience {
+	return &server.GainExperience{Amount: amount}
+}
+
+func (ServerMessage) LevelChanged(level uint16, experience, maxExperience int64) *server.LevelChanged {
+	return &server.LevelChanged{
+		Level:         level,
+		Experience:    experience,
+		MaxExperience: maxExperience,
+	}
+}
+
+func (ServerMessage) ObjectLeveled(id uint32) *server.ObjectLeveled {
+	return &server.ObjectLeveled{ObjectID: id}
+}

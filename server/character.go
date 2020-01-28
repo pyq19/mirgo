@@ -398,7 +398,14 @@ func (c *Character) Attacked(attacker IMapObject, damageFinal int, defenceType c
 }
 
 func (c *Character) GainExp(amount uint32) {
-
+	c.Experience += int64(amount)
+	c.Player.Enqueue(ServerMessage{}.GainExperience(amount))
+	if c.Experience < c.MaxExperience {
+		return
+	}
+	c.Experience -= c.MaxExperience
+	c.Level++
+	c.LevelUp()
 }
 
 func (c *Character) SetHP(amount uint32) {
@@ -421,4 +428,12 @@ func (c *Character) ChangeHP(amount uint32) {
 	}
 	value := uint32(c.HP) + amount
 	c.SetHP(value)
+}
+
+func (c *Character) LevelUp() {
+	c.RefreshStats()
+	c.SetHP(uint32(c.MaxHP))
+	c.SetMP(uint32(c.MaxMP))
+	c.Player.Enqueue(ServerMessage{}.LevelChanged(c.Level, c.Experience, c.MaxExperience))
+	c.Player.Broadcast(ServerMessage{}.ObjectLeveled(c.Player.GetID()))
 }
