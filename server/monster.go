@@ -159,7 +159,7 @@ func (m *Monster) BroadcastDamageIndicator(typ common.DamageType, dmg int) {
 }
 
 func (m *Monster) IsDead() bool {
-	return false
+	return m.HP <= 0
 }
 
 func (m *Monster) IsSkeleton() bool {
@@ -184,9 +184,14 @@ func (m *Monster) GetDefencePower(min, max int) int {
 	return G_Rand.RandInt(min, max+1)
 }
 
-// TODO
 func (m *Monster) Die() {
-
+	if m.IsDead() {
+		return
+	}
+	m.HP = 0
+	m.Broadcast(ServerMessage{}.ObjectDied(m.GetID(), m.GetDirection(), m.GetPoint()))
+	// EXPOwner.WinExp(Experience, Level);
+	// m.Drop()
 }
 
 func (m *Monster) ChangeHP(amount int) {

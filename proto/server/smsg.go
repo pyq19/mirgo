@@ -715,7 +715,8 @@ type Death struct {
 
 type ObjectDied struct {
 	ObjectID  uint32
-	Location  common.Point
+	LocationX int32
+	LocationY int32
 	Direction common.MirDirection
 	Type      uint8
 }
