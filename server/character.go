@@ -396,3 +396,29 @@ func (c *Character) GetAttackPower(min, max int) int {
 func (c *Character) Attacked(attacker IMapObject, damageFinal int, defenceType common.DefenceType, damageWeapon bool) {
 
 }
+
+func (c *Character) GainExp(amount uint32) {
+
+}
+
+func (c *Character) SetHP(amount uint32) {
+	c.HP = uint16(amount)
+	msg := ServerMessage{}.HealthChanged(c.HP, c.MP)
+	c.Player.Enqueue(msg)
+	c.Player.Broadcast(msg)
+}
+
+func (c *Character) SetMP(amount uint32) {
+	c.MP = uint16(amount)
+	msg := ServerMessage{}.HealthChanged(c.HP, c.MP)
+	c.Player.Enqueue(msg)
+	c.Player.Broadcast(msg)
+}
+
+func (c *Character) ChangeHP(amount uint32) {
+	if amount == 0 || c.IsDead() {
+		return
+	}
+	value := uint32(c.HP) + amount
+	c.SetHP(value)
+}

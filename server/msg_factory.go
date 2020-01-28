@@ -304,3 +304,20 @@ func (ServerMessage) ObjectHealth(id uint32, percent, expire uint8) *server.Obje
 		Expire:   expire,
 	}
 }
+
+func (ServerMessage) ObjectDied(id uint32, direction common.MirDirection, location common.Point) *server.ObjectDied {
+	return &server.ObjectDied{
+		ObjectID:  id,
+		LocationX: int32(location.X),
+		LocationY: int32(location.Y),
+		Direction: direction,
+		Type:      0,
+	}
+}
+
+func (ServerMessage) HealthChanged(hp, mp uint16) *server.HealthChanged {
+	return &server.HealthChanged{
+		HP: hp,
+		MP: mp,
+	}
+}
