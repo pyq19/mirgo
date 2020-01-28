@@ -40,6 +40,21 @@ type Buff struct {
 	TickTime   int       // 当前第几跳
 }
 
+type BaseStats struct {
+	MinAC    uint16
+	MaxAC    uint16
+	MinMAC   uint16
+	MaxMAC   uint16
+	MinDC    uint16
+	MaxDC    uint16
+	MinMC    uint16
+	MaxMC    uint16
+	MinSC    uint16
+	MaxSC    uint16
+	Accuracy uint8
+	Agility  uint8
+}
+
 type IMapObject interface {
 	GetID() uint32
 	GetRace() common.ObjectType
@@ -50,4 +65,5 @@ type IMapObject interface {
 	GetDirection() common.MirDirection
 	GetInfo() interface{}
 	IsAttackTarget(IMapObject) bool
+	GetBaseStats() BaseStats
 }

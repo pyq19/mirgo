@@ -53,6 +53,12 @@ func (p *Player) Broadcast(msg interface{}) {
 	}))
 }
 
+func (p *Player) BroadcastDamageIndicator(typ common.DamageType, dmg int) {
+	msg := ServerMessage{}.DamageIndicator(int32(dmg), typ, p.GetID())
+	p.Enqueue(msg)
+	p.Broadcast(msg)
+}
+
 func (p *Player) Point() common.Point {
 	return p.GetPoint()
 }
@@ -120,6 +126,23 @@ func (p *Player) GetInfo() interface{} {
 // IsAttackTarget 判断玩家是否是攻击者的攻击对象
 func (p *Player) IsAttackTarget(attacker IMapObject) bool {
 	return false
+}
+
+func (p *Player) GetBaseStats() BaseStats {
+	return BaseStats{
+		MinAC:    p.MinAC,
+		MaxAC:    p.MaxAC,
+		MinMAC:   p.MinMAC,
+		MaxMAC:   p.MaxMAC,
+		MinDC:    p.MinDC,
+		MaxDC:    p.MaxDC,
+		MinMC:    p.MinMC,
+		MaxMC:    p.MaxMC,
+		MinSC:    p.MinSC,
+		MaxSC:    p.MaxSC,
+		Accuracy: p.Accuracy,
+		Agility:  p.Agility,
+	}
 }
 
 func (p *Player) GetCurrentGrid() *Grid {
@@ -516,10 +539,6 @@ func (p *Player) ChangePMode(mode common.AttackMode) {
 
 func (p *Player) ChangeTrade(trade bool) {
 
-}
-
-func (p *Player) getAttackPower(minDC, maxDC uint16) int {
-	return 0
 }
 
 func (p *Player) Attack(direction common.MirDirection, spell common.Spell) {

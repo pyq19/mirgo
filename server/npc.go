@@ -72,6 +72,10 @@ func (n *NPC) IsAttackTarget(IMapObject) bool {
 	return false
 }
 
+func (n *NPC) GetBaseStats() BaseStats {
+	return BaseStats{}
+}
+
 func (n *NPC) String() string {
 	return fmt.Sprintf("NPC Coordinate: %s, ID: %d, name: %s\n", n.GetPoint().Coordinate(), n.ID, n.Name)
 }

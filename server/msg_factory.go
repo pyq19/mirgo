@@ -270,11 +270,37 @@ func (ServerMessage) PlayerUpdate(p *Player) *server.PlayerUpdate {
 func (ServerMessage) ObjectAttack(obj IMapObject, spell common.Spell, level int, typ int) *server.ObjectAttack {
 	return &server.ObjectAttack{
 		ObjectID:  obj.GetID(),
-		LocationX: obj.GetPoint().X,
-		LocationY: obj.GetPoint().Y,
+		LocationX: int32(obj.GetPoint().X),
+		LocationY: int32(obj.GetPoint().Y),
 		Direction: obj.GetDirection(),
 		Spell:     spell,
 		Level:     uint8(level),
 		Type:      uint8(typ),
+	}
+}
+
+func (ServerMessage) DamageIndicator(dmg int32, typ common.DamageType, id uint32) *server.DamageIndicator {
+	return &server.DamageIndicator{
+		Damage:   dmg,
+		Type:     typ,
+		ObjectID: id,
+	}
+}
+
+func (ServerMessage) ObjectStruck(id, attackerID uint32, location common.Point, direction common.MirDirection) *server.ObjectStruck {
+	return &server.ObjectStruck{
+		ObjectID:   id,
+		AttackerID: attackerID,
+		LocationX:  int32(location.X),
+		LocationY:  int32(location.Y),
+		Direction:  direction,
+	}
+}
+
+func (ServerMessage) ObjectHealth(id uint32, percent, expire uint8) *server.ObjectHealth {
+	return &server.ObjectHealth{
+		ObjectID: id,
+		Percent:  percent,
+		Expire:   expire,
 	}
 }
