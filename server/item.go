@@ -74,6 +74,10 @@ func (i *Item) IsAttackTarget(attacker IMapObject) bool {
 	return false
 }
 
+func (i *Item) GetBaseStats() BaseStats {
+	return BaseStats{}
+}
+
 func (i *Item) GetItemInfo() common.ItemInfo {
 	return *i.Map.Env.GameDB.GetItemInfoByID(int(i.UserItem.ItemID))
 }

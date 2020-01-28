@@ -382,9 +382,17 @@ func (c *Character) UpdateConcentration() {
 }
 
 func (c *Character) GetAttackPower(min, max int) int {
-	return 0
+	if min < 0 {
+		min = 0
+	}
+	if max < min {
+		max = min
+	}
+	// TODO luck
+	return G_Rand.RandInt(min, max+1)
 }
 
+// TODO
 func (c *Character) Attacked(attacker IMapObject, damageFinal int, defenceType common.DefenceType, damageWeapon bool) {
 
 }

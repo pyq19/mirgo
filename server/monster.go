@@ -14,6 +14,8 @@ type Monster struct {
 	Effect      int
 	Poison      common.PoisonType
 	Light       uint8
+	Target      *IMapObject
+	HP          uint32
 	MaxHP       uint32
 	MinAC       uint16
 	MaxAC       uint16
@@ -29,6 +31,8 @@ type Monster struct {
 	Agility     uint8
 	MoveSpeed   uint16
 	AttackSpeed int32
+	ArmourRate  float32
+	DamageRate  float32
 }
 
 func (m *Monster) String() string {
@@ -45,9 +49,11 @@ func NewMonster(mp *Map, p common.Point, mi *common.MonsterInfo, ri int) (m *Mon
 	m.AI = mi.AI
 	m.Effect = mi.Effect
 	m.Light = uint8(mi.Light)
+	m.Target = nil
 	m.Poison = common.PoisonTypeNone
 	m.CurrentLocation = p
 	m.CurrentDirection = common.MirDirection(G_Rand.RandInt(0, 7))
+	m.HP = uint32(mi.HP)
 	m.MaxHP = uint32(mi.HP)
 	m.MinAC = uint16(mi.MinAC)
 	m.MaxAC = uint16(mi.MaxAC)
@@ -63,6 +69,8 @@ func NewMonster(mp *Map, p common.Point, mi *common.MonsterInfo, ri int) (m *Mon
 	m.Agility = uint8(mi.Agility)
 	m.MoveSpeed = uint16(mi.MoveSpeed)
 	m.AttackSpeed = int32(mi.AttackSpeed)
+	m.ArmourRate = 1.0
+	m.DamageRate = 1.0
 	return m
 }
 
@@ -117,8 +125,37 @@ func (m *Monster) IsAttackTarget(attacker IMapObject) bool {
 	return false
 }
 
-func (m *Monster) Broadcast(msg interface{}) {
+func (m *Monster) GetBaseStats() BaseStats {
+	return BaseStats{
+		MinAC:    m.MinAC,
+		MaxAC:    m.MaxAC,
+		MinMAC:   m.MinMAC,
+		MaxMAC:   m.MaxMAC,
+		MinDC:    m.MinDC,
+		MaxDC:    m.MaxDC,
+		MinMC:    m.MinMC,
+		MaxMC:    m.MaxMC,
+		MinSC:    m.MinSC,
+		MaxSC:    m.MaxSC,
+		Accuracy: m.Accuracy,
+		Agility:  m.Agility,
+	}
+}
 
+func (m *Monster) Broadcast(msg interface{}) {
+	m.Map.Submit(NewTask(func(args ...interface{}) {
+		grids := m.Map.AOI.GetSurroundGridsByCoordinate(m.GetCoordinate())
+		for i := range grids {
+			areaPlayers := grids[i].GetAllPlayer()
+			for i := range areaPlayers {
+				areaPlayers[i].Enqueue(msg)
+			}
+		}
+	}))
+}
+
+func (m *Monster) BroadcastDamageIndicator(typ common.DamageType, dmg int) {
+	m.Broadcast(ServerMessage{}.DamageIndicator(int32(dmg), typ, m.GetID()))
 }
 
 func (m *Monster) IsDead() bool {
@@ -137,6 +174,74 @@ func (m *Monster) Process() {
 
 }
 
-func (m *Monster) Attacked(attacker IMapObject, damageFinal int, defenceType common.DefenceType, damageWeapon bool) {
+func (m *Monster) GetDefencePower(min, max int) int {
+	if min < 0 {
+		min = 0
+	}
+	if min > max {
+		max = min
+	}
+	return G_Rand.RandInt(min, max+1)
+}
 
+// TODO
+func (m *Monster) Die() {
+
+}
+
+func (m *Monster) ChangeHP(amount int) {
+	if m.IsDead() {
+		return
+	}
+	value := int(m.HP) + amount
+	if value == int(m.HP) {
+		return
+	}
+	m.HP = uint32(value)
+	if m.HP <= 0 {
+		m.Die()
+	}
+	percent := uint8(m.HP / (m.MaxHP * 100))
+	m.Broadcast(ServerMessage{}.ObjectHealth(m.GetID(), percent, 5))
+}
+
+func (m *Monster) Attacked(attacker IMapObject, damage int, defenceType common.DefenceType, damageWeapon bool) {
+	if m.Target == nil && attacker.IsAttackTarget(m) {
+		m.Target = &attacker
+	}
+	armor := 0
+	switch defenceType {
+	case common.DefenceTypeACAgility:
+		if G_Rand.RandInt(0, int(m.Agility)+1) > int(attacker.GetBaseStats().Accuracy) {
+			m.BroadcastDamageIndicator(common.DamageTypeMiss, 0)
+			return
+		}
+		armor = m.GetDefencePower(int(m.MinAC), int(m.MaxAC))
+	case common.DefenceTypeAC:
+		armor = m.GetDefencePower(int(m.MinAC), int(m.MaxAC))
+	case common.DefenceTypeMACAgility:
+		if G_Rand.RandInt(0, int(m.Agility)+1) > int(attacker.GetBaseStats().Accuracy) {
+			m.BroadcastDamageIndicator(common.DamageTypeMiss, 0)
+			return
+		}
+		armor = m.GetDefencePower(int(m.MinMAC), int(m.MaxMAC))
+	case common.DefenceTypeMAC:
+		armor = m.GetDefencePower(int(m.MinMAC), int(m.MaxMAC))
+	case common.DefenceTypeAgility:
+		if G_Rand.RandInt(0, int(m.Agility)+1) > int(attacker.GetBaseStats().Accuracy) {
+			m.BroadcastDamageIndicator(common.DamageTypeMiss, 0)
+			return
+		}
+	}
+	armor = int(float32(armor) * m.ArmourRate)
+	damage = int(float32(damage) * m.DamageRate)
+	if armor >= damage {
+		m.BroadcastDamageIndicator(common.DamageTypeMiss, 0)
+		return
+	}
+	// TODO 还有很多没做
+	m.Broadcast(ServerMessage{}.ObjectStruck(m.GetID(), attacker.GetID(), m.GetPoint(), m.GetDirection()))
+	value := armor - damage
+	m.BroadcastDamageIndicator(common.DamageTypeHit, value)
+	m.ChangeHP(value)
 }
