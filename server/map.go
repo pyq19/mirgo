@@ -179,3 +179,15 @@ func (m *Map) GetAreaObjects(p common.Point) (objs []IMapObject) {
 	}
 	return
 }
+
+// GetObjectInAreaByID 查找点 p 附近的区域中 ObjectID 为 id 的对象
+func (m *Map) GetObjectInAreaByID(id uint32, p common.Point) IMapObject {
+	areaObjects := m.GetAreaObjects(p)
+	for i := range areaObjects {
+		obj := areaObjects[i]
+		if obj.GetID() == id {
+			return obj
+		}
+	}
+	return nil
+}

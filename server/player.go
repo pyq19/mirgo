@@ -646,22 +646,27 @@ func (p *Player) MagicKey(spell common.Spell, key uint8) {
 
 }
 
-func (p *Player) Magic(spell common.Spell, direction common.MirDirection, id uint32, location common.Point) {
+func (p *Player) Magic(spell common.Spell, direction common.MirDirection, targetID uint32, targetLocation common.Point) {
 	if !p.CanCast() {
 		p.Enqueue(ServerMessage{}.UserLocation(p))
 		return
 	}
-	um := p.GetMagic(spell)
-	if um == nil {
+	userMagic := p.GetMagic(spell)
+	if userMagic == nil {
 		p.Enqueue(ServerMessage{}.UserLocation(p))
 		return
 	}
-	var targetID uint32
-	targetLocation := common.Point{}
-	cast := true
-	level := 1
-	p.Enqueue(ServerMessage{}.Magic(spell, targetID, targetLocation, cast, level))
-	p.Broadcast(ServerMessage{}.ObjectMagic(p.GetID(), p.GetDirection(), p.GetPoint(), spell, targetID, targetLocation, cast, level))
+	info := p.Map.Env.GameDB.GetMagicInfoByID(userMagic.MagicID)
+	cost := info.BaseCost + info.LevelCost*userMagic.Level
+	if uint16(cost) > p.MP {
+		p.Enqueue(ServerMessage{}.UserLocation(p))
+		return
+	}
+	p.ChangeMP(-cost)
+	target := p.Map.GetObjectInAreaByID(targetID, targetLocation)
+	cast, targetID := p.UseMagic(spell, userMagic, target)
+	p.Enqueue(ServerMessage{}.Magic(spell, targetID, targetLocation, cast, userMagic.Level))
+	p.Broadcast(ServerMessage{}.ObjectMagic(p, spell, targetID, targetLocation, cast, userMagic.Level))
 }
 
 func (p *Player) SwitchGroup(group bool) {
