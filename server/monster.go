@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+
 	"github.com/yenkeia/mirgo/common"
 	"github.com/yenkeia/mirgo/proto/server"
 )
@@ -191,7 +192,7 @@ func (m *Monster) Die() {
 	m.HP = 0
 	m.Broadcast(ServerMessage{}.ObjectDied(m.GetID(), m.GetDirection(), m.GetPoint()))
 	// EXPOwner.WinExp(Experience, Level);
-	// m.Drop()
+	m.Drop()
 }
 
 func (m *Monster) ChangeHP(amount int) {
@@ -249,4 +250,47 @@ func (m *Monster) Attacked(attacker IMapObject, damage int, defenceType common.D
 	value := armor - damage
 	m.BroadcastDamageIndicator(common.DamageTypeHit, value)
 	m.ChangeHP(value)
+}
+
+func (m *Monster) Drop() {
+	value, ok := m.Map.Env.GameDB.DropInfoMap.Load(m.Name)
+	if !ok {
+		return
+	}
+	dropInfos := value.([]common.DropInfo)
+	mapItems := make([]Item, 0)
+	for i := range dropInfos {
+		drop := dropInfos[i]
+		if G_Rand.RandInt(1, drop.Chance+1) != 1 {
+			continue
+		}
+		if drop.Gold > 0 {
+			mapItems = append(mapItems, Item{
+				MapObject: MapObject{
+					ID:  m.Map.Env.NewObjectID(),
+					Map: m.Map,
+				},
+				Gold:     uint64(drop.Gold),
+				UserItem: nil,
+			})
+			continue
+		}
+		info := m.Map.Env.GameDB.GetItemInfoByName(drop.ItemName)
+		if info == nil {
+			continue
+		}
+		mapItems = append(mapItems, Item{
+			MapObject: MapObject{
+				ID:  m.Map.Env.NewObjectID(),
+				Map: m.Map,
+			},
+			Gold:     0,
+			UserItem: m.Map.Env.NewUserItem(info),
+		})
+	}
+	for i := range mapItems {
+		if msg, ok := mapItems[i].Drop(m.GetPoint(), 3); !ok {
+			log.Warnln(msg)
+		}
+	}
 }

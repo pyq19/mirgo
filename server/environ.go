@@ -150,6 +150,40 @@ func (e *Environ) InitMonsterDrop() {
 	}
 }
 
+func (e *Environ) NewUserItem(i *common.ItemInfo) *common.UserItem {
+	res := &common.UserItem{
+		ID:             uint64(e.NewObjectID()),
+		ItemID:         i.ID,
+		CurrentDura:    100,
+		MaxDura:        100,
+		Count:          1,
+		AC:             i.MinAC,
+		MAC:            i.MinMAC,
+		DC:             i.MinDC,
+		MC:             i.MinMC,
+		SC:             i.MinSC,
+		Accuracy:       i.Accuracy,
+		Agility:        i.Agility,
+		HP:             0,
+		MP:             0,
+		AttackSpeed:    i.AttackSpeed,
+		Luck:           i.Luck,
+		SoulBoundId:    0,
+		Bools:          0,
+		Strong:         0,
+		MagicResist:    0,
+		PoisonResist:   0,
+		HealthRecovery: 0,
+		ManaRecovery:   0,
+		PoisonRecovery: 0,
+		CriticalRate:   0,
+		CriticalDamage: 0,
+		Freezing:       0,
+		PoisonAttack:   0,
+	}
+	return res
+}
+
 // InitMaps ...
 func (e *Environ) InitMaps() {
 	mapDirPath := setting.Conf.MapDirPath
