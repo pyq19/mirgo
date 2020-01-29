@@ -22,24 +22,7 @@ type GameDB struct {
 	MapIDInfoMap     *sync.Map // key: MapID, value: MapInfo
 	ItemIDInfoMap    *sync.Map // key: ItemID, value: ItemInfo
 	MonsterIDInfoMap *sync.Map // key: MonsterID, value: MonsterInfo
-}
-
-func (db *GameDB) Init() {
-	db.MapIDInfoMap = new(sync.Map)
-	db.ItemIDInfoMap = new(sync.Map)
-	db.MonsterIDInfoMap = new(sync.Map)
-	for i := range db.MapInfos {
-		v := db.MapInfos[i]
-		db.MapIDInfoMap.Store(v.ID, &v)
-	}
-	for i := range db.ItemInfos {
-		v := db.ItemInfos[i]
-		db.ItemIDInfoMap.Store(int(v.ID), &v)
-	}
-	for i := range db.MonsterInfos {
-		v := db.MonsterInfos[i]
-		db.MonsterIDInfoMap.Store(v.ID, &v)
-	}
+	DropInfoMap      *sync.Map // map[string][]DropInfo
 }
 
 // GetMapInfoByID

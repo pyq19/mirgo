@@ -16,6 +16,8 @@ func init() {
 		DBPath:        gopath + "/src/github.com/yenkeia/mirgo/dotnettools/mir.sqlite",
 		MapDirPath:    gopath + "/src/github.com/yenkeia/mirgo/dotnettools/database/Maps/",
 		ScriptDirPath: gopath + "/src/github.com/yenkeia/mirgo/script/",
+		DropDirPath:   gopath + "/src/github.com/yenkeia/mirgo/dotnettools/database/Envir/Drops/",
+		NPCDirPath:    gopath + "/src/github.com/yenkeia/mirgo/dotnettools/database/Envir/NPCs/",
 	}
 	BaseStats = make(map[common.MirClass]baseStats)
 	BaseStats[common.MirClassWarrior] = baseStats{
@@ -97,6 +99,8 @@ type config struct {
 	DBPath        string
 	MapDirPath    string
 	ScriptDirPath string
+	DropDirPath   string
+	NPCDirPath    string
 }
 
 type baseStats struct {

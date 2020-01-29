@@ -127,6 +127,7 @@ func NewCharacter(g *Game, p *Player, c *common.Character) Character {
 		Trade:          trade,
 		Refine:         refine,
 		SendItemInfo:   make([]common.ItemInfo, 0),
+		MaxExperience:  100,
 	}
 }
 

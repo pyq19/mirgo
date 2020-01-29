@@ -111,7 +111,21 @@ func (e *Environ) InitGameDB() {
 	var um []common.UserMagic
 	db.Table("user_magic").Find(&um)
 	gdb.UserMagics = um
-	gdb.Init()
+	gdb.MapIDInfoMap = new(sync.Map)
+	gdb.ItemIDInfoMap = new(sync.Map)
+	gdb.MonsterIDInfoMap = new(sync.Map)
+	for i := range gdb.MapInfos {
+		v := gdb.MapInfos[i]
+		gdb.MapIDInfoMap.Store(v.ID, &v)
+	}
+	for i := range gdb.ItemInfos {
+		v := gdb.ItemInfos[i]
+		gdb.ItemIDInfoMap.Store(int(v.ID), &v)
+	}
+	for i := range gdb.MonsterInfos {
+		v := gdb.MonsterInfos[i]
+		gdb.MonsterIDInfoMap.Store(v.ID, &v)
+	}
 }
 
 // InitMaps ...
