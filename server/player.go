@@ -433,7 +433,38 @@ func (p *Player) SplitItem(grid common.MirGridType, id uint64, count uint32) {
 }
 
 func (p *Player) UseItem(id uint64) {
-
+	msg := &server.UseItem{UniqueID: id, Success: false}
+	if p.IsDead() {
+		p.Enqueue(msg)
+		return
+	}
+	index, item := p.GetUserItemByID(common.MirGridTypeInventory, id)
+	if item == nil || item.ID == 0 || !p.CanUseItem(item) {
+		p.Enqueue(msg)
+		return
+	}
+	// TODO
+	info := p.Map.Env.GameDB.GetItemInfoByID(int(item.ItemID))
+	switch info.Type {
+	case common.ItemTypePotion:
+	case common.ItemTypeScroll:
+	case common.ItemTypeBook:
+	case common.ItemTypeScript:
+	case common.ItemTypeFood:
+	case common.ItemTypePets:
+	case common.ItemTypeTransform: //Transforms
+	default:
+		p.Enqueue(msg)
+		return
+	}
+	if item.Count > 1 {
+		item.Count--
+	} else {
+		p.Inventory[index] = common.UserItem{}
+	}
+	p.RefreshBagWeight()
+	msg.Success = true
+	p.Enqueue(msg)
 }
 
 func (p *Player) DropItem(id uint64, count uint32) {

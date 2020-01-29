@@ -163,6 +163,10 @@ func (c *Character) CanCast() bool {
 	return true
 }
 
+func (c *Character) CanUseItem(item *common.UserItem) bool {
+	return true
+}
+
 func (c *Character) EnqueueItemInfos() {
 	gdb := c.Player.Map.Env.GameDB
 	itemInfos := make([]*common.ItemInfo, 0)
