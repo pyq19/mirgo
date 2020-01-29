@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"github.com/yenkeia/mirgo/common"
 	"github.com/yenkeia/mirgo/proto/server"
 )
@@ -161,5 +162,5 @@ func (i *Item) Drop(center common.Point, distance int) (string, bool) {
 		i.Broadcast(i.GetInfo())
 		return "", true
 	}
-	return "附近没有合适的点放置物品", false
+	return fmt.Sprintf("坐标(%s)附近没有合适的点放置物品", center.Coordinate()), false
 }
