@@ -6,9 +6,15 @@ import (
 )
 
 func TestNewDropInfo(t *testing.T) {
-	di1 := NewDropInfo("1/10 Gold 500")
+	di1, err := NewDropInfo("1/10 Gold 500")
+	if err != nil {
+		t.Error(err)
+	}
 	t.Log(di1)
-	di2 := NewDropInfo("1/5 (MP)DrugLarge")
+	di2, err := NewDropInfo("1/5 (MP)DrugLarge")
+	if err != nil {
+		t.Error(err)
+	}
 	t.Log(di2)
 }
 
