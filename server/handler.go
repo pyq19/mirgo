@@ -306,8 +306,7 @@ func _HandleEvent(args ...interface{}) {
 
 // SessionAccepted ...
 func (g *Game) SessionAccepted(s cellnet.Session, msg *cellnet.SessionAccepted) {
-	connected := server.Connected{}
-	s.Send(&connected)
+	s.Send(&server.Connected{})
 }
 
 // SessionClosed ...
@@ -318,9 +317,11 @@ func (g *Game) SessionClosed(s cellnet.Session, msg *cellnet.SessionClosed) {
 		return
 	}
 	p := v.(*Player)
+	if p.GameStage == GAME {
+		p.StopGame(StopGameUserClosedGame)
+		g.Env.DeletePlayer(p)
+	}
 	pm.Delete(s.ID())
-	p.StopGame(StopGameUserClosedGame)
-	g.Env.DeletePlayer(p)
 }
 
 // ClientVersion ...
@@ -347,8 +348,7 @@ func (g *Game) GetPlayer(s cellnet.Session, gameStage int) (p *Player, ok bool) 
 
 // KeepAlive ...
 func (g *Game) KeepAlive(s cellnet.Session, msg *client.KeepAlive) {
-	keepAlive := server.KeepAlive{Time: 0}
-	s.Send(keepAlive)
+	s.Send(server.KeepAlive{Time: 0})
 }
 
 // NewAccount 保存新账号
