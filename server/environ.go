@@ -31,6 +31,7 @@ func NewEnviron(g *Game) (env *Environ) {
 	env = new(Environ)
 	env.Game = g
 	env.InitGameDB()
+	env.InitMonsterDrop()
 	env.InitMaps()
 	env.ObjectID = 100000
 	env.Players = make([]*Player, 0)
@@ -113,6 +114,7 @@ func (e *Environ) InitGameDB() {
 	gdb.UserMagics = um
 	gdb.MapIDInfoMap = new(sync.Map)
 	gdb.ItemIDInfoMap = new(sync.Map)
+	gdb.ItemNameInfoMap = new(sync.Map)
 	gdb.MonsterIDInfoMap = new(sync.Map)
 	for i := range gdb.MapInfos {
 		v := gdb.MapInfos[i]
@@ -121,10 +123,29 @@ func (e *Environ) InitGameDB() {
 	for i := range gdb.ItemInfos {
 		v := gdb.ItemInfos[i]
 		gdb.ItemIDInfoMap.Store(int(v.ID), &v)
+		gdb.ItemNameInfoMap.Store(v.Name, &v)
 	}
 	for i := range gdb.MonsterInfos {
 		v := gdb.MonsterInfos[i]
 		gdb.MonsterIDInfoMap.Store(v.ID, &v)
+	}
+}
+
+func (e *Environ) InitMonsterDrop() {
+	gdb := e.GameDB
+	itemMap := make(map[string]int32)
+	for i := range gdb.ItemInfos {
+		v := gdb.ItemInfos[i]
+		itemMap[v.Name] = v.ID
+	}
+	gdb.DropInfoMap = new(sync.Map)
+	for i := range gdb.MonsterInfos {
+		v := gdb.MonsterInfos[i]
+		dropInfos := common.GetDropInfosByMonsterName(setting.Conf.DropDirPath, v.Name)
+		if dropInfos == nil {
+			continue
+		}
+		gdb.DropInfoMap.Store(v.Name, dropInfos)
 	}
 }
 

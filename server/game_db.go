@@ -21,8 +21,9 @@ type GameDB struct {
 	UserMagics       []common.UserMagic
 	MapIDInfoMap     *sync.Map // key: MapID, value: MapInfo
 	ItemIDInfoMap    *sync.Map // key: ItemID, value: ItemInfo
+	ItemNameInfoMap  *sync.Map // key: ItemName, value: ItemInfo
 	MonsterIDInfoMap *sync.Map // key: MonsterID, value: MonsterInfo
-	DropInfoMap      *sync.Map // map[string][]DropInfo
+	DropInfoMap      *sync.Map // key: MonsterName, value: []common.DropInfo
 }
 
 // GetMapInfoByID
@@ -37,6 +38,15 @@ func (db *GameDB) GetMapInfoByID(mapID int) *common.MapInfo {
 // GetItemInfoByID
 func (db *GameDB) GetItemInfoByID(itemID int) *common.ItemInfo {
 	v, ok := db.ItemIDInfoMap.Load(itemID)
+	if !ok {
+		return nil
+	}
+	return v.(*common.ItemInfo)
+}
+
+// GetItemInfoByName
+func (db *GameDB) GetItemInfoByName(itemName string) *common.ItemInfo {
+	v, ok := db.ItemNameInfoMap.Load(itemName)
 	if !ok {
 		return nil
 	}
