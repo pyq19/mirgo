@@ -109,13 +109,11 @@ func (e *Environ) InitGameDB() {
 	si := make([]common.SafeZoneInfo, 19)
 	db.Table("safe_zone").Find(&si)
 	gdb.SafeZoneInfos = si
-	var um []common.UserMagic
-	db.Table("user_magic").Find(&um)
-	gdb.UserMagics = um
 	gdb.MapIDInfoMap = new(sync.Map)
 	gdb.ItemIDInfoMap = new(sync.Map)
 	gdb.ItemNameInfoMap = new(sync.Map)
 	gdb.MonsterIDInfoMap = new(sync.Map)
+	gdb.MagicIDInfoMap = new(sync.Map)
 	for i := range gdb.MapInfos {
 		v := gdb.MapInfos[i]
 		gdb.MapIDInfoMap.Store(v.ID, &v)
@@ -128,6 +126,10 @@ func (e *Environ) InitGameDB() {
 	for i := range gdb.MonsterInfos {
 		v := gdb.MonsterInfos[i]
 		gdb.MonsterIDInfoMap.Store(v.ID, &v)
+	}
+	for i := range gdb.MagicInfos {
+		v := gdb.MagicInfos[i]
+		gdb.MagicIDInfoMap.Store(v.ID, &v)
 	}
 }
 
