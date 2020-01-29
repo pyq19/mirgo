@@ -353,6 +353,7 @@ type UserItem struct {
 
 type UserMagic struct {
 	ID          int `gorm:"primary_key"`
+	CharacterID int
 	MagicID     int
 	Spell       Spell
 	Level       int // byte

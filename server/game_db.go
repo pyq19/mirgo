@@ -24,6 +24,7 @@ type GameDB struct {
 	ItemNameInfoMap  *sync.Map // key: ItemName, value: ItemInfo
 	MonsterIDInfoMap *sync.Map // key: MonsterID, value: MonsterInfo
 	DropInfoMap      *sync.Map // key: MonsterName, value: []common.DropInfo
+	MagicIDInfoMap   *sync.Map // key: MagicInfo.ID, value: MagicInfo
 }
 
 // GetMapInfoByID
@@ -60,4 +61,13 @@ func (db *GameDB) GetMonsterInfoByID(monsterID int) *common.MonsterInfo {
 		return nil
 	}
 	return v.(*common.MonsterInfo)
+}
+
+// GetMagicInfoByID
+func (db *GameDB) GetMagicInfoByID(magicID int) *common.MagicInfo {
+	v, ok := db.MagicIDInfoMap.Load(magicID)
+	if !ok {
+		return nil
+	}
+	return v.(*common.MagicInfo)
 }

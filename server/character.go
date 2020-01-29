@@ -69,6 +69,7 @@ type Character struct {
 	CraftRate          uint8
 	GoldDropRateOffset float32
 	AttackBonus        uint8
+	Magics             []common.UserMagic
 }
 
 func NewCharacter(g *Game, p *Player, c *common.Character) Character {
@@ -109,6 +110,8 @@ func NewCharacter(g *Game, p *Player, c *common.Character) Character {
 	for _, v := range uiq {
 		questInventory[userItemIDIndexMap[int(v.ID)]] = v
 	}
+	magics := make([]common.UserMagic, 0)
+	g.DB.Table("user_magic").Where("character_id = ?", c.ID).Find(&magics)
 	return Character{
 		Player:         p,
 		HP:             c.HP,
@@ -128,6 +131,7 @@ func NewCharacter(g *Game, p *Player, c *common.Character) Character {
 		Refine:         refine,
 		SendItemInfo:   make([]common.ItemInfo, 0),
 		MaxExperience:  100,
+		Magics:         magics,
 	}
 }
 
