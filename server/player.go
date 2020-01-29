@@ -646,27 +646,22 @@ func (p *Player) MagicKey(spell common.Spell, key uint8) {
 
 }
 
-func (p *Player) getMagic(spell common.Spell) *common.UserMagic {
-	return nil
-}
-
 func (p *Player) Magic(spell common.Spell, direction common.MirDirection, id uint32, location common.Point) {
-	var (
-		um *common.UserMagic
-	)
 	if !p.CanCast() {
-		goto err
+		p.Enqueue(ServerMessage{}.UserLocation(p))
+		return
 	}
-	um = p.getMagic(spell)
+	um := p.GetMagic(spell)
 	if um == nil {
-		goto err
+		p.Enqueue(ServerMessage{}.UserLocation(p))
+		return
 	}
-	// TODO
-err:
-	p.Enqueue(&server.UserLocation{
-		Location:  p.Point(),
-		Direction: p.CurrentDirection,
-	})
+	var targetID uint32
+	targetLocation := common.Point{}
+	cast := true
+	level := 1
+	p.Enqueue(ServerMessage{}.Magic(spell, targetID, targetLocation, cast, level))
+	p.Broadcast(ServerMessage{}.ObjectMagic(p.GetID(), p.GetDirection(), p.GetPoint(), spell, targetID, targetLocation, cast, level))
 }
 
 func (p *Player) SwitchGroup(group bool) {

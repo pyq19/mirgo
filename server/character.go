@@ -442,3 +442,7 @@ func (c *Character) LevelUp() {
 	c.Player.Enqueue(ServerMessage{}.LevelChanged(c.Level, c.Experience, c.MaxExperience))
 	c.Player.Broadcast(ServerMessage{}.ObjectLeveled(c.Player.GetID()))
 }
+
+func (c *Character) GetMagic(spell common.Spell) *common.UserMagic {
+	return nil
+}
