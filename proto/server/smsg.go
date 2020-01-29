@@ -885,7 +885,8 @@ type MagicLeveled struct {
 type Magic struct {
 	Spell    common.Spell
 	TargetID uint32
-	Target   common.Point
+	TargetX  int32
+	TargetY  int32
 	Cast     bool
 	Level    uint8
 }
@@ -901,11 +902,13 @@ type MagicCast struct {
 
 type ObjectMagic struct {
 	ObjectID      uint32
-	Location      common.Point
+	LocationX     int32
+	LocationY     int32
 	Direction     common.MirDirection
 	Spell         common.Spell
 	TargetID      uint32
-	Target        common.Point
+	TargetX       int32
+	TargetY       int32
 	Cast          bool
 	Level         uint8
 	SelfBroadcast bool

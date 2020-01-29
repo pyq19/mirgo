@@ -168,10 +168,10 @@ const (
 type LevelEffects uint8
 
 const (
-	LevelEffectsNone       = 0
-	LevelEffectsMist       = 0x0001
-	LevelEffectsRedDragon  = 0x0002
-	LevelEffectsBlueDragon = 0x0004
+	LevelEffectsNone       LevelEffects = 0
+	LevelEffectsMist                    = 0x0001
+	LevelEffectsRedDragon               = 0x0002
+	LevelEffectsBlueDragon              = 0x0004
 )
 
 type ChatType uint8
@@ -353,7 +353,7 @@ const (
 type PanelType uint8
 
 const (
-	PanelTypeBuy PanelType = 0
+	PanelTypeBuy PanelType = iota
 	PanelTypeSell
 	PanelTypeRepair
 	PanelTypeSpecialRepair
@@ -411,7 +411,7 @@ const (
 type SpellEffect uint8
 
 const (
-	SpellEffectNone SpellEffect = 0
+	SpellEffectNone SpellEffect = iota
 	SpellEffectFatalSword
 	SpellEffectTeleport
 	SpellEffectHealing
@@ -444,7 +444,7 @@ const (
 type BuffType uint8
 
 const (
-	BuffTypeNone         BuffType = 0
+	BuffTypeNone         BuffType = iota
 	BuffTypeTemporalFlux          //magics
 	BuffTypeHiding
 	BuffTypeHaste
