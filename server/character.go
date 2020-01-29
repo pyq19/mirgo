@@ -1,8 +1,9 @@
 package main
 
-import "github.com/yenkeia/mirgo/common"
-
-import "github.com/yenkeia/mirgo/setting"
+import (
+	"github.com/yenkeia/mirgo/common"
+	"github.com/yenkeia/mirgo/setting"
+)
 
 type Character struct {
 	Player             *Player
@@ -455,4 +456,154 @@ func (c *Character) LevelUp() {
 
 func (c *Character) GetMagic(spell common.Spell) *common.UserMagic {
 	return nil
+}
+
+func (c *Character) UseMagic(spell common.Spell, magic *common.UserMagic, target IMapObject) (cast bool, targetID uint32) {
+	cast = true
+	switch spell {
+	case common.SpellFireBall:
+	case common.SpellGreatFireBall:
+	case common.SpellFrostCrunch:
+		if ok := c.Fireball(target, magic); !ok {
+			targetID = 0
+		}
+	case common.SpellHealing:
+		if target == nil {
+			target = c.Player
+			targetID = c.Player.GetID()
+		}
+		c.Healing(target, magic)
+	case common.SpellRepulsion:
+	case common.SpellEnergyRepulsor:
+	case common.SpellFireBurst:
+		// Repulsion(magic)
+	case common.SpellElectricShock:
+		// ActionList.Add(new DelayedAction(DelayedType.Magic, Envir.Time + 500, magic, target as MonsterObject));
+	case common.SpellPoisoning:
+		// if (!Poisoning(target, magic)) cast = false;
+	case common.SpellHellFire:
+		// HellFire(magic);
+	case common.SpellThunderBolt:
+		// ThunderBolt(target, magic);
+	case common.SpellSoulFireBall:
+		// if (!SoulFireball(target, magic, out cast)) targetID = 0;
+	case common.SpellSummonSkeleton:
+		// SummonSkeleton(magic);
+	case common.SpellTeleport:
+	case common.SpellBlink:
+		// ActionList.Add(new DelayedAction(DelayedType.Magic, Envir.Time + 200, magic, location));
+	case common.SpellHiding:
+		// Hiding(magic);
+	case common.SpellHaste:
+	case common.SpellLightBody:
+		// ActionList.Add(new DelayedAction(DelayedType.Magic, Envir.Time + 500, magic));
+	case common.SpellFury:
+		// FurySpell(magic, out cast);
+	case common.SpellImmortalSkin:
+		// ImmortalSkin(magic, out cast);
+	case common.SpellFireBang:
+	case common.SpellIceStorm:
+		// FireBang(magic, target == null ? location : target.CurrentLocation);
+	case common.SpellMassHiding:
+		// MassHiding(magic, target == null ? location : target.CurrentLocation, out cast);
+	case common.SpellSoulShield:
+	case common.SpellBlessedArmour:
+		// SoulShield(magic, target == null ? location : target.CurrentLocation, out cast);
+	case common.SpellFireWall:
+		// FireWall(magic, target == null ? location : target.CurrentLocation);
+	case common.SpellLightning:
+		// Lightning(magic);
+	case common.SpellHeavenlySword:
+		// HeavenlySword(magic);
+	case common.SpellMassHealing:
+		// MassHealing(magic, target == null ? location : target.CurrentLocation);
+	case common.SpellShoulderDash:
+		// ShoulderDash(magic);
+	case common.SpellThunderStorm:
+	case common.SpellFlameField:
+	case common.SpellStormEscape:
+		/*
+			ThunderStorm(magic);
+			if (spell == Spell.FlameField)
+				SpellTime = Envir.Time + 2500; //Spell Delay
+			if (spell == Spell.StormEscape)
+				//Start teleport.
+				ActionList.Add(new DelayedAction(DelayedType.Magic, Envir.Time + 750, magic, location));
+		*/
+	case common.SpellMagicShield:
+		// ActionList.Add(new DelayedAction(DelayedType.Magic, Envir.Time + 500, magic, magic.GetPower(GetAttackPower(MinMC, MaxMC) + 15)));
+	case common.SpellFlameDisruptor:
+		// FlameDisruptor(target, magic);
+	case common.SpellTurnUndead:
+		// TurnUndead(target, magic);
+	case common.SpellMagicBooster:
+		// MagicBooster(magic);
+	case common.SpellVampirism:
+		// Vampirism(target, magic);
+	case common.SpellSummonShinsu:
+		// SummonShinsu(magic);
+	case common.SpellPurification:
+		/*
+			if (target == null)
+			{
+				target = this;
+				targetID = ObjectID;
+			}
+			Purification(target, magic);
+		*/
+	case common.SpellLionRoar:
+	case common.SpellBattleCry:
+		// CurrentMap.ActionList.Add(new DelayedAction(DelayedType.Magic, Envir.Time + 500, this, magic, CurrentLocation));
+	case common.SpellRevelation:
+		// Revelation(target, magic);
+	case common.SpellPoisonCloud:
+		// PoisonCloud(magic, location, out cast);
+	case common.SpellEntrapment:
+		// Entrapment(target, magic);
+	case common.SpellBladeAvalanche:
+		// BladeAvalanche(magic);
+	case common.SpellSlashingBurst:
+		// SlashingBurst(magic, out cast);
+	case common.SpellRage:
+		// Rage(magic);
+	case common.SpellMirroring:
+		// Mirroring(magic);
+	case common.SpellBlizzard:
+		// Blizzard(magic, target == null ? location : target.CurrentLocation, out cast);
+	case common.SpellMeteorStrike:
+		// MeteorStrike(magic, target == null ? location : target.CurrentLocation, out cast);
+	case common.SpellIceThrust:
+		// IceThrust(magic);
+	case common.SpellProtectionField:
+		// ProtectionField(magic);
+	case common.SpellPetEnhancer:
+		// PetEnhancer(target, magic, out cast);
+	case common.SpellTrapHexagon:
+		// TrapHexagon(magic, target, out cast);
+	case common.SpellReincarnation:
+		// Reincarnation(magic, target == null ? null : target as PlayerObject, out cast);
+	case common.SpellCurse:
+		// Curse(magic, target == null ? location : target.CurrentLocation, out cast);
+	case common.SpellSummonHolyDeva:
+		// SummonHolyDeva(magic);
+	case common.SpellHallucination:
+		// Hallucination(target, magic);
+	case common.SpellEnergyShield:
+		// EnergyShield(target, magic, out cast);
+	case common.SpellUltimateEnhancer:
+		// UltimateEnhancer(target, magic, out cast);
+	case common.SpellPlague:
+		// Plague(magic, target == null ? location : target.CurrentLocation, out cast);
+	default:
+		cast = false
+	}
+	return
+}
+
+func (c *Character) Fireball(target IMapObject, magic *common.UserMagic) bool {
+	return true
+}
+
+func (c *Character) Healing(target IMapObject, magic *common.UserMagic) {
+
 }
