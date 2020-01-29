@@ -2,6 +2,7 @@ package common
 
 import (
 	"bufio"
+	"errors"
 	"os"
 	"strconv"
 	"strings"
@@ -14,22 +15,24 @@ type DropInfo struct {
 	ItemName string // ItemInfo.Name
 }
 
-func NewDropInfo(line string) *DropInfo {
+func NewDropInfo(line string) (*DropInfo, error) {
 	line = strings.TrimSpace(line)
 	res := strings.Split(line, " ")
 	chance, err := strconv.Atoi(strings.Split(res[0], "/")[1])
 	if err != nil {
-		panic("NewDropInfo 格式不正确" + err.Error())
+		err = errors.New("NewDropInfo 格式不正确: [" + line + "]. " + err.Error())
+		return nil, err
 	}
 	if len(res) == 3 {
 		// 1/10 Gold 500
 		gold, _ := strconv.Atoi(res[2])
-		return &DropInfo{Chance: chance, Gold: gold, ItemName: "Gold"}
+		return &DropInfo{Chance: chance, Gold: gold, ItemName: "Gold"}, nil
 	} else if len(res) == 2 {
 		// 1/5 (MP)DrugLarge
-		return &DropInfo{Chance: chance, Gold: 0, ItemName: res[1]}
+		return &DropInfo{Chance: chance, Gold: 0, ItemName: res[1]}, nil
 	} else {
-		panic("NewDropInfo 格式不正确")
+		err = errors.New("NewDropInfo 格式不正确: [" + line + "]. ")
+		return nil, err
 	}
 }
 
@@ -47,7 +50,12 @@ func GetDropInfosByMonsterName(dropDirPath, monsterName string) (res []DropInfo,
 		if line == "" || strings.HasPrefix(line, ";") {
 			continue
 		}
-		res = append(res, *NewDropInfo(line))
+		drop, err := NewDropInfo(line)
+		if err != nil {
+			// log.Warning(err.Error())
+			continue
+		}
+		res = append(res, *drop)
 	}
 	return res, nil
 }
