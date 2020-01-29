@@ -141,8 +141,9 @@ func (e *Environ) InitMonsterDrop() {
 	gdb.DropInfoMap = new(sync.Map)
 	for i := range gdb.MonsterInfos {
 		v := gdb.MonsterInfos[i]
-		dropInfos := common.GetDropInfosByMonsterName(setting.Conf.DropDirPath, v.Name)
-		if dropInfos == nil {
+		dropInfos, err := common.GetDropInfosByMonsterName(setting.Conf.DropDirPath, v.Name)
+		if err != nil {
+			log.Warnln("加载怪物掉落错误", v.Name, err.Error())
 			continue
 		}
 		gdb.DropInfoMap.Store(v.Name, dropInfos)

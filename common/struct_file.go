@@ -34,12 +34,12 @@ func NewDropInfo(line string) *DropInfo {
 }
 
 // GetDropInfosByMonsterName 加载怪物掉落物品
-func GetDropInfosByMonsterName(dropDirPath, monsterName string) (res []DropInfo) {
+func GetDropInfosByMonsterName(dropDirPath, monsterName string) (res []DropInfo, err error) {
 	filename := dropDirPath + monsterName + ".txt"
 	file, err := os.Open(filename)
 	defer file.Close()
 	if err != nil {
-		return nil
+		return nil, err
 	}
 	fscanner := bufio.NewScanner(file)
 	for fscanner.Scan() {
@@ -49,5 +49,5 @@ func GetDropInfosByMonsterName(dropDirPath, monsterName string) (res []DropInfo)
 		}
 		res = append(res, *NewDropInfo(line))
 	}
-	return
+	return res, nil
 }
