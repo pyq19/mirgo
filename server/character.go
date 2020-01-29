@@ -427,12 +427,18 @@ func (c *Character) SetMP(amount uint32) {
 	c.Player.Broadcast(msg)
 }
 
-func (c *Character) ChangeHP(amount uint32) {
+func (c *Character) ChangeHP(amount int) {
 	if amount == 0 || c.IsDead() {
 		return
 	}
-	value := uint32(c.HP) + amount
-	c.SetHP(value)
+	c.SetHP(uint32(int(c.HP) + amount))
+}
+
+func (c *Character) ChangeMP(amount int) {
+	if amount == 0 || c.IsDead() {
+		return
+	}
+	c.SetMP(uint32(int(c.MP) + amount))
 }
 
 func (c *Character) LevelUp() {
