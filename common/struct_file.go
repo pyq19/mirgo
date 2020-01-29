@@ -52,6 +52,7 @@ func GetDropInfosByMonsterName(dropDirPath, monsterName string) (res []DropInfo,
 		}
 		drop, err := NewDropInfo(line)
 		if err != nil {
+			// FIXME 有些格式不对的，比如 "1/2     Gold 10"，中间很多空格，也要兼容
 			// log.Warning(err.Error())
 			continue
 		}
