@@ -351,28 +351,31 @@ type MapInformation struct {
 }
 
 type UserInformation struct {
-	ObjectID       uint32
-	RealID         uint32
-	Name           string
-	GuildName      string
-	GuildRank      string
-	NameColor      int32
-	Class          common.MirClass
-	Gender         common.MirGender
-	Level          uint16
-	Location       common.Point
-	Direction      common.MirDirection
-	Hair           uint8
-	HP             uint16
-	MP             uint16
-	Experience     int64
-	MaxExperience  int64
-	LevelEffect    common.LevelEffects
-	Inventory      []common.UserItem
-	Equipment      []common.UserItem
-	QuestInventory []common.UserItem
-	Gold           uint32
-	Credit         uint32
+	ObjectID                  uint32
+	RealID                    uint32
+	Name                      string
+	GuildName                 string
+	GuildRank                 string
+	NameColor                 int32
+	Class                     common.MirClass
+	Gender                    common.MirGender
+	Level                     uint16
+	Location                  common.Point
+	Direction                 common.MirDirection
+	Hair                      uint8
+	HP                        uint16
+	MP                        uint16
+	Experience                int64
+	MaxExperience             int64
+	LevelEffect               common.LevelEffects
+	Inventory                 []common.UserItem
+	Equipment                 []common.UserItem
+	QuestInventory            []common.UserItem
+	Gold                      uint32
+	Credit                    uint32
+	HasExpandedStorage        bool
+	ExpandedStorageExpiryTime int64
+	ClientMagics              []common.ClientMagic
 }
 
 func (msg *UserInformation) String() string {
@@ -869,8 +872,9 @@ type ItemRepaired struct {
 	CurrentDura uint16
 }
 
-// TODO
-type NewMagic struct{}
+type NewMagic struct {
+	Magic common.ClientMagic
+}
 
 type RemoveMagic struct {
 	PlaceID int32

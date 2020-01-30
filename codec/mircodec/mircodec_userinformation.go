@@ -115,6 +115,15 @@ func (*MirUserInformationCodec) Encode(msgObj interface{}, ctx cellnet.ContextSe
 	}
 	writer.Write(ui.Gold)
 	writer.Write(ui.Credit)
+	writer.Write(ui.HasExpandedStorage)
+	writer.Write(ui.ExpandedStorageExpiryTime)
+
+	count := len(ui.ClientMagics)
+	writer.Write(count)
+	for i := range ui.ClientMagics {
+		magic := ui.ClientMagics[i]
+		writer.Write(&magic)
+	}
 	return *writer.Bytes, nil
 }
 
@@ -190,5 +199,16 @@ func (*MirUserInformationCodec) Decode(data interface{}, msgObj interface{}) err
 	}
 	ui.Gold = reader.ReadUInt32()
 	ui.Credit = reader.ReadUInt32()
+	ui.HasExpandedStorage = reader.ReadBoolean()
+	ui.ExpandedStorageExpiryTime = reader.ReadInt64()
+
+	count := reader.ReadInt32()
+	clientMagics := make([]common.ClientMagic, 0)
+	for i := 0; i < int(count); i++ {
+		last := reader.Last()
+		magic := new(common.ClientMagic)
+		*reader.Bytes = decodeValue(reflect.ValueOf(magic), last)
+		clientMagics = append(clientMagics, *magic)
+	}
 	return nil
 }
