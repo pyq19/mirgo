@@ -3,6 +3,7 @@ package main
 import (
 	"github.com/yenkeia/mirgo/common"
 	"github.com/yenkeia/mirgo/setting"
+	"time"
 )
 
 type Character struct {
@@ -626,7 +627,23 @@ func (c *Character) UseMagic(spell common.Spell, magic *common.UserMagic, target
 	return
 }
 
+func (c *Character) SubmitDelayedAction(action *DelayedAction) {
+	c.Player.Map.Env.ActionList.Store(action.ID, action)
+}
+
 func (c *Character) Fireball(target IMapObject, magic *common.UserMagic) bool {
+	if target == nil || !target.IsAttackTarget(c.Player) {
+		return false
+	}
+	damage := magic.GetDamage(c.GetAttackPower(int(c.MinMC), int(c.MaxMC)))
+	c.SubmitDelayedAction(&DelayedAction{
+		ID:         c.Player.Map.Env.NewObjectID(),
+		ActionTime: time.Now().Add(time.Millisecond * 1500),
+		Finish:     false,
+		Task: NewTask(func(...interface{}) {
+			_ = damage // TODO
+		}),
+	})
 	return true
 }
 

@@ -4,6 +4,7 @@ import "time"
 
 type DelayedType int
 
+/*
 const (
 	DelayedTypeMagic DelayedType = iota
 	DelayedTypeDamage
@@ -17,10 +18,11 @@ const (
 	DelayedTypePoison
 	DelayedTypeDamageIndicator
 )
+*/
 
 type DelayedAction struct {
 	ID         uint32
 	ActionTime time.Time
 	Finish     bool
-	Task       Task
+	Task       *Task
 }

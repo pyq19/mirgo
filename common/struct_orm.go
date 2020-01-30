@@ -363,3 +363,8 @@ type UserMagic struct {
 	CastTime    int // int64
 	//Magic       MagicInfo `gorm:"-"` // orm ignore
 }
+
+// TODO
+func (um *UserMagic) GetDamage(damageBase int) int {
+	return 0
+}
