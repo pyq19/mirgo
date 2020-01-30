@@ -368,3 +368,23 @@ type UserMagic struct {
 func (um *UserMagic) GetDamage(damageBase int) int {
 	return 0
 }
+
+// ClientMagic 客户端显示技能
+type ClientMagic struct {
+	Spell      Spell
+	BaseCost   uint8
+	LevelCost  uint8
+	Icon       uint8
+	Level1     uint8
+	Level2     uint8
+	Level3     uint8
+	Need1      uint8
+	Need2      uint8
+	Need3      uint8
+	Level      uint8
+	Key        uint8
+	Experience uint16
+	Delay      int64
+	Range      uint8
+	CastTime   int64
+}
