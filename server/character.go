@@ -498,9 +498,7 @@ func (c *Character) GetMagic(spell common.Spell) *common.UserMagic {
 func (c *Character) UseMagic(spell common.Spell, magic *common.UserMagic, target IMapObject) (cast bool, targetID uint32) {
 	cast = true
 	switch spell {
-	case common.SpellFireBall:
-	case common.SpellGreatFireBall:
-	case common.SpellFrostCrunch:
+	case common.SpellFireBall, common.SpellGreatFireBall, common.SpellFrostCrunch:
 		if ok := c.Fireball(target, magic); !ok {
 			targetID = 0
 		}
@@ -510,10 +508,8 @@ func (c *Character) UseMagic(spell common.Spell, magic *common.UserMagic, target
 			targetID = c.Player.GetID()
 		}
 		c.Healing(target, magic)
-	case common.SpellRepulsion:
-	case common.SpellEnergyRepulsor:
-	case common.SpellFireBurst:
-		// Repulsion(magic)
+	case common.SpellRepulsion, common.SpellEnergyRepulsor, common.SpellFireBurst:
+		c.Repulsion(magic)
 	case common.SpellElectricShock:
 		// ActionList.Add(new DelayedAction(DelayedType.Magic, Envir.Time + 500, magic, target as MonsterObject));
 	case common.SpellPoisoning:
@@ -526,25 +522,21 @@ func (c *Character) UseMagic(spell common.Spell, magic *common.UserMagic, target
 		// if (!SoulFireball(target, magic, out cast)) targetID = 0;
 	case common.SpellSummonSkeleton:
 		// SummonSkeleton(magic);
-	case common.SpellTeleport:
-	case common.SpellBlink:
+	case common.SpellTeleport, common.SpellBlink:
 		// ActionList.Add(new DelayedAction(DelayedType.Magic, Envir.Time + 200, magic, location));
 	case common.SpellHiding:
 		// Hiding(magic);
-	case common.SpellHaste:
-	case common.SpellLightBody:
+	case common.SpellHaste, common.SpellLightBody:
 		// ActionList.Add(new DelayedAction(DelayedType.Magic, Envir.Time + 500, magic));
 	case common.SpellFury:
 		// FurySpell(magic, out cast);
 	case common.SpellImmortalSkin:
 		// ImmortalSkin(magic, out cast);
-	case common.SpellFireBang:
-	case common.SpellIceStorm:
+	case common.SpellFireBang, common.SpellIceStorm:
 		// FireBang(magic, target == null ? location : target.CurrentLocation);
 	case common.SpellMassHiding:
 		// MassHiding(magic, target == null ? location : target.CurrentLocation, out cast);
-	case common.SpellSoulShield:
-	case common.SpellBlessedArmour:
+	case common.SpellSoulShield, common.SpellBlessedArmour:
 		// SoulShield(magic, target == null ? location : target.CurrentLocation, out cast);
 	case common.SpellFireWall:
 		// FireWall(magic, target == null ? location : target.CurrentLocation);
@@ -556,9 +548,7 @@ func (c *Character) UseMagic(spell common.Spell, magic *common.UserMagic, target
 		// MassHealing(magic, target == null ? location : target.CurrentLocation);
 	case common.SpellShoulderDash:
 		// ShoulderDash(magic);
-	case common.SpellThunderStorm:
-	case common.SpellFlameField:
-	case common.SpellStormEscape:
+	case common.SpellThunderStorm, common.SpellFlameField, common.SpellStormEscape:
 		/*
 			ThunderStorm(magic);
 			if (spell == Spell.FlameField)
@@ -588,8 +578,7 @@ func (c *Character) UseMagic(spell common.Spell, magic *common.UserMagic, target
 			}
 			Purification(target, magic);
 		*/
-	case common.SpellLionRoar:
-	case common.SpellBattleCry:
+	case common.SpellLionRoar, common.SpellBattleCry:
 		// CurrentMap.ActionList.Add(new DelayedAction(DelayedType.Magic, Envir.Time + 500, this, magic, CurrentLocation));
 	case common.SpellRevelation:
 		// Revelation(target, magic);
@@ -642,5 +631,9 @@ func (c *Character) Fireball(target IMapObject, magic *common.UserMagic) bool {
 }
 
 func (c *Character) Healing(target IMapObject, magic *common.UserMagic) {
+
+}
+
+func (c *Character) Repulsion(magic *common.UserMagic) {
 
 }

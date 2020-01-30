@@ -24,6 +24,7 @@ type Environ struct {
 	ObjectID           uint32
 	Players            []*Player
 	lock               *sync.Mutex
+	ActionList         *sync.Map // map[uint32]DelayedAction  mapID: DelayedAction.ID
 }
 
 // NewEnviron ...
@@ -341,23 +342,21 @@ func (e *Environ) TimeTick() {
 	// 地图事件 刷怪 地图物品
 
 	// 玩家事件 buff 等状态改变
+	actionListTicker := time.NewTicker(750 * time.Millisecond)
 
-	// 怪物事件 移动 buff
-	monsterProcessTicker := time.NewTicker(500 * time.Millisecond)
-
-	// NPC
-	npcProcessTicker := time.NewTicker(500 * time.Millisecond)
+	// 怪物 / NPC 事件. 移动 buff
+	eventTicker := time.NewTicker(500 * time.Millisecond)
 
 	for {
 		select {
-		case <-systemBroadcastTicker.C:
-			e.Submit(NewTask(e.SystemBroadcast))
 		case <-debugTicker.C:
 			e.Debug()
-		case <-monsterProcessTicker.C:
-			e.Submit(NewTask(e.MonstersProcess))
-		case <-npcProcessTicker.C:
-			e.Submit(NewTask(e.NPCsProcess))
+		case <-systemBroadcastTicker.C:
+			e.Submit(NewTask(e.SystemBroadcast))
+		case <-eventTicker.C:
+			e.Submit(NewTask(e.EventProcess))
+		case <-actionListTicker.C:
+			e.Submit(NewTask(e.ActionListProcess))
 		}
 	}
 }
@@ -419,16 +418,31 @@ func (e *Environ) GetActiveObjects() (monster []*Monster, npc []*NPC) {
 	return
 }
 
-func (e *Environ) MonstersProcess(...interface{}) {
-	monsters, _ := e.GetActiveObjects()
+func (e *Environ) EventProcess(...interface{}) {
+	monsters, npcs := e.GetActiveObjects()
 	for i := range monsters {
 		monsters[i].Process()
 	}
-}
-
-func (e *Environ) NPCsProcess(...interface{}) {
-	_, npcs := e.GetActiveObjects()
 	for i := range npcs {
 		npcs[i].Process()
+	}
+}
+
+func (e *Environ) ActionListProcess(...interface{}) {
+	finishID := make([]uint32, 0)
+	e.ActionList.Range(func(k, v interface{}) bool {
+		action := v.(DelayedAction)
+		if action.Finish || time.Now().Before(action.ActionTime) {
+			return true
+		}
+		action.Task.Execute()
+		action.Finish = true
+		if action.Finish {
+			finishID = append(finishID, action.ID)
+		}
+		return true
+	})
+	for i := range finishID {
+		e.ActionList.Delete(finishID[i])
 	}
 }
