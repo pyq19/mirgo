@@ -37,6 +37,7 @@ func NewEnviron(g *Game) (env *Environ) {
 	env.ObjectID = 100000
 	env.Players = make([]*Player, 0)
 	env.lock = new(sync.Mutex)
+	env.ActionList = new(sync.Map)
 	err := env.InitObjects()
 	if err != nil {
 		panic(err)
