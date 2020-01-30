@@ -121,8 +121,7 @@ func (*MirUserInformationCodec) Encode(msgObj interface{}, ctx cellnet.ContextSe
 	count := len(ui.ClientMagics)
 	writer.Write(count)
 	for i := range ui.ClientMagics {
-		magic := ui.ClientMagics[i]
-		writer.Write(&magic)
+		writer.Write(&ui.ClientMagics[i])
 	}
 	return *writer.Bytes, nil
 }
@@ -210,5 +209,6 @@ func (*MirUserInformationCodec) Decode(data interface{}, msgObj interface{}) err
 		*reader.Bytes = decodeValue(reflect.ValueOf(magic), last)
 		clientMagics = append(clientMagics, *magic)
 	}
+	ui.ClientMagics = clientMagics
 	return nil
 }

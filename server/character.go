@@ -493,7 +493,24 @@ func (c *Character) LevelUp() {
 }
 
 func (c *Character) GetMagic(spell common.Spell) *common.UserMagic {
+	for i := range c.Magics {
+		userMagic := c.Magics[i]
+		if userMagic.Spell == spell {
+			return &userMagic
+		}
+	}
 	return nil
+}
+
+func (c *Character) GetClientMagics() []common.ClientMagic {
+	gdb := c.Player.Map.Env.GameDB
+	res := make([]common.ClientMagic, 0)
+	for i := range c.Magics {
+		userMagic := c.Magics[i]
+		info := gdb.GetMagicInfoByID(userMagic.MagicID)
+		res = append(res, userMagic.GetClientMagic(info))
+	}
+	return res
 }
 
 func (c *Character) UseMagic(spell common.Spell, magic *common.UserMagic, target IMapObject) (cast bool, targetID uint32) {
