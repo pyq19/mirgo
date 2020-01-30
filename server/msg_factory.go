@@ -90,6 +90,9 @@ func (ServerMessage) UserInformation(p *Player) *server.UserInformation {
 	ui.Inventory = p.Inventory
 	ui.Equipment = p.Equipment
 	ui.QuestInventory = p.QuestInventory
+	ui.HasExpandedStorage = false    // TODO
+	ui.ExpandedStorageExpiryTime = 0 // TODO
+	ui.ClientMagics = p.GetClientMagics()
 	return ui
 }
 

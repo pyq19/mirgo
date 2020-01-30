@@ -357,7 +357,7 @@ type UserMagic struct {
 	MagicID     int
 	Spell       Spell
 	Level       int // byte
-	Key         int // byte
+	Key         int `gorm:"Column:magic_key"` // byte
 	Experience  int // uint16
 	IsTempSpell bool
 	CastTime    int // int64
@@ -369,8 +369,33 @@ func (um *UserMagic) GetDamage(damageBase int) int {
 	return 0
 }
 
+func (um *UserMagic) GetClientMagic(info *MagicInfo) ClientMagic {
+	delay := info.DelayBase - (um.Level * info.DelayReduction)
+	//castTime := (CastTime != 0) && (SMain.Envir.Time > CastTime) ? SMain.Envir.Time - CastTime : 0
+	castTime := 0
+	return ClientMagic{
+		Spell:      um.Spell,
+		BaseCost:   uint8(info.BaseCost),
+		LevelCost:  uint8(info.LevelCost),
+		Icon:       uint8(info.Icon),
+		Level1:     uint8(info.Level1),
+		Level2:     uint8(info.Level2),
+		Level3:     uint8(info.Level3),
+		Need1:      uint16(info.Need1),
+		Need2:      uint16(info.Need2),
+		Need3:      uint16(info.Need3),
+		Level:      uint8(um.Level),
+		Key:        uint8(um.Key),
+		Experience: uint16(um.Experience),
+		Delay:      int64(delay),
+		Range:      uint8(info.MagicRange),
+		CastTime:   int64(castTime),
+	}
+}
+
 // ClientMagic 客户端显示技能
 type ClientMagic struct {
+	Name       string
 	Spell      Spell
 	BaseCost   uint8
 	LevelCost  uint8
@@ -378,9 +403,9 @@ type ClientMagic struct {
 	Level1     uint8
 	Level2     uint8
 	Level3     uint8
-	Need1      uint8
-	Need2      uint8
-	Need3      uint8
+	Need1      uint16
+	Need2      uint16
+	Need3      uint16
 	Level      uint8
 	Key        uint8
 	Experience uint16
