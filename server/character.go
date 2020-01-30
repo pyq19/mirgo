@@ -241,18 +241,55 @@ func (c *Character) RefreshLevelStats() {
 	c.CriticalDamage = uint8(baseStats.StartCriticalDamage)
 	c.MaxExperience = 100
 	c.MaxHP = uint16(14 + (float32(c.Level)/baseStats.HpGain+baseStats.HpGainRate)*float32(c.Level))
-	c.MinAC = uint16(int(c.Level) / baseStats.MinAc)
-	c.MaxAC = uint16(int(c.Level) / baseStats.MaxAc)
-	c.MinMAC = uint16(int(c.Level) / baseStats.MinMac)
-	c.MaxMAC = uint16(int(c.Level) / baseStats.MaxMac)
-	c.MinDC = uint16(int(c.Level) / baseStats.MinDc)
-	c.MaxDC = uint16(int(c.Level) / baseStats.MaxDc)
-	c.MinMC = uint16(int(c.Level) / baseStats.MinMc)
-	c.MaxMC = uint16(int(c.Level) / baseStats.MaxMc)
-	c.MinSC = uint16(int(c.Level) / baseStats.MinSc)
-	c.MaxSC = uint16(int(c.Level) / baseStats.MaxSc)
-	c.CriticalRate = uint8(float32(c.CriticalRate) + (float32(c.Level) / baseStats.CritialRateGain))
-	c.CriticalDamage = uint8(float32(c.CriticalDamage) + (float32(c.Level) / baseStats.CriticalDamageGain))
+	c.MinAC = 0
+	if baseStats.MinAc > 0 {
+		c.MinAC = uint16(int(c.Level) / baseStats.MinAc)
+	}
+	c.MaxAC = 0
+	if baseStats.MaxAc > 0 {
+		c.MaxAC = uint16(int(c.Level) / baseStats.MaxAc)
+	}
+	c.MinMAC = 0
+	if baseStats.MinMac > 0 {
+		c.MinMAC = uint16(int(c.Level) / baseStats.MinMac)
+	}
+	c.MaxMAC = 0
+	if baseStats.MaxMac > 0 {
+		c.MaxMAC = uint16(int(c.Level) / baseStats.MaxMac)
+	}
+	c.MinDC = 0
+	if baseStats.MinDc > 0 {
+
+		c.MinDC = uint16(int(c.Level) / baseStats.MinDc)
+	}
+	c.MaxDC = 0
+	if baseStats.MaxDc > 0 {
+		c.MaxDC = uint16(int(c.Level) / baseStats.MaxDc)
+	}
+	c.MinMC = 0
+	if baseStats.MinMc > 0 {
+		c.MinMC = uint16(int(c.Level) / baseStats.MinMc)
+	}
+	c.MaxMC = 0
+	if baseStats.MaxMc > 0 {
+		c.MaxMC = uint16(int(c.Level) / baseStats.MaxMc)
+	}
+	c.MinSC = 0
+	if baseStats.MinSc > 0 {
+		c.MinSC = uint16(int(c.Level) / baseStats.MinSc)
+	}
+	c.MaxSC = 0
+	if baseStats.MaxSc > 0 {
+		c.MaxSC = uint16(int(c.Level) / baseStats.MaxSc)
+	}
+	c.CriticalRate = 0
+	if baseStats.CritialRateGain > 0 {
+		c.CriticalRate = uint8(float32(c.CriticalRate) + (float32(c.Level) / baseStats.CritialRateGain))
+	}
+	c.CriticalDamage = 0
+	if baseStats.CriticalDamageGain > 0 {
+		c.CriticalDamage = uint8(float32(c.CriticalDamage) + (float32(c.Level) / baseStats.CriticalDamageGain))
+	}
 	c.MaxBagWeight = uint16(50.0 + float32(c.Level)/baseStats.BagWeightGain*float32(c.Level))
 	c.MaxWearWeight = uint16(15.0 + float32(c.Level)/baseStats.WearWeightGain*float32(c.Level))
 	c.MaxHandWeight = uint16(12.0 + float32(c.Level)/baseStats.HandWeightGain*float32(c.Level))
