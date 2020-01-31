@@ -341,13 +341,13 @@ func (e *Environ) TimeTick() {
 	debugTicker := time.NewTicker(10 * time.Second)
 
 	// 地图事件 刷怪 地图物品
-	mapTicker := time.NewTicker(500 * time.Millisecond)
+	mapTicker := time.NewTicker(300 * time.Millisecond)
 
 	// 玩家事件 buff 等状态改变
-	playerTicker := time.NewTicker(750 * time.Millisecond)
+	playerTicker := time.NewTicker(300 * time.Millisecond)
 
 	// 怪物 / NPC 事件. 移动 buff
-	monsterNPCTicker := time.NewTicker(500 * time.Millisecond)
+	monsterNPCTicker := time.NewTicker(300 * time.Millisecond)
 
 	for {
 		select {

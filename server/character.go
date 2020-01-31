@@ -557,42 +557,77 @@ func (c *Character) UseMagic(spell common.Spell, magic *common.UserMagic, target
 		c.Repulsion(magic)
 	case common.SpellElectricShock:
 		// ActionList.Add(new DelayedAction(DelayedType.Magic, Envir.Time + 500, magic, target as MonsterObject));
+		action := NewDelayedAction(c.NewObjectID(), DelayedTypeMagic, NewTask(c.CompleteMagic, magic, target))
+		c.ActionList.Store(action.ID, action)
 	case common.SpellPoisoning:
-		// if (!Poisoning(target, magic)) cast = false;
+		if !c.Poisoning(target, magic) {
+			cast = false
+		}
 	case common.SpellHellFire:
-		// HellFire(magic);
+		c.HellFire(magic)
 	case common.SpellThunderBolt:
-		// ThunderBolt(target, magic);
+		c.ThunderBolt(target, magic)
 	case common.SpellSoulFireBall:
 		// if (!SoulFireball(target, magic, out cast)) targetID = 0;
+		if !c.SoulFireball(target, magic) {
+			targetID = 0
+			cast = false
+		}
 	case common.SpellSummonSkeleton:
-		// SummonSkeleton(magic);
+		c.SummonSkeleton(magic)
 	case common.SpellTeleport, common.SpellBlink:
 		// ActionList.Add(new DelayedAction(DelayedType.Magic, Envir.Time + 200, magic, location));
+		action := NewDelayedAction(c.NewObjectID(), DelayedTypeMagic, NewTask(c.CompleteMagic, magic, c.Player.GetPoint()))
+		c.ActionList.Store(action.ID, action)
 	case common.SpellHiding:
-		// Hiding(magic);
+		c.Hiding(magic)
 	case common.SpellHaste, common.SpellLightBody:
 		// ActionList.Add(new DelayedAction(DelayedType.Magic, Envir.Time + 500, magic));
+		action := NewDelayedAction(c.NewObjectID(), DelayedTypeMagic, NewTask(c.CompleteMagic, magic))
+		c.ActionList.Store(action.ID, action)
 	case common.SpellFury:
-		// FurySpell(magic, out cast);
+		cast = c.FurySpell(magic)
 	case common.SpellImmortalSkin:
-		// ImmortalSkin(magic, out cast);
+		cast = c.ImmortalSkin(magic)
 	case common.SpellFireBang, common.SpellIceStorm:
 		// FireBang(magic, target == null ? location : target.CurrentLocation);
+		location := target.GetPoint()
+		if target == nil {
+			location = c.Player.GetPoint()
+		}
+		c.FireBang(magic, location)
 	case common.SpellMassHiding:
 		// MassHiding(magic, target == null ? location : target.CurrentLocation, out cast);
+		location := target.GetPoint()
+		if target == nil {
+			location = c.Player.GetPoint()
+		}
+		cast = c.MassHiding(magic, location)
 	case common.SpellSoulShield, common.SpellBlessedArmour:
 		// SoulShield(magic, target == null ? location : target.CurrentLocation, out cast);
+		location := target.GetPoint()
+		if target == nil {
+			location = c.Player.GetPoint()
+		}
+		cast = c.SoulShield(magic, location)
 	case common.SpellFireWall:
-		// FireWall(magic, target == null ? location : target.CurrentLocation);
+		location := target.GetPoint()
+		if target == nil {
+			location = c.Player.GetPoint()
+		}
+		c.FireWall(magic, location)
 	case common.SpellLightning:
-		// Lightning(magic);
+		c.Lightning(magic)
 	case common.SpellHeavenlySword:
-		// HeavenlySword(magic);
+		c.HeavenlySword(magic)
 	case common.SpellMassHealing:
-		// MassHealing(magic, target == null ? location : target.CurrentLocation);
+		location := target.GetPoint()
+		if target == nil {
+			location = c.Player.GetPoint()
+		}
+		c.MassHealing(magic, location)
 	case common.SpellShoulderDash:
-		// ShoulderDash(magic);
+		c.ShoulderDash(magic)
 	case common.SpellThunderStorm, common.SpellFlameField, common.SpellStormEscape:
 		/*
 			ThunderStorm(magic);
@@ -604,16 +639,18 @@ func (c *Character) UseMagic(spell common.Spell, magic *common.UserMagic, target
 		*/
 	case common.SpellMagicShield:
 		// ActionList.Add(new DelayedAction(DelayedType.Magic, Envir.Time + 500, magic, magic.GetPower(GetAttackPower(MinMC, MaxMC) + 15)));
+		action := NewDelayedAction(c.NewObjectID(), DelayedTypeMagic, NewTask(c.CompleteMagic, magic, magic.GetPower(c.GetAttackPower(int(c.MinMC), int(c.MaxMC))+15)))
+		c.ActionList.Store(action.ID, action)
 	case common.SpellFlameDisruptor:
-		// FlameDisruptor(target, magic);
+		c.FlameDisruptor(target, magic)
 	case common.SpellTurnUndead:
-		// TurnUndead(target, magic);
+		c.TurnUndead(target, magic)
 	case common.SpellMagicBooster:
-		// MagicBooster(magic);
+		c.MagicBooster(magic)
 	case common.SpellVampirism:
-		// Vampirism(target, magic);
+		c.Vampirism(target, magic)
 	case common.SpellSummonShinsu:
-		// SummonShinsu(magic);
+		c.SummonShinsu(magic)
 	case common.SpellPurification:
 		/*
 			if (target == null)
@@ -626,45 +663,65 @@ func (c *Character) UseMagic(spell common.Spell, magic *common.UserMagic, target
 	case common.SpellLionRoar, common.SpellBattleCry:
 		// CurrentMap.ActionList.Add(new DelayedAction(DelayedType.Magic, Envir.Time + 500, this, magic, CurrentLocation));
 	case common.SpellRevelation:
-		// Revelation(target, magic);
+		c.Revelation(target, magic)
 	case common.SpellPoisonCloud:
-		// PoisonCloud(magic, location, out cast);
+		cast = c.PoisonCloud(magic, c.Player.GetPoint())
 	case common.SpellEntrapment:
-		// Entrapment(target, magic);
+		c.Entrapment(target, magic)
 	case common.SpellBladeAvalanche:
-		// BladeAvalanche(magic);
+		c.BladeAvalanche(magic)
 	case common.SpellSlashingBurst:
-		// SlashingBurst(magic, out cast);
+		cast = c.SlashingBurst(magic)
 	case common.SpellRage:
-		// Rage(magic);
+		c.Rage(magic)
 	case common.SpellMirroring:
-		// Mirroring(magic);
+		c.Mirroring(magic)
 	case common.SpellBlizzard:
-		// Blizzard(magic, target == null ? location : target.CurrentLocation, out cast);
+		location := target.GetPoint()
+		if target == nil {
+			location = c.Player.GetPoint()
+		}
+		cast = c.Blizzard(magic, location)
 	case common.SpellMeteorStrike:
-		// MeteorStrike(magic, target == null ? location : target.CurrentLocation, out cast);
+		location := target.GetPoint()
+		if target == nil {
+			location = c.Player.GetPoint()
+		}
+		cast = c.MeteorStrike(magic, location)
 	case common.SpellIceThrust:
-		// IceThrust(magic);
+		c.IceThrust(magic)
 	case common.SpellProtectionField:
-		// ProtectionField(magic);
+		c.ProtectionField(magic)
 	case common.SpellPetEnhancer:
-		// PetEnhancer(target, magic, out cast);
+		cast = c.PetEnhancer(target, magic)
 	case common.SpellTrapHexagon:
-		// TrapHexagon(magic, target, out cast);
+		cast = c.TrapHexagon(magic, target)
 	case common.SpellReincarnation:
 		// Reincarnation(magic, target == null ? null : target as PlayerObject, out cast);
+		if target != nil {
+			target = c.Player
+		}
+		cast = c.Reincarnation(magic, target)
 	case common.SpellCurse:
-		// Curse(magic, target == null ? location : target.CurrentLocation, out cast);
+		location := target.GetPoint()
+		if target == nil {
+			location = c.Player.GetPoint()
+		}
+		cast = c.Curse(magic, location)
 	case common.SpellSummonHolyDeva:
-		// SummonHolyDeva(magic);
+		c.SummonHolyDeva(magic)
 	case common.SpellHallucination:
-		// Hallucination(target, magic);
+		c.Hallucination(target, magic)
 	case common.SpellEnergyShield:
-		// EnergyShield(target, magic, out cast);
+		cast = c.EnergyShield(target, magic)
 	case common.SpellUltimateEnhancer:
-		// UltimateEnhancer(target, magic, out cast);
+		cast = c.UltimateEnhancer(target, magic)
 	case common.SpellPlague:
-		// Plague(magic, target == null ? location : target.CurrentLocation, out cast);
+		location := target.GetPoint()
+		if target == nil {
+			location = c.Player.GetPoint()
+		}
+		cast = c.Plague(magic, location)
 	default:
 		cast = false
 	}
@@ -672,17 +729,12 @@ func (c *Character) UseMagic(spell common.Spell, magic *common.UserMagic, target
 }
 
 func (c *Character) CompleteMagic(args ...interface{}) {
-	var (
-		userMagic *common.UserMagic
-		value     int
-		target    IMapObject
-	)
-	userMagic = args[0].(*common.UserMagic)
-	value = args[1].(int)
-	target = args[2].(IMapObject)
+	userMagic := args[0].(*common.UserMagic)
 	switch userMagic.Spell {
 	// #region FireBall, GreatFireBall, ThunderBolt, SoulFireBall, FlameDisruptor
 	case common.SpellFireBall, common.SpellGreatFireBall, common.SpellThunderBolt, common.SpellSoulFireBall, common.SpellFlameDisruptor, common.SpellStraightShot, common.SpellDoubleShot:
+		value := args[1].(int)
+		target := args[2].(IMapObject)
 		if target == nil || !target.IsAttackTarget(c.Player) {
 			return
 		}
@@ -715,9 +767,69 @@ func (c *Character) Fireball(target IMapObject, magic *common.UserMagic) bool {
 }
 
 func (c *Character) Healing(target IMapObject, magic *common.UserMagic) {
-
+	if target == nil || !target.IsFriendlyTarget(c.Player) {
+		return
+	}
+	// int health = magic.GetDamage(GetAttackPower(MinSC, MaxSC) * 2) + Level;
+	health := magic.GetDamage(c.GetAttackPower(int(c.MinSC), int(c.MaxSC))*2) + int(c.Level)
+	action := NewDelayedAction(c.NewObjectID(), DelayedTypeMagic, NewTask(c.CompleteMagic, magic, health, target))
+	c.ActionList.Store(action.ID, action)
 }
 
 func (c *Character) Repulsion(magic *common.UserMagic) {
 
 }
+
+func (c *Character) Poisoning(target IMapObject, magic *common.UserMagic) bool {
+	return true
+}
+
+func (c *Character) HellFire(magic *common.UserMagic) {
+
+}
+
+func (c *Character) ThunderBolt(target IMapObject, magic *common.UserMagic) {
+
+}
+
+func (c *Character) SoulFireball(target IMapObject, magic *common.UserMagic) bool {
+	return true
+}
+
+func (c *Character) SummonSkeleton(magic *common.UserMagic)                           {}
+func (c *Character) Hiding(magic *common.UserMagic)                                   {}
+func (c *Character) FurySpell(magic *common.UserMagic) bool                           { return true }
+func (c *Character) ImmortalSkin(magic *common.UserMagic) bool                        { return true }
+func (c *Character) FireBang(magic *common.UserMagic, location common.Point)          {}
+func (c *Character) MassHiding(magic *common.UserMagic, location common.Point) bool   { return true }
+func (c *Character) SoulShield(magic *common.UserMagic, location common.Point) bool   { return true }
+func (c *Character) FireWall(magic *common.UserMagic, location common.Point)          {}
+func (c *Character) Lightning(magic *common.UserMagic)                                {}
+func (c *Character) HeavenlySword(magic *common.UserMagic)                            {}
+func (c *Character) MassHealing(magic *common.UserMagic, location common.Point)       {}
+func (c *Character) ShoulderDash(magic *common.UserMagic)                             {}
+func (c *Character) FlameDisruptor(target IMapObject, magic *common.UserMagic)        {}
+func (c *Character) TurnUndead(target IMapObject, magic *common.UserMagic)            {}
+func (c *Character) MagicBooster(magic *common.UserMagic)                             {}
+func (c *Character) Vampirism(target IMapObject, magic *common.UserMagic)             {}
+func (c *Character) SummonShinsu(magic *common.UserMagic)                             {}
+func (c *Character) Revelation(target IMapObject, magic *common.UserMagic)            {}
+func (c *Character) PoisonCloud(magic *common.UserMagic, location common.Point) bool  { return true }
+func (c *Character) Entrapment(target IMapObject, magic *common.UserMagic)            {}
+func (c *Character) BladeAvalanche(magic *common.UserMagic)                           {}
+func (c *Character) SlashingBurst(magic *common.UserMagic) bool                       { return true }
+func (c *Character) Rage(magic *common.UserMagic)                                     {}
+func (c *Character) Mirroring(magic *common.UserMagic)                                {}
+func (c *Character) Blizzard(magic *common.UserMagic, location common.Point) bool     { return true }
+func (c *Character) MeteorStrike(magic *common.UserMagic, location common.Point) bool { return true }
+func (c *Character) IceThrust(magic *common.UserMagic)                                {}
+func (c *Character) ProtectionField(magic *common.UserMagic)                          {}
+func (c *Character) PetEnhancer(target IMapObject, magic *common.UserMagic) bool      { return true }
+func (c *Character) TrapHexagon(magic *common.UserMagic, target IMapObject) bool      { return true }
+func (c *Character) Reincarnation(magic *common.UserMagic, target IMapObject) bool    { return true }
+func (c *Character) Curse(magic *common.UserMagic, location common.Point) bool        { return true }
+func (c *Character) SummonHolyDeva(magic *common.UserMagic)                           {}
+func (c *Character) Hallucination(target IMapObject, magic *common.UserMagic) bool    { return true }
+func (c *Character) EnergyShield(target IMapObject, magic *common.UserMagic) bool     { return true }
+func (c *Character) UltimateEnhancer(target IMapObject, magic *common.UserMagic) bool { return true }
+func (c *Character) Plague(magic *common.UserMagic, location common.Point) bool       { return true }

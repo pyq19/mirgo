@@ -369,6 +369,12 @@ func (um *UserMagic) GetDamage(damageBase int) int {
 	return 0
 }
 
+// TODO
+func (um *UserMagic) GetPower(int) int {
+	// return (int)Math.Round(power / 4F * (Level + 1) + DefPower());
+	return 0
+}
+
 func (um *UserMagic) GetClientMagic(info *MagicInfo) ClientMagic {
 	delay := info.DelayBase - (um.Level * info.DelayReduction)
 	//castTime := (CastTime != 0) && (SMain.Envir.Time > CastTime) ? SMain.Envir.Time - CastTime : 0
