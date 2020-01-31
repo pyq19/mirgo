@@ -30,7 +30,7 @@ func NewDelayedAction(id uint32, typ DelayedType, task *Task) *DelayedAction {
 	return &DelayedAction{
 		ID:          id,
 		DelayedType: typ,
-		ActionTime:  time.Now().Add(time.Millisecond * 1500),
+		ActionTime:  time.Now().Add(time.Millisecond * 500),
 		Finish:      false,
 		Task:        task,
 	}
