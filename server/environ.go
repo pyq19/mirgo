@@ -341,12 +341,13 @@ func (e *Environ) TimeTick() {
 	debugTicker := time.NewTicker(10 * time.Second)
 
 	// 地图事件 刷怪 地图物品
+	mapTicker := time.NewTicker(500 * time.Millisecond)
 
 	// 玩家事件 buff 等状态改变
-	actionListTicker := time.NewTicker(750 * time.Millisecond)
+	playerTicker := time.NewTicker(750 * time.Millisecond)
 
 	// 怪物 / NPC 事件. 移动 buff
-	eventTicker := time.NewTicker(500 * time.Millisecond)
+	monsterNPCTicker := time.NewTicker(500 * time.Millisecond)
 
 	for {
 		select {
@@ -354,10 +355,12 @@ func (e *Environ) TimeTick() {
 			e.Debug()
 		case <-systemBroadcastTicker.C:
 			e.Submit(NewTask(e.SystemBroadcast))
-		case <-eventTicker.C:
-			e.Submit(NewTask(e.EventProcess))
-		case <-actionListTicker.C:
-			e.Submit(NewTask(e.ActionListProcess))
+		case <-mapTicker.C:
+			e.Submit(NewTask(e.MapProcess))
+		case <-playerTicker.C:
+			e.Submit(NewTask(e.PlayerProcess))
+		case <-monsterNPCTicker.C:
+			e.Submit(NewTask(e.MonsterNPCProcess))
 		}
 	}
 }
@@ -419,17 +422,7 @@ func (e *Environ) GetActiveObjects() (monster []*Monster, npc []*NPC) {
 	return
 }
 
-func (e *Environ) EventProcess(...interface{}) {
-	monsters, npcs := e.GetActiveObjects()
-	for i := range monsters {
-		monsters[i].Process()
-	}
-	for i := range npcs {
-		npcs[i].Process()
-	}
-}
-
-func (e *Environ) ActionListProcess(...interface{}) {
+func (e *Environ) MapProcess(...interface{}) {
 	finishID := make([]uint32, 0)
 	e.ActionList.Range(func(k, v interface{}) bool {
 		action := v.(DelayedAction)
@@ -445,5 +438,21 @@ func (e *Environ) ActionListProcess(...interface{}) {
 	})
 	for i := range finishID {
 		e.ActionList.Delete(finishID[i])
+	}
+}
+
+func (e *Environ) PlayerProcess(...interface{}) {
+	for i := range e.Players {
+		e.Players[i].Process()
+	}
+}
+
+func (e *Environ) MonsterNPCProcess(...interface{}) {
+	monsters, npcs := e.GetActiveObjects()
+	for i := range monsters {
+		monsters[i].Process()
+	}
+	for i := range npcs {
+		npcs[i].Process()
 	}
 }
