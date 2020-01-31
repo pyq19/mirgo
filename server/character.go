@@ -492,6 +492,10 @@ func (c *Character) LevelUp() {
 	c.Player.Broadcast(ServerMessage{}.ObjectLeveled(c.Player.GetID()))
 }
 
+func (c *Character) Process() {
+
+}
+
 func (c *Character) GetMagic(spell common.Spell) *common.UserMagic {
 	for i := range c.Magics {
 		userMagic := c.Magics[i]
