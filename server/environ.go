@@ -24,7 +24,7 @@ type Environ struct {
 	ObjectID           uint32
 	Players            []*Player
 	lock               *sync.Mutex
-	ActionList         *sync.Map // map[uint32]DelayedAction  mapID: DelayedAction.ID
+	ActionList         *sync.Map // map[uint32]*DelayedAction  mapID: DelayedAction.ID
 }
 
 // NewEnviron ...
@@ -425,7 +425,7 @@ func (e *Environ) GetActiveObjects() (monster []*Monster, npc []*NPC) {
 func (e *Environ) MapProcess(...interface{}) {
 	finishID := make([]uint32, 0)
 	e.ActionList.Range(func(k, v interface{}) bool {
-		action := v.(DelayedAction)
+		action := v.(*DelayedAction)
 		if action.Finish || time.Now().Before(action.ActionTime) {
 			return true
 		}

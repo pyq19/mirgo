@@ -2,6 +2,7 @@ package main
 
 import (
 	"sync"
+	"time"
 
 	"github.com/yenkeia/mirgo/common"
 	"github.com/yenkeia/mirgo/setting"
@@ -500,7 +501,22 @@ func (c *Character) LevelUp() {
 }
 
 func (c *Character) Process() {
-
+	finishID := make([]uint32, 0)
+	c.ActionList.Range(func(k, v interface{}) bool {
+		action := v.(*DelayedAction)
+		if action.Finish || time.Now().Before(action.ActionTime) {
+			return true
+		}
+		action.Task.Execute()
+		action.Finish = true
+		if action.Finish {
+			finishID = append(finishID, action.ID)
+		}
+		return true
+	})
+	for i := range finishID {
+		c.ActionList.Delete(finishID[i])
+	}
 }
 
 func (c *Character) GetMagic(spell common.Spell) *common.UserMagic {
@@ -667,7 +683,7 @@ func (c *Character) CompleteMagic(args ...interface{}) {
 	switch userMagic.Spell {
 	// #region FireBall, GreatFireBall, ThunderBolt, SoulFireBall, FlameDisruptor
 	case common.SpellFireBall, common.SpellGreatFireBall, common.SpellThunderBolt, common.SpellSoulFireBall, common.SpellFlameDisruptor, common.SpellStraightShot, common.SpellDoubleShot:
-		if target == nil || !target.IsFriendlyTarget(c.Player) {
+		if target == nil || !target.IsAttackTarget(c.Player) {
 			return
 		}
 		if target.GetRace() == common.ObjectTypePlayer {

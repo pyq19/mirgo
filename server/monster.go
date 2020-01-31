@@ -44,6 +44,7 @@ func NewMonster(mp *Map, p common.Point, mi *common.MonsterInfo, ri int) (m *Mon
 	m = new(Monster)
 	m.RespawnID = ri
 	m.ID = mp.Env.NewObjectID()
+	m.Map = mp
 	m.Name = mi.Name
 	m.NameColor = common.Color{R: 255, G: 255, B: 255}
 	m.Image = common.Monster(mi.Image)
@@ -123,7 +124,7 @@ func (m *Monster) GetInfo() interface{} {
 }
 
 func (m *Monster) IsAttackTarget(attacker IMapObject) bool {
-	return false
+	return true
 }
 
 func (m *Monster) IsFriendlyTarget(attacker IMapObject) bool {
