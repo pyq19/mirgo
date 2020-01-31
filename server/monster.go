@@ -126,6 +126,10 @@ func (m *Monster) IsAttackTarget(attacker IMapObject) bool {
 	return false
 }
 
+func (m *Monster) IsFriendlyTarget(attacker IMapObject) bool {
+	return false
+}
+
 func (m *Monster) GetBaseStats() BaseStats {
 	return BaseStats{
 		MinAC:    m.MinAC,

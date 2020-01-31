@@ -64,6 +64,7 @@ type IMapObject interface {
 	Broadcast(interface{})
 	GetDirection() common.MirDirection
 	GetInfo() interface{}
-	IsAttackTarget(IMapObject) bool
 	GetBaseStats() BaseStats
+	IsAttackTarget(IMapObject) bool
+	IsFriendlyTarget(IMapObject) bool
 }

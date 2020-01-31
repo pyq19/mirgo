@@ -72,6 +72,10 @@ func (n *NPC) IsAttackTarget(IMapObject) bool {
 	return false
 }
 
+func (n *NPC) IsFriendlyTarget(attacker IMapObject) bool {
+	return true
+}
+
 func (n *NPC) GetBaseStats() BaseStats {
 	return BaseStats{}
 }
