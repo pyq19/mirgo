@@ -666,9 +666,11 @@ func (p *Player) Magic(spell common.Spell, direction common.MirDirection, target
 		p.Enqueue(ServerMessage{}.UserLocation(p))
 		return
 	}
+	p.CurrentDirection = direction
 	p.ChangeMP(-cost)
 	target := p.Map.GetObjectInAreaByID(targetID, targetLocation)
 	cast, targetID := p.UseMagic(spell, userMagic, target)
+	p.Enqueue(ServerMessage{}.UserLocation(p))
 	p.Enqueue(ServerMessage{}.Magic(spell, targetID, targetLocation, cast, userMagic.Level))
 	p.Broadcast(ServerMessage{}.ObjectMagic(p, spell, targetID, targetLocation, cast, userMagic.Level))
 }
