@@ -828,28 +828,31 @@ type TeleportIn struct{}
 // TODO
 type NPCGoods struct{}
 
-// TODO
 type NPCSell struct{}
 
-// TODO
-type NPCRepair struct{}
+type NPCRepair struct {
+	Rate float32
+}
 
-// TODO
-type NPCSRepair struct{}
+type NPCSRepair struct {
+	Rate float32
+}
 
-// TODO
-type NPCRefine struct{}
+type NPCRefine struct {
+	Rate     float32
+	Refining bool
+}
 
-// TODO
 type NPCCheckRefine struct{}
 
-// TODO
-type NPCCollectRefine struct{}
+type NPCCollectRefine struct {
+	Success bool
+}
 
-// TODO
-type NPCReplaceWedRing struct{}
+type NPCReplaceWedRing struct{
+	Rate float32
+}
 
-// TODO
 type NPCStorage struct{}
 
 type SellItem struct {

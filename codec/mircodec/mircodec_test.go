@@ -486,7 +486,7 @@ func TestDecodeEncodeObjectPlayer(t *testing.T) {
 func TestEncodeDecodeNPCResponse(t *testing.T) {
 	bytes := []byte{2, 0, 0, 0, 6, 232, 140, 131, 233, 151, 178, 6, 232, 140, 131, 233, 151, 178}
 	msg := new(server.NPCResponse)
-	codec := new(MirCodec)
+	codec := new(MirNPCResponseCodec)
 	if err := codec.Decode(bytes, msg); err != nil {
 		panic(err)
 	}
