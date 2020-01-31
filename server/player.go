@@ -129,7 +129,7 @@ func (p *Player) IsAttackTarget(attacker IMapObject) bool {
 }
 
 func (p *Player) IsFriendlyTarget(attacker IMapObject) bool {
-	return false
+	return true
 }
 
 func (p *Player) GetBaseStats() BaseStats {
