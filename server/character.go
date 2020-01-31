@@ -731,7 +731,6 @@ func (c *Character) UseMagic(spell common.Spell, magic *common.UserMagic, target
 func (c *Character) CompleteMagic(args ...interface{}) {
 	userMagic := args[0].(*common.UserMagic)
 	switch userMagic.Spell {
-	// #region FireBall, GreatFireBall, ThunderBolt, SoulFireBall, FlameDisruptor
 	case common.SpellFireBall, common.SpellGreatFireBall, common.SpellThunderBolt, common.SpellSoulFireBall, common.SpellFlameDisruptor, common.SpellStraightShot, common.SpellDoubleShot:
 		value := args[1].(int)
 		target := args[2].(IMapObject)
@@ -744,9 +743,55 @@ func (c *Character) CompleteMagic(args ...interface{}) {
 			target.(*Monster).Attacked(c.Player, value, common.DefenceTypeMAC, false)
 		}
 		return
+	case common.SpellFrostCrunch:
+	case common.SpellVampirism:
+	case common.SpellHealing:
+		value := args[1].(int)
+		target := args[2].(IMapObject)
+		if target == nil || !target.IsFriendlyTarget(c.Player) {
+			return
+		}
+		if target.GetRace() == common.ObjectTypePlayer {
+			obj := target.(*Player)
+			hp := int(obj.HP)
+			maxHP := int(obj.MaxHP)
+			if hp >= maxHP {
+				return
+			}
+			obj.HP += uint16(value)
+		} else if target.GetRace() == common.ObjectTypeMonster {
+			obj := target.(*Monster)
+			hp := int(obj.HP)
+			maxHP := int(obj.MaxHP)
+			if hp >= maxHP {
+				return
+			}
+			obj.HP += uint32(value)
+		}
+		// LevelMagic(magic)
+	case common.SpellElectricShock:
+	case common.SpellPoisoning:
+	case common.SpellStormEscape:
+	case common.SpellTeleport:
+	case common.SpellBlink:
+	case common.SpellHiding:
+	case common.SpellHaste:
+	case common.SpellFury:
+	case common.SpellImmortalSkin:
+	case common.SpellLightBody:
+	case common.SpellMagicShield:
+	case common.SpellTurnUndead:
+	case common.SpellMagicBooster:
+	case common.SpellPurification:
+	case common.SpellRevelation:
+	case common.SpellReincarnation:
+	case common.SpellEntrapment:
+	case common.SpellHallucination:
+	case common.SpellPetEnhancer:
+	case common.SpellElementalBarrier:
+	case common.SpellElementalShot:
+	case common.SpellDelayedExplosion:
 	}
-	// TODO #region FrostCrunch
-	// TODO #region Vampirism
 }
 
 func (c *Character) CompleteAttack(args ...interface{})          {}

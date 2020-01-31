@@ -344,7 +344,7 @@ func (e *Environ) TimeTick() {
 	mapTicker := time.NewTicker(300 * time.Millisecond)
 
 	// 玩家事件 buff 等状态改变
-	playerTicker := time.NewTicker(300 * time.Millisecond)
+	playerTicker := time.NewTicker(200 * time.Millisecond)
 
 	// 怪物 / NPC 事件. 移动 buff
 	monsterNPCTicker := time.NewTicker(300 * time.Millisecond)
