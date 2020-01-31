@@ -1,9 +1,10 @@
 package main
 
 import (
+	"sync"
+
 	"github.com/yenkeia/mirgo/common"
 	"github.com/yenkeia/mirgo/setting"
-	"time"
 )
 
 type Character struct {
@@ -72,6 +73,7 @@ type Character struct {
 	GoldDropRateOffset float32
 	AttackBonus        uint8
 	Magics             []common.UserMagic
+	ActionList         *sync.Map // map[uint32]DelayedAction
 }
 
 func NewCharacter(g *Game, p *Player, c *common.Character) Character {
@@ -134,7 +136,12 @@ func NewCharacter(g *Game, p *Player, c *common.Character) Character {
 		SendItemInfo:   make([]common.ItemInfo, 0),
 		MaxExperience:  100,
 		Magics:         magics,
+		ActionList:     new(sync.Map),
 	}
+}
+
+func (c *Character) NewObjectID() uint32 {
+	return c.Player.Map.Env.NewObjectID()
 }
 
 func (c *Character) IsDead() bool {
@@ -648,23 +655,46 @@ func (c *Character) UseMagic(spell common.Spell, magic *common.UserMagic, target
 	return
 }
 
-func (c *Character) SubmitDelayedAction(action *DelayedAction) {
-	c.Player.Map.Env.ActionList.Store(action.ID, action)
+func (c *Character) CompleteMagic(args ...interface{}) {
+	var (
+		userMagic *common.UserMagic
+		value     int
+		target    IMapObject
+	)
+	userMagic = args[0].(*common.UserMagic)
+	value = args[1].(int)
+	target = args[2].(IMapObject)
+	switch userMagic.Spell {
+	// #region FireBall, GreatFireBall, ThunderBolt, SoulFireBall, FlameDisruptor
+	case common.SpellFireBall, common.SpellGreatFireBall, common.SpellThunderBolt, common.SpellSoulFireBall, common.SpellFlameDisruptor, common.SpellStraightShot, common.SpellDoubleShot:
+		if target == nil || !target.IsFriendlyTarget(c.Player) {
+			return
+		}
+		if target.GetRace() == common.ObjectTypePlayer {
+			target.(*Player).Attacked(c.Player, value, common.DefenceTypeMAC, false)
+		} else if target.GetRace() == common.ObjectTypeMonster {
+			target.(*Monster).Attacked(c.Player, value, common.DefenceTypeMAC, false)
+		}
+		return
+	}
+	// TODO #region FrostCrunch
+	// TODO #region Vampirism
 }
+
+func (c *Character) CompleteAttack(args ...interface{})          {}
+func (c *Character) CompleteMapMovement(args ...interface{})     {}
+func (c *Character) CompleteMine(args ...interface{})            {}
+func (c *Character) CompleteNPC(args ...interface{})             {}
+func (c *Character) CompletePoison(args ...interface{})          {}
+func (c *Character) CompleteDamageIndicator(args ...interface{}) {}
 
 func (c *Character) Fireball(target IMapObject, magic *common.UserMagic) bool {
 	if target == nil || !target.IsAttackTarget(c.Player) {
 		return false
 	}
 	damage := magic.GetDamage(c.GetAttackPower(int(c.MinMC), int(c.MaxMC)))
-	c.SubmitDelayedAction(&DelayedAction{
-		ID:         c.Player.Map.Env.NewObjectID(),
-		ActionTime: time.Now().Add(time.Millisecond * 1500),
-		Finish:     false,
-		Task: NewTask(func(...interface{}) {
-			_ = damage // TODO
-		}),
-	})
+	action := NewDelayedAction(c.NewObjectID(), DelayedTypeMagic, NewTask(c.CompleteMagic, magic, damage, target))
+	c.ActionList.Store(action.ID, action)
 	return true
 }
 

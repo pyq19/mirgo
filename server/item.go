@@ -75,6 +75,10 @@ func (i *Item) IsAttackTarget(attacker IMapObject) bool {
 	return false
 }
 
+func (i *Item) IsFriendlyTarget(attacker IMapObject) bool {
+	return true
+}
+
 func (i *Item) GetBaseStats() BaseStats {
 	return BaseStats{}
 }

@@ -128,6 +128,10 @@ func (p *Player) IsAttackTarget(attacker IMapObject) bool {
 	return false
 }
 
+func (p *Player) IsFriendlyTarget(attacker IMapObject) bool {
+	return false
+}
+
 func (p *Player) GetBaseStats() BaseStats {
 	return BaseStats{
 		MinAC:    p.MinAC,
