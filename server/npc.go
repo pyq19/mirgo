@@ -4,17 +4,25 @@ import (
 	"fmt"
 	"github.com/yenkeia/mirgo/common"
 	"github.com/yenkeia/mirgo/proto/server"
+	"github.com/yenkeia/mirgo/setting"
+	"os"
 	"time"
 )
 
 type NPC struct {
 	MapObject
+	FilePath string
 	Image    int
 	Light    uint8
 	TurnTime time.Time
 }
 
 func NewNPC(m *Map, ni *common.NpcInfo) *NPC {
+	filePath := setting.Conf.NPCDirPath + ni.Filename + ".txt"
+	if _, err := os.Stat(filePath); err != nil {
+		log.Warnf("NPC %s 文件 %s 不存在\n", ni.Name, filePath)
+		return nil
+	}
 	return &NPC{
 		MapObject: MapObject{
 			ID:               m.Env.NewObjectID(),
@@ -24,6 +32,7 @@ func NewNPC(m *Map, ni *common.NpcInfo) *NPC {
 			CurrentLocation:  common.NewPoint(ni.LocationX, ni.LocationY),
 			CurrentDirection: common.MirDirection(G_Rand.RandInt(0, 2)),
 		},
+		FilePath: filePath,
 		Image:    ni.Image,
 		Light:    0, // TODO
 		TurnTime: time.Now(),
@@ -81,7 +90,7 @@ func (n *NPC) GetBaseStats() BaseStats {
 }
 
 func (n *NPC) String() string {
-	return fmt.Sprintf("NPC Coordinate: %s, ID: %d, name: %s\n", n.GetPoint().Coordinate(), n.ID, n.Name)
+	return fmt.Sprintf("NPC Coordinate: %s, ID: %d, name: %s, filepath: %s\n", n.GetPoint().Coordinate(), n.ID, n.Name, n.FilePath)
 }
 
 func (n *NPC) Broadcast(msg interface{}) {
