@@ -1,6 +1,7 @@
 package main
 
 import (
+	"os"
 	"sync"
 	"testing"
 
@@ -53,19 +54,24 @@ func i(t *testing.T, o interface{}) {
 
 func TestGameNPCs(t *testing.T) {
 	g := NewGame()
-	v, _ := g.Env.Maps.Load(1)
 	count := 0
-	v.(*Map).AOI.grids.Range(func(k, v interface{}) bool {
-		g := v.(*Grid)
-		//t.Log(g.String())
-		g.Objects.Range(func(k, v interface{}) bool {
-			if v.(IMapObject).GetRace() == common.ObjectTypeMerchant {
-				n := v.(*NPC)
-				if n != nil {
-					t.Log(n.String())
-					count += 1
+	g.Env.Maps.Range(func(k, v interface{}) bool {
+		v.(*Map).AOI.grids.Range(func(k, v interface{}) bool {
+			g := v.(*Grid)
+			//t.Log(g.String())
+			g.Objects.Range(func(k, v interface{}) bool {
+				if v.(IMapObject).GetRace() == common.ObjectTypeMerchant {
+					n := v.(*NPC)
+					if n != nil {
+						//t.Log(n.String())
+						count += 1
+						if _, err := os.Stat(n.FilePath); err != nil {
+							t.Logf("文件: %s 不存在\n", n.Name)
+						}
+					}
 				}
-			}
+				return true
+			})
 			return true
 		})
 		return true
