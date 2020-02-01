@@ -142,7 +142,6 @@ func (ServerMessage) ObjectChat(p *Player, message string, chatType common.ChatT
 
 func (ServerMessage) ObjectNPC(o IMapObject) *server.ObjectNPC {
 	return o.GetInfo().(*server.ObjectNPC)
-
 }
 
 func (ServerMessage) NewItemInfo(item *common.ItemInfo) *server.NewItemInfo {
