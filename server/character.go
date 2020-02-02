@@ -519,6 +519,10 @@ func (c *Character) Process() {
 	}
 }
 
+func (c *Character) Die() {
+
+}
+
 func (c *Character) GetMagic(spell common.Spell) *common.UserMagic {
 	for i := range c.Magics {
 		userMagic := c.Magics[i]

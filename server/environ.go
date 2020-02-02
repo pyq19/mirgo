@@ -1,18 +1,19 @@
 package main
 
 import (
-	"github.com/davyxu/cellnet"
-	_ "github.com/yenkeia/mirgo/codec/mircodec"
-	"github.com/yenkeia/mirgo/common"
-	_ "github.com/yenkeia/mirgo/proc/mirtcp"
-	"github.com/yenkeia/mirgo/proto/server"
-	"github.com/yenkeia/mirgo/setting"
 	"os"
 	"strconv"
 	"strings"
 	"sync"
 	"sync/atomic"
 	"time"
+
+	"github.com/davyxu/cellnet"
+	_ "github.com/yenkeia/mirgo/codec/mircodec"
+	"github.com/yenkeia/mirgo/common"
+	_ "github.com/yenkeia/mirgo/proc/mirtcp"
+	"github.com/yenkeia/mirgo/proto/server"
+	"github.com/yenkeia/mirgo/setting"
 )
 
 // Environ ...
@@ -273,6 +274,18 @@ func (e *Environ) GetPlayer(ID uint32) *Player {
 	for i := 0; i < len(e.Players); i++ {
 		o := e.Players[i]
 		if ID == o.ID {
+			return o
+		}
+	}
+	e.lock.Unlock()
+	return nil
+}
+
+func (e *Environ) GetPlayerByName(name string) *Player {
+	e.lock.Lock()
+	for i := 0; i < len(e.Players); i++ {
+		o := e.Players[i]
+		if name == o.Name {
 			return o
 		}
 	}

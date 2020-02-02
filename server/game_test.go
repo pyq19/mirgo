@@ -114,7 +114,7 @@ func TestGameDB_GetMonsterInfoByID(t *testing.T) {
 }
 
 func TestStringSplit(t *testing.T) {
-	sl := []string{"@", "@ ", "@a ", "@a b"}
+	sl := []string{"@", "@ ", "@a", "@a ", "@a b"}
 	for i := range sl {
 		res := strings.Split(sl[i][1:], " ")
 		t.Log("----", res, len(res))
