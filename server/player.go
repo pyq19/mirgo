@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
 
 	"github.com/davyxu/cellnet"
@@ -308,6 +309,28 @@ func (p *Player) Chat(message string) {
 			if len(parts) != 3 {
 				return
 			}
+			info := p.Map.Env.GameDB.GetItemInfoByName(parts[1])
+			if info == nil {
+				return
+			}
+			tmp, err := strconv.Atoi(parts[2])
+			if err != nil || tmp > 100 {
+				return
+			}
+			count := uint32(tmp)
+			for count > 0 {
+				if info.StackSize >= count {
+					userItem := p.Map.Env.NewUserItem(info)
+					userItem.Count = count
+					p.GainItem(userItem)
+					return
+				}
+				userItem := p.Map.Env.NewUserItem(info)
+				userItem.Count = count
+				count -= info.StackSize
+				p.GainItem(userItem)
+			}
+			p.ReceiveChat(fmt.Sprintf("%s x %d 创建成功", info.Name, count), common.ChatTypeSystem)
 		case "CLEARBUFFS":
 		case "CLEARBAG":
 		case "SUPERMAN":
