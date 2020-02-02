@@ -304,7 +304,10 @@ func (p *Player) Chat(message string) {
 		case "RESTORE":
 		case "CHANGEGENDER":
 		case "LEVEL":
-		case "MAKE":
+		case "MAKE": // @make 物品名 数量
+			if len(parts) != 3 {
+				return
+			}
 		case "CLEARBUFFS":
 		case "CLEARBAG":
 		case "SUPERMAN":
@@ -565,24 +568,17 @@ func (p *Player) DropItem(id uint64, count uint32) {
 		Count:    count,
 		Success:  false,
 	}
-	index, item := p.GetUserItemByID(common.MirGridTypeInventory, id)
-	if item == nil || item.ID == 0 {
+	index, userItem := p.GetUserItemByID(common.MirGridTypeInventory, id)
+	if userItem == nil || userItem.ID == 0 {
 		p.Enqueue(msg)
 		return
 	}
-	obj := &Item{
-		MapObject: MapObject{
-			ID:  p.Map.Env.NewObjectID(),
-			Map: p.Map,
-		},
-		Gold:     0,
-		UserItem: item,
-	}
+	obj := p.Map.Env.CreateDropItem(p.Map, userItem, 0)
 	if dropMsg, ok := obj.Drop(p.GetPoint(), 1); !ok {
 		p.ReceiveChat(dropMsg, common.ChatTypeSystem)
 		return
 	}
-	if count >= item.Count {
+	if count >= userItem.Count {
 		p.Inventory[index] = common.UserItem{}
 	} else {
 		p.Inventory[index].Count -= count
@@ -596,14 +592,7 @@ func (p *Player) DropGold(gold uint64) {
 	if p.Gold < gold {
 		return
 	}
-	obj := &Item{
-		MapObject: MapObject{
-			ID:  p.Map.Env.NewObjectID(),
-			Map: p.Map,
-		},
-		Gold:     gold,
-		UserItem: nil,
-	}
+	obj := p.Map.Env.CreateDropItem(p.Map, nil, gold)
 	if dropMsg, ok := obj.Drop(p.GetPoint(), 3); !ok {
 		p.ReceiveChat(dropMsg, common.ChatTypeSystem)
 		return
