@@ -2,9 +2,10 @@ package main
 
 import (
 	"fmt"
-	"github.com/yenkeia/mirgo/common"
 	"sync"
 	"sync/atomic"
+
+	"github.com/yenkeia/mirgo/common"
 )
 
 type Cell struct {
@@ -74,17 +75,3 @@ func (c *Cell) AddObject(obj IMapObject) {
 func (c *Cell) DeleteObject(obj IMapObject) {
 	c.Objects.Delete(obj.GetID())
 }
-
-/*
-func (c *Cell) GetRace(obj IMapObject) common.ObjectType {
-	switch obj.(type) {
-	case *Player:
-		return common.ObjectTypePlayer
-	case *NPC:
-		return common.ObjectTypeMerchant
-	case *Monster:
-		return common.ObjectTypeMonster
-	}
-	return common.ObjectTypeNone
-}
-*/

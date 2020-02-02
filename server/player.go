@@ -1,10 +1,11 @@
 package main
 
 import (
+	"strings"
+
 	"github.com/davyxu/cellnet"
 	"github.com/yenkeia/mirgo/common"
 	"github.com/yenkeia/mirgo/proto/server"
-	"strings"
 )
 
 const (
@@ -274,6 +275,76 @@ func (p *Player) Chat(message string) {
 	// group
 	if strings.HasPrefix(message, "!!") {
 		return
+	}
+	if strings.HasPrefix(message, "@") {
+		parts := strings.Split(message[1:], " ")
+		if len(parts) < 2 {
+			return
+		}
+		switch strings.ToUpper(parts[0]) {
+		case "LOGIN":
+		case "KILL":
+		case "RESTORE":
+		case "CHANGEGENDER":
+		case "LEVEL":
+		case "MAKE":
+		case "CLEARBUFFS":
+		case "CLEARBAG":
+		case "SUPERMAN":
+		case "GAMEMASTER":
+		case "OBSERVER":
+		case "ALLOWGUILD":
+		case "RECALL":
+		case "ENABLEGROUPRECALL":
+		case "GROUPRECALL":
+		case "RECALLMEMBER":
+		case "RECALLLOVER":
+		case "TIME":
+		case "ROLL":
+		case "MAP":
+		case "MOVE":
+		case "MAPMOVE":
+		case "GOTO":
+		case "MOB":
+		case "RECALLMOB":
+		case "RELOADDROPS":
+		case "RELOADNPCS":
+		case "GIVEGOLD":
+		case "GIVEPEARLS":
+		case "GIVECREDIT":
+		case "GIVESKILL":
+		case "FIND":
+		case "LEAVEGUILD":
+		case "CREATEGUILD":
+		case "ALLOWTRADE":
+		case "TRIGGER":
+		case "RIDE":
+		case "SETFLAG":
+		case "LISTFLAGS":
+		case "CLEARFLAGS":
+		case "CLEARMOB":
+		case "CHANGECLASS": //@changeclass [Player] [Class]
+		case "DIE":
+		case "HAIR":
+		case "DECO": //TEST CODE
+		case "ADJUSTPKPOINT":
+		case "ADDINVENTORY":
+		case "ADDSTORAGE":
+		case "INFO":
+		case "CLEARQUESTS":
+		case "SETQUEST":
+		case "TOGGLETRANSFORM":
+		case "CREATEMAPINSTANCE": //TEST CODE
+		case "STARTCONQUEST":
+		case "RESETCONQUEST":
+		case "GATES":
+		case "CHANGEFLAG":
+		case "CHANGEFLAGCOLOUR":
+		case "REVIVE":
+		case "DELETESKILL":
+		default:
+			return
+		}
 	}
 	msg := ServerMessage{}.ObjectChat(p, message, common.ChatTypeNormal)
 	p.Enqueue(msg)

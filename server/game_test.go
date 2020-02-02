@@ -2,6 +2,7 @@ package main
 
 import (
 	"os"
+	"strings"
 	"sync"
 	"testing"
 
@@ -110,4 +111,15 @@ func TestGameDB_GetMonsterInfoByID(t *testing.T) {
 	m2 := gdb.GetMonsterInfoByID(2)
 	t.Log(m1)
 	t.Log(m2)
+}
+
+func TestStringSplit(t *testing.T) {
+	sl := []string{"@", "@ ", "@a ", "@a b"}
+	for i := range sl {
+		res := strings.Split(sl[i][1:], " ")
+		t.Log("----", res, len(res))
+		for j := range res {
+			t.Log(res[j])
+		}
+	}
 }
