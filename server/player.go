@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/davyxu/cellnet"
@@ -278,12 +279,28 @@ func (p *Player) Chat(message string) {
 	}
 	if strings.HasPrefix(message, "@") {
 		parts := strings.Split(message[1:], " ")
-		if len(parts) < 2 {
-			return
-		}
 		switch strings.ToUpper(parts[0]) {
 		case "LOGIN":
-		case "KILL":
+		case "KILL": // @kill 杀死面前的怪物，@kill name 杀死名字为 name 的玩家
+			if len(parts) == 2 {
+				o := p.Map.Env.GetPlayerByName(parts[1])
+				if o == nil {
+					p.ReceiveChat(fmt.Sprintf("找不到玩家(%s)", parts[1]), common.ChatTypeSystem)
+					return
+				}
+				o.Die()
+				return
+			}
+			c := p.Map.GetNextCell(p.GetCell(), p.GetDirection(), 1)
+			if c == nil {
+				return
+			}
+			c.Objects.Range(func(k, v interface{}) bool {
+				if o, ok := v.(*Monster); ok {
+					o.Die()
+				}
+				return true
+			})
 		case "RESTORE":
 		case "CHANGEGENDER":
 		case "LEVEL":
