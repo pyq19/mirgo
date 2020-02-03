@@ -16,6 +16,7 @@ type Monster struct {
 	Poison      common.PoisonType
 	Light       uint8
 	Target      *IMapObject
+	Level       uint16
 	HP          uint32
 	MaxHP       uint32
 	MinAC       uint16
@@ -55,6 +56,7 @@ func NewMonster(mp *Map, p common.Point, mi *common.MonsterInfo, ri int) (m *Mon
 	m.Poison = common.PoisonTypeNone
 	m.CurrentLocation = p
 	m.CurrentDirection = common.MirDirection(G_Rand.RandInt(0, 7))
+	m.Level = uint16(mi.Level)
 	m.HP = uint32(mi.HP)
 	m.MaxHP = uint32(mi.HP)
 	m.MinAC = uint16(mi.MinAC)
