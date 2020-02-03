@@ -9,7 +9,6 @@ import (
 
 type Monster struct {
 	MapObject
-	RespawnID   int
 	Image       common.Monster
 	AI          int
 	Effect      int
@@ -41,9 +40,8 @@ func (m *Monster) String() string {
 	return fmt.Sprintf("Monster: %s, (%v), ID: %d, ptr: %p\n", m.Name, m.CurrentLocation, m.ID, m)
 }
 
-func NewMonster(mp *Map, p common.Point, mi *common.MonsterInfo, ri int) (m *Monster) {
+func NewMonster(mp *Map, p common.Point, mi *common.MonsterInfo) (m *Monster) {
 	m = new(Monster)
-	m.RespawnID = ri
 	m.ID = mp.Env.NewObjectID()
 	m.Map = mp
 	m.Name = mi.Name
