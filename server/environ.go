@@ -382,7 +382,7 @@ func (e *Environ) TimeTick() {
 		case <-systemBroadcastTicker.C:
 			e.Submit(NewTask(e.SystemBroadcast))
 		case <-mapTicker.C:
-			e.Submit(NewTask(e.MapProcess))
+			e.Submit(NewTask(e.EnvironProcess))
 		case <-playerTicker.C:
 			e.Submit(NewTask(e.PlayerProcess))
 		case <-monsterNPCTicker.C:
@@ -448,7 +448,7 @@ func (e *Environ) GetActiveObjects() (monster []*Monster, npc []*NPC) {
 	return
 }
 
-func (e *Environ) MapProcess(...interface{}) {
+func (e *Environ) EnvironProcess(...interface{}) {
 	finishID := make([]uint32, 0)
 	e.ActionList.Range(func(k, v interface{}) bool {
 		action := v.(*DelayedAction)
