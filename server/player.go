@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/davyxu/cellnet"
 	"github.com/yenkeia/mirgo/common"
@@ -614,14 +615,32 @@ func (p *Player) UseItem(id uint64) {
 		p.Enqueue(msg)
 		return
 	}
-	// TODO
+	ph := &p.Health
 	info := p.Map.Env.GameDB.GetItemInfoByID(int(item.ItemID))
 	switch info.Type {
 	case common.ItemTypePotion:
 		switch info.Shape {
-		case 0:
-		case 1:
-		case 2:
+		case 0: // NormalPotion 一般药水
+			if info.HP > 0 {
+				ph.HPPotValue = int(info.HP)                         // 回复总值
+				ph.HPPotPerValue = int(info.HP / 3)                  // 一次回复多少
+				*ph.HPPotNextTime = time.Now().Add(ph.HPPotDuration) // 下次生效时间
+				ph.HPPotTickNum = 3                                  // 总共跳几次
+				ph.HPPotTickTime = 0                                 // 当前第几跳
+			}
+			if info.MP > 0 {
+				ph.MPPotValue = int(info.MP)
+				ph.MPPotPerValue = int(info.MP / 3)
+				*ph.MPPotNextTime = time.Now().Add(ph.MPPotDuration)
+				ph.MPPotTickNum = 3
+				ph.MPPotTickTime = 0
+			}
+		case 1: // SunPotion 太阳水
+			p.ChangeHP(int(info.HP))
+			p.ChangeMP(int(info.MP))
+		case 2: // TODO MysteryWater
+		case 3: // TODO Buff
+		case 4: // TODO Exp 经验
 		}
 	case common.ItemTypeScroll:
 	case common.ItemTypeBook:
