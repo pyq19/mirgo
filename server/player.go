@@ -618,6 +618,11 @@ func (p *Player) UseItem(id uint64) {
 	info := p.Map.Env.GameDB.GetItemInfoByID(int(item.ItemID))
 	switch info.Type {
 	case common.ItemTypePotion:
+		switch info.Shape {
+		case 0:
+		case 1:
+		case 2:
+		}
 	case common.ItemTypeScroll:
 	case common.ItemTypeBook:
 	case common.ItemTypeScript:

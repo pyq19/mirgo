@@ -75,6 +75,27 @@ type Character struct {
 	AttackBonus        uint8
 	Magics             []common.UserMagic
 	ActionList         *sync.Map // map[uint32]DelayedAction
+	Health             Health    // 状态恢复
+}
+
+type Health struct {
+	// 生命药水回复
+	HPPotValue    int           // 回复总值
+	HPPotPerValue int           // 一次回复多少
+	HPPotNextTime *time.Time    // 下次生效时间
+	HPPotDuration time.Duration // 两次生效时间间隔
+	HPPotTickNum  int           // 总共跳几次
+	HPPotTickTime int           // 当前第几跳
+	// 魔法药水回复
+	MPPotValue    int
+	MPPotPerValue int
+	MPPotNextTime *time.Time
+	MPPotDuration time.Duration
+	MPPotTickNum  int
+	MPPotTickTime int
+	// 角色生命/魔法回复
+	HealNextTime *time.Time
+	HealDuration time.Duration
 }
 
 func NewCharacter(g *Game, p *Player, c *common.Character) Character {
@@ -117,6 +138,7 @@ func NewCharacter(g *Game, p *Player, c *common.Character) Character {
 	}
 	magics := make([]common.UserMagic, 0)
 	g.DB.Table("user_magic").Where("character_id = ?", c.ID).Find(&magics)
+	healNextTime := time.Now().Add(10 * time.Second)
 	return Character{
 		Player:         p,
 		HP:             c.HP,
@@ -138,14 +160,19 @@ func NewCharacter(g *Game, p *Player, c *common.Character) Character {
 		MaxExperience:  100,
 		Magics:         magics,
 		ActionList:     new(sync.Map),
+		Health: Health{
+			HealNextTime: &healNextTime,
+			HealDuration: 10 * time.Second,
+		},
 	}
 }
 
 func (c *Character) Process() {
 	finishID := make([]uint32, 0)
+	now := time.Now()
 	c.ActionList.Range(func(k, v interface{}) bool {
 		action := v.(*DelayedAction)
-		if action.Finish || time.Now().Before(action.ActionTime) {
+		if action.Finish || now.Before(action.ActionTime) {
 			return true
 		}
 		action.Task.Execute()
@@ -157,6 +184,30 @@ func (c *Character) Process() {
 	})
 	for i := range finishID {
 		c.ActionList.Delete(finishID[i])
+	}
+	ch := c.Health
+	if ch.HPPotValue != 0 && ch.HPPotNextTime.Before(now) {
+		c.ChangeHP(ch.HPPotPerValue)
+		ch.HPPotTickTime += 1
+		if ch.HPPotTickTime >= ch.HPPotTickNum {
+			ch.HPPotValue = 0
+		} else {
+			*ch.HPPotNextTime = now.Add(ch.HPPotDuration)
+		}
+	}
+	if ch.MPPotValue != 0 && ch.MPPotNextTime.Before(now) {
+		c.ChangeMP(ch.MPPotPerValue)
+		ch.MPPotTickTime += 1
+		if ch.MPPotTickTime >= ch.MPPotTickNum {
+			ch.MPPotValue = 0
+		} else {
+			*ch.MPPotNextTime = now.Add(ch.MPPotDuration)
+		}
+	}
+	if ch.HealNextTime.Before(now) {
+		*ch.HealNextTime = now.Add(ch.HealDuration)
+		c.ChangeHP(int(float32(c.MaxHP)*0.03) + 1)
+		c.ChangeMP(int(float32(c.MaxMP)*0.03) + 1)
 	}
 }
 
@@ -505,14 +556,14 @@ func (c *Character) SetMP(amount uint32) {
 }
 
 func (c *Character) ChangeHP(amount int) {
-	if amount == 0 || c.IsDead() {
+	if amount == 0 || c.IsDead() || c.HP >= c.MaxHP {
 		return
 	}
 	c.SetHP(uint32(int(c.HP) + amount))
 }
 
 func (c *Character) ChangeMP(amount int) {
-	if amount == 0 || c.IsDead() {
+	if amount == 0 || c.IsDead() || c.MP >= c.MaxMP {
 		return
 	}
 	c.SetMP(uint32(int(c.MP) + amount))
