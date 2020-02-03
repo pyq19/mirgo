@@ -116,6 +116,7 @@ func (e *Environ) InitGameDB() {
 	gdb.ItemIDInfoMap = new(sync.Map)
 	gdb.ItemNameInfoMap = new(sync.Map)
 	gdb.MonsterIDInfoMap = new(sync.Map)
+	gdb.MonsterNameInfoMap = new(sync.Map)
 	gdb.MagicIDInfoMap = new(sync.Map)
 	for i := range gdb.MapInfos {
 		v := gdb.MapInfos[i]
@@ -128,6 +129,7 @@ func (e *Environ) InitGameDB() {
 	}
 	for i := range gdb.MonsterInfos {
 		v := gdb.MonsterInfos[i]
+		gdb.MonsterNameInfoMap.Store(v.Name, &v)
 		gdb.MonsterIDInfoMap.Store(v.ID, &v)
 	}
 	for i := range gdb.MagicInfos {
