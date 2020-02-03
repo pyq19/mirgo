@@ -161,8 +161,12 @@ func NewCharacter(g *Game, p *Player, c *common.Character) Character {
 		Magics:         magics,
 		ActionList:     new(sync.Map),
 		Health: Health{
-			HealNextTime: &healNextTime,
-			HealDuration: 10 * time.Second,
+			HPPotNextTime: new(time.Time),
+			HPPotDuration: 3 * time.Second,
+			MPPotNextTime: new(time.Time),
+			MPPotDuration: 3 * time.Second,
+			HealNextTime:  &healNextTime,
+			HealDuration:  10 * time.Second,
 		},
 	}
 }
@@ -185,7 +189,7 @@ func (c *Character) Process() {
 	for i := range finishID {
 		c.ActionList.Delete(finishID[i])
 	}
-	ch := c.Health
+	ch := &c.Health
 	if ch.HPPotValue != 0 && ch.HPPotNextTime.Before(now) {
 		c.ChangeHP(ch.HPPotPerValue)
 		ch.HPPotTickTime += 1
