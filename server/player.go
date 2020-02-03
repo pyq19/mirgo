@@ -373,7 +373,30 @@ func (p *Player) Chat(message string) {
 		case "ADJUSTPKPOINT":
 		case "ADDINVENTORY":
 		case "ADDSTORAGE":
-		case "INFO":
+		case "INFO": // @info
+			if len(parts) != 1 {
+				return
+			}
+			c := p.Map.GetNextCell(p.GetCell(), p.GetDirection(), 1)
+			if c == nil {
+				return
+			}
+			c.Objects.Range(func(k, v interface{}) bool {
+				o := v.(IMapObject)
+				if o.GetRace() == common.ObjectTypeMonster {
+					mo := o.(*Monster)
+					p.ReceiveChat("--Monster Info--", common.ChatTypeSystem2)
+					p.ReceiveChat(fmt.Sprintf("ID: %d, Name: %s", mo.ID, mo.Name), common.ChatTypeSystem2)
+					p.ReceiveChat(fmt.Sprintf("Level: %d, Coordinate: %s", mo.Level, mo.GetCoordinate()), common.ChatTypeSystem2)
+					p.ReceiveChat(fmt.Sprintf("HP: %d, MinDC: %d, MaxDC: %d", mo.HP, mo.MinDC, mo.MaxDC), common.ChatTypeSystem2)
+				}
+				if o.GetRace() == common.ObjectTypePlayer {
+					po := o.(*Player)
+					p.ReceiveChat("--Player Info--", common.ChatTypeSystem2)
+					p.ReceiveChat(fmt.Sprintf("Name: %s, Level: %d, Coordinate: %s", po.Name, po.Level, po.GetCoordinate()), common.ChatTypeSystem2)
+				}
+				return true
+			})
 		case "CLEARQUESTS":
 		case "SETQUEST":
 		case "TOGGLETRANSFORM":
@@ -385,9 +408,8 @@ func (p *Player) Chat(message string) {
 		case "CHANGEFLAGCOLOUR":
 		case "REVIVE":
 		case "DELETESKILL":
-		default:
-			return
 		}
+		return
 	}
 	msg := ServerMessage{}.ObjectChat(p, message, common.ChatTypeNormal)
 	p.Enqueue(msg)
