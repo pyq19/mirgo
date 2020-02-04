@@ -2,8 +2,11 @@ package script
 
 import (
 	"bufio"
+	"container/list"
+	"io"
 	"os"
 	"strings"
+	"unicode"
 )
 
 func ReadLines(filepath string) (lines []string, err error) {
@@ -13,12 +16,17 @@ func ReadLines(filepath string) (lines []string, err error) {
 		return
 	}
 
-	scanner := bufio.NewScanner(file)
+	return ReadLinesByReader(file), nil
+}
+
+func ReadLinesByReader(r io.Reader) []string {
+	lines := []string{}
+	scanner := bufio.NewScanner(r)
 	for scanner.Scan() {
 		lines = append(lines, scanner.Text())
 	}
 
-	return
+	return lines
 }
 
 func StartsWithI(str, s string) bool {
@@ -27,4 +35,18 @@ func StartsWithI(str, s string) bool {
 	}
 
 	return strings.ToUpper(str[:len(s)]) == strings.ToUpper(s)
+}
+
+func TrimEnd(s string) string {
+	return strings.TrimRightFunc(s, unicode.IsSpace)
+}
+
+func ListToArray(lst *list.List) []string {
+	ret := make([]string, lst.Len())
+
+	i := 0
+	for it := lst.Front(); it != nil; it = it.Next() {
+		ret[i] = it.Value.(string)
+	}
+	return ret
 }
