@@ -137,7 +137,7 @@ func (m *Map) InitMonsters() error {
 				if err != nil {
 					continue
 				}
-				m.AddObject(NewMonster(m, p, m.Env.GameDB.GetMonsterInfoByID(ri.MonsterID), ri.ID))
+				m.AddObject(NewMonster(m, p, m.Env.GameDB.GetMonsterInfoByID(ri.MonsterID)))
 			}
 		}
 	}
