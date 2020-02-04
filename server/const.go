@@ -1,4 +1,4 @@
-package main
+package server
 
 const (
 	StopGameServerClosed              = 0

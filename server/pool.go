@@ -1,4 +1,4 @@
-package main
+package server
 
 type Task struct {
 	f    func(...interface{})
