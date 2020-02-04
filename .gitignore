@@ -29,7 +29,6 @@ target/
 *.iml
 *.iws
 
-
 *.cache
 *.diff
 *.patch
@@ -53,3 +52,7 @@ database
 *.swp
 dotnettools/mysql2sqlite
 smain
+
+
+vendor
+*.vscode
