@@ -6,8 +6,5 @@ import (
 )
 
 func main() {
-
-	//common.Init()
-	//setting.InitSetting()
 	server.NewGame().ServerStart()
 }
