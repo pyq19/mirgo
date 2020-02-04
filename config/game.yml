@@ -1,0 +1,15 @@
+game:
+  server:
+    addr: "0.0.0.0:7000"
+    db_path: ${SQLITE_DB_PATH}
+    map_dir_path: ${MAP_DIR_PATH}
+    script_dir_path: ${SCRIPT_DIR_PATH}
+    drop_dir_path: ${DROP_DIR_PATH}
+    npc_dir_path: ${NPC_DIR_PATH}
+  client:
+    addr: "0.0.0.0:7000"
+    db_path: ${SQLITE_DB_PATH}
+    map_dir_path: ${MAP_DIR_PATH}
+    script_dir_path: ${SCRIPT_DIR_PATH}
+    drop_dir_path: ${DROP_DIR_PATH}
+    npc_dir_path: ${NPC_DIR_PATH}

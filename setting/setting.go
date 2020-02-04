@@ -1,8 +1,9 @@
 package setting
 
-import "os"
-
-import "github.com/yenkeia/mirgo/common"
+import (
+	"github.com/yenkeia/mirgo/common"
+	"github.com/yenkeia/mirgo/setting/configure"
+)
 
 var (
 	Conf      config
@@ -10,14 +11,14 @@ var (
 )
 
 func init() {
-	gopath := os.Getenv("GOPATH")
+	gameConfig := configure.GetGameConfigure("server")
 	Conf = config{
-		Addr:          "0.0.0.0:7000",
-		DBPath:        gopath + "/src/github.com/yenkeia/mirgo/dotnettools/mir.sqlite",
-		MapDirPath:    gopath + "/src/github.com/yenkeia/mirgo/dotnettools/database/Maps/",
-		ScriptDirPath: gopath + "/src/github.com/yenkeia/mirgo/script/",
-		DropDirPath:   gopath + "/src/github.com/yenkeia/mirgo/dotnettools/database/Envir/Drops/",
-		NPCDirPath:    gopath + "/src/github.com/yenkeia/mirgo/dotnettools/database/Envir/NPCs/",
+		Addr:         gameConfig.Addr,
+		DBPath:       gameConfig.DBPath,
+		MapDirPath:   gameConfig.MapDirPath,
+		ScriptDirPath: gameConfig.ScriptDirPath,
+		DropDirPath:   gameConfig.DropDirPath,
+		NPCDirPath:    gameConfig.NPCDirPath,
 	}
 	BaseStats = make(map[common.MirClass]baseStats)
 	BaseStats[common.MirClassWarrior] = baseStats{

@@ -6,11 +6,11 @@ import (
 )
 
 func init() {
-	proc.RegisterProcessor("mir.client.tcp", func(bundle proc.ProcessorBundle, userCallback cellnet.EventCallback, args ...interface{}) {
+	proc.RegisterProcessor("mir.client.tcp", func(bundle proc.ProcessorBundle, userCallback cellnet.EventCallback) {
 		bundle.SetTransmitter(new(ClientTCPMessageTransmitter))
 		bundle.SetCallback(proc.NewQueuedEventCallback(userCallback))
 	})
-	proc.RegisterProcessor("mir.server.tcp", func(bundle proc.ProcessorBundle, userCallback cellnet.EventCallback, args ...interface{}) {
+	proc.RegisterProcessor("mir.server.tcp", func(bundle proc.ProcessorBundle, userCallback cellnet.EventCallback) {
 		bundle.SetTransmitter(new(ServerTCPMessageTransmitter))
 		bundle.SetCallback(proc.NewQueuedEventCallback(userCallback))
 	})

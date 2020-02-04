@@ -10,6 +10,7 @@ import (
 	_ "github.com/jinzhu/gorm/dialects/sqlite"
 	_ "github.com/yenkeia/mirgo/proc/mirtcp"
 	"github.com/yenkeia/mirgo/setting"
+	"fmt"
 )
 
 var log = golog.New("server.game")
@@ -25,6 +26,7 @@ type Game struct {
 // NewGame ...
 func NewGame() *Game {
 	g := new(Game)
+	fmt.Printf(setting.Conf.DBPath)
 	db, err := gorm.Open("sqlite3", setting.Conf.DBPath)
 	if err != nil {
 		panic("failed to connect database")
@@ -40,10 +42,9 @@ func NewGame() *Game {
 // ServerStart ...
 func (g *Game) ServerStart() {
 	queue := cellnet.NewEventQueue()
-	p := peer.NewGenericPeer("tcp.Acceptor", "server", setting.Conf.Addr, queue)
-	g.Peer = &p
-	proc.BindProcessorHandler(p, "mir.server.tcp", g.HandleEvent)
-	p.Start()         // 开始侦听
+	peerIns := peer.NewGenericPeer("tcp.Acceptor", "server", setting.Conf.Addr, queue)
+	proc.BindProcessorHandler(peerIns, "mir.server.tcp", g.HandleEvent)
+	peerIns.Start()         // 开始侦听
 	queue.StartLoop() // 事件队列开始循环
 	queue.Wait()      // 阻塞等待事件队列结束退出( 在另外的goroutine调用queue.StopLoop() )
 }
