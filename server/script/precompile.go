@@ -9,25 +9,27 @@ import (
 
 var (
 	regexInclude = regexp.MustCompile(`#INCLUDE\s*\[([^\n]+)\]\s*(@[^\n]+)`)
-	regexPage    = regexp.MustCompile(`^\[([^\n]+)\]\s*$`)
+	regexPage    = regexp.MustCompile(`^(\[[^\n]+\])\s*$`)
 )
 
-type PageScript struct {
+type PageSource struct {
 	Name  string
 	Lines []string
 }
 
 type PreCompiledScript struct {
-	Pages []*PageScript
+	Pages map[string]*PageSource
 }
 
-func (p *PreCompiledScript) GetPage(name string) *PageScript {
-	for _, v := range p.Pages {
-		if strings.ToLower(v.Name) == strings.ToLower(name) {
-			return v
-		}
-	}
-	return nil
+func (p *PreCompiledScript) Add(ps *PageSource) {
+	p.Pages[strings.ToUpper(ps.Name)] = ps
+}
+
+func (p *PreCompiledScript) Take(name string) *PageSource {
+	name = strings.ToUpper(name)
+	ps := p.Pages[name]
+	delete(p.Pages, name)
+	return ps
 }
 
 // 按[pagename]拆分脚本行
@@ -37,20 +39,20 @@ func precompile(filelines []string) (*PreCompiledScript, error) {
 		return nil, err
 	}
 
-	var curPage *PageScript
+	var curPage *PageSource
 
 	ret := &PreCompiledScript{}
-	ret.Pages = []*PageScript{}
+	ret.Pages = map[string]*PageSource{}
 
 	for _, line := range lines {
 		if line[0] == '[' {
 			match := regexPage.FindStringSubmatch(line)
 			if len(match) > 0 {
 				if curPage != nil {
-					ret.Pages = append(ret.Pages, curPage)
+					ret.Add(curPage)
 				}
 
-				curPage = &PageScript{
+				curPage = &PageSource{
 					Name:  match[1],
 					Lines: []string{},
 				}
@@ -67,7 +69,7 @@ func precompile(filelines []string) (*PreCompiledScript, error) {
 	}
 
 	if curPage != nil {
-		ret.Pages = append(ret.Pages, curPage)
+		ret.Add(curPage)
 	}
 
 	return ret, nil
