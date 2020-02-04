@@ -1,10 +1,14 @@
 package main
 
 import (
+	"fmt"
+	"strconv"
+	"strings"
+	"time"
+
 	"github.com/davyxu/cellnet"
 	"github.com/yenkeia/mirgo/common"
 	"github.com/yenkeia/mirgo/proto/server"
-	"strings"
 )
 
 const (
@@ -275,6 +279,170 @@ func (p *Player) Chat(message string) {
 	if strings.HasPrefix(message, "!!") {
 		return
 	}
+	if strings.HasPrefix(message, "@") {
+		parts := strings.Split(message[1:], " ")
+		switch strings.ToUpper(parts[0]) {
+		case "LOGIN":
+		case "KILL": // @kill 杀死面前的怪物，@kill name 杀死名字为 name 的玩家
+			if len(parts) == 2 {
+				o := p.Map.Env.GetPlayerByName(parts[1])
+				if o == nil {
+					p.ReceiveChat(fmt.Sprintf("找不到玩家(%s)", parts[1]), common.ChatTypeSystem)
+					return
+				}
+				o.Die()
+				return
+			}
+			c := p.Map.GetNextCell(p.GetCell(), p.GetDirection(), 1)
+			if c == nil {
+				return
+			}
+			c.Objects.Range(func(k, v interface{}) bool {
+				if o, ok := v.(*Monster); ok {
+					o.Die()
+				}
+				return true
+			})
+		case "RESTORE":
+		case "CHANGEGENDER":
+		case "LEVEL":
+		case "MAKE": // @make 物品名 数量
+			if len(parts) != 3 {
+				return
+			}
+			info := p.Map.Env.GameDB.GetItemInfoByName(parts[1])
+			if info == nil {
+				return
+			}
+			tmp, err := strconv.Atoi(parts[2])
+			if err != nil || tmp > 100 {
+				return
+			}
+			count := uint32(tmp)
+			for count > 0 {
+				if info.StackSize >= count {
+					userItem := p.Map.Env.NewUserItem(info)
+					userItem.Count = count
+					p.GainItem(userItem)
+					return
+				}
+				userItem := p.Map.Env.NewUserItem(info)
+				userItem.Count = count
+				count -= info.StackSize
+				p.GainItem(userItem)
+			}
+			p.ReceiveChat(fmt.Sprintf("%s x %d 创建成功", info.Name, count), common.ChatTypeSystem)
+		case "CLEARBUFFS":
+		case "CLEARBAG":
+		case "SUPERMAN":
+		case "GAMEMASTER":
+		case "OBSERVER":
+		case "ALLOWGUILD":
+		case "RECALL":
+		case "ENABLEGROUPRECALL":
+		case "GROUPRECALL":
+		case "RECALLMEMBER":
+		case "RECALLLOVER":
+		case "TIME":
+		case "ROLL":
+		case "MAP":
+			p.ReceiveChat(fmt.Sprintf("当前地图: %s, ID: %d", p.Map.Info.Title, p.Map.Info.ID), common.ChatTypeSystem)
+		case "MOVE": // @move x y
+			if len(parts) != 3 {
+				p.ReceiveChat(fmt.Sprintf("移动失败，正确命令格式: @move 123 456"), common.ChatTypeSystem)
+				return
+			}
+			x, err := strconv.Atoi(parts[1])
+			if err != nil {
+				p.ReceiveChat(fmt.Sprintf("移动失败，正确命令格式: @move 123 456"), common.ChatTypeSystem)
+				return
+			}
+			y, err := strconv.Atoi(parts[2])
+			if err != nil {
+				p.ReceiveChat(fmt.Sprintf("移动失败，正确命令格式: @move 123 456"), common.ChatTypeSystem)
+				return
+			}
+			p.Teleport(p.Map, common.NewPoint(x, y))
+		case "MAPMOVE":
+		case "GOTO":
+		case "MOB": // @mob 怪物名称		在玩家周围生成 1 个怪物
+			if len(parts) != 2 {
+				p.ReceiveChat(fmt.Sprintf("生成怪物失败，正确命令格式: @mob 怪物名"), common.ChatTypeSystem)
+				return
+			}
+			c := p.Map.GetNextCell(p.GetCell(), p.GetDirection(), 1)
+			if c == nil || c.HasObject() {
+				p.ReceiveChat(fmt.Sprintf("生成怪物失败"), common.ChatTypeSystem)
+				return
+			}
+			mi := p.Map.Env.GameDB.GetMonsterInfoByName(parts[1])
+			if mi == nil {
+				p.ReceiveChat(fmt.Sprintf("生成怪物失败，找不到怪物 %s", parts[1]), common.ChatTypeSystem)
+				return
+			}
+			p.Map.AddObject(NewMonster(p.Map, c.Point(), mi))
+		case "RECALLMOB":
+		case "RELOADDROPS":
+		case "RELOADNPCS":
+		case "GIVEGOLD":
+		case "GIVEPEARLS":
+		case "GIVECREDIT":
+		case "GIVESKILL":
+		case "FIND":
+		case "LEAVEGUILD":
+		case "CREATEGUILD":
+		case "ALLOWTRADE":
+		case "TRIGGER":
+		case "RIDE":
+		case "SETFLAG":
+		case "LISTFLAGS":
+		case "CLEARFLAGS":
+		case "CLEARMOB":
+		case "CHANGECLASS": //@changeclass [Player] [Class]
+		case "DIE":
+		case "HAIR":
+		case "DECO": //TEST CODE
+		case "ADJUSTPKPOINT":
+		case "ADDINVENTORY":
+		case "ADDSTORAGE":
+		case "INFO": // @info
+			if len(parts) != 1 {
+				return
+			}
+			c := p.Map.GetNextCell(p.GetCell(), p.GetDirection(), 1)
+			if c == nil {
+				return
+			}
+			c.Objects.Range(func(k, v interface{}) bool {
+				o := v.(IMapObject)
+				if o.GetRace() == common.ObjectTypeMonster {
+					mo := o.(*Monster)
+					p.ReceiveChat("--Monster Info--", common.ChatTypeSystem2)
+					p.ReceiveChat(fmt.Sprintf("ID: %d, Name: %s", mo.ID, mo.Name), common.ChatTypeSystem2)
+					p.ReceiveChat(fmt.Sprintf("Level: %d, Coordinate: %s", mo.Level, mo.GetCoordinate()), common.ChatTypeSystem2)
+					p.ReceiveChat(fmt.Sprintf("HP: %d, MinDC: %d, MaxDC: %d", mo.HP, mo.MinDC, mo.MaxDC), common.ChatTypeSystem2)
+				}
+				if o.GetRace() == common.ObjectTypePlayer {
+					po := o.(*Player)
+					p.ReceiveChat("--Player Info--", common.ChatTypeSystem2)
+					p.ReceiveChat(fmt.Sprintf("Name: %s, Level: %d, Coordinate: %s", po.Name, po.Level, po.GetCoordinate()), common.ChatTypeSystem2)
+				}
+				return true
+			})
+		case "CLEARQUESTS":
+		case "SETQUEST":
+		case "TOGGLETRANSFORM":
+		case "CREATEMAPINSTANCE": //TEST CODE
+		case "STARTCONQUEST":
+		case "RESETCONQUEST":
+		case "GATES":
+		case "CHANGEFLAG":
+		case "CHANGEFLAGCOLOUR":
+		case "REVIVE":
+		case "DELETESKILL":
+		}
+		return
+	}
 	msg := ServerMessage{}.ObjectChat(p, message, common.ChatTypeNormal)
 	p.Enqueue(msg)
 	p.Broadcast(msg)
@@ -447,10 +615,33 @@ func (p *Player) UseItem(id uint64) {
 		p.Enqueue(msg)
 		return
 	}
-	// TODO
+	ph := &p.Health
 	info := p.Map.Env.GameDB.GetItemInfoByID(int(item.ItemID))
 	switch info.Type {
 	case common.ItemTypePotion:
+		switch info.Shape {
+		case 0: // NormalPotion 一般药水
+			if info.HP > 0 {
+				ph.HPPotValue = int(info.HP)                         // 回复总值
+				ph.HPPotPerValue = int(info.HP / 3)                  // 一次回复多少
+				*ph.HPPotNextTime = time.Now().Add(ph.HPPotDuration) // 下次生效时间
+				ph.HPPotTickNum = 3                                  // 总共跳几次
+				ph.HPPotTickTime = 0                                 // 当前第几跳
+			}
+			if info.MP > 0 {
+				ph.MPPotValue = int(info.MP)
+				ph.MPPotPerValue = int(info.MP / 3)
+				*ph.MPPotNextTime = time.Now().Add(ph.MPPotDuration)
+				ph.MPPotTickNum = 3
+				ph.MPPotTickTime = 0
+			}
+		case 1: // SunPotion 太阳水
+			p.ChangeHP(int(info.HP))
+			p.ChangeMP(int(info.MP))
+		case 2: // TODO MysteryWater
+		case 3: // TODO Buff
+		case 4: // TODO Exp 经验
+		}
 	case common.ItemTypeScroll:
 	case common.ItemTypeBook:
 	case common.ItemTypeScript:
@@ -477,24 +668,17 @@ func (p *Player) DropItem(id uint64, count uint32) {
 		Count:    count,
 		Success:  false,
 	}
-	index, item := p.GetUserItemByID(common.MirGridTypeInventory, id)
-	if item == nil || item.ID == 0 {
+	index, userItem := p.GetUserItemByID(common.MirGridTypeInventory, id)
+	if userItem == nil || userItem.ID == 0 {
 		p.Enqueue(msg)
 		return
 	}
-	obj := &Item{
-		MapObject: MapObject{
-			ID:  p.Map.Env.NewObjectID(),
-			Map: p.Map,
-		},
-		Gold:     0,
-		UserItem: item,
-	}
+	obj := p.Map.Env.CreateDropItem(p.Map, userItem, 0)
 	if dropMsg, ok := obj.Drop(p.GetPoint(), 1); !ok {
 		p.ReceiveChat(dropMsg, common.ChatTypeSystem)
 		return
 	}
-	if count >= item.Count {
+	if count >= userItem.Count {
 		p.Inventory[index] = common.UserItem{}
 	} else {
 		p.Inventory[index].Count -= count
@@ -508,14 +692,7 @@ func (p *Player) DropGold(gold uint64) {
 	if p.Gold < gold {
 		return
 	}
-	obj := &Item{
-		MapObject: MapObject{
-			ID:  p.Map.Env.NewObjectID(),
-			Map: p.Map,
-		},
-		Gold:     gold,
-		UserItem: nil,
-	}
+	obj := p.Map.Env.CreateDropItem(p.Map, nil, gold)
 	if dropMsg, ok := obj.Drop(p.GetPoint(), 3); !ok {
 		p.ReceiveChat(dropMsg, common.ChatTypeSystem)
 		return

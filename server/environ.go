@@ -1,18 +1,19 @@
 package main
 
 import (
-	"github.com/davyxu/cellnet"
-	_ "github.com/yenkeia/mirgo/codec/mircodec"
-	"github.com/yenkeia/mirgo/common"
-	_ "github.com/yenkeia/mirgo/proc/mirtcp"
-	"github.com/yenkeia/mirgo/proto/server"
-	"github.com/yenkeia/mirgo/setting"
 	"os"
 	"strconv"
 	"strings"
 	"sync"
 	"sync/atomic"
 	"time"
+
+	"github.com/davyxu/cellnet"
+	_ "github.com/yenkeia/mirgo/codec/mircodec"
+	"github.com/yenkeia/mirgo/common"
+	_ "github.com/yenkeia/mirgo/proc/mirtcp"
+	"github.com/yenkeia/mirgo/proto/server"
+	"github.com/yenkeia/mirgo/setting"
 )
 
 // Environ ...
@@ -115,6 +116,7 @@ func (e *Environ) InitGameDB() {
 	gdb.ItemIDInfoMap = new(sync.Map)
 	gdb.ItemNameInfoMap = new(sync.Map)
 	gdb.MonsterIDInfoMap = new(sync.Map)
+	gdb.MonsterNameInfoMap = new(sync.Map)
 	gdb.MagicIDInfoMap = new(sync.Map)
 	for i := range gdb.MapInfos {
 		v := gdb.MapInfos[i]
@@ -127,6 +129,7 @@ func (e *Environ) InitGameDB() {
 	}
 	for i := range gdb.MonsterInfos {
 		v := gdb.MonsterInfos[i]
+		gdb.MonsterNameInfoMap.Store(v.Name, &v)
 		gdb.MonsterIDInfoMap.Store(v.ID, &v)
 	}
 	for i := range gdb.MagicInfos {
@@ -151,6 +154,17 @@ func (e *Environ) InitMonsterDrop() {
 			continue
 		}
 		gdb.DropInfoMap.Store(v.Name, dropInfos)
+	}
+}
+
+func (e *Environ) CreateDropItem(m *Map, userItem *common.UserItem, gold uint64) *Item {
+	return &Item{
+		MapObject: MapObject{
+			ID:  e.NewObjectID(),
+			Map: m,
+		},
+		Gold:     gold,
+		UserItem: userItem,
 	}
 }
 
@@ -280,6 +294,18 @@ func (e *Environ) GetPlayer(ID uint32) *Player {
 	return nil
 }
 
+func (e *Environ) GetPlayerByName(name string) *Player {
+	e.lock.Lock()
+	for i := 0; i < len(e.Players); i++ {
+		o := e.Players[i]
+		if name == o.Name {
+			return o
+		}
+	}
+	e.lock.Unlock()
+	return nil
+}
+
 func (e *Environ) DeletePlayer(p *Player) {
 	e.lock.Lock()
 	for i := 0; i < len(e.Players); i++ {
@@ -356,7 +382,7 @@ func (e *Environ) TimeTick() {
 		case <-systemBroadcastTicker.C:
 			e.Submit(NewTask(e.SystemBroadcast))
 		case <-mapTicker.C:
-			e.Submit(NewTask(e.MapProcess))
+			e.Submit(NewTask(e.EnvironProcess))
 		case <-playerTicker.C:
 			e.Submit(NewTask(e.PlayerProcess))
 		case <-monsterNPCTicker.C:
@@ -422,7 +448,7 @@ func (e *Environ) GetActiveObjects() (monster []*Monster, npc []*NPC) {
 	return
 }
 
-func (e *Environ) MapProcess(...interface{}) {
+func (e *Environ) EnvironProcess(...interface{}) {
 	finishID := make([]uint32, 0)
 	e.ActionList.Range(func(k, v interface{}) bool {
 		action := v.(*DelayedAction)

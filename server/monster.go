@@ -9,13 +9,13 @@ import (
 
 type Monster struct {
 	MapObject
-	RespawnID   int
 	Image       common.Monster
 	AI          int
 	Effect      int
 	Poison      common.PoisonType
 	Light       uint8
 	Target      *IMapObject
+	Level       uint16
 	HP          uint32
 	MaxHP       uint32
 	MinAC       uint16
@@ -40,9 +40,8 @@ func (m *Monster) String() string {
 	return fmt.Sprintf("Monster: %s, (%v), ID: %d, ptr: %p\n", m.Name, m.CurrentLocation, m.ID, m)
 }
 
-func NewMonster(mp *Map, p common.Point, mi *common.MonsterInfo, ri int) (m *Monster) {
+func NewMonster(mp *Map, p common.Point, mi *common.MonsterInfo) (m *Monster) {
 	m = new(Monster)
-	m.RespawnID = ri
 	m.ID = mp.Env.NewObjectID()
 	m.Map = mp
 	m.Name = mi.Name
@@ -55,6 +54,7 @@ func NewMonster(mp *Map, p common.Point, mi *common.MonsterInfo, ri int) (m *Mon
 	m.Poison = common.PoisonTypeNone
 	m.CurrentLocation = p
 	m.CurrentDirection = common.MirDirection(G_Rand.RandInt(0, 7))
+	m.Level = uint16(mi.Level)
 	m.HP = uint32(mi.HP)
 	m.MaxHP = uint32(mi.HP)
 	m.MinAC = uint16(mi.MinAC)
