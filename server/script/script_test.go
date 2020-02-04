@@ -1,6 +1,7 @@
 package script
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -41,11 +42,11 @@ func TestXXX(X *testing.T) {
 func TestPrecompile(t *testing.T) {
 	setpath()
 
-	// v, err := loadScriptPage("SystemScripts/SharedNPCS/Tavern.txt", "@Main")
-	// if err != nil {
-	// 	panic(err)
-	// }
-	// Print(v)
+	v, err := loadScriptPage("SystemScripts/SharedNPCS/Tavern.txt", "@Main")
+	if err != nil {
+		panic(err)
+	}
+	Print(v)
 	lines, err := ReadLines(filepath.Join(EnvirPath, "NPCs/BichonProvince/BichonWall/Sir.MoguBW.txt"))
 	if err != nil {
 		panic(err)
@@ -58,4 +59,33 @@ func TestPrecompile(t *testing.T) {
 	}
 	fmt.Print(m)
 	PrintJson(m)
+}
+
+func TestLogic(t *testing.T) {
+	var test = `[@MAIN]
+#IF
+CHECKPKPOINT > 2
+#Say
+hello from if
+#ElseSay
+hello from else.
+#elseact
+Print helloFromElseAct
+Print helloFromElseAct1
+`
+
+	Check("CHECKPKPOINT", func(op CompareOp, v int) bool {
+		return CompareInt(op, 1, v)
+	})
+	Action("Print", func(v string) {
+		fmt.Println(v)
+	})
+
+	sc, err := Load(bytes.NewReader([]byte(test)))
+	if err != nil {
+		panic(err)
+	}
+
+	say, _ := sc.Call("[@main]")
+	Print(say)
 }
