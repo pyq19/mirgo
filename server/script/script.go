@@ -15,6 +15,9 @@ import (
 
 var EnvirPath = ""
 
+// skip npc, player
+const argsSkip = 2
+
 type Script struct {
 	Types  []int
 	Quests []int
@@ -122,19 +125,13 @@ var (
 )
 
 func (ps *PageScript) parsePage(p *PageSource) error {
-
 	checks := &list.List{}
 	acts := &list.List{}
 	say := &list.List{}
 	elseActs := &list.List{}
 	elseSay := &list.List{}
 
-	// buttons := &list.List{}
-	// elseButtons := &list.List{}
-	// gotoButtons := &list.List{}
-
 	var currentSay = say
-	// var currentButtons = buttons
 
 	for i := 0; i < len(p.Lines); i++ {
 		line := p.Lines[i]
@@ -161,7 +158,6 @@ func (ps *PageScript) parsePage(p *PageSource) error {
 
 		currentSay.PushBack(TrimEnd(line))
 	}
-
 	ps.Say = ListToArray(say)
 	ps.ElseSay = ListToArray(elseSay)
 
@@ -202,18 +198,20 @@ func (ps *PageScript) parseActions(mp map[string]*ScriptFunc, lst *list.List) ([
 func (ps *PageScript) parseAction(mp map[string]*ScriptFunc, s string) (*Function, error) {
 	parts := strings.Split(s, " ")
 
-	method, has := mp[parts[0]]
+	funName := strings.ToUpper(parts[0])
+
+	method, has := mp[funName]
 	if !has {
-		return nil, errors.New("no function " + parts[0])
+		return nil, errors.New("no function " + funName)
 	}
 
 	n := len(method.ArgsParser)
 	if n != len(parts)-1 {
-		return nil, fmt.Errorf("%s args expect %d got %d", parts[0], n, len(parts)-1)
+		return nil, fmt.Errorf("%s args expect %d got %d", funName, n, len(parts)-1)
 	}
 
 	inst := Function{}
-	inst.Args = make([]reflect.Value, n)
+	inst.Args = make([]reflect.Value, n+argsSkip)
 	inst.Func = method.Func
 
 	for i := 0; i < n; i++ {
@@ -221,42 +219,57 @@ func (ps *PageScript) parseAction(mp map[string]*ScriptFunc, s string) (*Functio
 		if err != nil {
 			return nil, err
 		}
-		inst.Args[i] = value
+		inst.Args[argsSkip+i] = value
 	}
 
 	return &inst, nil
 }
 
-func (sc *Script) Call(page string) ([]string, error) {
+func (sc *Script) Call(npc, player interface{}, page string) ([]string, error) {
 	page = strings.ToUpper(page)
 	ps, has := sc.Pages[page]
 	if !has {
 		return nil, errors.New("no page" + page)
 	}
 
-	if ps.Check() {
-		ps.doActions(ps.ActList)
-		return ps.Say, nil
+	var acts []*Function
+	var say []string
+
+	if ps.Check(npc, player) {
+		acts = ps.ActList
+		say = ps.Say
 	} else {
-		ps.doActions(ps.ElseActList)
-		return ps.ElseSay, nil
+		acts = ps.ElseActList
+		say = ps.ElseSay
 	}
+
+	for _, act := range acts {
+		cmd := act.Exec(npc, player)
+		shouldBreak := false
+		if cmd != nil {
+			switch cmd.(type) {
+			case CMDBreak:
+				shouldBreak = true
+			case CMDGoto:
+				return sc.Call(npc, player, cmd.(CMDGoto).GOTO)
+			}
+		}
+		if shouldBreak {
+			break
+		}
+	}
+
+	return say, nil
 }
 
-func (ps *PageScript) doActions(actions []*Function) {
-	for _, act := range actions {
-		act.Exec()
-	}
-}
-
-func (ps *PageScript) Check() bool {
+func (ps *PageScript) Check(npc, player interface{}) bool {
 
 	if len(ps.CheckList) == 0 {
 		return true
 	}
 
 	for _, ck := range ps.CheckList {
-		if !ck.Check() {
+		if !ck.Check(npc, player) {
 			return false
 		}
 	}
