@@ -18,11 +18,10 @@ type NPC struct {
 }
 
 func NewNPC(m *Map, ni *common.NpcInfo) *NPC {
-	sc, _ := script.LoadFile(setting.Conf.NPCDirPath + ni.Filename + ".txt")
-	//if err != nil {
-	//	log.Warnf("NPC %s 脚本加载失败: %s\n", ni.Name, err.Error())
-	//	return nil
-	//}
+	sc, err := script.LoadFile(setting.Conf.NPCDirPath + ni.Filename + ".txt")
+	if err != nil {
+		log.Warnf("NPC %s 脚本加载失败: %s\n", ni.Name, err.Error())
+	}
 	return &NPC{
 		MapObject: MapObject{
 			ID:               m.Env.NewObjectID(),
@@ -37,6 +36,14 @@ func NewNPC(m *Map, ni *common.NpcInfo) *NPC {
 		TurnTime: time.Now(),
 		Script:   sc,
 	}
+}
+
+func (n *NPC) CallScript(p *Player, key string) ([]string, error) {
+	say, err := n.Script.Call(n, p, key)
+	if err != nil {
+		return nil, err
+	}
+	return say, nil
 }
 
 func (n *NPC) GetID() uint32 {
