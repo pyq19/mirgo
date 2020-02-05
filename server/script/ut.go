@@ -42,11 +42,11 @@ func TrimEnd(s string) string {
 }
 
 func ListToArray(lst *list.List) []string {
-	ret := make([]string, lst.Len())
+	ret := []string{}
 
-	i := 0
 	for it := lst.Front(); it != nil; it = it.Next() {
-		ret[i] = it.Value.(string)
+		ret = append(ret, it.Value.(string))
 	}
+
 	return ret
 }

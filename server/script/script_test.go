@@ -65,20 +65,26 @@ func TestLogic(t *testing.T) {
 	var test = `[@MAIN]
 #IF
 CHECKPKPOINT > 2
-#Say
-hello from if
-#ElseSay
-hello from else.
-#elseact
-Print helloFromElseAct
-Print helloFromElseAct1
+#SAY
+I will not help an evil person like you...
+	
+	
+<Close/@exit>
+#ELSEACT
+GOTO @Main-1
+
+[@Main-1]
+#SAY
+Welcome, what can I do for you?
+	
+<Sell/@Sell> Meat.
+<Ask/@Meathelp> about how to gain meat.
+	
+<Close/@Exit>
 `
 
-	Check("CHECKPKPOINT", func(op CompareOp, v int) bool {
+	Check("CHECKPKPOINT", func(npc, player interface{}, op CompareOp, v int) bool {
 		return CompareInt(op, 1, v)
-	})
-	Action("Print", func(v string) {
-		fmt.Println(v)
 	})
 
 	sc, err := Load(bytes.NewReader([]byte(test)))
@@ -86,6 +92,9 @@ Print helloFromElseAct1
 		panic(err)
 	}
 
-	say, _ := sc.Call("[@main]")
+	say, err := sc.Call(1, 1, "[@main]")
+	if err != nil {
+		fmt.Println("err", err)
+	}
 	Print(say)
 }

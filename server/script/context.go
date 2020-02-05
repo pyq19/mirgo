@@ -14,15 +14,30 @@ type Function struct {
 	Func reflect.Value
 }
 
+type CMDBreak struct {
+}
+
+type CMDGoto struct {
+	GOTO string
+}
+
 // 用于if，函数要求必须返回bool值
-func (c *Function) Check() bool {
+func (c *Function) Check(npc, player interface{}) bool {
+	c.Args[0] = reflect.ValueOf(npc)
+	c.Args[1] = reflect.ValueOf(player)
 	retvars := c.Func.Call(c.Args)
 	return retvars[0].Bool()
 }
 
 // 用于非if的地方
-func (c *Function) Exec() {
-	c.Func.Call(c.Args)
+func (c *Function) Exec(npc, player interface{}) interface{} {
+	c.Args[0] = reflect.ValueOf(npc)
+	c.Args[1] = reflect.ValueOf(player)
+	ret := c.Func.Call(c.Args)
+	if ret != nil && len(ret) > 0 {
+		return ret[0].Interface()
+	}
+	return nil
 }
 
 type Context struct {
@@ -36,6 +51,13 @@ var (
 	opType reflect.Type
 )
 
+func _GOTO(a, b interface{}, page string) CMDGoto {
+	return CMDGoto{GOTO: "[" + page + "]"}
+}
+func _BREAK(a, b interface{}) CMDBreak {
+	return CMDBreak{}
+}
+
 func init() {
 	opType = reflect.TypeOf(CompareOp(0))
 
@@ -43,6 +65,9 @@ func init() {
 		Checks:  map[string]*ScriptFunc{},
 		Actions: map[string]*ScriptFunc{},
 	}
+
+	Action("GOTO", _GOTO)
+	Action("BREAK", _BREAK)
 }
 
 func (c *Context) Check(k string, fun interface{}) {
@@ -70,10 +95,11 @@ func (c *Context) Check(k string, fun interface{}) {
 }
 
 func checkArgs(funcType reflect.Type) []ArgParseFunc {
-	if funcType.NumIn() > 0 {
-		parsers := make([]ArgParseFunc, funcType.NumIn())
-		for i := 0; i < funcType.NumIn(); i++ {
-			argType := funcType.In(i)
+	n := funcType.NumIn() - argsSkip
+	if n > 0 {
+		parsers := make([]ArgParseFunc, n)
+		for i := 0; i < n; i++ {
+			argType := funcType.In(i + argsSkip)
 			if argType == opType {
 				parsers[i] = parseCompare
 			} else if argType.Kind() == reflect.String {
