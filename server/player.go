@@ -796,6 +796,13 @@ func (p *Player) CallNPC(id uint32, key string) {
 	if npc == nil {
 		return
 	}
+	say, err := npc.CallScript(p, key)
+	if err != nil {
+		fmt.Println("err:", err)
+	}
+	fmt.Println(key, say)
+	// TODO: COPY say ???
+	p.Enqueue(ServerMessage{}.NPCResponse(say))
 }
 
 func (p *Player) TalkMonsterNPC(id uint32) {
