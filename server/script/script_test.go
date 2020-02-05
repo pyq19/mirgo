@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"regexp"
 	"testing"
 )
 
@@ -70,6 +71,10 @@ I will not help an evil person like you...
 	
 	
 <Close/@exit>
+#ACT
+TEST 
+TEST 1
+TEST 1 2
 #ELSEACT
 GOTO @Main-1
 
@@ -84,8 +89,12 @@ Welcome, what can I do for you?
 `
 
 	Check("CHECKPKPOINT", func(npc, player interface{}, op CompareOp, v int) bool {
-		return CompareInt(op, 1, v)
+		return CompareInt(op, 3, v)
 	})
+
+	Action("TEST", func(npc, player interface{}, v1, v2 int) {
+		fmt.Println(v1, v2)
+	}, -909, -8080)
 
 	sc, err := Load(bytes.NewReader([]byte(test)))
 	if err != nil {
@@ -97,4 +106,23 @@ Welcome, what can I do for you?
 		fmt.Println("err", err)
 	}
 	Print(say)
+}
+
+func TestSplit(t *testing.T) {
+	Print(splitString("hello world += 1 "))
+	Print(splitString("\"hello world += 1 \""))
+	Print(splitString(`"hello world" += 1 "123"`))
+	Print(splitString(`CHECKGOLD > 100`))
+	Print(splitString(`CHECKQUEST 154 COMPLETE`))
+	s := "[234]"
+	fmt.Println(s[1 : len(s)-1])
+
+	var regNPCHotkey = regexp.MustCompile(`\<\$\w+\>`)
+
+	fmt.Println(regNPCHotkey.ReplaceAllStringFunc("asdjd<$username><hello>", replaces))
+}
+
+func replaces(s string) string {
+	fmt.Println(s)
+	return ""
 }

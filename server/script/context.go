@@ -7,6 +7,7 @@ type ScriptFunc struct {
 	Name       string
 	Func       reflect.Value
 	ArgsParser []ArgParseFunc
+	OptionArgs []reflect.Value
 }
 
 type Function struct {
@@ -43,6 +44,7 @@ func (c *Function) Exec(npc, player interface{}) interface{} {
 type Context struct {
 	Checks  map[string]*ScriptFunc
 	Actions map[string]*ScriptFunc
+	parsers map[reflect.Type]ArgParseFunc
 }
 
 var DefaultContext *Context
@@ -58,19 +60,26 @@ func _BREAK(a, b interface{}) CMDBreak {
 	return CMDBreak{}
 }
 
-func init() {
-	opType = reflect.TypeOf(CompareOp(0))
-
-	DefaultContext = &Context{
-		Checks:  map[string]*ScriptFunc{},
-		Actions: map[string]*ScriptFunc{},
-	}
-
-	Action("GOTO", _GOTO)
-	Action("BREAK", _BREAK)
+// 给类型添加解析函数
+func AddParser(typ reflect.Type, f ArgParseFunc) {
+	DefaultContext.AddParser(typ, f)
 }
 
-func (c *Context) Check(k string, fun interface{}) {
+// 函数名，函数，可选参数默认值
+func Check(k string, fun interface{}, options ...interface{}) {
+	DefaultContext.Check(k, fun, options...)
+}
+
+// 函数名，函数，可选参数默认值
+func Action(k string, fun interface{}, options ...interface{}) {
+	DefaultContext.Action(k, fun, options...)
+}
+
+func (c *Context) AddParser(typ reflect.Type, f ArgParseFunc) {
+	c.parsers[typ] = f
+}
+
+func (c *Context) Check(k string, fun interface{}, options ...interface{}) {
 	typ := reflect.TypeOf(fun)
 	if typ.Kind() != reflect.Func {
 		panic("func please.")
@@ -85,30 +94,50 @@ func (c *Context) Check(k string, fun interface{}) {
 		panic("check func should return bool")
 	}
 
-	ck := ScriptFunc{
-		Name:       k,
-		Func:       reflect.ValueOf(fun),
-		ArgsParser: checkArgs(typ),
-	}
-
-	c.Checks[k] = &ck
+	c.Checks[k] = c.makefunc(k, fun, options...)
 }
 
-func checkArgs(funcType reflect.Type) []ArgParseFunc {
+func (c *Context) Action(k string, fun interface{}, options ...interface{}) {
+	typ := reflect.TypeOf(fun)
+	if typ.Kind() != reflect.Func {
+		panic("func please.")
+	}
+
+	c.Actions[k] = c.makefunc(k, fun, options...)
+}
+
+func (c *Context) makefunc(k string, fun interface{}, options ...interface{}) *ScriptFunc {
+	return &ScriptFunc{
+		Name:       k,
+		Func:       reflect.ValueOf(fun),
+		ArgsParser: c.checkArgs(reflect.TypeOf(fun)),
+		OptionArgs: c.checkOptions(options...),
+	}
+}
+
+func (c *Context) checkOptions(options ...interface{}) []reflect.Value {
+	if options != nil && len(options) > 0 {
+		optargs := make([]reflect.Value, len(options))
+		for i, o := range options {
+			optargs[i] = reflect.ValueOf(o)
+		}
+		return optargs
+	}
+	return nil
+}
+
+func (c *Context) checkArgs(funcType reflect.Type) []ArgParseFunc {
 	n := funcType.NumIn() - argsSkip
 	if n > 0 {
 		parsers := make([]ArgParseFunc, n)
 		for i := 0; i < n; i++ {
 			argType := funcType.In(i + argsSkip)
-			if argType == opType {
-				parsers[i] = parseCompare
-			} else if argType.Kind() == reflect.String {
-				parsers[i] = parseString
-			} else if argType.Kind() == reflect.Int {
-				parsers[i] = parseInt
-			} else {
-				panic("not support " + argType.String())
+
+			par, has := c.parsers[argType]
+			if !has {
+				panic("not support arguments type " + argType.String())
 			}
+			parsers[i] = par
 		}
 
 		return parsers
@@ -117,25 +146,20 @@ func checkArgs(funcType reflect.Type) []ArgParseFunc {
 	return []ArgParseFunc{}
 }
 
-func Check(k string, fun interface{}) {
-	DefaultContext.Check(k, fun)
-}
+func init() {
+	opType = reflect.TypeOf(CompareOp(0))
 
-func (c *Context) Action(k string, fun interface{}) {
-	typ := reflect.TypeOf(fun)
-	if typ.Kind() != reflect.Func {
-		panic("func please.")
+	DefaultContext = &Context{
+		Checks:  map[string]*ScriptFunc{},
+		Actions: map[string]*ScriptFunc{},
+		parsers: map[reflect.Type]ArgParseFunc{},
 	}
 
-	ck := ScriptFunc{
-		Name:       k,
-		Func:       reflect.ValueOf(fun),
-		ArgsParser: checkArgs(typ),
-	}
+	AddParser(reflect.TypeOf(bool(false)), ParseBool)
+	AddParser(reflect.TypeOf(int(0)), ParseInt)
+	AddParser(reflect.TypeOf(string("")), ParseString)
+	AddParser(reflect.TypeOf(GT), ParseCompare)
 
-	c.Actions[k] = &ck
-}
-
-func Action(k string, fun interface{}) {
-	DefaultContext.Action(k, fun)
+	Action("GOTO", _GOTO)
+	Action("BREAK", _BREAK)
 }
