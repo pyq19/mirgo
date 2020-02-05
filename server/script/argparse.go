@@ -4,9 +4,10 @@ import (
 	"errors"
 	"reflect"
 	"strconv"
+	"strings"
 )
 
-func parseInt(s string) (reflect.Value, error) {
+func ParseInt(s string) (reflect.Value, error) {
 	i, err := strconv.Atoi(s)
 	if err != nil {
 		return reflect.Value{}, err
@@ -15,8 +16,21 @@ func parseInt(s string) (reflect.Value, error) {
 	return reflect.ValueOf(i), nil
 }
 
-func parseString(s string) (reflect.Value, error) {
+func ParseString(s string) (reflect.Value, error) {
 	return reflect.ValueOf(s), nil
+}
+
+func ParseBool(s string) (reflect.Value, error) {
+	var b bool
+	switch strings.ToLower(s) {
+	case "false", "no", "0":
+		b = false
+	case "true", "yes", "1":
+		b = true
+	default:
+		return reflect.Value{}, errors.New("not bool:" + s)
+	}
+	return reflect.ValueOf(b), nil
 }
 
 type CompareOp int
@@ -30,7 +44,7 @@ const (
 	NEQ                  // !=
 )
 
-func parseCompare(s string) (reflect.Value, error) {
+func ParseCompare(s string) (reflect.Value, error) {
 	var op CompareOp
 	switch s {
 	case "<":

@@ -50,3 +50,39 @@ func ListToArray(lst *list.List) []string {
 
 	return ret
 }
+
+// 按空格拆分字符串。如果加了引号，那么认为是一个字符串
+func splitString(s string) []string {
+
+	ret := []string{}
+
+	start := 0
+	var stat byte
+
+	for i := 0; i < len(s); i++ {
+		// fmt.Println("[" + fmt.Sprintf("%c-%c", stat, s[i]) + "]")
+		switch s[i] {
+		case ' ', '\'', '"':
+			if stat == s[i] {
+				ret = append(ret, s[start:i])
+				stat = 0
+			} else {
+				if stat == 0 {
+					stat = s[i]
+					start = i + 1
+				}
+			}
+		default:
+			if stat == 0 {
+				stat = ' '
+				start = i
+			}
+		}
+	}
+
+	if stat != 0 {
+		ret = append(ret, s[start:])
+	}
+
+	return ret
+}

@@ -196,7 +196,7 @@ func (ps *PageScript) parseActions(mp map[string]*ScriptFunc, lst *list.List) ([
 }
 
 func (ps *PageScript) parseAction(mp map[string]*ScriptFunc, s string) (*Function, error) {
-	parts := strings.Split(s, " ")
+	parts := splitString(s)
 
 	funName := strings.ToUpper(parts[0])
 
@@ -205,27 +205,40 @@ func (ps *PageScript) parseAction(mp map[string]*ScriptFunc, s string) (*Functio
 		return nil, errors.New("no function " + funName)
 	}
 
-	n := len(method.ArgsParser)
-	if n != len(parts)-1 {
-		return nil, fmt.Errorf("%s args expect %d got %d", funName, n, len(parts)-1)
+	expect := len(method.ArgsParser)
+	got := len(parts) - 1
+	opt := 0
+	if method.OptionArgs != nil {
+		opt = len(method.OptionArgs)
+	}
+
+	if expect != got && expect > got+opt {
+		return nil, fmt.Errorf("%s args expect %d got %d", funName, expect, got)
 	}
 
 	inst := Function{}
-	inst.Args = make([]reflect.Value, n+argsSkip)
+	inst.Args = make([]reflect.Value, expect+argsSkip)
 	inst.Func = method.Func
 
-	for i := 0; i < n; i++ {
-		value, err := method.ArgsParser[i](parts[i+1])
-		if err != nil {
-			return nil, err
+	for i := 0; i < expect; i++ {
+		if i >= got {
+			inst.Args[argsSkip+i] = method.OptionArgs[i-(expect-opt)]
+		} else {
+			value, err := method.ArgsParser[i](parts[i+1])
+			if err != nil {
+				return nil, err
+			}
+			inst.Args[argsSkip+i] = value
+
 		}
-		inst.Args[argsSkip+i] = value
 	}
 
 	return &inst, nil
 }
 
+// call
 func (sc *Script) Call(npc, player interface{}, page string) ([]string, error) {
+
 	page = strings.ToUpper(page)
 	ps, has := sc.Pages[page]
 	if !has {
