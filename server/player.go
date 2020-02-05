@@ -798,11 +798,10 @@ func (p *Player) CallNPC(id uint32, key string) {
 	}
 	say, err := npc.CallScript(p, key)
 	if err != nil {
-		fmt.Println("err:", err)
+		log.Warnf("NPC 脚本执行失败: %d %s\n", id, key, err.Error())
 	}
-	fmt.Println(key, say)
-	// TODO: COPY say ???
-	p.Enqueue(ServerMessage{}.NPCResponse(say))
+
+	p.Enqueue(ServerMessage{}.NPCResponse(replaceTemplates(npc, p, say)))
 }
 
 func (p *Player) TalkMonsterNPC(id uint32) {
