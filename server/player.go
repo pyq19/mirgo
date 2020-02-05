@@ -792,7 +792,10 @@ func (p *Player) Harvest(direction common.MirDirection) {
 }
 
 func (p *Player) CallNPC(id uint32, key string) {
-
+	npc := p.Map.Env.GetNPC(id)
+	if npc == nil {
+		return
+	}
 }
 
 func (p *Player) TalkMonsterNPC(id uint32) {
