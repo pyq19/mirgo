@@ -26,6 +26,7 @@ type Environ struct {
 	Players            []*Player
 	lock               *sync.Mutex
 	ActionList         *sync.Map // map[uint32]*DelayedAction  mapID: DelayedAction.ID
+	NPCs               *sync.Map // map[uint32]*NPC  mapID: NPC.ID
 }
 
 // NewEnviron ...
@@ -39,6 +40,7 @@ func NewEnviron(g *Game) (env *Environ) {
 	env.Players = make([]*Player, 0)
 	env.lock = new(sync.Mutex)
 	env.ActionList = new(sync.Map)
+	env.NPCs = new(sync.Map)
 	err := env.InitObjects()
 	if err != nil {
 		panic(err)
@@ -333,6 +335,18 @@ func (e *Environ) GetPlayersCount() int {
 	}
 	e.lock.Unlock()
 	return c
+}
+
+func (e *Environ) AddNPC(n *NPC) {
+	e.NPCs.Store(n.ID, n)
+}
+
+func (e *Environ) GetNPC(id uint32) *NPC {
+	v, ok := e.NPCs.Load(id)
+	if !ok {
+		return nil
+	}
+	return v.(*NPC)
 }
 
 func (e *Environ) GetMap(mapID int) *Map {

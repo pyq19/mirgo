@@ -120,7 +120,9 @@ func (m *Map) InitNPCs() error {
 	for _, ni := range m.Env.GameDB.NpcInfos {
 		ni := ni
 		if ni.MapID == m.Info.ID {
-			m.AddObject(NewNPC(m, &ni))
+			n := NewNPC(m, &ni)
+			m.Env.AddNPC(n)
+			m.AddObject(n)
 		}
 	}
 	return nil
