@@ -208,11 +208,14 @@ func (m *Monster) ChangeHP(amount int) {
 	if value == int(m.HP) {
 		return
 	}
-	m.HP = uint32(value)
-	if m.HP <= 0 {
+	if value <= 0 {
 		m.Die()
+		m.HP = 0
+	} else {
+		m.HP = uint32(value)
 	}
-	percent := uint8(m.HP / (m.MaxHP * 100))
+	percent := uint8(float32(m.HP) / float32(m.MaxHP) * 100)
+	log.Debugf("monster HP: %d, MaxHP: %d, percent: %d\n", m.HP, m.MaxHP, percent)
 	m.Broadcast(ServerMessage{}.ObjectHealth(m.GetID(), percent, 5))
 }
 
@@ -246,15 +249,16 @@ func (m *Monster) Attacked(attacker IMapObject, damage int, defenceType common.D
 	}
 	armor = int(float32(armor) * m.ArmourRate)
 	damage = int(float32(damage) * m.DamageRate)
-	if armor >= damage {
+	value := damage - armor
+	log.Debugf("attacker damage: %d, monster armor: %d\n", damage, armor)
+	if value <= 0 {
 		m.BroadcastDamageIndicator(common.DamageTypeMiss, 0)
 		return
 	}
 	// TODO 还有很多没做
-	m.Broadcast(ServerMessage{}.ObjectStruck(m.GetID(), attacker.GetID(), m.GetPoint(), m.GetDirection()))
-	value := armor - damage
+	m.Broadcast(ServerMessage{}.ObjectStruck(m, attacker.GetID()))
 	m.BroadcastDamageIndicator(common.DamageTypeHit, value)
-	m.ChangeHP(value)
+	m.ChangeHP(-value)
 }
 
 func (m *Monster) Drop() {
