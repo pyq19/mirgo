@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"github.com/yenkeia/mirgo/common"
 	"io/ioutil"
 	"sync"
@@ -15,8 +16,6 @@ func GetMapBytes(mapAbsPath string) []byte {
 }
 
 func GetMapV1(bytes []byte) *Map {
-	m := new(Map)
-	m.Cells = new(sync.Map)
 	offset := 21
 	w := common.BytesToUint16(bytes[offset : offset+2])
 	offset += 2
@@ -25,15 +24,21 @@ func GetMapV1(bytes []byte) *Map {
 	h := common.BytesToUint16(bytes[offset : offset+2])
 	width := int(w ^ xor)
 	height := int(h ^ xor)
-	aoi := newAOI(m, width, height)
-	m.AOI = aoi
+
+	// m := new(Map)
+	// m.cells = make([]*Cell, width*height) //new(sync.Map)
+	// aoi := newAOI(m, width, height)
+	// m.AOI = aoi
+	m := NewMap(width, height)
+	fmt.Println(width, height)
+
 	offset = 54
 	for i := 0; i < width; i++ {
 		for j := 0; j < height; j++ {
 			p := common.Point{X: uint32(i), Y: uint32(j)}
 			c := new(Cell)
 			c.Map = m
-			c.Coordinate = p.Coordinate()
+			c.Point = p
 			c.Objects = new(sync.Map)
 			if (common.BytesToUint32(bytes[offset:offset+4])^0xAA38AA38)&0x20000000 != 0 {
 				c.Attribute = common.CellAttributeHighWall
@@ -42,13 +47,13 @@ func GetMapV1(bytes []byte) *Map {
 				c.Attribute = common.CellAttributeLowWall
 			}
 			if c.Attribute == common.CellAttributeWalk {
-				m.Cells.Store(p.Coordinate(), c)
+				m.SetCell(p, c)
 			}
 			offset += 15
 		}
 	}
-	m.Width = uint16(width)
-	m.Height = uint16(height)
+	m.Width = width
+	m.Height = height
 	return m
 }
 

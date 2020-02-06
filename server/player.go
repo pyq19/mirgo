@@ -44,7 +44,7 @@ func (p *Player) ReceiveChat(text string, ct common.ChatType) {
 
 func (p *Player) Broadcast(msg interface{}) {
 	p.Map.Submit(NewTask(func(args ...interface{}) {
-		grids := p.Map.AOI.GetSurroundGridsByCoordinate(p.Point().Coordinate())
+		grids := p.Map.AOI.GetSurroundGrids(p.Point())
 		for i := range grids {
 			areaPlayers := grids[i].GetAllPlayer()
 			for i := range areaPlayers {
@@ -75,16 +75,12 @@ func (p *Player) GetRace() common.ObjectType {
 	return common.ObjectTypePlayer
 }
 
-func (p *Player) GetCoordinate() string {
-	return p.GetPoint().Coordinate()
-}
-
 func (p *Player) GetPoint() common.Point {
 	return p.CurrentLocation
 }
 
 func (p *Player) GetCell() *Cell {
-	return p.Map.GetCell(p.GetCoordinate())
+	return p.Map.GetCell(p.CurrentLocation)
 }
 
 func (p *Player) GetDirection() common.MirDirection {
@@ -380,7 +376,7 @@ func (p *Player) Chat(message string) {
 				p.ReceiveChat(fmt.Sprintf("生成怪物失败，找不到怪物 %s", parts[1]), common.ChatTypeSystem)
 				return
 			}
-			p.Map.AddObject(NewMonster(p.Map, c.Point(), mi))
+			p.Map.AddObject(NewMonster(p.Map, c.Point, mi))
 		case "RECALLMOB":
 		case "RELOADDROPS":
 		case "RELOADNPCS":
@@ -419,13 +415,13 @@ func (p *Player) Chat(message string) {
 					mo := o.(*Monster)
 					p.ReceiveChat("--Monster Info--", common.ChatTypeSystem2)
 					p.ReceiveChat(fmt.Sprintf("ID: %d, Name: %s", mo.ID, mo.Name), common.ChatTypeSystem2)
-					p.ReceiveChat(fmt.Sprintf("Level: %d, Coordinate: %s", mo.Level, mo.GetCoordinate()), common.ChatTypeSystem2)
+					p.ReceiveChat(fmt.Sprintf("Level: %d, Pos: %s", mo.Level, mo.GetPoint()), common.ChatTypeSystem2)
 					p.ReceiveChat(fmt.Sprintf("HP: %d, MinDC: %d, MaxDC: %d", mo.HP, mo.MinDC, mo.MaxDC), common.ChatTypeSystem2)
 				}
 				if o.GetRace() == common.ObjectTypePlayer {
 					po := o.(*Player)
 					p.ReceiveChat("--Player Info--", common.ChatTypeSystem2)
-					p.ReceiveChat(fmt.Sprintf("Name: %s, Level: %d, Coordinate: %s", po.Name, po.Level, po.GetCoordinate()), common.ChatTypeSystem2)
+					p.ReceiveChat(fmt.Sprintf("Name: %s, Level: %d, Pos: %s", po.Name, po.Level, po.GetPoint()), common.ChatTypeSystem2)
 				}
 				return true
 			})
@@ -764,7 +760,7 @@ func (p *Player) Attack(direction common.MirDirection, spell common.Spell) {
 	target := p.GetPoint().NextPoint(p.GetDirection(), 1)
 	damageBase := p.GetAttackPower(int(p.MinDC), int(p.MaxDC)) // = the original damage from your gear (+ bonus from moonlight and darkbody)
 	damageFinal := damageBase                                  // = the damage you're gonna do with skills added
-	cell := p.Map.GetCell(target.Coordinate())
+	cell := p.Map.GetCell(target)
 	if !cell.CanWalk() {
 		return
 	}

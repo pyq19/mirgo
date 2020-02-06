@@ -55,7 +55,6 @@ type BaseStats struct {
 type IMapObject interface {
 	GetID() uint32
 	GetRace() common.ObjectType
-	GetCoordinate() string
 	GetPoint() common.Point
 	GetCell() *Cell
 	Broadcast(interface{})
