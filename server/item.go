@@ -20,21 +20,17 @@ func (i *Item) GetRace() common.ObjectType {
 	return common.ObjectTypeItem
 }
 
-func (i *Item) GetCoordinate() string {
-	return i.CurrentLocation.Coordinate()
-}
-
 func (i *Item) GetPoint() common.Point {
 	return i.CurrentLocation
 }
 
 func (i *Item) GetCell() *Cell {
-	return i.Map.GetCell(i.GetCoordinate())
+	return i.Map.GetCell(i.CurrentLocation)
 }
 
 func (i *Item) Broadcast(msg interface{}) {
 	i.Map.Submit(NewTask(func(args ...interface{}) {
-		grids := i.Map.AOI.GetSurroundGridsByCoordinate(i.GetCoordinate())
+		grids := i.Map.AOI.GetSurroundGrids(i.CurrentLocation)
 		for i := range grids {
 			areaPlayers := grids[i].GetAllPlayer()
 			for i := range areaPlayers {
@@ -157,7 +153,7 @@ func (i *Item) Drop(center common.Point, distance int) (string, bool) {
 	}
 	for j := range points {
 		p := points[j]
-		c := i.Map.GetCell(p.Coordinate())
+		c := i.Map.GetCell(p)
 		if c == nil || c.HasItem() {
 			continue
 		}
@@ -166,5 +162,5 @@ func (i *Item) Drop(center common.Point, distance int) (string, bool) {
 		i.Broadcast(i.GetInfo())
 		return "", true
 	}
-	return fmt.Sprintf("坐标(%s)附近没有合适的点放置物品", center.Coordinate()), false
+	return fmt.Sprintf("坐标(%s)附近没有合适的点放置物品", center), false
 }

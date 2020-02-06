@@ -9,14 +9,10 @@ import (
 )
 
 type Cell struct {
-	Map        *Map
-	Coordinate string // 坐标 x,y
-	Attribute  common.CellAttribute
-	Objects    *sync.Map // map[IMapObject.ID]IMapObject
-}
-
-func (c *Cell) Point() common.Point {
-	return common.NewPointByCoordinate(c.Coordinate)
+	Point     common.Point
+	Map       *Map
+	Attribute common.CellAttribute
+	Objects   *sync.Map // map[IMapObject.ID]IMapObject
 }
 
 func (c *Cell) IsEmpty() bool {
@@ -65,7 +61,7 @@ func (c *Cell) CanWalk() bool {
 }
 
 func (c *Cell) String() string {
-	return fmt.Sprintf("Coordinate: %s, Objects: %v \n", c.Coordinate, c.Objects)
+	return fmt.Sprintf("cell pos: %s, Objects: %v \n", c.Point, c.Objects)
 }
 
 func (c *Cell) AddObject(obj IMapObject) {

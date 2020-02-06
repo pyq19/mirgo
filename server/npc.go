@@ -54,16 +54,12 @@ func (n *NPC) GetRace() common.ObjectType {
 	return common.ObjectTypeMerchant
 }
 
-func (n *NPC) GetCoordinate() string {
-	return n.GetPoint().Coordinate()
-}
-
 func (n *NPC) GetPoint() common.Point {
 	return n.CurrentLocation
 }
 
 func (n *NPC) GetCell() *Cell {
-	return n.Map.GetCell(n.GetCoordinate())
+	return n.Map.GetCell(n.CurrentLocation)
 }
 
 func (n *NPC) GetDirection() common.MirDirection {
@@ -97,12 +93,12 @@ func (n *NPC) GetBaseStats() BaseStats {
 }
 
 func (n *NPC) String() string {
-	return fmt.Sprintf("NPC Coordinate: %s, ID: %d, name: %s\n", n.GetPoint().Coordinate(), n.ID, n.Name)
+	return fmt.Sprintf("NPC pos: %s, ID: %d, name: %s\n", n.GetPoint(), n.ID, n.Name)
 }
 
 func (n *NPC) Broadcast(msg interface{}) {
 	n.Map.Submit(NewTask(func(args ...interface{}) {
-		grids := n.Map.AOI.GetSurroundGridsByCoordinate(n.GetCoordinate())
+		grids := n.Map.AOI.GetSurroundGrids(n.CurrentLocation)
 		for i := range grids {
 			areaPlayers := grids[i].GetAllPlayer()
 			for i := range areaPlayers {
