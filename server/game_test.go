@@ -1,7 +1,6 @@
 package main
 
 import (
-	"os"
 	"strings"
 	"sync"
 	"testing"
@@ -33,7 +32,7 @@ func TestGameMonsters(t *testing.T) {
 				o := v.(*Monster)
 				if o != nil {
 					count2 += 1
-					t.Logf("Coordinate: %s, MonsterID: %d, ptr: %p", o.CurrentLocation.Coordinate(), o.ID, o)
+					t.Logf("pos: %s, MonsterID: %d, ptr: %p", o.CurrentLocation, o.ID, o)
 				}
 			}
 			return true
@@ -66,9 +65,9 @@ func TestGameNPCs(t *testing.T) {
 					if n != nil {
 						//t.Log(n.String())
 						count += 1
-						if _, err := os.Stat(n.FilePath); err != nil {
-							t.Logf("文件: %s 不存在\n", n.Name)
-						}
+						// if _, err := os.Stat(n.FilePath); err != nil {
+						// 	t.Logf("文件: %s 不存在\n", n.Name)
+						// }
 					}
 				}
 				return true
