@@ -289,13 +289,13 @@ func (ServerMessage) DamageIndicator(dmg int32, typ common.DamageType, id uint32
 	}
 }
 
-func (ServerMessage) ObjectStruck(id, attackerID uint32, location common.Point, direction common.MirDirection) *server.ObjectStruck {
+func (ServerMessage) ObjectStruck(m IMapObject, attackerID uint32) *server.ObjectStruck {
 	return &server.ObjectStruck{
-		ObjectID:   id,
+		ObjectID:   m.GetID(),
 		AttackerID: attackerID,
-		LocationX:  int32(location.X),
-		LocationY:  int32(location.Y),
-		Direction:  direction,
+		LocationX:  int32(m.GetPoint().X),
+		LocationY:  int32(m.GetPoint().Y),
+		Direction:  m.GetDirection(),
 	}
 }
 
