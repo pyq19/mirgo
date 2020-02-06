@@ -39,8 +39,7 @@ func TestSaveMapText(t *testing.T) {
 	str := ""
 	for i := 0; i < int(m.Width); i++ {
 		for j := 0; j < int(m.Height); j++ {
-			v, _ := m.Cells.Load(common.Point{X: uint32(i), Y: uint32(j)}.Coordinate())
-			c := v.(*Cell)
+			c := m.GetCellXY(i, j)
 			if c.Attribute == common.CellAttributeWalk {
 				str = str + "0"
 			} else if c.Attribute == common.CellAttributeHighWall {
@@ -59,12 +58,12 @@ func TestSaveMapText(t *testing.T) {
 func TestMap_GetNextCell(t *testing.T) {
 	m := GetMapV1(GetMapBytes(os.Getenv("GOPATH") + "/src/github.com/yenkeia/mirgo/dotnettools/database/Maps/0.map"))
 	c := &Cell{
-		Map:        m,
-		Coordinate: "100,200",
-		Attribute:  0,
-		Objects:    nil,
+		Map:       m,
+		Point:     common.Point{100, 200},
+		Attribute: 0,
+		Objects:   nil,
 	}
-	t.Log(c.Coordinate)
+	t.Log(c.Point)
 	for i := 0; i < 8; i++ {
 		//MirDirectionUp        MirDirection = 0
 		//MirDirectionUpRight                = 1
@@ -75,7 +74,7 @@ func TestMap_GetNextCell(t *testing.T) {
 		//MirDirectionLeft                   = 6
 		//MirDirectionUpLeft                 = 7
 		nc := m.GetNextCell(c, common.MirDirection(i), 3)
-		t.Log(nc.Coordinate)
+		t.Log(nc.Point)
 	}
 }
 

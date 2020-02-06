@@ -122,14 +122,7 @@ func (m *AOIManager) GetGridByPoint(point common.Point) (grid *Grid) {
 	return grid
 }
 
-// GetGridByCoordinate
-func (m *AOIManager) GetGridByCoordinate(coordinate string) (grid *Grid) {
-	p := common.NewPointByCoordinate(coordinate)
-	return m.GetGridByPoint(p)
-}
-
-// GetSurroundGridsByCoordinate 根据坐标求出周边九宫格
-func (m *AOIManager) GetSurroundGridsByCoordinate(coordinate string) (grids []*Grid) {
-	grid := m.GetGridByCoordinate(coordinate)
+func (m *AOIManager) GetSurroundGrids(p common.Point) (grids []*Grid) {
+	grid := m.GetGridByPoint(p)
 	return m.GetSurroundGridsByGridID(grid.GID)
 }

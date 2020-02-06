@@ -84,16 +84,12 @@ func (m *Monster) GetRace() common.ObjectType {
 	return common.ObjectTypeMonster
 }
 
-func (m *Monster) GetCoordinate() string {
-	return m.GetPoint().Coordinate()
-}
-
 func (m *Monster) GetPoint() common.Point {
 	return m.CurrentLocation
 }
 
 func (m *Monster) GetCell() *Cell {
-	return m.Map.GetCell(m.GetCoordinate())
+	return m.Map.GetCell(m.CurrentLocation)
 }
 
 func (m *Monster) GetDirection() common.MirDirection {
@@ -150,7 +146,7 @@ func (m *Monster) GetBaseStats() BaseStats {
 
 func (m *Monster) Broadcast(msg interface{}) {
 	m.Map.Submit(NewTask(func(args ...interface{}) {
-		grids := m.Map.AOI.GetSurroundGridsByCoordinate(m.GetCoordinate())
+		grids := m.Map.AOI.GetSurroundGrids(m.CurrentLocation)
 		for i := range grids {
 			areaPlayers := grids[i].GetAllPlayer()
 			for i := range areaPlayers {

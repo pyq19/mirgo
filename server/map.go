@@ -2,18 +2,41 @@ package main
 
 import (
 	"fmt"
+
 	"github.com/yenkeia/mirgo/common"
-	"sync"
 )
 
 // Map ...
 type Map struct {
 	Env    *Environ
-	Width  uint16 // 测试用
-	Height uint16 // 测试用
+	Width  int
+	Height int
 	Info   *common.MapInfo
 	AOI    *AOIManager
-	Cells  *sync.Map // key=Cell.Coordinate  value=*Cell
+	cells  []*Cell
+}
+
+func NewMap(w, h int) *Map {
+	m := &Map{
+		Width:  w,
+		Height: h,
+		cells:  make([]*Cell, w*h),
+	}
+	m.AOI = newAOI(m, w, h)
+	return m
+}
+
+func (m *Map) GetCell(p common.Point) *Cell {
+	return m.GetCellXY(int(p.X), int(p.Y))
+}
+func (m *Map) GetCellXY(x, y int) *Cell {
+	return m.cells[x+y*m.Width]
+}
+func (m *Map) SetCell(p common.Point, c *Cell) {
+	m.SetCellXY(int(p.X), int(p.Y), c)
+}
+func (m *Map) SetCellXY(x, y int, c *Cell) {
+	m.cells[x+y*m.Width] = c
 }
 
 func (m *Map) String() string {
@@ -42,25 +65,16 @@ func (m *Map) Broadcast(msg interface{}) {
 	}
 }
 
-func (m *Map) GetCell(coordinate string) *Cell {
-	v, ok := m.Cells.Load(coordinate)
-	if !ok {
-		return nil
-	}
-	return v.(*Cell)
-}
-
 func (m *Map) AddObject(obj IMapObject) (string, bool) {
 	if obj == nil || obj.GetID() == 0 {
 		return "", false
 	}
-	coordinate := obj.GetCoordinate()
-	grid := m.AOI.GetGridByCoordinate(coordinate)
+	grid := m.AOI.GetGridByPoint(obj.GetPoint())
 	grid.AddObject(obj)
-	c := m.GetCell(coordinate)
+	c := m.GetCell(obj.GetPoint())
 	if c == nil {
 		// FIXME
-		return fmt.Sprintf("coordinate: %s is not walkable\n", coordinate), false
+		return fmt.Sprintf("pos: %s is not walkable\n", obj.GetPoint()), false
 	}
 	c.AddObject(obj)
 	return "", true
@@ -70,10 +84,9 @@ func (m *Map) DeleteObject(obj IMapObject) {
 	if obj == nil || obj.GetID() == 0 {
 		return
 	}
-	coordinate := obj.GetCoordinate()
-	grid := m.AOI.GetGridByCoordinate(coordinate)
+	grid := m.AOI.GetGridByPoint(obj.GetPoint())
 	grid.DeleteObject(obj)
-	c := m.GetCell(coordinate)
+	c := m.GetCell(obj.GetPoint())
 	if c == nil {
 		return
 	}
@@ -83,22 +96,22 @@ func (m *Map) DeleteObject(obj IMapObject) {
 // UpdateObject 更新对象在 Cells, AOI 中的数据, 如果更新成功返回 true
 func (m *Map) UpdateObject(obj IMapObject, points ...common.Point) bool {
 	for i := range points {
-		c := m.GetCell(points[i].Coordinate())
+		c := m.GetCell(points[i])
 		if c == nil || !c.CanWalk() || c.HasObject() {
 			return false
 		}
 	}
 	c1 := obj.GetCell()
 	c1.DeleteObject(obj)
-	c2 := m.GetCell(points[len(points)-1].Coordinate())
+	c2 := m.GetCell(points[len(points)-1])
 	c2.AddObject(obj)
 	m.changeAOI(obj, c1, c2)
 	return true
 }
 
 func (m *Map) changeAOI(obj IMapObject, c1 *Cell, c2 *Cell) {
-	g1 := m.AOI.GetGridByPoint(c1.Point())
-	g2 := m.AOI.GetGridByPoint(c2.Point())
+	g1 := m.AOI.GetGridByPoint(c1.Point)
+	g2 := m.AOI.GetGridByPoint(c2.Point)
 	if g1.GID == g2.GID {
 		return
 	}
@@ -149,9 +162,9 @@ func (m *Map) InitMonsters() error {
 // GetValidPoint
 func (m *Map) GetValidPoint(x int, y int, spread int) (common.Point, error) {
 	if spread == 0 {
-		c := m.GetCell(common.Point{X: uint32(x), Y: uint32(y)}.Coordinate())
+		c := m.GetCellXY(x, y)
 		if c != nil && c.CanWalk() && !c.HasObject() {
-			return common.NewPointByCoordinate(c.Coordinate), nil
+			return c.Point, nil
 		}
 		return common.Point{}, fmt.Errorf("GetValidPoint: (x: %d, y: %d), spread: %d\n", x, y, spread)
 	}
@@ -161,7 +174,7 @@ func (m *Map) GetValidPoint(x int, y int, spread int) (common.Point, error) {
 			X: uint32(x + G_Rand.RandInt(-spread, spread+1)),
 			Y: uint32(y + G_Rand.RandInt(-spread, spread+1)),
 		}
-		c := m.GetCell(p.Coordinate())
+		c := m.GetCell(p)
 		if c == nil || !c.CanWalk() {
 			continue
 		}
@@ -171,13 +184,13 @@ func (m *Map) GetValidPoint(x int, y int, spread int) (common.Point, error) {
 }
 
 func (m *Map) GetNextCell(cell *Cell, direction common.MirDirection, step uint32) *Cell {
-	p := cell.Point().NextPoint(direction, step)
-	return m.GetCell(p.Coordinate())
+	p := cell.Point.NextPoint(direction, step)
+	return m.GetCell(p)
 }
 
 // GetAreaMapObjects 传入一个点，获取该点附近 9 个 AOI 区域内 MapObject
 func (m *Map) GetAreaObjects(p common.Point) (objs []IMapObject) {
-	grids := m.AOI.GetSurroundGridsByCoordinate(p.Coordinate())
+	grids := m.AOI.GetSurroundGrids(p)
 	for i := range grids {
 		g := grids[i]
 		objs = append(objs, g.GetAllObjects()...)
