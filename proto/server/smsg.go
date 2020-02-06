@@ -825,8 +825,11 @@ type ObjectTeleportIn struct {
 
 type TeleportIn struct{}
 
-// TODO
-type NPCGoods struct{}
+type NPCGoods struct {
+	Goods []*common.UserItem
+	Rate  float32
+	Type  common.PanelType
+}
 
 type NPCSell struct{}
 
@@ -849,7 +852,7 @@ type NPCCollectRefine struct {
 	Success bool
 }
 
-type NPCReplaceWedRing struct{
+type NPCReplaceWedRing struct {
 	Rate float32
 }
 
