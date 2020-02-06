@@ -798,6 +798,39 @@ func (p *Player) CallNPC(id uint32, key string) {
 	}
 
 	p.Enqueue(ServerMessage{}.NPCResponse(replaceTemplates(npc, p, say)))
+
+	// ProcessSpecial
+	switch strings.ToUpper(key) {
+	case "[@BUY]":
+		sendBuyKey(p, npc)
+	case "[@SELL]":
+		p.Enqueue(&server.NPCSell{})
+	case "[@BUYSELL]":
+		sendBuyKey(p, npc)
+		p.Enqueue(&server.NPCSell{})
+	default:
+		// TODO
+	}
+}
+
+func sendBuyKey(p *Player, npc *NPC) {
+
+	goods := []*common.UserItem{}
+
+	// TODO: fix..
+	for _, name := range npc.Script.Goods {
+		item := p.Map.Env.GameDB.GetItemInfoByName(name)
+		if item != nil {
+			p.EnqueueItemInfo(item.ID)
+			goods = append(goods, p.Map.Env.NewUserItem(item))
+		}
+	}
+
+	p.Enqueue(&server.NPCGoods{
+		Goods: goods,
+		Rate:  1.0,
+		Type:  common.PanelTypeBuy,
+	})
 }
 
 func (p *Player) TalkMonsterNPC(id uint32) {
