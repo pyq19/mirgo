@@ -794,7 +794,7 @@ func (p *Player) CallNPC(id uint32, key string) {
 	}
 	say, err := npc.CallScript(p, key)
 	if err != nil {
-		log.Warnf("NPC 脚本执行失败: %d %s\n", id, key, err.Error())
+		log.Warnf("NPC 脚本执行失败: %d %s %s\n", id, key, err.Error())
 	}
 
 	p.Enqueue(ServerMessage{}.NPCResponse(replaceTemplates(npc, p, say)))

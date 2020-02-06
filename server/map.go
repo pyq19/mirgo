@@ -209,3 +209,52 @@ func (m *Map) GetObjectInAreaByID(id uint32, p common.Point) IMapObject {
 	}
 	return nil
 }
+
+// 从p点开始（包含P），由内至外向周围遍历cell。回调函数返回false，停止遍历
+func (m *Map) RangeCell(p common.Point, depth int, fun func(c *Cell) bool) {
+
+	px, py := int(p.X), int(p.Y)
+
+	for d := 0; d <= depth; d++ {
+		for y := py - d; y <= py+d; y++ {
+			if y < 0 {
+				continue
+			}
+			if y >= m.Height {
+				break
+			}
+
+			for x := px - d; x <= px+d; {
+
+				if x >= m.Width {
+					break
+				}
+
+				if x >= 0 {
+					if !fun(m.GetCellXY(x, y)) {
+						return
+					}
+				}
+
+				if y-py == d || y-py == -d {
+					x++ // x += 1
+				} else {
+					x += d * 2
+				}
+			}
+		}
+	}
+}
+
+func (m *Map) RangeObject(p common.Point, depth int, fun func(IMapObject) bool) {
+	var ret = true
+	m.RangeCell(p, depth, func(c *Cell) bool {
+
+		c.Objects.Range(func(k, v interface{}) bool {
+			ret = fun(v.(IMapObject))
+			return ret
+		})
+
+		return ret
+	})
+}
