@@ -15,6 +15,10 @@ type Cell struct {
 	Objects   *sync.Map // map[IMapObject.ID]IMapObject
 }
 
+func (c *Cell) IsValid() bool {
+	return c.Attribute == common.CellAttributeWalk
+}
+
 func (c *Cell) IsEmpty() bool {
 	var cnt int32
 	c.Objects.Range(func(k, v interface{}) bool {

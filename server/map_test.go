@@ -1,12 +1,14 @@
 package main
 
 import (
-	"github.com/jinzhu/gorm"
-	"github.com/yenkeia/mirgo/common"
+	"fmt"
 	"io/ioutil"
 	"os"
 	"strings"
 	"testing"
+
+	"github.com/jinzhu/gorm"
+	"github.com/yenkeia/mirgo/common"
 )
 
 func TestMapAbsPath(t *testing.T) {
@@ -98,4 +100,30 @@ func TestEnviron_LoadAllMap(t *testing.T) {
 	for k, v := range uppercaseNameRealNameMap {
 		t.Log(k, v)
 	}
+}
+
+func TestMapRange(t *testing.T) {
+	gopath := os.Getenv("GOPATH")
+	mapAbsPath := gopath + "/src/github.com/yenkeia/mirgo/dotnettools/database/Maps/0.map"
+	m := GetMapV1(GetMapBytes(mapAbsPath))
+
+	p := common.Point{X: 1, Y: 1}
+
+	var printpos = func(c *Cell) bool {
+		if c != nil {
+			fmt.Println(c.Point)
+		} else {
+			fmt.Println("nil nil")
+		}
+		return true
+	}
+
+	fmt.Println("---", m.Width, m.Height)
+	m.RangeCell(p, 0, printpos)
+
+	fmt.Println("---")
+	m.RangeCell(p, 1, printpos)
+
+	fmt.Println("---")
+	m.RangeCell(p, 2, printpos)
 }

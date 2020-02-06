@@ -1,10 +1,10 @@
 package main
 
 import (
-	"fmt"
-	"github.com/yenkeia/mirgo/common"
 	"io/ioutil"
 	"sync"
+
+	"github.com/yenkeia/mirgo/common"
 )
 
 func GetMapBytes(mapAbsPath string) []byte {
@@ -25,12 +25,7 @@ func GetMapV1(bytes []byte) *Map {
 	width := int(w ^ xor)
 	height := int(h ^ xor)
 
-	// m := new(Map)
-	// m.cells = make([]*Cell, width*height) //new(sync.Map)
-	// aoi := newAOI(m, width, height)
-	// m.AOI = aoi
 	m := NewMap(width, height)
-	fmt.Println(width, height)
 
 	offset = 54
 	for i := 0; i < width; i++ {
@@ -68,4 +63,11 @@ func newAOI(m *Map, width int, height int) (aoi *AOIManager) {
 	}
 	aoi = NewAOIManager(m, 0, width, cntX, 0, height, cntY)
 	return
+}
+
+func AbsInt(i int) int {
+	if i < 0 {
+		return -i
+	}
+	return i
 }
