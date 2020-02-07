@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/yenkeia/mirgo/common"
 	"github.com/yenkeia/mirgo/proto/server"
@@ -34,6 +35,8 @@ type Monster struct {
 	AttackSpeed int32
 	ArmourRate  float32
 	DamageRate  float32
+	Master      *Player
+	SearchTime  *time.Time // 怪物下一次搜索目标的时间
 }
 
 func (m *Monster) String() string {
@@ -73,6 +76,8 @@ func NewMonster(mp *Map, p common.Point, mi *common.MonsterInfo) (m *Monster) {
 	m.AttackSpeed = int32(mi.AttackSpeed)
 	m.ArmourRate = 1.0
 	m.DamageRate = 1.0
+	t := time.Now()
+	m.SearchTime = &t
 	return m
 }
 
@@ -117,14 +122,6 @@ func (m *Monster) GetInfo() interface{} {
 		ExtraByte:         0,     // TODO
 	}
 	return res
-}
-
-func (m *Monster) IsAttackTarget(attacker IMapObject) bool {
-	return true
-}
-
-func (m *Monster) IsFriendlyTarget(attacker IMapObject) bool {
-	return false
 }
 
 func (m *Monster) GetBaseStats() BaseStats {
@@ -172,7 +169,89 @@ func (m *Monster) IsHidden() bool {
 	return false
 }
 
+func (m *Monster) IsAttackTarget(attacker IMapObject) bool {
+	return true
+}
+
+func (m *Monster) IsFriendlyTarget(attacker IMapObject) bool {
+	return false
+}
+
+func (m *Monster) CanMove() bool {
+	return true
+}
+
+func (m *Monster) CanAttack() bool {
+	return true
+}
+
+func (m *Monster) InAttackRange() bool {
+	return true
+}
+
 func (m *Monster) Process() {
+	m.ProcessAI()
+	m.ProcessBuffs()
+	m.ProcessRegan()
+	m.ProcessPoison()
+}
+
+func (m *Monster) ProcessAI() {
+	if m.IsDead() {
+		return
+	}
+	if m.Master != nil {
+
+	}
+	m.ProcessSearch()
+	m.ProcessRoam()
+	m.ProcessTarget()
+}
+
+// ProcessSearch 寻找目标
+func (m *Monster) ProcessSearch() {
+	now := time.Now()
+	if m.SearchTime.After(now) {
+		return
+	}
+	*m.SearchTime = now.Add(1 * time.Second)
+	if m.CanMove() {
+		// walk randomly
+		// ok := m.Walk()
+	}
+	if m.Target == nil {
+		m.FindTarget()
+	}
+}
+
+func (m *Monster) ProcessRoam() {
+
+}
+
+func (m *Monster) ProcessTarget() {
+	if m.Target == nil || !m.CanAttack() {
+		return
+	}
+	if m.InAttackRange() {
+		m.Attack()
+		if m.Target.IsDead() {
+			m.FindTarget()
+		}
+		return
+	}
+	m.MoveTo(m.Target.GetPoint())
+}
+
+func (m *Monster) ProcessBuffs() {
+
+}
+
+// processRegan 怪物自身回血
+func (m *Monster) ProcessRegan() {
+
+}
+
+func (m *Monster) ProcessPoison() {
 
 }
 
@@ -196,6 +275,7 @@ func (m *Monster) Die() {
 	m.Drop()
 }
 
+// ChangeHP 怪物改变血量 amount 可以是负数(扣血)
 func (m *Monster) ChangeHP(amount int) {
 	if m.IsDead() {
 		return
@@ -215,6 +295,7 @@ func (m *Monster) ChangeHP(amount int) {
 	m.Broadcast(ServerMessage{}.ObjectHealth(m.GetID(), percent, 5))
 }
 
+// Attacked 被攻击
 func (m *Monster) Attacked(attacker IMapObject, damage int, defenceType common.DefenceType, damageWeapon bool) {
 	if m.Target == nil && attacker.IsAttackTarget(m) {
 		m.Target = &attacker
@@ -257,6 +338,7 @@ func (m *Monster) Attacked(attacker IMapObject, damage int, defenceType common.D
 	m.ChangeHP(-value)
 }
 
+// Drop 怪物掉落物品
 func (m *Monster) Drop() {
 	value, ok := m.Map.Env.GameDB.DropInfoMap.Load(m.Name)
 	if !ok {
@@ -298,4 +380,22 @@ func (m *Monster) Drop() {
 			log.Warnln(msg)
 		}
 	}
+}
+
+// FindTarget 怪物寻找攻击目标
+func (m *Monster) FindTarget() {
+
+}
+
+// Walk 移动，成功返回 true
+func (m *Monster) Walk(dir common.MirDirection) bool {
+	return true
+}
+
+func (m *Monster) Attack() {
+
+}
+
+func (m *Monster) MoveTo(p common.Point) {
+
 }
