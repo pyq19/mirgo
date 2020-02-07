@@ -2,8 +2,9 @@ package mircodec
 
 import (
 	"errors"
-	"github.com/yenkeia/mirgo/common"
 	"reflect"
+
+	"github.com/yenkeia/mirgo/common"
 )
 
 func encode(obj interface{}) (bytes []byte, err error) {
@@ -111,6 +112,20 @@ func encodeValue(v reflect.Value) (bytes []byte, err error) {
 		}
 		vvv := reflect.ValueOf(v.Interface()).Uint()
 		bytes = append(bytes, common.Uint64ToBytes(uint64(vvv))...)
+	case reflect.Float32:
+		if vv, ok := v.Interface().(float32); ok {
+			bytes = append(bytes, common.Float32ToBytes(vv)...)
+			break
+		}
+		vvv := reflect.ValueOf(v.Interface()).Float()
+		bytes = append(bytes, common.Float32ToBytes(float32(vvv))...)
+	case reflect.Float64:
+		if vv, ok := v.Interface().(float64); ok {
+			bytes = append(bytes, common.Float64ToBytes(vv)...)
+			break
+		}
+		vvv := reflect.ValueOf(v.Interface()).Float()
+		bytes = append(bytes, common.Float64ToBytes(vvv)...)
 	case reflect.Slice:
 		// FIXME 还有别的类型可能会报错
 		switch vv := v.Interface().(type) {
@@ -199,6 +214,12 @@ func decodeValue(f reflect.Value, bytes []byte) []byte {
 		bytes = bytes[4:]
 	case reflect.Uint64:
 		f.SetUint(common.BytesToUint64(bytes[:8]))
+		bytes = bytes[8:]
+	case reflect.Float32:
+		f.SetFloat(float64(common.BytesToFloat32(bytes[:4])))
+		bytes = bytes[4:]
+	case reflect.Float64:
+		f.SetFloat(common.BytesToFloat64(bytes[:8]))
 		bytes = bytes[8:]
 	case reflect.Slice:
 		l := int(common.BytesToUint32(bytes[:4]))
