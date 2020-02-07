@@ -427,8 +427,49 @@ func (m *Monster) Attack() {
 
 }
 
-func (m *Monster) MoveTo(p common.Point) {
-
+func (m *Monster) MoveTo(location common.Point) {
+	if m.CurrentLocation.Equal(location) {
+		return
+	}
+	inRange := InRange(location, m.CurrentLocation, 1)
+	if inRange {
+		cell := m.Map.GetCell(location)
+		if cell == nil || !cell.IsValid() {
+			return
+		}
+		ret := false
+		cell.Objects.Range(func(f, v interface{}) bool {
+			o := v.(IMapObject)
+			if !o.IsBlocking() {
+				return true
+			}
+			ret = true
+			return false
+		})
+		if ret {
+			return
+		}
+	}
+	dir := DirectionFromPoint(m.CurrentLocation, location)
+	if m.Walk(dir) {
+		return
+	}
+	switch RandomNext(2) { //No favour
+	case 0:
+		for i := 0; i < 7; i++ {
+			dir = NextDirection(dir)
+			if m.Walk(dir) {
+				return
+			}
+		}
+	default:
+		for i := 0; i < 7; i++ {
+			dir = PreviousDirection(dir)
+			if m.Walk(dir) {
+				return
+			}
+		}
+	}
 }
 
 // FindTarget 怪物寻找攻击目标

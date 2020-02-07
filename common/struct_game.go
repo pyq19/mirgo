@@ -45,6 +45,10 @@ func NewPoint(x, y int) Point {
 	return Point{uint32(x), uint32(y)}
 }
 
+func (p Point) Equal(other Point) bool {
+	return p.X == other.X && p.Y == other.Y
+}
+
 type SelectInfo struct {
 	Index      uint32
 	Name       string
