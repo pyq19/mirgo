@@ -249,11 +249,12 @@ func (m *Map) RangeCell(p common.Point, depth int, fun func(c *Cell) bool) {
 func (m *Map) RangeObject(p common.Point, depth int, fun func(IMapObject) bool) {
 	var ret = true
 	m.RangeCell(p, depth, func(c *Cell) bool {
-
-		c.Objects.Range(func(k, v interface{}) bool {
-			ret = fun(v.(IMapObject))
-			return ret
-		})
+		if c != nil && c.Objects != nil {
+			c.Objects.Range(func(k, v interface{}) bool {
+				ret = fun(v.(IMapObject))
+				return ret
+			})
+		}
 
 		return ret
 	})
