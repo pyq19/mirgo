@@ -319,7 +319,7 @@ func (g *Game) SessionClosed(s cellnet.Session, msg *cellnet.SessionClosed) {
 	p := v.(*Player)
 	if p.GameStage == GAME {
 		p.StopGame(StopGameUserClosedGame)
-		g.Env.DeletePlayer(p)
+		g.Env.DeletePlayer(p.Char)
 	}
 	pm.Delete(s.ID())
 }
@@ -488,13 +488,13 @@ func (g *Game) DeleteCharacter(s cellnet.Session, msg *client.DeleteCharacter) {
 }
 
 func updatePlayerInfo(g *Game, p *Player, c *common.Character) {
-	p.ID = uint32(c.ID)
 	p.GameStage = GAME
-	p.Name = c.Name
-	p.NameColor = common.Color{R: 255, G: 255, B: 255}
-	p.CurrentDirection = c.Direction
-	p.CurrentLocation = common.NewPoint(int(c.CurrentLocationX), int(c.CurrentLocationY))
-	p.Character = NewCharacter(g, p, c)
+	p.Char = NewCharacter(g, p, c)
+	p.Char.ID = uint32(c.ID)
+	p.Char.Name = c.Name
+	p.Char.NameColor = common.Color{R: 255, G: 255, B: 255}
+	p.Char.CurrentDirection = c.Direction
+	p.Char.CurrentLocation = common.NewPoint(int(c.CurrentLocationX), int(c.CurrentLocationY))
 }
 
 // StartGame 开始游戏
@@ -517,10 +517,10 @@ func (g *Game) StartGame(s cellnet.Session, msg *client.StartGame) {
 	s.Send(ServerMessage{}.SetConcentration(p))
 	s.Send(ServerMessage{}.StartGame(4, 1024))
 	updatePlayerInfo(g, p, c)
-	log.Debugf("player login, AccountID(%d) Name(%s)\n", p.AccountID, p.Name)
-	p.Map = g.Env.GetMap(int(c.CurrentMapID))
-	p.Character.Player = p
-	g.Env.AddPlayer(p)
+	log.Debugf("player login, AccountID(%d) Name(%s)\n", p.AccountID, p.Char.Name)
+	p.Char.Map = g.Env.GetMap(int(c.CurrentMapID))
+	p.Char.Player = p
+	g.Env.AddPlayer(p.Char)
 	p.StartGame()
 }
 
@@ -530,20 +530,20 @@ func (g *Game) LogOut(s cellnet.Session, msg *client.LogOut) {
 		return
 	}
 	p.StopGame(StopGameUserReturnedToSelectChar)
-	g.Env.DeletePlayer(p)
+	g.Env.DeletePlayer(p.Char)
 	s.Send(ServerMessage{}.LogOutSuccess(g.getAccountCharacters(p.AccountID)))
 }
 
 func (g *Game) Turn(p *Player, msg *client.Turn) {
-	p.Turn(msg.Direction)
+	p.Char.Turn(msg.Direction)
 }
 
 func (g *Game) Walk(p *Player, msg *client.Walk) {
-	p.Walk(msg.Direction)
+	p.Char.Walk(msg.Direction)
 }
 
 func (g *Game) Run(p *Player, msg *client.Run) {
-	p.Run(msg.Direction)
+	p.Char.Run(msg.Direction)
 }
 
 func (g *Game) Chat(p *Player, msg *client.Chat) {
@@ -551,11 +551,11 @@ func (g *Game) Chat(p *Player, msg *client.Chat) {
 }
 
 func (g *Game) MoveItem(p *Player, msg *client.MoveItem) {
-	p.MoveItem(msg.Grid, msg.From, msg.To)
+	p.Char.MoveItem(msg.Grid, msg.From, msg.To)
 }
 
 func (g *Game) StoreItem(p *Player, msg *client.StoreItem) {
-	p.StoreItem(msg.From, msg.To)
+	p.Char.StoreItem(msg.From, msg.To)
 }
 
 func (g *Game) DepositRefineItem(p *Player, msg *client.DepositRefineItem) {
@@ -599,11 +599,11 @@ func (g *Game) MergeItem(p *Player, msg *client.MergeItem) {
 }
 
 func (g *Game) EquipItem(p *Player, msg *client.EquipItem) {
-	p.EquipItem(msg.Grid, msg.UniqueID, msg.To)
+	p.Char.EquipItem(msg.Grid, msg.UniqueID, msg.To)
 }
 
 func (g *Game) RemoveItem(p *Player, msg *client.RemoveItem) {
-	p.RemoveItem(msg.Grid, msg.UniqueID, msg.To)
+	p.Char.RemoveItem(msg.Grid, msg.UniqueID, msg.To)
 }
 
 func (g *Game) RemoveSlotItem(p *Player, msg *client.RemoveSlotItem) {
@@ -615,23 +615,23 @@ func (g *Game) SplitItem(p *Player, msg *client.SplitItem) {
 }
 
 func (g *Game) UseItem(p *Player, msg *client.UseItem) {
-	p.UseItem(msg.UniqueID)
+	p.Char.UseItem(msg.UniqueID)
 }
 
 func (g *Game) DropItem(p *Player, msg *client.DropItem) {
-	p.DropItem(msg.UniqueID, msg.Count)
+	p.Char.DropItem(msg.UniqueID, msg.Count)
 }
 
 func (g *Game) DropGold(p *Player, msg *client.DropGold) {
-	p.DropGold(uint64(msg.Amount))
+	p.Char.DropGold(uint64(msg.Amount))
 }
 
 func (g *Game) PickUp(p *Player, msg *client.PickUp) {
-	p.PickUp()
+	p.Char.PickUp()
 }
 
 func (g *Game) Inspect(p *Player, msg *client.Inspect) {
-	p.Inspect(msg.ObjectID)
+	p.Char.Inspect(msg.ObjectID)
 }
 
 func (g *Game) ChangeAMode(p *Player, msg *client.ChangeAMode) {
@@ -647,7 +647,7 @@ func (g *Game) ChangeTrade(p *Player, msg *client.ChangeTrade) {
 }
 
 func (g *Game) Attack(p *Player, msg *client.Attack) {
-	p.Attack(msg.Direction, msg.Spell)
+	p.Char.Attack(msg.Direction, msg.Spell)
 }
 
 func (g *Game) RangeAttack(p *Player, msg *client.RangeAttack) {
@@ -696,7 +696,7 @@ func (g *Game) MagicKey(p *Player, msg *client.MagicKey) {
 }
 
 func (g *Game) Magic(p *Player, msg *client.Magic) {
-	p.Magic(msg.Spell, msg.Direction, msg.TargetID, msg.Location)
+	p.Char.Magic(msg.Spell, msg.Direction, msg.TargetID, msg.Location)
 }
 
 func (g *Game) SwitchGroup(p *Player, msg *client.SwitchGroup) {

@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
-	"time"
 
 	"github.com/davyxu/cellnet"
 	"github.com/yenkeia/mirgo/common"
@@ -23,8 +22,8 @@ type Player struct {
 	AccountID int
 	GameStage int
 	Session   *cellnet.Session
-	MapObject
-	Character
+	Char      *Character
+	// MapObject
 }
 
 func (p *Player) Enqueue(msg interface{}) {
@@ -42,228 +41,23 @@ func (p *Player) ReceiveChat(text string, ct common.ChatType) {
 	})
 }
 
-func (p *Player) Broadcast(msg interface{}) {
-	p.Map.Submit(NewTask(func(args ...interface{}) {
-		grids := p.Map.AOI.GetSurroundGrids(p.Point())
-		for i := range grids {
-			areaPlayers := grids[i].GetAllPlayer()
-			for i := range areaPlayers {
-				if p.GetID() == areaPlayers[i].GetID() {
-					continue
-				}
-				areaPlayers[i].Enqueue(msg)
-			}
-		}
-	}))
-}
-
-func (p *Player) BroadcastDamageIndicator(typ common.DamageType, dmg int) {
-	msg := ServerMessage{}.DamageIndicator(int32(dmg), typ, p.GetID())
-	p.Enqueue(msg)
-	p.Broadcast(msg)
-}
-
-func (p *Player) Point() common.Point {
-	return p.GetPoint()
-}
-
-func (p *Player) GetID() uint32 {
-	return p.ID
-}
-
-func (p *Player) GetRace() common.ObjectType {
-	return common.ObjectTypePlayer
-}
-
-func (p *Player) GetPoint() common.Point {
-	return p.CurrentLocation
-}
-
-func (p *Player) GetCell() *Cell {
-	return p.Map.GetCell(p.CurrentLocation)
-}
-
-func (p *Player) GetDirection() common.MirDirection {
-	return p.CurrentDirection
-}
-
-func (p *Player) GetInfo() interface{} {
-	res := &server.ObjectPlayer{
-		ObjectID:         p.ID,
-		Name:             p.Name,
-		GuildName:        p.GuildName,
-		GuildRankName:    p.GuildRankName,
-		NameColor:        p.NameColor.ToInt32(),
-		Class:            p.Class,
-		Gender:           p.Gender,
-		Level:            p.Level,
-		Location:         p.GetPoint(),
-		Direction:        p.GetDirection(),
-		Hair:             p.Hair,
-		Light:            p.Light,
-		Weapon:           int16(p.LooksWeapon),
-		WeaponEffect:     int16(p.LooksWeaponEffect),
-		Armour:           int16(p.LooksArmour),
-		Poison:           common.PoisonTypeNone, // TODO
-		Dead:             p.IsDead(),
-		Hidden:           p.IsHidden(),
-		Effect:           common.SpellEffectNone, // TODO
-		WingEffect:       uint8(p.LooksWings),
-		Extra:            false,                      // TODO
-		MountType:        0,                          // TODO
-		RidingMount:      false,                      // TODO
-		Fishing:          false,                      // TODO
-		TransformType:    0,                          // TODO
-		ElementOrbEffect: 0,                          // TODO
-		ElementOrbLvl:    0,                          // TODO
-		ElementOrbMax:    0,                          // TODO
-		Buffs:            make([]common.BuffType, 0), // TODO
-		LevelEffects:     common.LevelEffectsNone,    // TODO
-	}
-	return res
-}
-
-// IsAttackTarget 判断玩家是否是攻击者的攻击对象
-func (p *Player) IsAttackTarget(attacker IMapObject) bool {
-	return false
-}
-
-func (p *Player) IsFriendlyTarget(attacker IMapObject) bool {
-	return true
-}
-
-func (p *Player) GetBaseStats() BaseStats {
-	return BaseStats{
-		MinAC:    p.MinAC,
-		MaxAC:    p.MaxAC,
-		MinMAC:   p.MinMAC,
-		MaxMAC:   p.MaxMAC,
-		MinDC:    p.MinDC,
-		MaxDC:    p.MaxDC,
-		MinMC:    p.MinMC,
-		MaxMC:    p.MaxMC,
-		MinSC:    p.MinSC,
-		MaxSC:    p.MaxSC,
-		Accuracy: p.Accuracy,
-		Agility:  p.Agility,
-	}
-}
-
-func (p *Player) GetCurrentGrid() *Grid {
-	return p.Map.AOI.GetGridByPoint(p.Point())
-}
-
-func (p *Player) EnqueueAreaObjects(oldGrid, newGrid *Grid) {
-	oldAreaGrids := make([]*Grid, 0)
-	if oldGrid != nil {
-		oldAreaGrids = p.Map.AOI.GetSurroundGridsByGridID(oldGrid.GID)
-	}
-	newAreaGrids := p.Map.AOI.GetSurroundGridsByGridID(newGrid.GID)
-	send := make(map[int]bool)
-	for i := range newAreaGrids {
-		ng := newAreaGrids[i]
-		send[ng.GID] = true
-		for j := range oldAreaGrids {
-			og := oldAreaGrids[j]
-			if ng.GID == og.GID {
-				send[ng.GID] = false
-			}
-		}
-	}
-	newAreaObjects := make([]IMapObject, 0)
-	for i := range newAreaGrids {
-		ng := newAreaGrids[i]
-		if send[ng.GID] {
-			newAreaObjects = append(newAreaObjects, ng.GetAllObjects()...)
-		}
-	}
-	for i := range newAreaObjects {
-		if o := newAreaObjects[i]; o.GetID() != p.GetID() {
-			p.Enqueue(ServerMessage{}.Object(o))
-		}
-	}
-	drop := make(map[int]bool)
-	for i := range oldAreaGrids {
-		og := oldAreaGrids[i]
-		drop[og.GID] = true
-		for j := range newAreaGrids {
-			ng := newAreaGrids[j]
-			if og.GID == ng.GID {
-				drop[og.GID] = false
-			}
-		}
-	}
-	oldAreaObjects := make([]IMapObject, 0)
-	for i := range oldAreaGrids {
-		og := oldAreaGrids[i]
-		if drop[og.GID] {
-			oldAreaObjects = append(oldAreaObjects, og.GetAllObjects()...)
-		}
-	}
-	for i := range oldAreaObjects {
-		if o := oldAreaObjects[i]; o.GetID() != p.GetID() {
-			p.Enqueue(ServerMessage{}.ObjectRemove(o))
-		}
-	}
-}
-
 func (p *Player) StartGame() {
 	p.ReceiveChat("这是一个以学习为目的传奇服务端", common.ChatTypeSystem)
 	p.ReceiveChat("如有任何建议、疑问欢迎交流", common.ChatTypeSystem)
 	p.ReceiveChat("源码地址 https://github.com/yenkeia/mirgo", common.ChatTypeSystem)
-	p.EnqueueItemInfos()
-	p.RefreshStats()
-	p.EnqueueQuestInfo()
-	p.Enqueue(ServerMessage{}.MapInformation(p.Map.Info))
-	p.Enqueue(ServerMessage{}.UserInformation(p))
+	p.Char.EnqueueItemInfos()
+	p.Char.RefreshStats()
+	p.Char.EnqueueQuestInfo()
+	p.Enqueue(ServerMessage{}.MapInformation(p.Char.Map.Info))
+	p.Enqueue(ServerMessage{}.UserInformation(p.Char))
 	p.Enqueue(ServerMessage{}.TimeOfDay(common.LightSettingDay))
-	p.EnqueueAreaObjects(nil, p.Map.AOI.GetGridByPoint(p.GetPoint()))
+	p.Char.EnqueueAreaObjects(nil, p.Char.Map.AOI.GetGridByPoint(p.Char.GetPoint()))
 	p.Enqueue(ServerMessage{}.NPCResponse([]string{}))
-	p.Broadcast(ServerMessage{}.ObjectPlayer(p))
+	p.Char.Broadcast(ServerMessage{}.ObjectPlayer(p.Char))
 }
 
 func (p *Player) StopGame(reason int) {
-	p.Broadcast(ServerMessage{}.ObjectRemove(p))
-}
-
-func (p *Player) Turn(direction common.MirDirection) {
-	if !p.CanMove() {
-		p.Enqueue(ServerMessage{}.UserLocation(p))
-		return
-	}
-	p.CurrentDirection = direction
-	p.Enqueue(ServerMessage{}.UserLocation(p))
-	p.Broadcast(ServerMessage{}.ObjectTurn(p))
-}
-
-func (p *Player) Walk(direction common.MirDirection) {
-	if !p.CanMove() || !p.CanWalk() {
-		p.Enqueue(ServerMessage{}.UserLocation(p))
-		return
-	}
-	n := p.Point().NextPoint(direction, 1)
-	ok := p.Map.UpdateObject(p, n)
-	if !ok {
-		p.Enqueue(ServerMessage{}.UserLocation(p))
-		return
-	}
-	p.CurrentDirection = direction
-	p.CurrentLocation = n
-	p.Enqueue(ServerMessage{}.UserLocation(p))
-	p.Broadcast(ServerMessage{}.ObjectWalk(p))
-}
-
-func (p *Player) Run(direction common.MirDirection) {
-	n1 := p.Point().NextPoint(direction, 1)
-	n2 := p.Point().NextPoint(direction, 2)
-	if ok := p.Map.UpdateObject(p, n1, n2); !ok {
-		p.Enqueue(ServerMessage{}.UserLocation(p))
-		return
-	}
-	p.CurrentDirection = direction
-	p.CurrentLocation = n2
-	p.Enqueue(ServerMessage{}.UserLocation(p))
-	p.Broadcast(ServerMessage{}.ObjectRun(p))
+	p.Char.Broadcast(ServerMessage{}.ObjectRemove(p.Char))
 }
 
 func (p *Player) Chat(message string) {
@@ -275,13 +69,16 @@ func (p *Player) Chat(message string) {
 	if strings.HasPrefix(message, "!!") {
 		return
 	}
+
+	curMap := p.Char.Map
+
 	if strings.HasPrefix(message, "@") {
 		parts := strings.Split(message[1:], " ")
 		switch strings.ToUpper(parts[0]) {
 		case "LOGIN":
 		case "KILL": // @kill 杀死面前的怪物，@kill name 杀死名字为 name 的玩家
 			if len(parts) == 2 {
-				o := p.Map.Env.GetPlayerByName(parts[1])
+				o := curMap.Env.GetPlayerByName(parts[1])
 				if o == nil {
 					p.ReceiveChat(fmt.Sprintf("找不到玩家(%s)", parts[1]), common.ChatTypeSystem)
 					return
@@ -289,7 +86,7 @@ func (p *Player) Chat(message string) {
 				o.Die()
 				return
 			}
-			c := p.Map.GetNextCell(p.GetCell(), p.GetDirection(), 1)
+			c := curMap.GetNextCell(p.Char.GetCell(), p.Char.GetDirection(), 1)
 			if c == nil {
 				return
 			}
@@ -306,7 +103,7 @@ func (p *Player) Chat(message string) {
 			if len(parts) != 3 {
 				return
 			}
-			info := p.Map.Env.GameDB.GetItemInfoByName(parts[1])
+			info := curMap.Env.GameDB.GetItemInfoByName(parts[1])
 			if info == nil {
 				return
 			}
@@ -317,15 +114,15 @@ func (p *Player) Chat(message string) {
 			count := uint32(tmp)
 			for count > 0 {
 				if info.StackSize >= count {
-					userItem := p.Map.Env.NewUserItem(info)
+					userItem := curMap.Env.NewUserItem(info)
 					userItem.Count = count
-					p.GainItem(userItem)
+					p.Char.GainItem(userItem)
 					return
 				}
-				userItem := p.Map.Env.NewUserItem(info)
+				userItem := curMap.Env.NewUserItem(info)
 				userItem.Count = count
 				count -= info.StackSize
-				p.GainItem(userItem)
+				p.Char.GainItem(userItem)
 			}
 			p.ReceiveChat(fmt.Sprintf("%s x %d 创建成功", info.Name, count), common.ChatTypeSystem)
 		case "CLEARBUFFS":
@@ -342,7 +139,7 @@ func (p *Player) Chat(message string) {
 		case "TIME":
 		case "ROLL":
 		case "MAP":
-			p.ReceiveChat(fmt.Sprintf("当前地图: %s, ID: %d", p.Map.Info.Title, p.Map.Info.ID), common.ChatTypeSystem)
+			p.ReceiveChat(fmt.Sprintf("当前地图: %s, ID: %d", curMap.Info.Title, curMap.Info.ID), common.ChatTypeSystem)
 		case "MOVE": // @move x y
 			if len(parts) != 3 {
 				p.ReceiveChat(fmt.Sprintf("移动失败，正确命令格式: @move 123 456"), common.ChatTypeSystem)
@@ -358,7 +155,7 @@ func (p *Player) Chat(message string) {
 				p.ReceiveChat(fmt.Sprintf("移动失败，正确命令格式: @move 123 456"), common.ChatTypeSystem)
 				return
 			}
-			p.Teleport(p.Map, common.NewPoint(x, y))
+			p.Char.Teleport(curMap, common.NewPoint(x, y))
 		case "MAPMOVE":
 		case "GOTO":
 		case "MOB": // @mob 怪物名称		在玩家周围生成 1 个怪物
@@ -366,17 +163,17 @@ func (p *Player) Chat(message string) {
 				p.ReceiveChat(fmt.Sprintf("生成怪物失败，正确命令格式: @mob 怪物名"), common.ChatTypeSystem)
 				return
 			}
-			c := p.Map.GetNextCell(p.GetCell(), p.GetDirection(), 1)
+			c := curMap.GetNextCell(p.Char.GetCell(), p.Char.GetDirection(), 1)
 			if c == nil || c.HasObject() {
 				p.ReceiveChat(fmt.Sprintf("生成怪物失败"), common.ChatTypeSystem)
 				return
 			}
-			mi := p.Map.Env.GameDB.GetMonsterInfoByName(parts[1])
+			mi := curMap.Env.GameDB.GetMonsterInfoByName(parts[1])
 			if mi == nil {
 				p.ReceiveChat(fmt.Sprintf("生成怪物失败，找不到怪物 %s", parts[1]), common.ChatTypeSystem)
 				return
 			}
-			p.Map.AddObject(NewMonster(p.Map, c.Point, mi))
+			curMap.AddObject(NewMonster(curMap, c.Point, mi))
 		case "RECALLMOB":
 		case "RELOADDROPS":
 		case "RELOADNPCS":
@@ -405,7 +202,7 @@ func (p *Player) Chat(message string) {
 			if len(parts) != 1 {
 				return
 			}
-			c := p.Map.GetNextCell(p.GetCell(), p.GetDirection(), 1)
+			c := curMap.GetNextCell(p.Char.GetCell(), p.Char.GetDirection(), 1)
 			if c == nil {
 				return
 			}
@@ -419,7 +216,7 @@ func (p *Player) Chat(message string) {
 					p.ReceiveChat(fmt.Sprintf("HP: %d, MinDC: %d, MaxDC: %d", mo.HP, mo.MinDC, mo.MaxDC), common.ChatTypeSystem2)
 				}
 				if o.GetRace() == common.ObjectTypePlayer {
-					po := o.(*Player)
+					po := o.(*Character)
 					p.ReceiveChat("--Player Info--", common.ChatTypeSystem2)
 					p.ReceiveChat(fmt.Sprintf("Name: %s, Level: %d, Pos: %s", po.Name, po.Level, po.GetPoint()), common.ChatTypeSystem2)
 				}
@@ -439,46 +236,9 @@ func (p *Player) Chat(message string) {
 		}
 		return
 	}
-	msg := ServerMessage{}.ObjectChat(p, message, common.ChatTypeNormal)
+	msg := ServerMessage{}.ObjectChat(p.Char, message, common.ChatTypeNormal)
 	p.Enqueue(msg)
-	p.Broadcast(msg)
-}
-
-func (p *Player) MoveItem(mirGridType common.MirGridType, from int32, to int32) {
-	msg := &server.MoveItem{
-		Grid:    mirGridType,
-		From:    from,
-		To:      to,
-		Success: false,
-	}
-	switch mirGridType {
-	case common.MirGridTypeInventory:
-		l := len(p.Inventory)
-		if from > 0 && to > 0 && int(from) < l && int(to) < l {
-			array := p.Inventory
-			i := array[to]
-			array[to] = array[from]
-			array[from] = i
-			msg.Success = true
-		}
-	case common.MirGridTypeStorage:
-		// TODO
-	case common.MirGridTypeTrade:
-		// TODO
-	case common.MirGridTypeRefine:
-		// TODO
-	}
-	p.Enqueue(msg)
-}
-
-// TODO
-func (p *Player) StoreItem(from int32, to int32) {
-	msg := &server.StoreItem{
-		From:    from,
-		To:      to,
-		Success: false,
-	}
-	p.Enqueue(msg)
+	p.Char.Broadcast(msg)
 }
 
 func (p *Player) DepositRefineItem(from int32, to int32) {
@@ -521,220 +281,12 @@ func (p *Player) MergeItem(from common.MirGridType, to common.MirGridType, from2
 
 }
 
-func (p *Player) EquipItem(mirGridType common.MirGridType, id uint64, to int32) {
-	var msg = &server.EquipItem{
-		Grid:     mirGridType,
-		UniqueID: id,
-		To:       to,
-		Success:  false,
-	}
-	if l := len(p.Equipment); to < 0 || int(to) >= l {
-		p.Enqueue(msg)
-		return
-	}
-	switch mirGridType {
-	case common.MirGridTypeInventory:
-		index, item := p.GetUserItemByID(mirGridType, id)
-		if item == nil {
-			p.Enqueue(msg)
-			return
-		}
-		p.Inventory[index] = p.Equipment[to]
-		p.Equipment[to] = *item
-	case common.MirGridTypeStorage:
-		// TODO
-	}
-	msg.Success = true
-	p.RefreshStats()
-	p.Enqueue(msg)
-	p.UpdateConcentration()
-	p.Broadcast(ServerMessage{}.PlayerUpdate(p))
-}
-
-func (p *Player) RemoveItem(mirGridType common.MirGridType, id uint64, to int32) {
-	msg := &server.RemoveItem{
-		Grid:     mirGridType,
-		UniqueID: id,
-		To:       to,
-		Success:  false,
-	}
-	if l := len(p.Inventory); to < 0 || int(to) >= l {
-		p.Enqueue(msg)
-		return
-	}
-	switch mirGridType {
-	case common.MirGridTypeInventory:
-		index, item := p.GetUserItemByID(common.MirGridTypeEquipment, id)
-		if item == nil {
-			p.Enqueue(msg)
-			return
-		}
-		invItem := p.Inventory[to]
-		if invItem.ID == 0 {
-			p.Inventory[to], p.Equipment[index] = p.Equipment[index], p.Inventory[to]
-			break
-		}
-		for i := range p.Inventory[6:] {
-			tmp := p.Inventory[6:][i]
-			if tmp.ID != 0 {
-				continue
-			}
-			p.Inventory[6:][i], p.Equipment[index] = p.Equipment[index], p.Inventory[6:][i]
-			break
-		}
-	case common.MirGridTypeStorage:
-		// TODO
-	}
-	msg.Success = true
-	p.RefreshStats()
-	p.Enqueue(msg)
-	p.UpdateConcentration()
-	p.Broadcast(ServerMessage{}.PlayerUpdate(p))
-}
-
 func (p *Player) RemoveSlotItem(grid common.MirGridType, id uint64, to int32, to2 common.MirGridType) {
 
 }
 
 func (p *Player) SplitItem(grid common.MirGridType, id uint64, count uint32) {
 
-}
-
-func (p *Player) UseItem(id uint64) {
-	msg := &server.UseItem{UniqueID: id, Success: false}
-	if p.IsDead() {
-		p.Enqueue(msg)
-		return
-	}
-	index, item := p.GetUserItemByID(common.MirGridTypeInventory, id)
-	if item == nil || item.ID == 0 || !p.CanUseItem(item) {
-		p.Enqueue(msg)
-		return
-	}
-	ph := &p.Health
-	info := p.Map.Env.GameDB.GetItemInfoByID(int(item.ItemID))
-	switch info.Type {
-	case common.ItemTypePotion:
-		switch info.Shape {
-		case 0: // NormalPotion 一般药水
-			if info.HP > 0 {
-				ph.HPPotValue = int(info.HP)                         // 回复总值
-				ph.HPPotPerValue = int(info.HP / 3)                  // 一次回复多少
-				*ph.HPPotNextTime = time.Now().Add(ph.HPPotDuration) // 下次生效时间
-				ph.HPPotTickNum = 3                                  // 总共跳几次
-				ph.HPPotTickTime = 0                                 // 当前第几跳
-			}
-			if info.MP > 0 {
-				ph.MPPotValue = int(info.MP)
-				ph.MPPotPerValue = int(info.MP / 3)
-				*ph.MPPotNextTime = time.Now().Add(ph.MPPotDuration)
-				ph.MPPotTickNum = 3
-				ph.MPPotTickTime = 0
-			}
-		case 1: // SunPotion 太阳水
-			p.ChangeHP(int(info.HP))
-			p.ChangeMP(int(info.MP))
-		case 2: // TODO MysteryWater
-		case 3: // TODO Buff
-		case 4: // TODO Exp 经验
-		}
-	case common.ItemTypeScroll:
-	case common.ItemTypeBook:
-	case common.ItemTypeScript:
-	case common.ItemTypeFood:
-	case common.ItemTypePets:
-	case common.ItemTypeTransform: //Transforms
-	default:
-		p.Enqueue(msg)
-		return
-	}
-	if item.Count > 1 {
-		item.Count--
-	} else {
-		p.Inventory[index] = common.UserItem{}
-	}
-	p.RefreshBagWeight()
-	msg.Success = true
-	p.Enqueue(msg)
-}
-
-func (p *Player) DropItem(id uint64, count uint32) {
-	msg := &server.DropItem{
-		UniqueID: id,
-		Count:    count,
-		Success:  false,
-	}
-	index, userItem := p.GetUserItemByID(common.MirGridTypeInventory, id)
-	if userItem == nil || userItem.ID == 0 {
-		p.Enqueue(msg)
-		return
-	}
-	obj := p.Map.Env.CreateDropItem(p.Map, userItem, 0)
-	if dropMsg, ok := obj.Drop(p.GetPoint(), 1); !ok {
-		p.ReceiveChat(dropMsg, common.ChatTypeSystem)
-		return
-	}
-	if count >= userItem.Count {
-		p.Inventory[index] = common.UserItem{}
-	} else {
-		p.Inventory[index].Count -= count
-	}
-	p.RefreshBagWeight()
-	msg.Success = true
-	p.Enqueue(msg)
-}
-
-func (p *Player) DropGold(gold uint64) {
-	if p.Gold < gold {
-		return
-	}
-	obj := p.Map.Env.CreateDropItem(p.Map, nil, gold)
-	if dropMsg, ok := obj.Drop(p.GetPoint(), 3); !ok {
-		p.ReceiveChat(dropMsg, common.ChatTypeSystem)
-		return
-	}
-	p.Gold -= gold
-	p.Enqueue(&server.LoseGold{Gold: uint32(gold)})
-}
-
-func (p *Player) PickUp() {
-	if p.IsDead() {
-		return
-	}
-	c := p.GetCell()
-	if c == nil {
-		return
-	}
-	items := make([]*Item, 0)
-	c.Objects.Range(func(k, v interface{}) bool {
-		if o, ok := v.(*Item); ok {
-			if o.UserItem == nil {
-				p.GainGold(o.Gold)
-				items = append(items, o)
-			} else {
-				if p.GainItem(o.UserItem) {
-					items = append(items, o)
-				}
-			}
-		}
-		return true
-	})
-	for i := range items {
-		o := items[i]
-		p.Map.DeleteObject(o)
-		o.Broadcast(ServerMessage{}.ObjectRemove(o))
-	}
-}
-
-func (p *Player) Inspect(id uint32) {
-	o := p.Map.Env.GetPlayer(id)
-	for i := range o.Equipment {
-		item := p.Map.Env.GameDB.GetItemInfoByID(int(o.Equipment[i].ItemID))
-		if item != nil {
-			p.EnqueueItemInfo(item.ID)
-		}
-	}
-	p.Enqueue(ServerMessage{}.PlayerInspect(o))
 }
 
 func (p *Player) ChangeAMode(mode common.AttackMode) {
@@ -749,36 +301,6 @@ func (p *Player) ChangeTrade(trade bool) {
 
 }
 
-func (p *Player) Attack(direction common.MirDirection, spell common.Spell) {
-	if !p.CanAttack() {
-		p.Enqueue(ServerMessage{}.UserLocation(p))
-		return
-	}
-	p.CurrentDirection = direction
-	p.Enqueue(ServerMessage{}.UserLocation(p))
-	p.Broadcast(ServerMessage{}.ObjectAttack(p, common.SpellNone, 0, 0))
-	target := p.GetPoint().NextPoint(p.GetDirection(), 1)
-	damageBase := p.GetAttackPower(int(p.MinDC), int(p.MaxDC)) // = the original damage from your gear (+ bonus from moonlight and darkbody)
-	damageFinal := damageBase                                  // = the damage you're gonna do with skills added
-	cell := p.Map.GetCell(target)
-	if !cell.CanWalk() {
-		return
-	}
-	cell.Objects.Range(func(k, v interface{}) bool {
-		o := v.(IMapObject)
-		if !o.IsAttackTarget(p) {
-			return true
-		}
-		switch o.GetRace() {
-		case common.ObjectTypePlayer:
-			o.(*Player).Attacked(p, damageFinal, common.DefenceTypeAgility, false)
-		case common.ObjectTypeMonster:
-			o.(*Monster).Attacked(p, damageFinal, common.DefenceTypeAgility, false)
-		}
-		return true
-	})
-}
-
 func (p *Player) RangeAttack(direction common.MirDirection, location common.Point, id uint32) {
 
 }
@@ -788,7 +310,7 @@ func (p *Player) Harvest(direction common.MirDirection) {
 }
 
 func (p *Player) CallNPC(id uint32, key string) {
-	npc := p.Map.Env.GetNPC(id)
+	npc := p.Char.Map.Env.GetNPC(id)
 	if npc == nil {
 		return
 	}
@@ -818,13 +340,13 @@ func sendBuyKey(p *Player, npc *NPC) {
 	goods := []*common.UserItem{}
 
 	// TODO: fix..
-	for _, name := range npc.Script.Goods {
-		item := p.Map.Env.GameDB.GetItemInfoByName(name)
-		if item != nil {
-			p.EnqueueItemInfo(item.ID)
-			goods = append(goods, p.Map.Env.NewUserItem(item))
-		}
-	}
+	// for _, name := range npc.Script.Goods {
+	// 	item := p.Map.Env.GameDB.GetItemInfoByName(name)
+	// 	if item != nil {
+	// 		p.EnqueueItemInfo(item.ID)
+	// 		goods = append(goods, p.Map.Env.NewUserItem(item))
+	// 	}
+	// }
 
 	p.Enqueue(&server.NPCGoods{
 		Goods: goods,
@@ -863,31 +385,6 @@ func (p *Player) SRepairItem(id uint64) {
 
 func (p *Player) MagicKey(spell common.Spell, key uint8) {
 
-}
-
-func (p *Player) Magic(spell common.Spell, direction common.MirDirection, targetID uint32, targetLocation common.Point) {
-	if !p.CanCast() {
-		p.Enqueue(ServerMessage{}.UserLocation(p))
-		return
-	}
-	userMagic := p.GetMagic(spell)
-	if userMagic == nil {
-		p.Enqueue(ServerMessage{}.UserLocation(p))
-		return
-	}
-	info := p.Map.Env.GameDB.GetMagicInfoByID(userMagic.MagicID)
-	cost := info.BaseCost + info.LevelCost*userMagic.Level
-	if uint16(cost) > p.MP {
-		p.Enqueue(ServerMessage{}.UserLocation(p))
-		return
-	}
-	p.CurrentDirection = direction
-	p.ChangeMP(-cost)
-	target := p.Map.GetObjectInAreaByID(targetID, targetLocation)
-	cast, targetID := p.UseMagic(spell, userMagic, target)
-	p.Enqueue(ServerMessage{}.UserLocation(p))
-	p.Enqueue(ServerMessage{}.Magic(spell, targetID, targetLocation, cast, userMagic.Level))
-	p.Broadcast(ServerMessage{}.ObjectMagic(p, spell, targetID, targetLocation, cast, userMagic.Level))
 }
 
 func (p *Player) SwitchGroup(group bool) {

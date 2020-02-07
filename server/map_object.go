@@ -6,17 +6,6 @@ import (
 	"github.com/yenkeia/mirgo/common"
 )
 
-type MapObject struct {
-	ID               uint32
-	Name             string
-	NameColor        common.Color
-	Map              *Map
-	CurrentLocation  common.Point
-	CurrentDirection common.MirDirection
-	Poisons          []*Poison
-	Buffs            []*Buff
-}
-
 type Poison struct {
 	ObjectID   uint32
 	PoisonType common.PoisonType
@@ -63,4 +52,19 @@ type IMapObject interface {
 	GetBaseStats() BaseStats
 	IsAttackTarget(IMapObject) bool
 	IsFriendlyTarget(IMapObject) bool
+	IsDead() bool
 }
+
+type MapObject struct {
+	ID               uint32
+	Name             string
+	NameColor        common.Color
+	Map              *Map
+	CurrentLocation  common.Point
+	CurrentDirection common.MirDirection
+	Poisons          []*Poison
+	Buffs            []*Buff
+	Dead             bool
+}
+
+func (mo *MapObject) IsDead() bool { return mo.Dead }
