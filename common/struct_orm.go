@@ -1,5 +1,7 @@
 package common
 
+import "fmt"
+
 // Account 账号
 type Account struct {
 	ID       int `gorm:"primary_key"`
@@ -349,6 +351,10 @@ type UserItem struct {
 	CriticalDamage uint8
 	Freezing       uint8
 	PoisonAttack   uint8
+}
+
+func (u UserItem) String() string {
+	return fmt.Sprintf("UserItem ID: %d, ItemID: %d, Count: %d", u.ID, u.ItemID, u.Count)
 }
 
 type UserMagic struct {

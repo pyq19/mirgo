@@ -832,6 +832,10 @@ type NPCGoods struct {
 	Type  common.PanelType
 }
 
+func (n *NPCGoods) String() string {
+	return fmt.Sprintf("Goods: %s, Rate: %f, Type: %d", n.Goods, n.Rate, n.Type)
+}
+
 type NPCSell struct{}
 
 type NPCRepair struct {
