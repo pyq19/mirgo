@@ -138,3 +138,34 @@ func PreviousDirection(d common.MirDirection) common.MirDirection {
 		return d
 	}
 }
+
+func InRange(a, b common.Point, i int) bool {
+	return AbsInt(int(a.X-b.X)) <= i && AbsInt(int(a.Y-b.Y)) <= i
+}
+
+func DirectionFromPoint(source, dest common.Point) common.MirDirection {
+	if source.X < dest.X {
+		if source.Y < dest.Y {
+			return common.MirDirectionDownRight
+		}
+		if source.Y > dest.Y {
+			return common.MirDirectionUpRight
+		}
+		return common.MirDirectionRight
+	}
+	if source.X > dest.X {
+		if source.Y < dest.Y {
+			return common.MirDirectionDownLeft
+		}
+		if source.Y > dest.Y {
+
+			return common.MirDirectionUpLeft
+		}
+		return common.MirDirectionLeft
+	}
+	if source.Y < dest.Y {
+		return common.MirDirectionDown
+	} else {
+		return common.MirDirectionUp
+	}
+}
