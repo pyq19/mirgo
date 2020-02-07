@@ -165,8 +165,8 @@ func (m *Monster) IsDead() bool {
 	return m.HP <= 0
 }
 
-func (p *Monster) IsBlocking() bool {
-	return !p.IsDead()
+func (m *Monster) IsBlocking() bool {
+	return !m.IsDead()
 }
 
 func (m *Monster) IsSkeleton() bool {

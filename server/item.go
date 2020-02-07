@@ -16,7 +16,7 @@ func (i *Item) GetID() uint32 {
 	return i.ID
 }
 
-func (mo *Item) IsDead() bool { return mo.Dead }
+func (i *Item) IsDead() bool { return i.Dead }
 
 func (i *Item) GetRace() common.ObjectType {
 	return common.ObjectTypeItem

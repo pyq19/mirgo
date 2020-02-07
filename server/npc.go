@@ -58,7 +58,7 @@ func (n *NPC) GetRace() common.ObjectType {
 	return common.ObjectTypeMerchant
 }
 
-func (i *NPC) IsBlocking() bool {
+func (n *NPC) IsBlocking() bool {
 	// return i.IsVisible()
 	return false
 }
