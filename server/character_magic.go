@@ -15,7 +15,7 @@ func (c *Character) GetMagic(spell common.Spell) *common.UserMagic {
 }
 
 func (c *Character) GetClientMagics() []common.ClientMagic {
-	gdb := c.Player.Map.Env.GameDB
+	gdb := c.Map.Env.GameDB
 	res := make([]common.ClientMagic, 0)
 	for i := range c.Magics {
 		userMagic := c.Magics[i]
@@ -34,8 +34,8 @@ func (c *Character) UseMagic(spell common.Spell, magic *common.UserMagic, target
 		}
 	case common.SpellHealing:
 		if target == nil {
-			target = c.Player
-			targetID = c.Player.GetID()
+			target = c
+			targetID = c.GetID()
 		}
 		c.Healing(target, magic)
 	case common.SpellRepulsion, common.SpellEnergyRepulsor, common.SpellFireBurst:
@@ -62,7 +62,7 @@ func (c *Character) UseMagic(spell common.Spell, magic *common.UserMagic, target
 		c.SummonSkeleton(magic)
 	case common.SpellTeleport, common.SpellBlink:
 		// ActionList.Add(new DelayedAction(DelayedType.Magic, Envir.Time + 200, magic, location));
-		action := NewDelayedAction(c.NewObjectID(), DelayedTypeMagic, NewTask(c.CompleteMagic, magic, c.Player.GetPoint()))
+		action := NewDelayedAction(c.NewObjectID(), DelayedTypeMagic, NewTask(c.CompleteMagic, magic, c.GetPoint()))
 		c.ActionList.Store(action.ID, action)
 	case common.SpellHiding:
 		c.Hiding(magic)
@@ -78,27 +78,27 @@ func (c *Character) UseMagic(spell common.Spell, magic *common.UserMagic, target
 		// FireBang(magic, target == null ? location : target.CurrentLocation);
 		location := target.GetPoint()
 		if target == nil {
-			location = c.Player.GetPoint()
+			location = c.GetPoint()
 		}
 		c.FireBang(magic, location)
 	case common.SpellMassHiding:
 		// MassHiding(magic, target == null ? location : target.CurrentLocation, out cast);
 		location := target.GetPoint()
 		if target == nil {
-			location = c.Player.GetPoint()
+			location = c.GetPoint()
 		}
 		cast = c.MassHiding(magic, location)
 	case common.SpellSoulShield, common.SpellBlessedArmour:
 		// SoulShield(magic, target == null ? location : target.CurrentLocation, out cast);
 		location := target.GetPoint()
 		if target == nil {
-			location = c.Player.GetPoint()
+			location = c.GetPoint()
 		}
 		cast = c.SoulShield(magic, location)
 	case common.SpellFireWall:
 		location := target.GetPoint()
 		if target == nil {
-			location = c.Player.GetPoint()
+			location = c.GetPoint()
 		}
 		c.FireWall(magic, location)
 	case common.SpellLightning:
@@ -108,7 +108,7 @@ func (c *Character) UseMagic(spell common.Spell, magic *common.UserMagic, target
 	case common.SpellMassHealing:
 		location := target.GetPoint()
 		if target == nil {
-			location = c.Player.GetPoint()
+			location = c.GetPoint()
 		}
 		c.MassHealing(magic, location)
 	case common.SpellShoulderDash:
@@ -150,7 +150,7 @@ func (c *Character) UseMagic(spell common.Spell, magic *common.UserMagic, target
 	case common.SpellRevelation:
 		c.Revelation(target, magic)
 	case common.SpellPoisonCloud:
-		cast = c.PoisonCloud(magic, c.Player.GetPoint())
+		cast = c.PoisonCloud(magic, c.GetPoint())
 	case common.SpellEntrapment:
 		c.Entrapment(target, magic)
 	case common.SpellBladeAvalanche:
@@ -164,13 +164,13 @@ func (c *Character) UseMagic(spell common.Spell, magic *common.UserMagic, target
 	case common.SpellBlizzard:
 		location := target.GetPoint()
 		if target == nil {
-			location = c.Player.GetPoint()
+			location = c.GetPoint()
 		}
 		cast = c.Blizzard(magic, location)
 	case common.SpellMeteorStrike:
 		location := target.GetPoint()
 		if target == nil {
-			location = c.Player.GetPoint()
+			location = c.GetPoint()
 		}
 		cast = c.MeteorStrike(magic, location)
 	case common.SpellIceThrust:
@@ -184,13 +184,13 @@ func (c *Character) UseMagic(spell common.Spell, magic *common.UserMagic, target
 	case common.SpellReincarnation:
 		// Reincarnation(magic, target == null ? null : target as PlayerObject, out cast);
 		if target != nil {
-			target = c.Player
+			target = c
 		}
 		cast = c.Reincarnation(magic, target)
 	case common.SpellCurse:
 		location := target.GetPoint()
 		if target == nil {
-			location = c.Player.GetPoint()
+			location = c.GetPoint()
 		}
 		cast = c.Curse(magic, location)
 	case common.SpellSummonHolyDeva:
@@ -204,7 +204,7 @@ func (c *Character) UseMagic(spell common.Spell, magic *common.UserMagic, target
 	case common.SpellPlague:
 		location := target.GetPoint()
 		if target == nil {
-			location = c.Player.GetPoint()
+			location = c.GetPoint()
 		}
 		cast = c.Plague(magic, location)
 	default:
@@ -219,13 +219,13 @@ func (c *Character) CompleteMagic(args ...interface{}) {
 	case common.SpellFireBall, common.SpellGreatFireBall, common.SpellThunderBolt, common.SpellSoulFireBall, common.SpellFlameDisruptor, common.SpellStraightShot, common.SpellDoubleShot:
 		value := args[1].(int)
 		target := args[2].(IMapObject)
-		if target == nil || !target.IsAttackTarget(c.Player) {
+		if target == nil || !target.IsAttackTarget(c) {
 			return
 		}
 		if target.GetRace() == common.ObjectTypePlayer {
-			target.(*Player).Attacked(c.Player, value, common.DefenceTypeMAC, false)
+			target.(*Character).Attacked(c, value, common.DefenceTypeMAC, false)
 		} else if target.GetRace() == common.ObjectTypeMonster {
-			target.(*Monster).Attacked(c.Player, value, common.DefenceTypeMAC, false)
+			target.(*Monster).Attacked(c, value, common.DefenceTypeMAC, false)
 		}
 		return
 	case common.SpellFrostCrunch:
@@ -233,11 +233,11 @@ func (c *Character) CompleteMagic(args ...interface{}) {
 	case common.SpellHealing:
 		value := args[1].(int)
 		target := args[2].(IMapObject)
-		if target == nil || !target.IsFriendlyTarget(c.Player) {
+		if target == nil || !target.IsFriendlyTarget(c) {
 			return
 		}
 		if target.GetRace() == common.ObjectTypePlayer {
-			obj := target.(*Player)
+			obj := target.(*Character)
 			hp := int(obj.HP)
 			maxHP := int(obj.MaxHP)
 			if hp >= maxHP {
@@ -280,7 +280,7 @@ func (c *Character) CompleteMagic(args ...interface{}) {
 }
 
 func (c *Character) Fireball(target IMapObject, magic *common.UserMagic) bool {
-	if target == nil || !target.IsAttackTarget(c.Player) {
+	if target == nil || !target.IsAttackTarget(c) {
 		return false
 	}
 	damage := magic.GetDamage(c.GetAttackPower(int(c.MinMC), int(c.MaxMC)))
@@ -290,7 +290,7 @@ func (c *Character) Fireball(target IMapObject, magic *common.UserMagic) bool {
 }
 
 func (c *Character) Healing(target IMapObject, magic *common.UserMagic) {
-	if target == nil || !target.IsFriendlyTarget(c.Player) {
+	if target == nil || !target.IsFriendlyTarget(c) {
 		return
 	}
 	// int health = magic.GetDamage(GetAttackPower(MinSC, MaxSC) * 2) + Level;

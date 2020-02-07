@@ -33,7 +33,7 @@ func NewGrid(aoi *AOIManager, gID, minX, maxX, minY, maxY int) *Grid {
 // String 打印信息方法
 func (g *Grid) String() string {
 	var (
-		players  []*Player
+		players  []*Character
 		monsters []*Monster
 		npcs     []*NPC
 	)
@@ -43,7 +43,7 @@ func (g *Grid) String() string {
 		o := v.(IMapObject)
 		switch o.GetRace() {
 		case common.ObjectTypePlayer:
-			players = append(players, o.(*Player))
+			players = append(players, o.(*Character))
 		case common.ObjectTypeMonster:
 			monsters = append(monsters, o.(*Monster))
 		case common.ObjectTypeMerchant:
@@ -67,11 +67,11 @@ func (g *Grid) DeleteObject(obj IMapObject) {
 }
 
 // GetAllPlayer 得到当前区域中所有的玩家
-func (g *Grid) GetAllPlayer() (players []*Player) {
+func (g *Grid) GetAllPlayer() (players []*Character) {
 	g.Objects.Range(func(k, v interface{}) bool {
 		o := v.(IMapObject)
 		if o.GetRace() == common.ObjectTypePlayer {
-			players = append(players, o.(*Player))
+			players = append(players, o.(*Character))
 		}
 		return true
 	})
