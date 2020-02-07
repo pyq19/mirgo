@@ -38,9 +38,9 @@ func TestAOIManager_GetAllGrid(t *testing.T) {
 
 func TestGrid_GetPlayerID(t *testing.T) {
 	grid := NewGrid(nil, 1, 1, 1, 1, 1)
-	p1 := new(Character)
+	p1 := new(Player)
 	p1.ID = 1
-	p2 := new(Character)
+	p2 := new(Player)
 	p2.ID = 22
 	grid.AddObject(p1)
 	grid.AddObject(p2)

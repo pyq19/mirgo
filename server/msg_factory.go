@@ -66,7 +66,7 @@ func (ServerMessage) StartGame(result, resolution int) *server.StartGame {
 	return sg
 }
 
-func (ServerMessage) UserInformation(p *Character) *server.UserInformation {
+func (ServerMessage) UserInformation(p *Player) *server.UserInformation {
 	ui := new(server.UserInformation)
 	ui.ObjectID = p.GetID()
 	ui.RealID = p.GetID()
@@ -96,7 +96,7 @@ func (ServerMessage) UserInformation(p *Character) *server.UserInformation {
 	return ui
 }
 
-func (ServerMessage) UserLocation(p *Character) *server.UserLocation {
+func (ServerMessage) UserLocation(p *Player) *server.UserLocation {
 	return &server.UserLocation{
 		Location:  p.Point(),
 		Direction: p.CurrentDirection,
@@ -131,7 +131,7 @@ func (ServerMessage) ObjectRemove(o IMapObject) *server.ObjectRemove {
 	return &server.ObjectRemove{ObjectID: o.GetID()}
 }
 
-func (ServerMessage) ObjectChat(p *Character, message string, chatType common.ChatType) *server.ObjectChat {
+func (ServerMessage) ObjectChat(p *Player, message string, chatType common.ChatType) *server.ObjectChat {
 	text := p.Name + ":" + message
 	return &server.ObjectChat{
 		ObjectID: p.ID,
@@ -151,7 +151,7 @@ func (ServerMessage) NewItemInfo(item *common.ItemInfo) *server.NewItemInfo {
 	return &server.NewItemInfo{Info: *item}
 }
 
-func (ServerMessage) PlayerInspect(p *Character) *server.PlayerInspect {
+func (ServerMessage) PlayerInspect(p *Player) *server.PlayerInspect {
 	return &server.PlayerInspect{
 		Name:      p.Name,
 		GuildName: p.GuildName,
@@ -258,7 +258,7 @@ func (m ServerMessage) GainedGold(gold uint64) *server.GainedGold {
 	return &server.GainedGold{Gold: uint32(gold)}
 }
 
-func (ServerMessage) PlayerUpdate(p *Character) *server.PlayerUpdate {
+func (ServerMessage) PlayerUpdate(p *Player) *server.PlayerUpdate {
 	return &server.PlayerUpdate{
 		ObjectID:     p.GetID(),
 		Light:        p.Light,

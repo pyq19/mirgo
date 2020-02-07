@@ -47,8 +47,8 @@ func (m *Map) Submit(t *Task) {
 	m.Env.Game.Pool.EntryChan <- t
 }
 
-func (m *Map) GetAllPlayers() []*Character {
-	players := make([]*Character, 0)
+func (m *Map) GetAllPlayers() []*Player {
+	players := make([]*Player, 0)
 	m.AOI.grids.Range(func(k, v interface{}) bool {
 		g := v.(*Grid)
 		players = append(players, g.GetAllPlayer()...)
@@ -119,7 +119,7 @@ func (m *Map) changeAOI(obj IMapObject, c1 *Cell, c2 *Cell) {
 	g2.AddObject(obj)
 	switch obj.GetRace() {
 	case common.ObjectTypePlayer:
-		p := obj.(*Character)
+		p := obj.(*Player)
 		p.Broadcast(ServerMessage{}.ObjectPlayer(p))
 		p.EnqueueAreaObjects(g1, g2)
 	case common.ObjectTypeMonster:
