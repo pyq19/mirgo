@@ -35,8 +35,10 @@ type Monster struct {
 	AttackSpeed int32
 	ArmourRate  float32
 	DamageRate  float32
+	ViewRange   int
 	Master      *Player
-	SearchTime  *time.Time // 怪物下一次搜索目标的时间
+	SearchTime  time.Time // 怪物下一次搜索目标的时间
+	RoamTime    time.Time
 }
 
 func (m *Monster) String() string {
@@ -77,7 +79,9 @@ func NewMonster(mp *Map, p common.Point, mi *common.MonsterInfo) (m *Monster) {
 	m.ArmourRate = 1.0
 	m.DamageRate = 1.0
 	t := time.Now()
-	m.SearchTime = &t
+	m.SearchTime = t
+	m.RoamTime = t
+	m.ViewRange = mi.ViewRange
 	return m
 }
 
@@ -161,6 +165,10 @@ func (m *Monster) IsDead() bool {
 	return m.HP <= 0
 }
 
+func (p *Monster) IsBlocking() bool {
+	return !p.IsDead()
+}
+
 func (m *Monster) IsSkeleton() bool {
 	return false
 }
@@ -194,38 +202,6 @@ func (m *Monster) Process() {
 	m.ProcessBuffs()
 	m.ProcessRegan()
 	m.ProcessPoison()
-}
-
-func (m *Monster) ProcessAI() {
-	if m.IsDead() {
-		return
-	}
-	if m.Master != nil {
-
-	}
-	m.ProcessSearch()
-	m.ProcessRoam()
-	m.ProcessTarget()
-}
-
-// ProcessSearch 寻找目标
-func (m *Monster) ProcessSearch() {
-	now := time.Now()
-	if m.SearchTime.After(now) {
-		return
-	}
-	*m.SearchTime = now.Add(1 * time.Second)
-	if m.CanMove() {
-		// walk randomly
-		// ok := m.Walk()
-	}
-	if m.Target == nil {
-		m.FindTarget()
-	}
-}
-
-func (m *Monster) ProcessRoam() {
-
 }
 
 func (m *Monster) ProcessTarget() {
@@ -382,14 +358,42 @@ func (m *Monster) Drop() {
 	}
 }
 
-// FindTarget 怪物寻找攻击目标
-func (m *Monster) FindTarget() {
-
-}
-
 // Walk 移动，成功返回 true
 func (m *Monster) Walk(dir common.MirDirection) bool {
+	if !m.CanMove() {
+		return false
+	}
+
+	// TODO...
+
 	return true
+}
+
+func (m *Monster) Turn(dir common.MirDirection) {
+	if !m.CanMove() {
+		return
+	}
+	m.CurrentDirection = dir
+
+	m.Broadcast(server.ObjectTurn{
+		ObjectID:  m.GetID(),
+		Direction: dir,
+		Location:  m.CurrentLocation,
+	})
+
+	// TODO:
+	// InSafeZone = CurrentMap.GetSafeZone(CurrentLocation) != null
+
+	// Cell cell = CurrentMap.GetCell(CurrentLocation);
+	// for (int i = 0; i < cell.Objects.Count; i++)
+	// {
+	//     if (cell.Objects[i].Race != ObjectType.Spell) continue;
+	//     SpellObject ob = (SpellObject)cell.Objects[i];
+
+	//     ob.ProcessSpell(this);
+	//     //break;
+	// }
+
 }
 
 func (m *Monster) Attack() {
@@ -398,4 +402,115 @@ func (m *Monster) Attack() {
 
 func (m *Monster) MoveTo(p common.Point) {
 
+}
+
+// FindTarget 怪物寻找攻击目标
+func (m *Monster) FindTarget() {
+	m.Map.RangeObject(m.CurrentLocation, m.ViewRange, func(o IMapObject) bool {
+		switch o.GetRace() {
+		case common.ObjectTypePlayer:
+
+			if !o.IsAttackTarget(m) { // continue
+				return true
+			}
+
+			// TODO:
+			// if (playerob.GMGameMaster || ob.Hidden && (!CoolEye || Level < ob.Level) || Envir.Time < HallucinationTime) continue;
+
+			m.Target = o
+
+			return false
+		}
+
+		return true
+	})
+}
+
+func (m *Monster) ProcessAI() {
+	if m.IsDead() {
+		return
+	}
+	if m.Master != nil {
+
+	}
+	m.ProcessSearch()
+	m.ProcessRoam()
+	m.ProcessTarget()
+}
+
+// ProcessSearch 寻找目标
+func (m *Monster) ProcessSearch() {
+	now := time.Now()
+	if m.SearchTime.After(now) {
+		return
+	}
+	m.SearchTime = now.Add(1 * time.Second)
+
+	if m.CanMove() && m.CheckStacked() {
+
+		// Walk Randomly
+		if !m.Walk(m.CurrentDirection) {
+
+			dir := m.CurrentDirection
+
+			switch RandomNext(3) {
+			case 0:
+				for i := 0; i < common.MirDirectionCount; i++ {
+					dir = NextDirection(dir)
+
+					if m.Walk(dir) {
+						break
+					}
+				}
+			default:
+				for i := 0; i < common.MirDirectionCount; i++ {
+					dir = NextDirection(dir)
+
+					if m.Walk(dir) {
+						break
+					}
+				}
+			}
+		}
+	}
+
+	if m.Target == nil {
+		m.FindTarget()
+	}
+}
+
+// 巡逻
+func (m *Monster) ProcessRoam() {
+	now := time.Now()
+	if m.RoamTime.After(now) {
+		return
+	}
+	m.RoamTime = now.Add(1 * time.Second)
+
+	if RandomNext(10) != 0 {
+		return
+	}
+
+	switch RandomNext(3) {
+	case 0:
+		m.Turn(RandomDirection())
+	default:
+		m.Walk(m.CurrentDirection)
+	}
+}
+
+func (m *Monster) CheckStacked() bool {
+	cell := m.Map.GetCell(m.CurrentLocation)
+	if cell != nil && cell.Objects != nil {
+		ret := false
+		cell.Objects.Range(func(k, v interface{}) bool {
+			ob := v.(IMapObject)
+			if ob == m || ob.IsBlocking() {
+				ret = true
+			}
+			return ret
+		})
+	}
+
+	return false
 }

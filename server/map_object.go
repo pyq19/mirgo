@@ -53,6 +53,7 @@ type IMapObject interface {
 	IsAttackTarget(IMapObject) bool
 	IsFriendlyTarget(IMapObject) bool
 	IsDead() bool
+	IsBlocking() bool
 }
 
 type MapObject struct {
@@ -66,5 +67,3 @@ type MapObject struct {
 	Buffs            []*Buff
 	Dead             bool
 }
-
-func (mo *MapObject) IsDead() bool { return mo.Dead }
