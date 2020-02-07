@@ -7,6 +7,8 @@ import (
 	_ "github.com/yenkeia/mirgo/proc/mirtcp"
 	"github.com/yenkeia/mirgo/proto/client"
 	"github.com/yenkeia/mirgo/proto/server"
+	"sync"
+	"time"
 )
 
 func (g *Game) HandleEvent(ev cellnet.Event) {
@@ -319,7 +321,7 @@ func (g *Game) SessionClosed(s cellnet.Session, msg *cellnet.SessionClosed) {
 	p := v.(*Player)
 	if p.GameStage == GAME {
 		p.StopGame(StopGameUserClosedGame)
-		g.Env.DeletePlayer(p.Char)
+		g.Env.DeletePlayer(p)
 	}
 	pm.Delete(s.ID())
 }
@@ -489,12 +491,78 @@ func (g *Game) DeleteCharacter(s cellnet.Session, msg *client.DeleteCharacter) {
 
 func updatePlayerInfo(g *Game, p *Player, c *common.Character) {
 	p.GameStage = GAME
-	p.Char = NewCharacter(g, p, c)
-	p.Char.ID = uint32(c.ID)
-	p.Char.Name = c.Name
-	p.Char.NameColor = common.Color{R: 255, G: 255, B: 255}
-	p.Char.CurrentDirection = c.Direction
-	p.Char.CurrentLocation = common.NewPoint(int(c.CurrentLocationX), int(c.CurrentLocationY))
+	p.ID = uint32(c.ID)
+	p.Name = c.Name
+	p.NameColor = common.Color{R: 255, G: 255, B: 255}
+	p.CurrentDirection = c.Direction
+	p.CurrentLocation = common.NewPoint(int(c.CurrentLocationX), int(c.CurrentLocationY))
+	userItemIDIndexMap := make(map[int]int)
+	cui := make([]common.CharacterUserItem, 0, 100)
+	g.DB.Table("character_user_item").Where("character_id = ?", c.ID).Find(&cui)
+	is := make([]int, 0, 46)
+	es := make([]int, 0, 14)
+	qs := make([]int, 0, 40)
+	for _, i := range cui {
+		switch common.UserItemType(i.Type) {
+		case common.UserItemTypeInventory:
+			is = append(is, i.UserItemID)
+		case common.UserItemTypeEquipment:
+			es = append(es, i.UserItemID)
+		case common.UserItemTypeQuestInventory:
+			qs = append(qs, i.UserItemID)
+		}
+		userItemIDIndexMap[i.UserItemID] = i.Index
+	}
+	inventory := make([]common.UserItem, 46)
+	equipment := make([]common.UserItem, 14)
+	questInventory := make([]common.UserItem, 40)
+	trade := make([]common.UserItem, 0)
+	refine := make([]common.UserItem, 0)
+	uii := make([]common.UserItem, 0, 46)
+	uie := make([]common.UserItem, 0, 14)
+	uiq := make([]common.UserItem, 0, 40)
+	g.DB.Table("user_item").Where("id in (?)", is).Find(&uii)
+	g.DB.Table("user_item").Where("id in (?)", es).Find(&uie)
+	g.DB.Table("user_item").Where("id in (?)", qs).Find(&uiq)
+	for _, v := range uii {
+		inventory[userItemIDIndexMap[int(v.ID)]] = v
+	}
+	for _, v := range uie {
+		equipment[userItemIDIndexMap[int(v.ID)]] = v
+	}
+	for _, v := range uiq {
+		questInventory[userItemIDIndexMap[int(v.ID)]] = v
+	}
+	magics := make([]common.UserMagic, 0)
+	g.DB.Table("user_magic").Where("character_id = ?", c.ID).Find(&magics)
+	healNextTime := time.Now().Add(10 * time.Second)
+	p.HP = c.HP
+	p.MP = c.MP
+	p.Level = c.Level
+	p.Experience = c.Experience
+	p.Gold = c.Gold
+	p.GuildName = ""     // TODO
+	p.GuildRankName = "" // TODO
+	p.Class = c.Class
+	p.Gender = c.Gender
+	p.Hair = c.Hair
+	p.Inventory = inventory
+	p.Equipment = equipment
+	p.QuestInventory = questInventory
+	p.Trade = trade
+	p.Refine = refine
+	p.SendItemInfo = make([]common.ItemInfo, 0)
+	p.MaxExperience = 100
+	p.Magics = magics
+	p.ActionList = new(sync.Map)
+	p.Health = Health{
+		HPPotNextTime: new(time.Time),
+		HPPotDuration: 3 * time.Second,
+		MPPotNextTime: new(time.Time),
+		MPPotDuration: 3 * time.Second,
+		HealNextTime:  &healNextTime,
+		HealDuration:  10 * time.Second,
+	}
 }
 
 // StartGame 开始游戏
@@ -517,10 +585,9 @@ func (g *Game) StartGame(s cellnet.Session, msg *client.StartGame) {
 	s.Send(ServerMessage{}.SetConcentration(p))
 	s.Send(ServerMessage{}.StartGame(4, 1024))
 	updatePlayerInfo(g, p, c)
-	log.Debugf("player login, AccountID(%d) Name(%s)\n", p.AccountID, p.Char.Name)
-	p.Char.Map = g.Env.GetMap(int(c.CurrentMapID))
-	p.Char.Player = p
-	g.Env.AddPlayer(p.Char)
+	log.Debugf("player login, AccountID(%d) Name(%s)\n", p.AccountID, p.Name)
+	p.Map = g.Env.GetMap(int(c.CurrentMapID))
+	g.Env.AddPlayer(p)
 	p.StartGame()
 }
 
@@ -530,20 +597,20 @@ func (g *Game) LogOut(s cellnet.Session, msg *client.LogOut) {
 		return
 	}
 	p.StopGame(StopGameUserReturnedToSelectChar)
-	g.Env.DeletePlayer(p.Char)
+	g.Env.DeletePlayer(p)
 	s.Send(ServerMessage{}.LogOutSuccess(g.getAccountCharacters(p.AccountID)))
 }
 
 func (g *Game) Turn(p *Player, msg *client.Turn) {
-	p.Char.Turn(msg.Direction)
+	p.Turn(msg.Direction)
 }
 
 func (g *Game) Walk(p *Player, msg *client.Walk) {
-	p.Char.Walk(msg.Direction)
+	p.Walk(msg.Direction)
 }
 
 func (g *Game) Run(p *Player, msg *client.Run) {
-	p.Char.Run(msg.Direction)
+	p.Run(msg.Direction)
 }
 
 func (g *Game) Chat(p *Player, msg *client.Chat) {
@@ -551,11 +618,11 @@ func (g *Game) Chat(p *Player, msg *client.Chat) {
 }
 
 func (g *Game) MoveItem(p *Player, msg *client.MoveItem) {
-	p.Char.MoveItem(msg.Grid, msg.From, msg.To)
+	p.MoveItem(msg.Grid, msg.From, msg.To)
 }
 
 func (g *Game) StoreItem(p *Player, msg *client.StoreItem) {
-	p.Char.StoreItem(msg.From, msg.To)
+	p.StoreItem(msg.From, msg.To)
 }
 
 func (g *Game) DepositRefineItem(p *Player, msg *client.DepositRefineItem) {
@@ -599,11 +666,11 @@ func (g *Game) MergeItem(p *Player, msg *client.MergeItem) {
 }
 
 func (g *Game) EquipItem(p *Player, msg *client.EquipItem) {
-	p.Char.EquipItem(msg.Grid, msg.UniqueID, msg.To)
+	p.EquipItem(msg.Grid, msg.UniqueID, msg.To)
 }
 
 func (g *Game) RemoveItem(p *Player, msg *client.RemoveItem) {
-	p.Char.RemoveItem(msg.Grid, msg.UniqueID, msg.To)
+	p.RemoveItem(msg.Grid, msg.UniqueID, msg.To)
 }
 
 func (g *Game) RemoveSlotItem(p *Player, msg *client.RemoveSlotItem) {
@@ -615,23 +682,23 @@ func (g *Game) SplitItem(p *Player, msg *client.SplitItem) {
 }
 
 func (g *Game) UseItem(p *Player, msg *client.UseItem) {
-	p.Char.UseItem(msg.UniqueID)
+	p.UseItem(msg.UniqueID)
 }
 
 func (g *Game) DropItem(p *Player, msg *client.DropItem) {
-	p.Char.DropItem(msg.UniqueID, msg.Count)
+	p.DropItem(msg.UniqueID, msg.Count)
 }
 
 func (g *Game) DropGold(p *Player, msg *client.DropGold) {
-	p.Char.DropGold(uint64(msg.Amount))
+	p.DropGold(uint64(msg.Amount))
 }
 
 func (g *Game) PickUp(p *Player, msg *client.PickUp) {
-	p.Char.PickUp()
+	p.PickUp()
 }
 
 func (g *Game) Inspect(p *Player, msg *client.Inspect) {
-	p.Char.Inspect(msg.ObjectID)
+	p.Inspect(msg.ObjectID)
 }
 
 func (g *Game) ChangeAMode(p *Player, msg *client.ChangeAMode) {
@@ -647,7 +714,7 @@ func (g *Game) ChangeTrade(p *Player, msg *client.ChangeTrade) {
 }
 
 func (g *Game) Attack(p *Player, msg *client.Attack) {
-	p.Char.Attack(msg.Direction, msg.Spell)
+	p.Attack(msg.Direction, msg.Spell)
 }
 
 func (g *Game) RangeAttack(p *Player, msg *client.RangeAttack) {
@@ -696,7 +763,7 @@ func (g *Game) MagicKey(p *Player, msg *client.MagicKey) {
 }
 
 func (g *Game) Magic(p *Player, msg *client.Magic) {
-	p.Char.Magic(msg.Spell, msg.Direction, msg.TargetID, msg.Location)
+	p.Magic(msg.Spell, msg.Direction, msg.TargetID, msg.Location)
 }
 
 func (g *Game) SwitchGroup(p *Player, msg *client.SwitchGroup) {
