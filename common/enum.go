@@ -38,6 +38,7 @@ const (
 	MirDirectionDownLeft               = 5
 	MirDirectionLeft                   = 6
 	MirDirectionUpLeft                 = 7
+	MirDirectionCount                  = 8 // 方向个数
 )
 
 type ItemType uint8

@@ -46,12 +46,21 @@ func (n *NPC) CallScript(p *Player, key string) ([]string, error) {
 	return say, nil
 }
 
+func (n *NPC) IsDead() bool {
+	return n.Dead
+}
+
 func (n *NPC) GetID() uint32 {
 	return n.ID
 }
 
 func (n *NPC) GetRace() common.ObjectType {
 	return common.ObjectTypeMerchant
+}
+
+func (i *NPC) IsBlocking() bool {
+	// return i.IsVisible()
+	return false
 }
 
 func (n *NPC) GetPoint() common.Point {
