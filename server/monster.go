@@ -15,7 +15,7 @@ type Monster struct {
 	Effect      int
 	Poison      common.PoisonType
 	Light       uint8
-	Target      *IMapObject
+	Target      IMapObject
 	Level       uint16
 	HP          uint32
 	MaxHP       uint32
@@ -298,7 +298,7 @@ func (m *Monster) ChangeHP(amount int) {
 // Attacked 被攻击
 func (m *Monster) Attacked(attacker IMapObject, damage int, defenceType common.DefenceType, damageWeapon bool) {
 	if m.Target == nil && attacker.IsAttackTarget(m) {
-		m.Target = &attacker
+		m.Target = attacker
 	}
 	armor := 0
 	switch defenceType {

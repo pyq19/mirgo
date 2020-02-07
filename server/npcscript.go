@@ -126,7 +126,7 @@ func replaceTemplates(npc *NPC, player *Player, say []string) []string {
 func replaceTemplateName(npc *NPC, player *Player, s string) string {
 	switch s {
 	case "<$USERNAME>":
-		return player.Name
+		return player.Char.Name
 	case "<$NPCNAME>":
 		return npc.Name
 	}

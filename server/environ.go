@@ -23,7 +23,7 @@ type Environ struct {
 	SessionIDPlayerMap *sync.Map // map[int64]*Player
 	Maps               *sync.Map // map[int]*Map	// mapID: Map
 	ObjectID           uint32
-	Players            []*Player
+	Players            []*Character
 	lock               *sync.Mutex
 	ActionList         *sync.Map // map[uint32]*DelayedAction  mapID: DelayedAction.ID
 	NPCs               *sync.Map // map[uint32]*NPC  mapID: NPC.ID
@@ -37,7 +37,7 @@ func NewEnviron(g *Game) (env *Environ) {
 	env.InitMonsterDrop()
 	env.InitMaps()
 	env.ObjectID = 100000
-	env.Players = make([]*Player, 0)
+	env.Players = make([]*Character, 0)
 	env.lock = new(sync.Mutex)
 	env.ActionList = new(sync.Map)
 	env.NPCs = new(sync.Map)
@@ -277,14 +277,14 @@ func (e *Environ) InitObjects() (err error) {
 	return nil
 }
 
-func (e *Environ) AddPlayer(p *Player) {
+func (e *Environ) AddPlayer(p *Character) {
 	e.lock.Lock()
 	e.Players = append(e.Players, p)
 	e.lock.Unlock()
 	p.Map.AddObject(p)
 }
 
-func (e *Environ) GetPlayer(ID uint32) *Player {
+func (e *Environ) GetPlayer(ID uint32) *Character {
 	e.lock.Lock()
 	for i := 0; i < len(e.Players); i++ {
 		o := e.Players[i]
@@ -296,7 +296,7 @@ func (e *Environ) GetPlayer(ID uint32) *Player {
 	return nil
 }
 
-func (e *Environ) GetPlayerByName(name string) *Player {
+func (e *Environ) GetPlayerByName(name string) *Character {
 	e.lock.Lock()
 	for i := 0; i < len(e.Players); i++ {
 		o := e.Players[i]
@@ -308,7 +308,7 @@ func (e *Environ) GetPlayerByName(name string) *Player {
 	return nil
 }
 
-func (e *Environ) DeletePlayer(p *Player) {
+func (e *Environ) DeletePlayer(p *Character) {
 	e.lock.Lock()
 	for i := 0; i < len(e.Players); i++ {
 		o := e.Players[i]
@@ -420,7 +420,7 @@ func (e *Environ) SystemBroadcast(...interface{}) {
 
 func (e *Environ) Debug() {
 	envPlayerCount := e.GetPlayersCount()
-	allPlayer := make([]*Player, 0)
+	allPlayer := make([]*Character, 0)
 	e.Maps.Range(func(k, v interface{}) bool {
 		m := v.(*Map)
 		allPlayer = append(allPlayer, m.GetAllPlayers()...)
