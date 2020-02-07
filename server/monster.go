@@ -39,6 +39,7 @@ type Monster struct {
 	Master      *Player
 	SearchTime  time.Time // 怪物下一次搜索目标的时间
 	RoamTime    time.Time
+	AttackTime  time.Time
 }
 
 func (m *Monster) String() string {
@@ -241,6 +242,17 @@ func (m *Monster) GetDefencePower(min, max int) int {
 	return G_Rand.RandInt(min, max+1)
 }
 
+func (m *Monster) GetAttackPower(min, max int) int {
+	if min < 0 {
+		min = 0
+	}
+	if min > max {
+		max = min
+	}
+	// TODO luck
+	return RandomInt(min, max+1)
+}
+
 func (m *Monster) Die() {
 	if m.IsDead() {
 		return
@@ -424,7 +436,25 @@ func (m *Monster) Turn(dir common.MirDirection) {
 }
 
 func (m *Monster) Attack() {
-
+	if !m.Target.IsAttackTarget(m) {
+		m.Target = nil
+		return
+	}
+	m.CurrentDirection = DirectionFromPoint(m.CurrentLocation, m.Target.GetPoint())
+	m.Broadcast(ServerMessage{}.ObjectAttack(m, common.SpellNone, 0, 0))
+	now := time.Now()
+	// ActionTime = Envir.Time + 300;
+	m.AttackTime = now.Add(time.Duration(m.AttackSpeed) * time.Millisecond)
+	damage := m.GetAttackPower(int(m.MinDC), int(m.MaxDC))
+	if damage <= 0 {
+		return
+	}
+	switch m.Target.GetRace() {
+	case common.ObjectTypePlayer:
+		m.Target.(*Player).Attacked(m, damage, common.DefenceTypeAgility, false)
+	case common.ObjectTypeMonster:
+		m.Target.(*Monster).Attacked(m, damage, common.DefenceTypeAgility, false)
+	}
 }
 
 func (m *Monster) MoveTo(location common.Point) {
