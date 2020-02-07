@@ -2,11 +2,12 @@ package main
 
 import (
 	"fmt"
-	"github.com/yenkeia/mirgo/setting"
 	"strconv"
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/yenkeia/mirgo/setting"
 
 	"github.com/davyxu/cellnet"
 	"github.com/yenkeia/mirgo/common"
@@ -1324,7 +1325,7 @@ func (p *Player) CallNPC(id uint32, key string) {
 
 func sendBuyKey(p *Player, npc *NPC) {
 
-	goods := []*common.UserItem{}
+	goods := []common.UserItem{}
 
 	// TODO: fix..
 	// for _, name := range npc.Script.Goods {

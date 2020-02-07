@@ -2,6 +2,7 @@ package server
 
 import (
 	"fmt"
+
 	"github.com/yenkeia/mirgo/common"
 
 	// 使用binary协议，因此匿名引用这个包，底层会自动注册
@@ -826,7 +827,7 @@ type ObjectTeleportIn struct {
 type TeleportIn struct{}
 
 type NPCGoods struct {
-	Goods []*common.UserItem
+	Goods []common.UserItem
 	Rate  float32
 	Type  common.PanelType
 }
