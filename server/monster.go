@@ -364,7 +364,34 @@ func (m *Monster) Walk(dir common.MirDirection) bool {
 		return false
 	}
 
-	// TODO...
+	dest := m.CurrentLocation.NextPoint(dir, 1)
+	destcell := m.Map.GetCell(dest)
+
+	if destcell != nil && destcell.Objects != nil {
+		ret := true
+		destcell.Objects.Range(func(_, v interface{}) bool {
+			o := v.(IMapObject)
+			if o.IsBlocking() || m.GetRace() == common.ObjectTypeCreature {
+				return true
+			}
+			ret = false
+			return ret
+		})
+	} else {
+		return false
+	}
+
+	m.Map.GetCell(m.CurrentLocation).DeleteObject(m)
+	destcell.AddObject(m)
+
+	m.CurrentDirection = dir
+	m.CurrentLocation = dest
+
+	m.Broadcast(&server.ObjectWalk{
+		ObjectID:  m.GetID(),
+		Direction: dir,
+		Location:  dest,
+	})
 
 	return true
 }
@@ -375,7 +402,7 @@ func (m *Monster) Turn(dir common.MirDirection) {
 	}
 	m.CurrentDirection = dir
 
-	m.Broadcast(server.ObjectTurn{
+	m.Broadcast(&server.ObjectTurn{
 		ObjectID:  m.GetID(),
 		Direction: dir,
 		Location:  m.CurrentLocation,
