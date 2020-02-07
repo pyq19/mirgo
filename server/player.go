@@ -129,6 +129,9 @@ func (p *Player) GetRace() common.ObjectType {
 func (p *Player) GetPoint() common.Point {
 	return p.CurrentLocation
 }
+func (p *Player) IsBlocking() bool {
+	return !p.IsDead() // && !Observer;
+}
 
 func (p *Player) GetCell() *Cell {
 	return p.Map.GetCell(p.CurrentLocation)
