@@ -60,6 +60,18 @@ func (p *Player) StopGame(reason int) {
 	p.Char.Broadcast(ServerMessage{}.ObjectRemove(p.Char))
 }
 
+func (p *Player) Turn(direction common.MirDirection) {
+	p.Char.Turn(direction)
+}
+
+func (p *Player) Walk(direction common.MirDirection) {
+	p.Char.Walk(direction)
+}
+
+func (p *Player) Run(direction common.MirDirection) {
+	p.Char.Run(direction)
+}
+
 func (p *Player) Chat(message string) {
 	// private message
 	if strings.HasPrefix(message, "/") {
@@ -241,6 +253,14 @@ func (p *Player) Chat(message string) {
 	p.Char.Broadcast(msg)
 }
 
+func (p *Player) MoveItem(mirGridType common.MirGridType, from int32, to int32) {
+	p.Char.MoveItem(mirGridType, from, to)
+}
+
+func (p *Player) StoreItem(from int32, to int32) {
+	p.Char.StoreItem(from, to)
+}
+
 func (p *Player) DepositRefineItem(from int32, to int32) {
 
 }
@@ -281,12 +301,39 @@ func (p *Player) MergeItem(from common.MirGridType, to common.MirGridType, from2
 
 }
 
+func (p *Player) EquipItem(mirGridType common.MirGridType, id uint64, to int32) {
+	p.Char.EquipItem(mirGridType, id, to)
+}
+
+func (p *Player) RemoveItem(mirGridType common.MirGridType, id uint64, to int32) {
+	p.Char.RemoveItem(mirGridType, id, to)
+}
+
 func (p *Player) RemoveSlotItem(grid common.MirGridType, id uint64, to int32, to2 common.MirGridType) {
 
 }
 
 func (p *Player) SplitItem(grid common.MirGridType, id uint64, count uint32) {
 
+}
+
+func (p *Player) UseItem(id uint64) {
+	p.Char.UseItem(id)
+}
+
+func (p *Player) DropItem(id uint64, count uint32) {
+	p.Char.DropItem(id, count)
+}
+
+func (p *Player) DropGold(gold uint64) {
+	p.Char.DropGold(gold)
+}
+
+func (p *Player) PickUp() {
+	p.Char.PickUp()
+}
+
+func (p *Player) Inspect(id uint32) {
 }
 
 func (p *Player) ChangeAMode(mode common.AttackMode) {
@@ -299,6 +346,10 @@ func (p *Player) ChangePMode(mode common.AttackMode) {
 
 func (p *Player) ChangeTrade(trade bool) {
 
+}
+
+func (p *Player) Attack(direction common.MirDirection, spell common.Spell) {
+	p.Char.Attack(direction, spell)
 }
 
 func (p *Player) RangeAttack(direction common.MirDirection, location common.Point, id uint32) {
@@ -381,6 +432,10 @@ func (p *Player) BuyItemBack(id uint64, count uint32) {
 
 func (p *Player) SRepairItem(id uint64) {
 
+}
+
+func (p *Player) Magic(spell common.Spell, direction common.MirDirection, targetID uint32, targetLocation common.Point) {
+	p.Char.Magic(spell, direction, targetID, targetLocation)
 }
 
 func (p *Player) MagicKey(spell common.Spell, key uint8) {
