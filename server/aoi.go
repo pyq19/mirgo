@@ -1,8 +1,9 @@
 package main
 
 import (
-	"github.com/yenkeia/mirgo/common"
 	"sync"
+
+	"github.com/yenkeia/mirgo/common"
 )
 
 // Zinx应用-MMO游戏案例-(2)AOI兴趣点算法 https://www.jianshu.com/p/e5b5db9fa6fe
@@ -108,6 +109,7 @@ func (m *AOIManager) GetSurroundGridsByGridID(gID int) (grids []*Grid) {
 	return
 }
 
+// GetGridByPoint ...
 func (m *AOIManager) GetGridByPoint(point common.Point) (grid *Grid) {
 	x := int(point.X)
 	y := int(point.Y)
@@ -122,6 +124,7 @@ func (m *AOIManager) GetGridByPoint(point common.Point) (grid *Grid) {
 	return grid
 }
 
+// GetSurroundGrids ...
 func (m *AOIManager) GetSurroundGrids(p common.Point) (grids []*Grid) {
 	grid := m.GetGridByPoint(p)
 	return m.GetSurroundGridsByGridID(grid.GID)

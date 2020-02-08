@@ -2,8 +2,9 @@ package main
 
 import (
 	"fmt"
-	"github.com/yenkeia/mirgo/common"
 	"sync"
+
+	"github.com/yenkeia/mirgo/common"
 )
 
 // Grid 一个地图中的区域类
@@ -54,10 +55,12 @@ func (g *Grid) String() string {
 	return fmt.Sprintf("%s\nPlayers: %v\nMonsters: %v\nNPCs: %v\n", gridInfo, players, monsters, npcs)
 }
 
+// AddObject ...
 func (g *Grid) AddObject(obj IMapObject) {
 	g.Objects.Store(obj.GetID(), obj)
 }
 
+// DeleteObject ...
 func (g *Grid) DeleteObject(obj IMapObject) {
 	v, ok := g.Objects.Load(obj.GetID())
 	if !ok {
@@ -78,6 +81,7 @@ func (g *Grid) GetAllPlayer() (players []*Player) {
 	return
 }
 
+// GetAllObjects ...
 func (g *Grid) GetAllObjects() (objs []IMapObject) {
 	g.Objects.Range(func(k, v interface{}) bool {
 		o := v.(IMapObject)

@@ -31,7 +31,7 @@ func TestGameMonsters(t *testing.T) {
 			if v.(IMapObject).GetRace() == common.ObjectTypeMonster {
 				o := v.(*Monster)
 				if o != nil {
-					count2 += 1
+					count2++
 					t.Logf("pos: %s, MonsterID: %d, ptr: %p", o.CurrentLocation, o.ID, o)
 				}
 			}
@@ -64,7 +64,7 @@ func TestGameNPCs(t *testing.T) {
 					n := v.(*NPC)
 					if n != nil {
 						//t.Log(n.String())
-						count += 1
+						count++
 						// if _, err := os.Stat(n.FilePath); err != nil {
 						// 	t.Logf("文件: %s 不存在\n", n.Name)
 						// }
