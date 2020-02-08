@@ -8,6 +8,7 @@ import (
 	"github.com/yenkeia/mirgo/common"
 )
 
+// Cell 地图格子
 type Cell struct {
 	Point     common.Point
 	Map       *Map
@@ -15,10 +16,12 @@ type Cell struct {
 	Objects   *sync.Map // map[IMapObject.ID]IMapObject
 }
 
+// IsValid ...
 func (c *Cell) IsValid() bool {
 	return c.Attribute == common.CellAttributeWalk
 }
 
+// IsEmpty ...
 func (c *Cell) IsEmpty() bool {
 	var cnt int32
 	c.Objects.Range(func(k, v interface{}) bool {
@@ -60,6 +63,7 @@ func (c *Cell) HasObject() bool {
 	return cnt > 0
 }
 
+// CanWalk ...
 func (c *Cell) CanWalk() bool {
 	return c.Attribute == common.CellAttributeWalk
 }
@@ -68,10 +72,12 @@ func (c *Cell) String() string {
 	return fmt.Sprintf("cell pos: %s, Objects: %v \n", c.Point, c.Objects)
 }
 
+// AddObject ...
 func (c *Cell) AddObject(obj IMapObject) {
 	c.Objects.Store(obj.GetID(), obj)
 }
 
+// DeleteObject ...
 func (c *Cell) DeleteObject(obj IMapObject) {
 	c.Objects.Delete(obj.GetID())
 }

@@ -1,8 +1,9 @@
 package main
 
 import (
-	"github.com/yenkeia/mirgo/common"
 	"sync"
+
+	"github.com/yenkeia/mirgo/common"
 )
 
 // GameDB ...
@@ -28,7 +29,7 @@ type GameDB struct {
 	MagicIDInfoMap     *sync.Map // key: MagicInfo.ID, value: MagicInfo
 }
 
-// GetMapInfoByID
+// GetMapInfoByID ...
 func (db *GameDB) GetMapInfoByID(mapID int) *common.MapInfo {
 	v, ok := db.MapIDInfoMap.Load(mapID)
 	if !ok {
@@ -37,7 +38,7 @@ func (db *GameDB) GetMapInfoByID(mapID int) *common.MapInfo {
 	return v.(*common.MapInfo)
 }
 
-// GetItemInfoByID
+// GetItemInfoByID ...
 func (db *GameDB) GetItemInfoByID(itemID int) *common.ItemInfo {
 	v, ok := db.ItemIDInfoMap.Load(itemID)
 	if !ok {
@@ -46,7 +47,7 @@ func (db *GameDB) GetItemInfoByID(itemID int) *common.ItemInfo {
 	return v.(*common.ItemInfo)
 }
 
-// GetItemInfoByName
+// GetItemInfoByName ...
 func (db *GameDB) GetItemInfoByName(itemName string) *common.ItemInfo {
 	v, ok := db.ItemNameInfoMap.Load(itemName)
 	if !ok {
@@ -55,7 +56,7 @@ func (db *GameDB) GetItemInfoByName(itemName string) *common.ItemInfo {
 	return v.(*common.ItemInfo)
 }
 
-// GetMonsterInfoByID
+// GetMonsterInfoByID ...
 func (db *GameDB) GetMonsterInfoByID(monsterID int) *common.MonsterInfo {
 	v, ok := db.MonsterIDInfoMap.Load(monsterID)
 	if !ok {
@@ -64,7 +65,7 @@ func (db *GameDB) GetMonsterInfoByID(monsterID int) *common.MonsterInfo {
 	return v.(*common.MonsterInfo)
 }
 
-// GetMonsterInfoByName
+// GetMonsterInfoByName ...
 func (db *GameDB) GetMonsterInfoByName(monsterName string) *common.MonsterInfo {
 	v, ok := db.MonsterNameInfoMap.Load(monsterName)
 	if !ok {
@@ -73,7 +74,7 @@ func (db *GameDB) GetMonsterInfoByName(monsterName string) *common.MonsterInfo {
 	return v.(*common.MonsterInfo)
 }
 
-// GetMagicInfoByID
+// GetMagicInfoByID ...
 func (db *GameDB) GetMagicInfoByID(magicID int) *common.MagicInfo {
 	v, ok := db.MagicIDInfoMap.Load(magicID)
 	if !ok {
