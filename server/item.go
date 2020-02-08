@@ -16,6 +16,10 @@ func (i *Item) GetID() uint32 {
 	return i.ID
 }
 
+func (i *Item) AttackMode() common.AttackMode {
+	return common.AttackModePeace
+}
+
 func (i *Item) IsDead() bool { return i.Dead }
 
 func (i *Item) GetRace() common.ObjectType {

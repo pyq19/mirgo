@@ -40,6 +40,7 @@ type Monster struct {
 	SearchTime  time.Time // 怪物下一次搜索目标的时间
 	RoamTime    time.Time
 	AttackTime  time.Time
+	DeadTime    time.Time
 }
 
 func (m *Monster) String() string {
@@ -59,7 +60,7 @@ func NewMonster(mp *Map, p common.Point, mi *common.MonsterInfo) (m *Monster) {
 	m.Target = nil
 	m.Poison = common.PoisonTypeNone
 	m.CurrentLocation = p
-	m.CurrentDirection = common.MirDirection(G_Rand.RandInt(0, 7))
+	m.CurrentDirection = RandomDirection()
 	m.Dead = false
 	m.Level = uint16(mi.Level)
 	m.HP = uint32(mi.HP)
@@ -164,7 +165,7 @@ func (m *Monster) BroadcastDamageIndicator(typ common.DamageType, dmg int) {
 }
 
 func (m *Monster) IsDead() bool {
-	return m.HP <= 0
+	return m.Dead
 }
 
 func (m *Monster) IsBlocking() bool {
@@ -187,6 +188,10 @@ func (m *Monster) IsFriendlyTarget(attacker IMapObject) bool {
 	return false
 }
 
+func (m *Monster) AttackMode() common.AttackMode {
+	return common.AttackModeAll
+}
+
 func (m *Monster) CanMove() bool {
 	return true
 }
@@ -205,6 +210,15 @@ func (m *Monster) InAttackRange() bool {
 }
 
 func (m *Monster) Process() {
+
+	now := time.Now()
+
+	if m.IsDead() && m.DeadTime.Before(now) {
+		m.Map.DeleteObject(m)
+		m.Broadcast(&server.ObjectRemove{ObjectID: m.GetID()})
+		return
+	}
+
 	m.ProcessAI()
 	m.ProcessBuffs()
 	m.ProcessRegan()
@@ -231,7 +245,7 @@ func (m *Monster) GetDefencePower(min, max int) int {
 	if min > max {
 		max = min
 	}
-	return G_Rand.RandInt(min, max+1)
+	return RandomInt(min, max)
 }
 
 func (m *Monster) GetAttackPower(min, max int) int {
@@ -249,7 +263,11 @@ func (m *Monster) Die() {
 	if m.IsDead() {
 		return
 	}
+
 	m.HP = 0
+	m.Dead = true
+	m.DeadTime = time.Now().Add(5 * time.Second)
+
 	m.Broadcast(ServerMessage{}.ObjectDied(m.GetID(), m.GetDirection(), m.GetPoint()))
 	// EXPOwner.WinExp(Experience, Level);
 	m.Drop()
@@ -283,7 +301,7 @@ func (m *Monster) Attacked(attacker IMapObject, damage int, defenceType common.D
 	armor := 0
 	switch defenceType {
 	case common.DefenceTypeACAgility:
-		if G_Rand.RandInt(0, int(m.Agility)+1) > int(attacker.GetBaseStats().Accuracy) {
+		if RandomInt(0, int(m.Agility)) > int(attacker.GetBaseStats().Accuracy) {
 			m.BroadcastDamageIndicator(common.DamageTypeMiss, 0)
 			return
 		}
@@ -291,7 +309,7 @@ func (m *Monster) Attacked(attacker IMapObject, damage int, defenceType common.D
 	case common.DefenceTypeAC:
 		armor = m.GetDefencePower(int(m.MinAC), int(m.MaxAC))
 	case common.DefenceTypeMACAgility:
-		if G_Rand.RandInt(0, int(m.Agility)+1) > int(attacker.GetBaseStats().Accuracy) {
+		if RandomInt(0, int(m.Agility)) > int(attacker.GetBaseStats().Accuracy) {
 			m.BroadcastDamageIndicator(common.DamageTypeMiss, 0)
 			return
 		}
@@ -299,7 +317,7 @@ func (m *Monster) Attacked(attacker IMapObject, damage int, defenceType common.D
 	case common.DefenceTypeMAC:
 		armor = m.GetDefencePower(int(m.MinMAC), int(m.MaxMAC))
 	case common.DefenceTypeAgility:
-		if G_Rand.RandInt(0, int(m.Agility)+1) > int(attacker.GetBaseStats().Accuracy) {
+		if RandomInt(0, int(m.Agility)) > int(attacker.GetBaseStats().Accuracy) {
 			m.BroadcastDamageIndicator(common.DamageTypeMiss, 0)
 			return
 		}
@@ -328,7 +346,7 @@ func (m *Monster) Drop() {
 	mapItems := make([]Item, 0)
 	for i := range dropInfos {
 		drop := dropInfos[i]
-		if G_Rand.RandInt(1, drop.Chance+1) != 1 {
+		if RandomInt(1, drop.Chance) != 1 {
 			continue
 		}
 		if drop.Gold > 0 {
@@ -372,16 +390,16 @@ func (m *Monster) Walk(dir common.MirDirection) bool {
 	destcell := m.Map.GetCell(dest)
 
 	if destcell != nil && destcell.Objects != nil {
-		ret := true
+		blocking := false
 		destcell.Objects.Range(func(_, v interface{}) bool {
 			o := v.(IMapObject)
 			if o.IsBlocking() || m.GetRace() == common.ObjectTypeCreature {
-				return true
+				blocking = true
+				return false
 			}
-			ret = false
-			return ret
+			return true
 		})
-		if ret == false {
+		if blocking {
 			return false
 		}
 	} else {

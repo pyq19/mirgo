@@ -54,6 +54,7 @@ type IMapObject interface {
 	IsFriendlyTarget(IMapObject) bool
 	IsDead() bool
 	IsBlocking() bool
+	AttackMode() common.AttackMode
 }
 
 type MapObject struct {
