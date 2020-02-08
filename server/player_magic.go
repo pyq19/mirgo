@@ -6,6 +6,7 @@ import (
 	"github.com/yenkeia/mirgo/common"
 )
 
+// GetMagic ...
 func (p *Player) GetMagic(spell common.Spell) *common.UserMagic {
 	for i := range p.Magics {
 		userMagic := p.Magics[i]
@@ -16,6 +17,7 @@ func (p *Player) GetMagic(spell common.Spell) *common.UserMagic {
 	return nil
 }
 
+// GetClientMagics ...
 func (p *Player) GetClientMagics() []common.ClientMagic {
 	gdb := p.Map.Env.GameDB
 	res := make([]common.ClientMagic, 0)
@@ -27,6 +29,7 @@ func (p *Player) GetClientMagics() []common.ClientMagic {
 	return res
 }
 
+// UseMagic ...
 func (p *Player) UseMagic(spell common.Spell, magic *common.UserMagic, target IMapObject) (cast bool, targetID uint32) {
 	cast = true
 	switch spell {
@@ -215,6 +218,7 @@ func (p *Player) UseMagic(spell common.Spell, magic *common.UserMagic, target IM
 	return
 }
 
+// CompleteMagic ...
 func (p *Player) CompleteMagic(args ...interface{}) {
 	userMagic := args[0].(*common.UserMagic)
 	switch userMagic.Spell {
@@ -281,6 +285,7 @@ func (p *Player) CompleteMagic(args ...interface{}) {
 	}
 }
 
+// Fireball 火球术
 func (p *Player) Fireball(target IMapObject, magic *common.UserMagic) bool {
 	if target == nil || !target.IsAttackTarget(p) {
 		return false
@@ -291,6 +296,7 @@ func (p *Player) Fireball(target IMapObject, magic *common.UserMagic) bool {
 	return true
 }
 
+// Healing 治愈术
 func (p *Player) Healing(target IMapObject, magic *common.UserMagic) {
 	if target == nil || !target.IsFriendlyTarget(p) {
 		return
@@ -301,22 +307,27 @@ func (p *Player) Healing(target IMapObject, magic *common.UserMagic) {
 	p.ActionList.Store(action.ID, action)
 }
 
+// Repulsion 抗拒火环
 func (p *Player) Repulsion(magic *common.UserMagic) {
 
 }
 
+// Poisoning 施毒术
 func (p *Player) Poisoning(target IMapObject, magic *common.UserMagic) bool {
 	return true
 }
 
+// HellFire 地狱火
 func (p *Player) HellFire(magic *common.UserMagic) {
 
 }
 
+// ThunderBolt 雷电术
 func (p *Player) ThunderBolt(target IMapObject, magic *common.UserMagic) {
 
 }
 
+// SoulFireball 灵魂火符
 func (p *Player) SoulFireball(target IMapObject, magic *common.UserMagic) bool {
 	return true
 }
@@ -364,39 +375,116 @@ func (p *Player) GetAmulet(count int) *common.UserItem {
 	return nil
 }
 
-func (p *Player) Hiding(magic *common.UserMagic)                                   {}
-func (p *Player) FurySpell(magic *common.UserMagic) bool                           { return true }
-func (p *Player) ImmortalSkin(magic *common.UserMagic) bool                        { return true }
-func (p *Player) FireBang(magic *common.UserMagic, location common.Point)          {}
-func (p *Player) MassHiding(magic *common.UserMagic, location common.Point) bool   { return true }
-func (p *Player) SoulShield(magic *common.UserMagic, location common.Point) bool   { return true }
-func (p *Player) FireWall(magic *common.UserMagic, location common.Point)          {}
-func (p *Player) Lightning(magic *common.UserMagic)                                {}
-func (p *Player) HeavenlySword(magic *common.UserMagic)                            {}
-func (p *Player) MassHealing(magic *common.UserMagic, location common.Point)       {}
-func (p *Player) ShoulderDash(magic *common.UserMagic)                             {}
-func (p *Player) FlameDisruptor(target IMapObject, magic *common.UserMagic)        {}
-func (p *Player) TurnUndead(target IMapObject, magic *common.UserMagic)            {}
-func (p *Player) MagicBooster(magic *common.UserMagic)                             {}
-func (p *Player) Vampirism(target IMapObject, magic *common.UserMagic)             {}
-func (p *Player) SummonShinsu(magic *common.UserMagic)                             {}
-func (p *Player) Revelation(target IMapObject, magic *common.UserMagic)            {}
-func (p *Player) PoisonCloud(magic *common.UserMagic, location common.Point) bool  { return true }
-func (p *Player) Entrapment(target IMapObject, magic *common.UserMagic)            {}
-func (p *Player) BladeAvalanche(magic *common.UserMagic)                           {}
-func (p *Player) SlashingBurst(magic *common.UserMagic) bool                       { return true }
-func (p *Player) Rage(magic *common.UserMagic)                                     {}
-func (p *Player) Mirroring(magic *common.UserMagic)                                {}
-func (p *Player) Blizzard(magic *common.UserMagic, location common.Point) bool     { return true }
+// Hiding 隐身术
+func (p *Player) Hiding(magic *common.UserMagic) {}
+
+// FurySpell 龙血剑法 SpellFury
+func (p *Player) FurySpell(magic *common.UserMagic) bool { return true }
+
+// ImmortalSkin ...
+func (p *Player) ImmortalSkin(magic *common.UserMagic) bool { return true }
+
+// FireBang 爆裂火焰
+func (p *Player) FireBang(magic *common.UserMagic, location common.Point) {}
+
+// MassHiding 集体隐身术
+func (p *Player) MassHiding(magic *common.UserMagic, location common.Point) bool { return true }
+
+// SoulShield 幽灵盾
+func (p *Player) SoulShield(magic *common.UserMagic, location common.Point) bool { return true }
+
+// FireWall 火墙
+func (p *Player) FireWall(magic *common.UserMagic, location common.Point) {}
+
+// Lightning 疾光电影
+func (p *Player) Lightning(magic *common.UserMagic) {}
+
+// HeavenlySword ..
+func (p *Player) HeavenlySword(magic *common.UserMagic) {}
+
+// MassHealing 群体治疗术
+func (p *Player) MassHealing(magic *common.UserMagic, location common.Point) {}
+
+// ShoulderDash 野蛮冲撞
+func (p *Player) ShoulderDash(magic *common.UserMagic) {}
+
+// ThunderStorm 地狱雷光
+func (p *Player) ThunderStorm(magic *common.UserMagic) {}
+
+// FlameDisruptor 火龙术
+func (p *Player) FlameDisruptor(target IMapObject, magic *common.UserMagic) {}
+
+// TurnUndead 圣言术
+func (p *Player) TurnUndead(target IMapObject, magic *common.UserMagic) {}
+
+// MagicBooster 深延术
+func (p *Player) MagicBooster(magic *common.UserMagic) {}
+
+// Vampirism 嗜血术
+func (p *Player) Vampirism(target IMapObject, magic *common.UserMagic) {}
+
+// SummonShinsu 召唤神兽
+func (p *Player) SummonShinsu(magic *common.UserMagic) {}
+
+// Purification 净化术
+func (p *Player) Purification(target IMapObject, magic *common.UserMagic) {}
+
+// Revelation 心灵启示
+func (p *Player) Revelation(target IMapObject, magic *common.UserMagic) {}
+
+// PoisonCloud 毒云
+func (p *Player) PoisonCloud(magic *common.UserMagic, location common.Point) bool { return true }
+
+// Entrapment 捕绳剑
+func (p *Player) Entrapment(target IMapObject, magic *common.UserMagic) {}
+
+// BladeAvalanche 攻破斩
+func (p *Player) BladeAvalanche(magic *common.UserMagic) {}
+
+// SlashingBurst 日闪
+func (p *Player) SlashingBurst(magic *common.UserMagic) bool { return true }
+
+// Rage 剑气爆
+func (p *Player) Rage(magic *common.UserMagic) {}
+
+// Mirroring 分身术
+func (p *Player) Mirroring(magic *common.UserMagic) {}
+
+// Blizzard 天霜冰环
+func (p *Player) Blizzard(magic *common.UserMagic, location common.Point) bool { return true }
+
+// MeteorStrike 流星火雨
 func (p *Player) MeteorStrike(magic *common.UserMagic, location common.Point) bool { return true }
-func (p *Player) IceThrust(magic *common.UserMagic)                                {}
-func (p *Player) ProtectionField(magic *common.UserMagic)                          {}
-func (p *Player) PetEnhancer(target IMapObject, magic *common.UserMagic) bool      { return true }
-func (p *Player) TrapHexagon(magic *common.UserMagic, target IMapObject) bool      { return true }
-func (p *Player) Reincarnation(magic *common.UserMagic, target IMapObject) bool    { return true }
-func (p *Player) Curse(magic *common.UserMagic, location common.Point) bool        { return true }
-func (p *Player) SummonHolyDeva(magic *common.UserMagic)                           {}
-func (p *Player) Hallucination(target IMapObject, magic *common.UserMagic) bool    { return true }
-func (p *Player) EnergyShield(target IMapObject, magic *common.UserMagic) bool     { return true }
+
+// IceThrust 冰焰术
+func (p *Player) IceThrust(magic *common.UserMagic) {}
+
+// ProtectionField 护身气幕
+func (p *Player) ProtectionField(magic *common.UserMagic) {}
+
+// PetEnhancer 血龙水
+func (p *Player) PetEnhancer(target IMapObject, magic *common.UserMagic) bool { return true }
+
+// TrapHexagon 困魔咒
+func (p *Player) TrapHexagon(magic *common.UserMagic, target IMapObject) bool { return true }
+
+// Reincarnation 复活术
+func (p *Player) Reincarnation(magic *common.UserMagic, target IMapObject) bool { return true }
+
+// Curse 诅咒术
+func (p *Player) Curse(magic *common.UserMagic, location common.Point) bool { return true }
+
+// SummonHolyDeva 召唤月灵
+func (p *Player) SummonHolyDeva(magic *common.UserMagic) {}
+
+// Hallucination 迷魂术
+func (p *Player) Hallucination(target IMapObject, magic *common.UserMagic) bool { return true }
+
+// EnergyShield 阴阳盾
+func (p *Player) EnergyShield(target IMapObject, magic *common.UserMagic) bool { return true }
+
+// UltimateEnhancer 无极真气
 func (p *Player) UltimateEnhancer(target IMapObject, magic *common.UserMagic) bool { return true }
-func (p *Player) Plague(magic *common.UserMagic, location common.Point) bool       { return true }
+
+// Plague 瘟疫
+func (p *Player) Plague(magic *common.UserMagic, location common.Point) bool { return true }
