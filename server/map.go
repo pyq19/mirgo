@@ -97,7 +97,20 @@ func (m *Map) DeleteObject(obj IMapObject) {
 func (m *Map) UpdateObject(obj IMapObject, points ...common.Point) bool {
 	for i := range points {
 		c := m.GetCell(points[i])
-		if c == nil || !c.CanWalk() || c.HasObject() {
+		if c == nil || !c.CanWalk() {
+			return false
+		}
+
+		blocking := false
+		c.Objects.Range(func(k, v interface{}) bool {
+			if v.(IMapObject).IsBlocking() {
+				blocking = true
+				return false
+			}
+			return true
+		})
+
+		if blocking {
 			return false
 		}
 	}
