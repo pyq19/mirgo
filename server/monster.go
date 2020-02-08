@@ -60,6 +60,7 @@ func NewMonster(mp *Map, p common.Point, mi *common.MonsterInfo) (m *Monster) {
 	m.Poison = common.PoisonTypeNone
 	m.CurrentLocation = p
 	m.CurrentDirection = common.MirDirection(G_Rand.RandInt(0, 7))
+	m.Dead = false
 	m.Level = uint16(mi.Level)
 	m.HP = uint32(mi.HP)
 	m.MaxHP = uint32(mi.HP)
@@ -191,11 +192,16 @@ func (m *Monster) CanMove() bool {
 }
 
 func (m *Monster) CanAttack() bool {
-	return true
+	now := time.Now()
+	if m.IsDead() {
+		return false
+	}
+	return now.After(m.AttackTime)
 }
 
 func (m *Monster) InAttackRange() bool {
-	return true
+	// if (Target.CurrentMap != CurrentMap) return false;
+	return !m.Target.GetPoint().Equal(m.CurrentLocation) && InRange(m.CurrentLocation, m.Target.GetPoint(), 1)
 }
 
 func (m *Monster) Process() {
@@ -203,20 +209,6 @@ func (m *Monster) Process() {
 	m.ProcessBuffs()
 	m.ProcessRegan()
 	m.ProcessPoison()
-}
-
-func (m *Monster) ProcessTarget() {
-	if m.Target == nil || !m.CanAttack() {
-		return
-	}
-	if m.InAttackRange() {
-		m.Attack()
-		if m.Target.IsDead() {
-			m.FindTarget()
-		}
-		return
-	}
-	m.MoveTo(m.Target.GetPoint())
 }
 
 func (m *Monster) ProcessBuffs() {
@@ -389,6 +381,9 @@ func (m *Monster) Walk(dir common.MirDirection) bool {
 			ret = false
 			return ret
 		})
+		if ret == false {
+			return false
+		}
 	} else {
 		return false
 	}
@@ -534,6 +529,20 @@ func (m *Monster) ProcessAI() {
 	m.ProcessSearch()
 	m.ProcessRoam()
 	m.ProcessTarget()
+}
+
+func (m *Monster) ProcessTarget() {
+	if m.Target == nil || !m.CanAttack() {
+		return
+	}
+	if m.InAttackRange() {
+		m.Attack()
+		if m.Target.IsDead() {
+			m.FindTarget()
+		}
+		return
+	}
+	m.MoveTo(m.Target.GetPoint())
 }
 
 // ProcessSearch 寻找目标
