@@ -390,16 +390,16 @@ func (m *Monster) Walk(dir common.MirDirection) bool {
 	destcell := m.Map.GetCell(dest)
 
 	if destcell != nil && destcell.Objects != nil {
-		ret := true
+		blocking := false
 		destcell.Objects.Range(func(_, v interface{}) bool {
 			o := v.(IMapObject)
 			if o.IsBlocking() || m.GetRace() == common.ObjectTypeCreature {
-				return true
+				blocking = true
+				return false
 			}
-			ret = false
-			return ret
+			return true
 		})
-		if ret == false {
+		if blocking {
 			return false
 		}
 	} else {
