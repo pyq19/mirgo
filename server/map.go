@@ -171,8 +171,8 @@ func (m *Map) GetValidPoint(x int, y int, spread int) (common.Point, error) {
 
 	for i := 0; i < 500; i++ {
 		p := common.Point{
-			X: uint32(x + G_Rand.RandInt(-spread, spread+1)),
-			Y: uint32(y + G_Rand.RandInt(-spread, spread+1)),
+			X: uint32(AbsInt(x + RandomInt(-spread, spread))),
+			Y: uint32(AbsInt(y + RandomInt(-spread, spread))),
 		}
 		c := m.GetCell(p)
 		if c == nil || !c.CanWalk() {

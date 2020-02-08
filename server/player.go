@@ -146,6 +146,10 @@ func (p *Player) GetCurrentGrid() *Grid {
 	return p.Map.AOI.GetGridByPoint(p.Point())
 }
 
+func (p *Player) AttackMode() common.AttackMode {
+	return common.AttackModeAll
+}
+
 // IsAttackTarget 判断玩家是否是攻击者的攻击对象
 func (p *Player) IsAttackTarget(attacker IMapObject) bool {
 	if attacker == nil {
@@ -158,20 +162,19 @@ func (p *Player) IsAttackTarget(attacker IMapObject) bool {
 	// TODO
 	// if (InSafeZone || attacker.InSafeZone || attacker.Master.InSafeZone) return false;
 
-	// switch (attacker.Master.AMode)
-	// {
-	// 	case AttackMode.All:
-	// 		return true;
-	// 	case AttackMode.Group:
-	// 		return GroupMembers == null || !GroupMembers.Contains(attacker.Master);
-	// 	case AttackMode.Guild:
-	// 		return true;
-	// 	case AttackMode.EnemyGuild:
-	// 		return false;
-	// 	case AttackMode.Peace:
-	// 		return false;
-	// 	case AttackMode.RedBrown:
-	// 		return PKPoints >= 200 || Envir.Time < BrownTime;
+	// switch (attacker.Master.AMode); {
+	// case AttackMode.All:
+	// 	return true
+	// case AttackMode.Group:
+	// 	return GroupMembers == null || !GroupMembers.Contains(attacker.Master)
+	// case AttackMode.Guild:
+	// 	return true
+	// case AttackMode.EnemyGuild:
+	// 	return false
+	// case AttackMode.Peace:
+	// 	return false
+	// case AttackMode.RedBrown:
+	// 	return PKPoints >= 200 || Envir.Time < BrownTime
 	// }
 	return true
 }
@@ -616,7 +619,7 @@ func (p *Player) GetAttackPower(min, max int) int {
 		max = min
 	}
 	// TODO luck
-	return G_Rand.RandInt(min, max+1)
+	return RandomInt(min, max)
 }
 
 // TODO
