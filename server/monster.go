@@ -2,12 +2,14 @@ package main
 
 import (
 	"fmt"
+	"sync"
 	"time"
 
 	"github.com/yenkeia/mirgo/common"
 	"github.com/yenkeia/mirgo/proto/server"
 )
 
+// Monster ...
 type Monster struct {
 	MapObject
 	Image       common.Monster
@@ -17,6 +19,7 @@ type Monster struct {
 	Light       uint8
 	Target      IMapObject
 	Level       uint16
+	PetLevel    uint16
 	HP          uint32
 	MaxHP       uint32
 	MinAC       uint16
@@ -37,6 +40,8 @@ type Monster struct {
 	DamageRate  float32
 	ViewRange   int
 	Master      *Player
+	ActionList  *sync.Map // map[uint32]DelayedAction
+	ActionTime  time.Time
 	SearchTime  time.Time // 怪物下一次搜索目标的时间
 	RoamTime    time.Time
 	AttackTime  time.Time
@@ -47,6 +52,7 @@ func (m *Monster) String() string {
 	return fmt.Sprintf("Monster: %s, (%v), ID: %d, ptr: %p\n", m.Name, m.CurrentLocation, m.ID, m)
 }
 
+// NewMonster ...
 func NewMonster(mp *Map, p common.Point, mi *common.MonsterInfo) (m *Monster) {
 	m = new(Monster)
 	m.ID = mp.Env.NewObjectID()
@@ -63,6 +69,7 @@ func NewMonster(mp *Map, p common.Point, mi *common.MonsterInfo) (m *Monster) {
 	m.CurrentDirection = RandomDirection()
 	m.Dead = false
 	m.Level = uint16(mi.Level)
+	m.PetLevel = 0
 	m.HP = uint32(mi.HP)
 	m.MaxHP = uint32(mi.HP)
 	m.MinAC = uint16(mi.MinAC)
@@ -81,15 +88,21 @@ func NewMonster(mp *Map, p common.Point, mi *common.MonsterInfo) (m *Monster) {
 	m.AttackSpeed = int32(mi.AttackSpeed)
 	m.ArmourRate = 1.0
 	m.DamageRate = 1.0
-	t := time.Now()
-	m.SearchTime = t
-	m.RoamTime = t
+	m.ActionList = new(sync.Map)
+	now := time.Now()
+	m.SearchTime = now
+	m.RoamTime = now
+	m.ActionTime = now
 	m.ViewRange = mi.ViewRange
 	return m
 }
 
 func (m *Monster) GetID() uint32 {
 	return m.ID
+}
+
+func (m *Monster) GetName() string {
+	return m.Name
 }
 
 func (m *Monster) GetRace() common.ObjectType {
@@ -160,6 +173,13 @@ func (m *Monster) Broadcast(msg interface{}) {
 	}))
 }
 
+// Spawn 怪物生成
+func (m *Monster) Spawn(mp *Map, p common.Point) {
+	m.Map = mp
+	m.CurrentLocation = p
+	mp.AddObject(m)
+}
+
 func (m *Monster) BroadcastDamageIndicator(typ common.DamageType, dmg int) {
 	m.Broadcast(ServerMessage{}.DamageIndicator(int32(dmg), typ, m.GetID()))
 }
@@ -204,11 +224,13 @@ func (m *Monster) CanAttack() bool {
 	return now.After(m.AttackTime)
 }
 
+// InAttackRange 是否在怪物攻击范围内
 func (m *Monster) InAttackRange() bool {
 	// if (Target.CurrentMap != CurrentMap) return false;
 	return !m.Target.GetPoint().Equal(m.CurrentLocation) && InRange(m.CurrentLocation, m.Target.GetPoint(), 1)
 }
 
+// Process 怪物定时轮询
 func (m *Monster) Process() {
 
 	now := time.Now()
@@ -223,21 +245,41 @@ func (m *Monster) Process() {
 	m.ProcessBuffs()
 	m.ProcessRegan()
 	m.ProcessPoison()
+
+	finishID := make([]uint32, 0)
+	m.ActionList.Range(func(k, v interface{}) bool {
+		action := v.(*DelayedAction)
+		if action.Finish || now.Before(action.ActionTime) {
+			return true
+		}
+		action.Task.Execute()
+		action.Finish = true
+		if action.Finish {
+			finishID = append(finishID, action.ID)
+		}
+		return true
+	})
+	for i := range finishID {
+		m.ActionList.Delete(finishID[i])
+	}
 }
 
+// ProcessBuffs 处理怪物增益效果
 func (m *Monster) ProcessBuffs() {
 
 }
 
-// processRegan 怪物自身回血
+// ProcessRegan 怪物自身回血
 func (m *Monster) ProcessRegan() {
 
 }
 
+// ProcessPoison 处理怪物中毒效果
 func (m *Monster) ProcessPoison() {
 
 }
 
+// GetDefencePower 获取防御值
 func (m *Monster) GetDefencePower(min, max int) int {
 	if min < 0 {
 		min = 0
@@ -248,6 +290,7 @@ func (m *Monster) GetDefencePower(min, max int) int {
 	return RandomInt(min, max)
 }
 
+// GetAttackPower 获取攻击值
 func (m *Monster) GetAttackPower(min, max int) int {
 	if min < 0 {
 		min = 0
@@ -259,6 +302,7 @@ func (m *Monster) GetAttackPower(min, max int) int {
 	return RandomInt(min, max+1)
 }
 
+// Die ...
 func (m *Monster) Die() {
 	if m.IsDead() {
 		return
@@ -638,4 +682,9 @@ func (m *Monster) CheckStacked() bool {
 	}
 
 	return false
+}
+
+// PetRecall 宠物传送回玩家身边
+func (m *Monster) PetRecall(...interface{}) {
+	log.Debugln("PetRecall", m.GetID())
 }

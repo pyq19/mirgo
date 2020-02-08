@@ -93,6 +93,7 @@ type Player struct {
 	Magics             []common.UserMagic
 	ActionList         *sync.Map // map[uint32]DelayedAction
 	Health             Health    // 状态恢复
+	Pets               []IMapObject
 }
 
 type Health struct {
@@ -119,8 +120,17 @@ func (p *Player) GetID() uint32 {
 	return p.ID
 }
 
+func (p *Player) GetName() string {
+	return p.Name
+}
+
 func (p *Player) Point() common.Point {
 	return p.GetPoint()
+}
+
+// GetFrontPoint 获取玩家面前的点
+func (p *Player) GetFrontPoint() common.Point {
+	return p.Point().NextPoint(p.CurrentDirection, 1)
 }
 
 func (p *Player) GetRace() common.ObjectType {

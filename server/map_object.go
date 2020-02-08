@@ -43,6 +43,7 @@ type BaseStats struct {
 
 type IMapObject interface {
 	GetID() uint32
+	GetName() string
 	GetRace() common.ObjectType
 	GetPoint() common.Point
 	GetCell() *Cell

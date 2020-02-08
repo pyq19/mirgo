@@ -172,7 +172,7 @@ func (m *Map) InitMonsters() error {
 	return nil
 }
 
-// GetValidPoint
+// GetValidPoint ...
 func (m *Map) GetValidPoint(x int, y int, spread int) (common.Point, error) {
 	if spread == 0 {
 		c := m.GetCellXY(x, y)
@@ -271,4 +271,26 @@ func (m *Map) RangeObject(p common.Point, depth int, fun func(IMapObject) bool) 
 
 		return ret
 	})
+}
+
+// CompleteMagic ...
+func (m *Map) CompleteMagic(args ...interface{}) {
+	magic := args[0].(*common.UserMagic)
+	switch magic.Spell {
+	case common.SpellSummonSkeleton, common.SpellSummonShinsu, common.SpellSummonHolyDeva, common.SpellSummonVampire, common.SpellSummonToad, common.SpellSummonSnakes:
+		player := args[1].(*Player)
+		monster := args[2].(*Monster)
+		front := args[3].(common.Point)
+		if monster.Master.IsDead() {
+			return
+		}
+		cell := m.GetCell(front)
+		if cell.IsValid() {
+			monster.Spawn(m, front)
+		} else {
+			monster.Spawn(m, player.GetPoint())
+		}
+		pets := monster.Master.Pets
+		pets = append(pets, monster)
+	}
 }
