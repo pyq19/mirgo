@@ -29,7 +29,7 @@ func NewNPC(m *Map, ni *common.NpcInfo) *NPC {
 			NameColor:        common.Color{R: 255, G: 255, B: 255},
 			Map:              m,
 			CurrentLocation:  common.NewPoint(ni.LocationX, ni.LocationY),
-			CurrentDirection: common.MirDirection(G_Rand.RandInt(0, 2)),
+			CurrentDirection: common.MirDirection(RandomInt(0, 1)),
 		},
 		Image:    ni.Image,
 		Light:    0, // TODO
@@ -52,6 +52,10 @@ func (n *NPC) IsDead() bool {
 
 func (n *NPC) GetID() uint32 {
 	return n.ID
+}
+
+func (n *NPC) AttackMode() common.AttackMode {
+	return common.AttackModePeace
 }
 
 func (n *NPC) GetRace() common.ObjectType {
@@ -119,8 +123,8 @@ func (n *NPC) Broadcast(msg interface{}) {
 
 func (n *NPC) Process() {
 	if n.TurnTime.Before(time.Now()) {
-		n.TurnTime = time.Now().Add(time.Second * time.Duration(G_Rand.RandInt(20, 60)))
-		n.CurrentDirection = common.MirDirection(G_Rand.RandInt(0, 2))
+		n.TurnTime = time.Now().Add(time.Second * time.Duration(RandomInt(20, 60)))
+		n.CurrentDirection = common.MirDirection(RandomInt(0, 1))
 		n.Broadcast(ServerMessage{}.ObjectTurn(n))
 	}
 }
