@@ -2,11 +2,12 @@ package main
 
 import (
 	"fmt"
+	"time"
+
 	"github.com/yenkeia/mirgo/common"
 	"github.com/yenkeia/mirgo/proto/server"
 	"github.com/yenkeia/mirgo/server/script"
 	"github.com/yenkeia/mirgo/setting"
-	"time"
 )
 
 type NPC struct {
@@ -52,6 +53,10 @@ func (n *NPC) IsDead() bool {
 
 func (n *NPC) GetID() uint32 {
 	return n.ID
+}
+
+func (n *NPC) GetName() string {
+	return n.Name
 }
 
 func (n *NPC) AttackMode() common.AttackMode {

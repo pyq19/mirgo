@@ -1,6 +1,8 @@
 package main
 
 import (
+	"time"
+
 	"github.com/yenkeia/mirgo/common"
 )
 
@@ -319,7 +321,49 @@ func (p *Player) SoulFireball(target IMapObject, magic *common.UserMagic) bool {
 	return true
 }
 
-func (p *Player) SummonSkeleton(magic *common.UserMagic)                           {}
+// SummonSkeleton 召唤骷髅
+func (p *Player) SummonSkeleton(magic *common.UserMagic) {
+	skeletonName := "BoneFamiliar"
+	for i := range p.Pets {
+		if p.Pets[i].GetName() == skeletonName {
+			m := p.Pets[i].(*Monster)
+			action := NewDelayedAction(p.NewObjectID(), DelayedTypeRecall, NewTask(m.PetRecall))
+			m.ActionList.Store(action.ID, action)
+			return
+		}
+	}
+	if len(p.Pets) > 1 {
+		return
+	}
+	userItem := p.GetAmulet(1)
+	if userItem == nil {
+		return
+	}
+	monsterInfo := p.Map.Env.GameDB.GetMonsterInfoByName(skeletonName)
+	// LevelMagic(magic);
+	// ConsumeItem(item, 1);	减少物品数量
+	monster := NewMonster(p.Map, p.GetPoint().NextPoint(p.CurrentDirection+4, 1), monsterInfo)
+	monster.PetLevel = uint16(magic.Level)
+	monster.Master = p
+	monster.ActionTime = time.Now().Add(time.Duration(1000) * time.Millisecond)
+	// monster.RefreshNameColour(false);
+	// DelayedAction action = new DelayedAction(DelayedType.Magic, Envir.Time + 500, this, magic, monster, Front);
+	action := NewDelayedAction(p.NewObjectID(), DelayedTypeMagic, NewTask(p.Map.CompleteMagic, magic, p, monster, p.GetFrontPoint()))
+	p.Map.Env.ActionList.Store(action.ID, action)
+}
+
+// GetAmulet 获取玩家身上装备的护身符
+func (p *Player) GetAmulet(count int) *common.UserItem {
+	for i := range p.Equipment {
+		userItem := p.Equipment[i]
+		itemInfo := p.Map.Env.GameDB.GetItemInfoByID(int(userItem.ItemID))
+		if itemInfo != nil && itemInfo.Type == common.ItemTypeAmulet && int(userItem.Count) > count {
+			return &userItem
+		}
+	}
+	return nil
+}
+
 func (p *Player) Hiding(magic *common.UserMagic)                                   {}
 func (p *Player) FurySpell(magic *common.UserMagic) bool                           { return true }
 func (p *Player) ImmortalSkin(magic *common.UserMagic) bool                        { return true }

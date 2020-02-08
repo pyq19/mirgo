@@ -1,14 +1,15 @@
 package main
 
 import (
+	"sync"
+	"time"
+
 	"github.com/davyxu/cellnet"
 	_ "github.com/yenkeia/mirgo/codec/mircodec"
 	"github.com/yenkeia/mirgo/common"
 	_ "github.com/yenkeia/mirgo/proc/mirtcp"
 	"github.com/yenkeia/mirgo/proto/client"
 	"github.com/yenkeia/mirgo/proto/server"
-	"sync"
-	"time"
 )
 
 func (g *Game) HandleEvent(ev cellnet.Event) {
@@ -563,6 +564,7 @@ func updatePlayerInfo(g *Game, p *Player, c *common.Character) {
 		HealNextTime:  &healNextTime,
 		HealDuration:  10 * time.Second,
 	}
+	p.Pets = make([]IMapObject, 0)
 }
 
 // StartGame 开始游戏

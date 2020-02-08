@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+
 	"github.com/yenkeia/mirgo/common"
 	"github.com/yenkeia/mirgo/proto/server"
 )
@@ -14,6 +15,10 @@ type Item struct {
 
 func (i *Item) GetID() uint32 {
 	return i.ID
+}
+
+func (i *Item) GetName() string {
+	return i.Name
 }
 
 func (i *Item) AttackMode() common.AttackMode {
