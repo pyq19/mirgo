@@ -345,10 +345,10 @@ type MapInformation struct {
 	Title        string
 	MiniMap      uint16
 	BigMap       uint16
-	Music        uint16
 	Lights       common.LightSetting
 	Lightning    bool
 	MapDarkLight uint8
+	Music        uint16
 }
 
 type UserInformation struct {
