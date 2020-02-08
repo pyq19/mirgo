@@ -353,7 +353,11 @@ func (p *Player) SummonSkeleton(magic *common.UserMagic) {
 	monsterInfo := p.Map.Env.GameDB.GetMonsterInfoByName(skeletonName)
 	// LevelMagic(magic);
 	// ConsumeItem(item, 1);	减少物品数量
-	monster := NewMonster(p.Map, p.GetPoint().NextPoint(p.CurrentDirection+4, 1), monsterInfo)
+	dir := int(p.CurrentDirection) + 4
+	if dir > 8 {
+		dir -= 8
+	}
+	monster := NewMonster(p.Map, p.GetPoint().NextPoint(dir, 1), monsterInfo)
 	monster.PetLevel = uint16(magic.Level)
 	monster.Master = p
 	monster.ActionTime = time.Now().Add(time.Duration(1000) * time.Millisecond)
