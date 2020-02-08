@@ -357,7 +357,7 @@ func (p *Player) SummonSkeleton(magic *common.UserMagic) {
 	if dir > 8 {
 		dir -= 8
 	}
-	monster := NewMonster(p.Map, p.GetPoint().NextPoint(dir, 1), monsterInfo)
+	monster := NewMonster(p.Map, p.GetPoint().NextPoint(common.MirDirection(dir), 1), monsterInfo)
 	monster.PetLevel = uint16(magic.Level)
 	monster.Master = p
 	monster.ActionTime = time.Now().Add(time.Duration(1000) * time.Millisecond)
