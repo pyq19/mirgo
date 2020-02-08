@@ -87,6 +87,15 @@ func RandomNext(high int) int {
 	return RandomInt(0, high-1)
 }
 
+func RandomString(length int) string {
+	bytes := make([]byte, length)
+	for i := 0; i < length; i++ {
+		b := rand.Intn(26) + 65
+		bytes[i] = byte(b)
+	}
+	return string(bytes)
+}
+
 // 随机方向
 func RandomDirection() common.MirDirection {
 	return common.MirDirection(RandomInt(0, common.MirDirectionCount))
