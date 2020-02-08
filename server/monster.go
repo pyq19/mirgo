@@ -46,6 +46,7 @@ type Monster struct {
 	RoamTime    time.Time
 	AttackTime  time.Time
 	DeadTime    time.Time
+	MoveTime    time.Time
 }
 
 func (m *Monster) String() string {
@@ -93,6 +94,7 @@ func NewMonster(mp *Map, p common.Point, mi *common.MonsterInfo) (m *Monster) {
 	m.SearchTime = now
 	m.RoamTime = now
 	m.ActionTime = now
+	m.MoveTime = now
 	m.ViewRange = mi.ViewRange
 	return m
 }
@@ -213,7 +215,7 @@ func (m *Monster) AttackMode() common.AttackMode {
 }
 
 func (m *Monster) CanMove() bool {
-	return true
+	return time.Now().After(m.MoveTime)
 }
 
 func (m *Monster) CanAttack() bool {
@@ -455,6 +457,8 @@ func (m *Monster) Walk(dir common.MirDirection) bool {
 
 	m.CurrentDirection = dir
 	m.CurrentLocation = dest
+
+	m.MoveTime = m.MoveTime.Add(time.Duration(int64(m.MoveSpeed)) * time.Millisecond)
 
 	m.Broadcast(&server.ObjectWalk{
 		ObjectID:  m.GetID(),
