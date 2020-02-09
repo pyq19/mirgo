@@ -29,6 +29,11 @@ func (p *Player) GetClientMagics() []common.ClientMagic {
 	return res
 }
 
+// LevelMagic ...
+func (p *Player) LevelMagic(userMagic *common.UserMagic) {
+
+}
+
 // UseMagic ...
 func (p *Player) UseMagic(spell common.Spell, magic *common.UserMagic, target IMapObject) (cast bool, targetID uint32) {
 	cast = true
@@ -259,13 +264,23 @@ func (p *Player) CompleteMagic(args ...interface{}) {
 			}
 			obj.HP += uint32(value)
 		}
-		// LevelMagic(magic)
+		p.LevelMagic(userMagic)
 	case common.SpellElectricShock:
 	case common.SpellPoisoning:
 	case common.SpellStormEscape:
 	case common.SpellTeleport:
 	case common.SpellBlink:
 	case common.SpellHiding:
+		for i := range p.Buffs {
+			if p.Buffs[i].BuffType == common.BuffTypeHiding {
+				return
+			}
+		}
+		value := args[1].(int)
+		expireTime := time.Now().Add(time.Duration(value*1000) * time.Millisecond)
+		buff := NewBuff(p.NewObjectID(), common.BuffTypeHiding, 0, expireTime)
+		p.Buffs = append(p.Buffs, buff)
+		p.LevelMagic(userMagic)
 	case common.SpellHaste:
 	case common.SpellFury:
 	case common.SpellImmortalSkin:
@@ -351,8 +366,8 @@ func (p *Player) SummonSkeleton(magic *common.UserMagic) {
 		return
 	}
 	monsterInfo := p.Map.Env.GameDB.GetMonsterInfoByName(skeletonName)
-	// LevelMagic(magic);
-	// ConsumeItem(item, 1);	减少物品数量
+	p.LevelMagic(magic)
+	p.ConsumeItem(userItem, 1) // 减少物品数量
 	dir := int(p.CurrentDirection) + 4
 	if dir > 8 {
 		dir -= 8
@@ -380,7 +395,16 @@ func (p *Player) GetAmulet(count int) *common.UserItem {
 }
 
 // Hiding 隐身术
-func (p *Player) Hiding(magic *common.UserMagic) {}
+func (p *Player) Hiding(magic *common.UserMagic) {
+	userItem := p.GetAmulet(1)
+	if userItem == nil {
+		return
+	}
+	p.ConsumeItem(userItem, 1)
+	damage := p.GetAttackPower(int(p.MinSC), int(p.MaxSC)) + (magic.Level+1)*5
+	action := NewDelayedAction(p.NewObjectID(), DelayedTypeMagic, NewTask(p.CompleteMagic, magic, damage))
+	p.ActionList.Store(action.ID, action)
+}
 
 // FurySpell 龙血剑法 SpellFury
 func (p *Player) FurySpell(magic *common.UserMagic) bool { return true }
