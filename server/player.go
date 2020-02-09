@@ -155,9 +155,9 @@ func (p *Player) GetDirection() common.MirDirection {
 	return p.CurrentDirection
 }
 
-func (p *Player) GetCurrentGrid() *Grid {
-	return p.Map.AOI.GetGridByPoint(p.Point())
-}
+// func (p *Player) GetCurrentGrid() *Grid {
+// 	return p.Map.AOI.GetGridByPoint(p.Point())
+// }
 
 func (p *Player) AttackMode() common.AttackMode {
 	return common.AttackModeAll
@@ -357,18 +357,7 @@ func (p *Player) BroadcastDamageIndicator(typ common.DamageType, dmg int) {
 }
 
 func (p *Player) Broadcast(msg interface{}) {
-	p.Map.Submit(NewTask(func(args ...interface{}) {
-		grids := p.Map.AOI.GetSurroundGrids(p.Point())
-		for i := range grids {
-			areaPlayers := grids[i].GetAllPlayer()
-			for i := range areaPlayers {
-				if p.GetID() == areaPlayers[i].GetID() {
-					continue
-				}
-				areaPlayers[i].Enqueue(msg)
-			}
-		}
-	}))
+	p.Map.BroadcastP(p.CurrentLocation, msg, p)
 }
 
 func (p *Player) Process() {
@@ -746,57 +735,84 @@ func (p *Player) Teleport(m *Map, pt common.Point) {
 
 }
 
-func (p *Player) EnqueueAreaObjects(oldGrid, newGrid *Grid) {
-	oldAreaGrids := make([]*Grid, 0)
-	if oldGrid != nil {
-		oldAreaGrids = p.Map.AOI.GetSurroundGridsByGridID(oldGrid.GID)
-	}
-	newAreaGrids := p.Map.AOI.GetSurroundGridsByGridID(newGrid.GID)
-	send := make(map[int]bool)
-	for i := range newAreaGrids {
-		ng := newAreaGrids[i]
-		send[ng.GID] = true
-		for j := range oldAreaGrids {
-			og := oldAreaGrids[j]
-			if ng.GID == og.GID {
-				send[ng.GID] = false
+// func (p *Player) EnqueueAreaObjects(oldGrid, newGrid *Grid) {
+// 	oldAreaGrids := make([]*Grid, 0)
+// 	if oldGrid != nil {
+// 		oldAreaGrids = p.Map.AOI.GetSurroundGridsByGridID(oldGrid.GID)
+// 	}
+// 	newAreaGrids := p.Map.AOI.GetSurroundGridsByGridID(newGrid.GID)
+// 	send := make(map[int]bool)
+// 	for i := range newAreaGrids {
+// 		ng := newAreaGrids[i]
+// 		send[ng.GID] = true
+// 		for j := range oldAreaGrids {
+// 			og := oldAreaGrids[j]
+// 			if ng.GID == og.GID {
+// 				send[ng.GID] = false
+// 			}
+// 		}
+// 	}
+// 	newAreaObjects := make([]IMapObject, 0)
+// 	for i := range newAreaGrids {
+// 		ng := newAreaGrids[i]
+// 		if send[ng.GID] {
+// 			newAreaObjects = append(newAreaObjects, ng.GetAllObjects()...)
+// 		}
+// 	}
+// 	for i := range newAreaObjects {
+// 		if o := newAreaObjects[i]; o.GetID() != p.GetID() {
+// 			p.Enqueue(ServerMessage{}.Object(o))
+// 		}
+// 	}
+// 	drop := make(map[int]bool)
+// 	for i := range oldAreaGrids {
+// 		og := oldAreaGrids[i]
+// 		drop[og.GID] = true
+// 		for j := range newAreaGrids {
+// 			ng := newAreaGrids[j]
+// 			if og.GID == ng.GID {
+// 				drop[og.GID] = false
+// 			}
+// 		}
+// 	}
+// 	oldAreaObjects := make([]IMapObject, 0)
+// 	for i := range oldAreaGrids {
+// 		og := oldAreaGrids[i]
+// 		if drop[og.GID] {
+// 			oldAreaObjects = append(oldAreaObjects, og.GetAllObjects()...)
+// 		}
+// 	}
+// 	for i := range oldAreaObjects {
+// 		if o := oldAreaObjects[i]; o.GetID() != p.GetID() {
+// 			p.Enqueue(ServerMessage{}.ObjectRemove(o))
+// 		}
+// 	}
+// }
+func (p *Player) EnqueueAreaObjects(oldCell, newCell *Cell) {
+	if oldCell == nil {
+		p.Map.RangeObject(p.CurrentLocation, DataRange, func(o IMapObject) bool {
+			if o != p {
+				p.Enqueue(ServerMessage{}.Object(o))
 			}
-		}
+			return true
+		})
+		return
 	}
-	newAreaObjects := make([]IMapObject, 0)
-	for i := range newAreaGrids {
-		ng := newAreaGrids[i]
-		if send[ng.GID] {
-			newAreaObjects = append(newAreaObjects, ng.GetAllObjects()...)
+
+	cells := p.Map.CalcDiff(oldCell.Point, newCell.Point, DataRange)
+	for c, isadd := range cells.M {
+		if isadd {
+			c.Objects.Range(func(k, v interface{}) bool {
+				p.Enqueue(ServerMessage{}.Object(v.(IMapObject)))
+				return true
+			})
+		} else {
+			c.Objects.Range(func(k, v interface{}) bool {
+				p.Enqueue(ServerMessage{}.ObjectRemove(v.(IMapObject)))
+				return true
+			})
 		}
-	}
-	for i := range newAreaObjects {
-		if o := newAreaObjects[i]; o.GetID() != p.GetID() {
-			p.Enqueue(ServerMessage{}.Object(o))
-		}
-	}
-	drop := make(map[int]bool)
-	for i := range oldAreaGrids {
-		og := oldAreaGrids[i]
-		drop[og.GID] = true
-		for j := range newAreaGrids {
-			ng := newAreaGrids[j]
-			if og.GID == ng.GID {
-				drop[og.GID] = false
-			}
-		}
-	}
-	oldAreaObjects := make([]IMapObject, 0)
-	for i := range oldAreaGrids {
-		og := oldAreaGrids[i]
-		if drop[og.GID] {
-			oldAreaObjects = append(oldAreaObjects, og.GetAllObjects()...)
-		}
-	}
-	for i := range oldAreaObjects {
-		if o := oldAreaObjects[i]; o.GetID() != p.GetID() {
-			p.Enqueue(ServerMessage{}.ObjectRemove(o))
-		}
+
 	}
 }
 
@@ -817,7 +833,8 @@ func (p *Player) StartGame() {
 	p.Enqueue(ServerMessage{}.MapInformation(p.Map.Info))
 	p.Enqueue(ServerMessage{}.UserInformation(p))
 	p.Enqueue(ServerMessage{}.TimeOfDay(common.LightSettingDay))
-	p.EnqueueAreaObjects(nil, p.Map.AOI.GetGridByPoint(p.GetPoint()))
+	// p.EnqueueAreaObjects(nil, p.Map.AOI.GetGridByPoint(p.GetPoint()))
+	p.EnqueueAreaObjects(nil, p.GetCell())
 	p.Enqueue(ServerMessage{}.NPCResponse([]string{}))
 	p.Broadcast(ServerMessage{}.ObjectPlayer(p))
 }

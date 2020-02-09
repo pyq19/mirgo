@@ -44,15 +44,7 @@ func (i *Item) GetCell() *Cell {
 }
 
 func (i *Item) Broadcast(msg interface{}) {
-	i.Map.Submit(NewTask(func(args ...interface{}) {
-		grids := i.Map.AOI.GetSurroundGrids(i.CurrentLocation)
-		for i := range grids {
-			areaPlayers := grids[i].GetAllPlayer()
-			for i := range areaPlayers {
-				areaPlayers[i].Enqueue(msg)
-			}
-		}
-	}))
+	i.Map.BroadcastP(i.CurrentLocation, msg, nil)
 }
 
 func (i *Item) GetDirection() common.MirDirection {
