@@ -115,15 +115,7 @@ func (n *NPC) String() string {
 }
 
 func (n *NPC) Broadcast(msg interface{}) {
-	n.Map.Submit(NewTask(func(args ...interface{}) {
-		grids := n.Map.AOI.GetSurroundGrids(n.CurrentLocation)
-		for i := range grids {
-			areaPlayers := grids[i].GetAllPlayer()
-			for i := range areaPlayers {
-				areaPlayers[i].Enqueue(msg)
-			}
-		}
-	}))
+	n.Map.BroadcastP(n.CurrentLocation, msg, nil)
 }
 
 func (n *NPC) Process() {

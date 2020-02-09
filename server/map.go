@@ -65,6 +65,21 @@ func (m *Map) Broadcast(msg interface{}) {
 	}
 }
 
+// 位置，消息，跳过玩家id
+func (m *Map) BroadcastP(p common.Point, msg interface{}, me *Player) {
+	m.Submit(NewTask(func(args ...interface{}) {
+		grids := m.AOI.GetSurroundGrids(p)
+		for i := range grids {
+			areaPlayers := grids[i].GetAllPlayer()
+			for _, p := range areaPlayers {
+				if p != me {
+					areaPlayers[i].Enqueue(msg)
+				}
+			}
+		}
+	}))
+}
+
 func (m *Map) AddObject(obj IMapObject) (string, bool) {
 	if obj == nil || obj.GetID() == 0 {
 		return "", false

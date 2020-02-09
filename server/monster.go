@@ -164,15 +164,7 @@ func (m *Monster) GetBaseStats() BaseStats {
 }
 
 func (m *Monster) Broadcast(msg interface{}) {
-	m.Map.Submit(NewTask(func(args ...interface{}) {
-		grids := m.Map.AOI.GetSurroundGrids(m.CurrentLocation)
-		for i := range grids {
-			areaPlayers := grids[i].GetAllPlayer()
-			for i := range areaPlayers {
-				areaPlayers[i].Enqueue(msg)
-			}
-		}
-	}))
+	m.Map.BroadcastP(m.CurrentLocation, msg, nil)
 }
 
 // Spawn 怪物生成
