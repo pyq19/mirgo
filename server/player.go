@@ -308,18 +308,7 @@ func (p *Player) BroadcastDamageIndicator(typ common.DamageType, dmg int) {
 }
 
 func (p *Player) Broadcast(msg interface{}) {
-	p.Map.Submit(NewTask(func(args ...interface{}) {
-		grids := p.Map.AOI.GetSurroundGrids(p.Point())
-		for i := range grids {
-			areaPlayers := grids[i].GetAllPlayer()
-			for i := range areaPlayers {
-				if p.GetID() == areaPlayers[i].GetID() {
-					continue
-				}
-				areaPlayers[i].Enqueue(msg)
-			}
-		}
-	}))
+	p.Map.BroadcastP(p.CurrentLocation, msg, p)
 }
 
 func (p *Player) Process() {
