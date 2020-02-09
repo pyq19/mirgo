@@ -94,6 +94,9 @@ type Player struct {
 	ActionList         *sync.Map // map[uint32]DelayedAction
 	Health             Health    // 状态恢复
 	Pets               []IMapObject
+	PKPoints           int
+	AMode              common.AttackMode
+	PMode              common.PetMode
 }
 
 type Health struct {
@@ -168,24 +171,35 @@ func (p *Player) IsAttackTarget(attacker IMapObject) bool {
 	if p.IsDead() {
 		return false
 	}
-
-	// TODO
-	// if (InSafeZone || attacker.InSafeZone || attacker.Master.InSafeZone) return false;
-
-	// switch (attacker.Master.AMode); {
-	// case AttackMode.All:
-	// 	return true
-	// case AttackMode.Group:
-	// 	return GroupMembers == null || !GroupMembers.Contains(attacker.Master)
-	// case AttackMode.Guild:
-	// 	return true
-	// case AttackMode.EnemyGuild:
-	// 	return false
-	// case AttackMode.Peace:
-	// 	return false
-	// case AttackMode.RedBrown:
-	// 	return PKPoints >= 200 || Envir.Time < BrownTime
-	// }
+	switch attacker.GetRace() {
+	case common.ObjectTypePlayer:
+	case common.ObjectTypeMonster:
+		monster := attacker.(*Monster)
+		monsterInfo := p.Map.Env.GameDB.GetMonsterInfoByName(monster.Name)
+		if monsterInfo.AI == 6 || monsterInfo.AI == 58 {
+			return p.PKPoints >= 200
+		}
+		if monster.Master == nil {
+			break
+		}
+		if monster.Master.GetID() == p.GetID() {
+			return false
+		}
+		switch monster.Master.AMode {
+		case common.AttackModeAll:
+			return true
+		case common.AttackModeGroup:
+			// return GroupMembers == null || !GroupMembers.Contains(attacker.Master)
+		case common.AttackModeGuild:
+			return true
+		case common.AttackModeEnemyGuild:
+			return false
+		case common.AttackModePeace:
+			return false
+		case common.AttackModeRedBrown:
+			return p.PKPoints >= 200 //|| Envir.Time < BrownTime
+		}
+	}
 	return true
 }
 
