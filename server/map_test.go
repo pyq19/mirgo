@@ -109,7 +109,7 @@ func TestMapRange(t *testing.T) {
 
 	p := common.Point{X: 1, Y: 1}
 
-	var printpos = func(c *Cell) bool {
+	var printpos = func(c *Cell, _, _ int) bool {
 		if c != nil {
 			fmt.Println(c.Point)
 		} else {
@@ -126,4 +126,22 @@ func TestMapRange(t *testing.T) {
 
 	fmt.Println("---")
 	m.RangeCell(p, 2, printpos)
+}
+
+func TestCalc(t *testing.T) {
+	gopath := os.Getenv("GOPATH")
+	mapAbsPath := gopath + "/src/github.com/yenkeia/mirgo/dotnettools/database/Maps/0.map"
+	m := GetMapV1(GetMapBytes(mapAbsPath))
+
+	testft(m, 100, 100, 101, 101, 1)
+	testft(m, 100, 100, 102, 102, 1)
+	// testft(m, 1, 1, 0, 0, 1)
+}
+
+func testft(m *Map, fx, fy, tx, ty, datarange int) {
+	s := m.CalcDiff(common.NewPoint(fx, fy), common.NewPoint(tx, ty), datarange)
+	fmt.Println(fmt.Sprintf("=====> test from(%d,%d) to(%d,%d)", fx, fy, tx, ty))
+	s.Print("xxx")
+	fmt.Println("=======")
+
 }

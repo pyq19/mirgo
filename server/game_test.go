@@ -4,10 +4,9 @@ import (
 	"strings"
 	"sync"
 	"testing"
-
-	"github.com/yenkeia/mirgo/common"
 )
 
+/*
 func TestGameMonsters(t *testing.T) {
 	g := NewGame()
 
@@ -78,7 +77,7 @@ func TestGameNPCs(t *testing.T) {
 	})
 	t.Log(count)
 }
-
+*/
 func TestEnviron_NewObjectID(t *testing.T) {
 	var wg sync.WaitGroup
 	e := new(Environ)
