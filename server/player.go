@@ -203,7 +203,42 @@ func (p *Player) IsAttackTarget(attacker IMapObject) bool {
 	return true
 }
 
-func (p *Player) IsFriendlyTarget(attacker IMapObject) bool {
+func (p *Player) IsFriendlyTarget(obj IMapObject) bool {
+	switch obj.GetRace() {
+	case common.ObjectTypePlayer:
+		ally := obj.(*Player)
+		if ally.GetID() == p.GetID() {
+			return true
+		}
+		switch ally.AMode {
+		case common.AttackModeGroup:
+			// return GroupMembers != null && GroupMembers.Contains(ally)
+		case common.AttackModeRedBrown:
+			return PKPoints < 200 // &Envir.Time > BrownTime
+		case common.AttackModeGuild:
+			// return MyGuild != null && MyGuild == ally.MyGuild
+		case common.AttackModeEnemyGuild:
+			return true
+		}
+		return true
+	case common.ObjectTypeMonster:
+		ally := obj.(*Monster)
+		if ally.Master == nil {
+			return false
+		}
+		// switch (ally.Master.Race)
+		// {
+		// 	case ObjectType.Player:
+		// 		if (!ally.Master.IsFriendlyTarget(this)) return false;
+		// 		break;
+		// 	case ObjectType.Monster:
+		// 		return false;
+		// }
+		if !ally.Master.IsFriendlyTarget(ally) {
+			return false
+		}
+		return true
+	}
 	return true
 }
 
