@@ -97,6 +97,7 @@ type Player struct {
 	PKPoints           int
 	AMode              common.AttackMode
 	PMode              common.PetMode
+	CallingNPC         *NPC
 }
 
 type Health struct {
@@ -165,6 +166,7 @@ func (p *Player) AttackMode() common.AttackMode {
 
 // IsAttackTarget 判断玩家是否是攻击者的攻击对象
 func (p *Player) IsAttackTarget(attacker IMapObject) bool {
+	// return false
 	if attacker == nil {
 		return false
 	}
@@ -1109,7 +1111,7 @@ func (p *Player) RetrieveRefineItem(from int32, to int32) {
 }
 
 func (p *Player) RefineCancel() {
-
+	p.CallingNPC = nil
 }
 
 func (p *Player) RefineItem(id uint64) {
@@ -1433,8 +1435,17 @@ func (p *Player) CallNPC(id uint32, key string) {
 }
 
 func sendBuyKey(p *Player, npc *NPC) {
+	p.CallingNPC = npc
 
-	goods := []common.UserItem{}
+	goods := npc.Goods
+	if len(goods) != 0 {
+		p.Enqueue(&server.NPCGoods{
+			Goods: goods,
+			Rate:  1.0,
+			Type:  common.PanelTypeBuy,
+		})
+		return
+	}
 
 	for _, name := range npc.Script.Goods {
 		res := strings.Split(name, " ")
@@ -1457,6 +1468,7 @@ func sendBuyKey(p *Player, npc *NPC) {
 		g := p.Map.Env.NewUserItem(item)
 		g.Count = uint32(count)
 		goods = append(goods, *g)
+		npc.Goods = goods
 	}
 
 	p.Enqueue(&server.NPCGoods{
@@ -1471,7 +1483,14 @@ func (p *Player) TalkMonsterNPC(id uint32) {
 }
 
 func (p *Player) BuyItem(index uint64, count uint32, panelType common.PanelType) {
-
+	if p.IsDead() {
+		return
+	}
+	npc := p.CallingNPC
+	if npc == nil {
+		return
+	}
+	npc.Buy(p, index, count)
 }
 
 func (p *Player) CraftItem() {
