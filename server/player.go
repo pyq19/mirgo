@@ -799,7 +799,7 @@ func (p *Player) EnqueueAreaObjects(oldCell, newCell *Cell) {
 		return
 	}
 
-	cells := p.Map.CalcDiff1(oldCell.Point, newCell.Point, DataRange)
+	cells := p.Map.CalcDiff(oldCell.Point, newCell.Point, DataRange)
 	for c, isadd := range cells.M {
 		if isadd {
 			c.Objects.Range(func(k, v interface{}) bool {
