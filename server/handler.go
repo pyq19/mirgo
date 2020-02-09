@@ -565,6 +565,9 @@ func updatePlayerInfo(g *Game, p *Player, c *common.Character) {
 		HealDuration:  10 * time.Second,
 	}
 	p.Pets = make([]IMapObject, 0)
+	p.PKPoints = 0
+	p.AMode = common.AttackModeAll
+	p.PMode = common.PetModeNone
 }
 
 // StartGame 开始游戏

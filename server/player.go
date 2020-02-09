@@ -94,6 +94,9 @@ type Player struct {
 	ActionList         *sync.Map // map[uint32]DelayedAction
 	Health             Health    // 状态恢复
 	Pets               []IMapObject
+	PKPoints           int
+	AMode              common.AttackMode
+	PMode              common.PetMode
 }
 
 type Health struct {
@@ -168,28 +171,74 @@ func (p *Player) IsAttackTarget(attacker IMapObject) bool {
 	if p.IsDead() {
 		return false
 	}
-
-	// TODO
-	// if (InSafeZone || attacker.InSafeZone || attacker.Master.InSafeZone) return false;
-
-	// switch (attacker.Master.AMode); {
-	// case AttackMode.All:
-	// 	return true
-	// case AttackMode.Group:
-	// 	return GroupMembers == null || !GroupMembers.Contains(attacker.Master)
-	// case AttackMode.Guild:
-	// 	return true
-	// case AttackMode.EnemyGuild:
-	// 	return false
-	// case AttackMode.Peace:
-	// 	return false
-	// case AttackMode.RedBrown:
-	// 	return PKPoints >= 200 || Envir.Time < BrownTime
-	// }
+	switch attacker.GetRace() {
+	case common.ObjectTypePlayer:
+	case common.ObjectTypeMonster:
+		monster := attacker.(*Monster)
+		monsterInfo := p.Map.Env.GameDB.GetMonsterInfoByName(monster.Name)
+		if monsterInfo.AI == 6 || monsterInfo.AI == 58 {
+			return p.PKPoints >= 200
+		}
+		if monster.Master == nil {
+			break
+		}
+		if monster.Master.GetID() == p.GetID() {
+			return false
+		}
+		switch monster.Master.AMode {
+		case common.AttackModeAll:
+			return true
+		case common.AttackModeGroup:
+			// return GroupMembers == null || !GroupMembers.Contains(attacker.Master)
+		case common.AttackModeGuild:
+			return true
+		case common.AttackModeEnemyGuild:
+			return false
+		case common.AttackModePeace:
+			return false
+		case common.AttackModeRedBrown:
+			return p.PKPoints >= 200 //|| Envir.Time < BrownTime
+		}
+	}
 	return true
 }
 
-func (p *Player) IsFriendlyTarget(attacker IMapObject) bool {
+func (p *Player) IsFriendlyTarget(obj IMapObject) bool {
+	switch obj.GetRace() {
+	case common.ObjectTypePlayer:
+		ally := obj.(*Player)
+		if ally.GetID() == p.GetID() {
+			return true
+		}
+		switch ally.AMode {
+		case common.AttackModeGroup:
+			// return GroupMembers != null && GroupMembers.Contains(ally)
+		case common.AttackModeRedBrown:
+			return p.PKPoints < 200 // &Envir.Time > BrownTime
+		case common.AttackModeGuild:
+			// return MyGuild != null && MyGuild == ally.MyGuild
+		case common.AttackModeEnemyGuild:
+			return true
+		}
+		return true
+	case common.ObjectTypeMonster:
+		ally := obj.(*Monster)
+		if ally.Master == nil {
+			return false
+		}
+		// switch (ally.Master.Race)
+		// {
+		// 	case ObjectType.Player:
+		// 		if (!ally.Master.IsFriendlyTarget(this)) return false;
+		// 		break;
+		// 	case ObjectType.Monster:
+		// 		return false;
+		// }
+		if !ally.Master.IsFriendlyTarget(ally) {
+			return false
+		}
+		return true
+	}
 	return true
 }
 
@@ -561,6 +610,11 @@ func (p *Player) GetUserItemByID(mirGridType common.MirGridType, id uint64) (ind
 		}
 	}
 	return -1, nil
+}
+
+// ConsumeItem 减少物品数量
+func (p *Player) ConsumeItem(userItem *common.UserItem, count int) {
+	userItem.Count -= uint32(count)
 }
 
 // GainItem 为玩家增加物品，增加成功返回 true
