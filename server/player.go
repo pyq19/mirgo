@@ -214,7 +214,7 @@ func (p *Player) IsFriendlyTarget(obj IMapObject) bool {
 		case common.AttackModeGroup:
 			// return GroupMembers != null && GroupMembers.Contains(ally)
 		case common.AttackModeRedBrown:
-			return PKPoints < 200 // &Envir.Time > BrownTime
+			return p.PKPoints < 200 // &Envir.Time > BrownTime
 		case common.AttackModeGuild:
 			// return MyGuild != null && MyGuild == ally.MyGuild
 		case common.AttackModeEnemyGuild:
