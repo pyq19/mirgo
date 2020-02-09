@@ -164,15 +164,7 @@ func (m *Monster) GetBaseStats() BaseStats {
 }
 
 func (m *Monster) Broadcast(msg interface{}) {
-	m.Map.Submit(NewTask(func(args ...interface{}) {
-		grids := m.Map.AOI.GetSurroundGrids(m.CurrentLocation)
-		for i := range grids {
-			areaPlayers := grids[i].GetAllPlayer()
-			for i := range areaPlayers {
-				areaPlayers[i].Enqueue(msg)
-			}
-		}
-	}))
+	m.Map.BroadcastP(m.CurrentLocation, msg, nil)
 }
 
 // Spawn 怪物生成
@@ -234,6 +226,11 @@ func (m *Monster) InAttackRange() bool {
 
 // Process 怪物定时轮询
 func (m *Monster) Process() {
+	if m.Target != nil &&
+		//m.Target.GetMap() != m.Map ||
+		(!m.Target.IsAttackTarget(m) || !InRange(m.CurrentLocation, m.Target.GetPoint(), DataRange)) {
+		m.Target = nil
+	}
 
 	now := time.Now()
 
@@ -380,6 +377,7 @@ func (m *Monster) Attacked(attacker IMapObject, damage int, defenceType common.D
 	m.Broadcast(ServerMessage{}.ObjectStruck(m, attacker.GetID()))
 	m.BroadcastDamageIndicator(common.DamageTypeHit, value)
 	m.ChangeHP(-value)
+	log.Debugf("!!!attacker damage: %d, monster armor: %d\n", damage, armor)
 }
 
 // Drop 怪物掉落物品
