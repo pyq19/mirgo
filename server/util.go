@@ -53,19 +53,6 @@ func GetMapV1(bytes []byte) *Map {
 	return m
 }
 
-func newAOI(m *Map, width int, height int) (aoi *AOIManager) {
-	cntX := width / 20
-	cntY := height / 20
-	if width < 20 {
-		cntX = 1
-	}
-	if height < 20 {
-		cntY = 1
-	}
-	aoi = NewAOIManager(m, 0, width, cntX, 0, height, cntY)
-	return
-}
-
 func AbsInt(i int) int {
 	if i < 0 {
 		return -i
@@ -149,7 +136,7 @@ func PreviousDirection(d common.MirDirection) common.MirDirection {
 }
 
 func InRange(a, b common.Point, i int) bool {
-	return AbsInt(int(a.X-b.X)) <= i && AbsInt(int(a.Y-b.Y)) <= i
+	return AbsInt(int(a.X)-int(b.X)) <= i && AbsInt(int(a.Y)-int(b.Y)) <= i
 }
 
 func DirectionFromPoint(source, dest common.Point) common.MirDirection {

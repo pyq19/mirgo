@@ -372,6 +372,7 @@ func (m *Monster) Attacked(attacker IMapObject, damage int, defenceType common.D
 	m.Broadcast(ServerMessage{}.ObjectStruck(m, attacker.GetID()))
 	m.BroadcastDamageIndicator(common.DamageTypeHit, value)
 	m.ChangeHP(-value)
+	log.Debugf("!!!attacker damage: %d, monster armor: %d\n", damage, armor)
 }
 
 // Drop 怪物掉落物品
