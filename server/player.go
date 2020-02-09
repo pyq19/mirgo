@@ -623,6 +623,11 @@ func (p *Player) GetUserItemByID(mirGridType common.MirGridType, id uint64) (ind
 	return -1, nil
 }
 
+// ConsumeItem 减少物品数量
+func (p *Player) ConsumeItem(userItem *common.UserItem, count int) {
+	userItem.Count -= uint32(count)
+}
+
 // GainItem 为玩家增加物品，增加成功返回 true
 func (p *Player) GainItem(ui *common.UserItem) bool {
 	item := p.Map.Env.GameDB.GetItemInfoByID(int(ui.ItemID))

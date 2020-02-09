@@ -26,6 +26,17 @@ type Buff struct {
 	ExpireTime time.Time // 过期时间️
 }
 
+func NewBuff(id uint32, typ common.BuffType, value int, expire time.Time) *Buff {
+	return &Buff{
+		ObjectID:   id,
+		BuffType:   typ,
+		Visible:    false,
+		Infinite:   false,
+		Values:     value,
+		ExpireTime: expire,
+	}
+}
+
 type BaseStats struct {
 	MinAC    uint16
 	MaxAC    uint16
