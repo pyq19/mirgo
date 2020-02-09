@@ -340,30 +340,17 @@ func (m *Map) RangeObject(p common.Point, depth int, fun func(IMapObject) bool) 
 
 // Cell集合
 type CellSet struct {
-	// M map[string]bool
 	M map[*Cell]bool
 }
 
 func NewCellSet() *CellSet {
-	// return &CellSet{M: map[string]bool{}}
 	return &CellSet{M: map[*Cell]bool{}}
 }
 
 func (c *CellSet) Add(m *Map, x, y int, b bool) {
-	// c.M[fmt.Sprintf("%d,%d", x, y)] = true
 	cell := m.GetCellXY(x, y)
 	if cell != nil {
 		c.M[cell] = b
-	}
-}
-
-func (c *CellSet) Print(name string) {
-	fmt.Println(name, len(c.M))
-	// for k := range c.M {
-	// 	fmt.Println(k)
-	// }
-	for cell, b := range c.M {
-		fmt.Println(cell.Point, b)
 	}
 }
 
@@ -371,7 +358,7 @@ func (c *CellSet) Print(name string) {
 func (m *Map) CalcDiff(from, to common.Point, datarange int) *CellSet {
 	fx, fy, tx, ty := int(from.X), int(from.Y), int(to.X), int(to.Y)
 
-	xChange, yChange := tx-fy, ty-fy
+	xChange, yChange := tx-fx, ty-fy
 	set := NewCellSet()
 
 	if xChange > 0 { // 右移
@@ -415,6 +402,8 @@ func (m *Map) CalcDiff(from, to common.Point, datarange int) *CellSet {
 
 	return set
 }
+
+// for test CalcDiff.
 func (m *Map) CalcDiff1(from, to common.Point, datarange int) *CellSet {
 	fx, fy, tx, ty := int(from.X), int(from.Y), int(to.X), int(to.Y)
 

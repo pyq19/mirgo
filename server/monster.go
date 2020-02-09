@@ -226,6 +226,11 @@ func (m *Monster) InAttackRange() bool {
 
 // Process 怪物定时轮询
 func (m *Monster) Process() {
+	if m.Target != nil &&
+		//m.Target.GetMap() != m.Map ||
+		(!m.Target.IsAttackTarget(m) || !InRange(m.CurrentLocation, m.Target.GetPoint(), DataRange)) {
+		m.Target = nil
+	}
 
 	now := time.Now()
 

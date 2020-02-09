@@ -133,15 +133,20 @@ func TestCalc(t *testing.T) {
 	mapAbsPath := gopath + "/src/github.com/yenkeia/mirgo/dotnettools/database/Maps/0.map"
 	m := GetMapV1(GetMapBytes(mapAbsPath))
 
-	testft(m, 100, 100, 101, 101, 1)
-	testft(m, 100, 100, 102, 102, 1)
+	// testft(m, 100, 100, 101, 101, 1)
+	// testft(m, 100, 100, 102, 102, 1)
+
+	// testft(m, 100, 100, 101, 101, 6)
+	// testft(m, 100, 100, 101, 100, 6)
 	// testft(m, 1, 1, 0, 0, 1)
+	testft(m, 284, 608, 285, 608, 1)
 }
 
 func testft(m *Map, fx, fy, tx, ty, datarange int) {
-	s := m.CalcDiff(common.NewPoint(fx, fy), common.NewPoint(tx, ty), datarange)
+	pf, pt := common.NewPoint(fx, fy), common.NewPoint(tx, ty)
+	s := m.CalcDiff(pf, pt, datarange)
 	fmt.Println(fmt.Sprintf("=====> test from(%d,%d) to(%d,%d)", fx, fy, tx, ty))
-	s.Print("xxx")
-	fmt.Println("=======")
-
+	s1 := m.CalcDiff1(pf, pt, datarange)
+	fmt.Println(s)
+	fmt.Println(s1)
 }
