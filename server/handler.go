@@ -568,6 +568,7 @@ func updatePlayerInfo(g *Game, p *Player, c *common.Character) {
 	p.PKPoints = 0
 	p.AMode = common.AttackModeAll
 	p.PMode = common.PetModeNone
+	p.CallingNPC = nil
 }
 
 // StartGame 开始游戏

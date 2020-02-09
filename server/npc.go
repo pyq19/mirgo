@@ -16,6 +16,7 @@ type NPC struct {
 	Light    uint8
 	TurnTime time.Time
 	Script   *script.Script
+	Goods    []common.UserItem
 }
 
 func NewNPC(m *Map, ni *common.NpcInfo) *NPC {
@@ -36,6 +37,7 @@ func NewNPC(m *Map, ni *common.NpcInfo) *NPC {
 		Light:    0, // TODO
 		TurnTime: time.Now(),
 		Script:   sc,
+		Goods:    make([]common.UserItem, 0),
 	}
 }
 
@@ -124,4 +126,30 @@ func (n *NPC) Process() {
 		n.CurrentDirection = common.MirDirection(RandomInt(0, 1))
 		n.Broadcast(ServerMessage{}.ObjectTurn(n))
 	}
+}
+
+// GetUserItemByID 获取 NPC Goods
+func (n *NPC) GetUserItemByID(id uint64) (item *common.UserItem) {
+	for i := range n.Goods {
+		if n.Goods[i].ID == id {
+			return &n.Goods[i]
+		}
+	}
+	return nil
+}
+
+// Buy 玩家向 NPC 购买物品
+func (n *NPC) Buy(p *Player, userItemID uint64, count uint32) {
+	env := n.Map.Env
+	userItem := n.GetUserItemByID(userItemID)
+	if userItem == nil {
+		return
+	}
+	itemInfo := env.GameDB.GetItemInfoByID(int(userItem.ItemID))
+	if itemInfo == nil {
+		return
+	}
+	ui := env.NewUserItem(itemInfo)
+	ui.Count = count
+	p.GainItem(ui)
 }
