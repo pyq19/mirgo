@@ -1436,14 +1436,28 @@ func sendBuyKey(p *Player, npc *NPC) {
 
 	goods := []common.UserItem{}
 
-	// TODO: fix..
-	// for _, name := range npc.Script.Goods {
-	// 	item := p.Map.Env.GameDB.GetItemInfoByName(name)
-	// 	if item != nil {
-	// 		p.EnqueueItemInfo(item.ID)
-	// 		goods = append(goods, p.Map.Env.NewUserItem(item))
-	// 	}
-	// }
+	for _, name := range npc.Script.Goods {
+		res := strings.Split(name, " ")
+		name := res[0]
+		count := 1
+		if len(res) == 2 {
+			c, err := strconv.Atoi(res[1])
+			if err != nil {
+				log.Warnf("Good name err: %s\n", name)
+				continue
+			}
+			count = c
+		}
+		item := p.Map.Env.GameDB.GetItemInfoByName(name)
+		if item == nil {
+			log.Warnf("Good name err: %s\n", name)
+			continue
+		}
+		p.EnqueueItemInfo(item.ID)
+		g := p.Map.Env.NewUserItem(item)
+		g.Count = uint32(count)
+		goods = append(goods, *g)
+	}
 
 	p.Enqueue(&server.NPCGoods{
 		Goods: goods,
