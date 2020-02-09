@@ -57,20 +57,8 @@ func PrintEnviron(env *Environ) {
 	env.Maps.Range(func(k, v interface{}) bool {
 		mapCount++
 		m := v.(*Map)
-		m.AOI.grids.Range(func(k, v interface{}) bool {
-			g := v.(*Grid)
-			objs := g.GetAllObjects()
-			for i := range objs {
-				o := objs[i]
-				switch o.GetRace() {
-				case common.ObjectTypeMonster:
-					monsterCount++
-				case common.ObjectTypeMerchant:
-					npcCount++
-				}
-			}
-			return true
-		})
+		monsterCount += len(m.monsters)
+		npcCount += len(m.npcs)
 		return true
 	})
 	log.Debugf("共加载了 %d 张地图，%d 怪物，%d NPC\n", mapCount, monsterCount, npcCount)
@@ -420,14 +408,14 @@ func (e *Environ) SystemBroadcast(...interface{}) {
 
 func (e *Environ) Debug() {
 	envPlayerCount := e.GetPlayersCount()
-	allPlayer := make([]*Player, 0)
+	nplayers := 0
 	e.Maps.Range(func(k, v interface{}) bool {
 		m := v.(*Map)
-		allPlayer = append(allPlayer, m.GetAllPlayers()...)
+		nplayers += len(m.GetAllPlayers())
 		return true
 	})
-	if len(allPlayer) != envPlayerCount {
-		log.Errorf("!!! warning envPlayerCount: %d != map allPlayer: %d\n", envPlayerCount, len(allPlayer))
+	if nplayers != envPlayerCount {
+		log.Errorf("!!! warning envPlayerCount: %d != map allPlayer: %d\n", envPlayerCount, nplayers)
 	} else {
 		// log.Debugf("envPlayerCount: %d, map allPlayer: %d\n", envPlayerCount, len(allPlayer))
 	}

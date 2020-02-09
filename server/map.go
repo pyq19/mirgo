@@ -12,15 +12,20 @@ type Map struct {
 	Width  int
 	Height int
 	Info   *common.MapInfo
-	AOI    *AOIManager
 	cells  []*Cell
+	AOI    *AOIManager
+
+	players  map[uint32]*Player
+	monsters map[uint32]*Monster
+	npcs     map[uint32]*NPC
 }
 
 func NewMap(w, h int) *Map {
 	m := &Map{
-		Width:  w,
-		Height: h,
-		cells:  make([]*Cell, w*h),
+		Width:   w,
+		Height:  h,
+		cells:   make([]*Cell, w*h),
+		players: map[uint32]*Player{},
 	}
 	m.AOI = newAOI(m, w, h)
 	return m
@@ -47,25 +52,18 @@ func (m *Map) Submit(t *Task) {
 	m.Env.Game.Pool.EntryChan <- t
 }
 
-func (m *Map) GetAllPlayers() []*Player {
-	players := make([]*Player, 0)
-	m.AOI.grids.Range(func(k, v interface{}) bool {
-		g := v.(*Grid)
-		players = append(players, g.GetAllPlayer()...)
-		return true
-	})
-	return players
+func (m *Map) GetAllPlayers() map[uint32]*Player {
+	return m.players
 }
 
 // Broadcast send message to all players in this map
 func (m *Map) Broadcast(msg interface{}) {
-	players := m.GetAllPlayers()
-	for i := range players {
-		players[i].Enqueue(msg)
+	for _, p := range m.players {
+		p.Enqueue(msg)
 	}
 }
 
-// 位置，消息，跳过玩家id
+// 位置，消息，跳过玩家
 func (m *Map) BroadcastP(p common.Point, msg interface{}, me *Player) {
 	m.Submit(NewTask(func(args ...interface{}) {
 		grids := m.AOI.GetSurroundGrids(p)
@@ -92,6 +90,16 @@ func (m *Map) AddObject(obj IMapObject) (string, bool) {
 		return fmt.Sprintf("pos: %s is not walkable\n", obj.GetPoint()), false
 	}
 	c.AddObject(obj)
+
+	switch obj.(type) {
+	case *Player:
+		m.players[obj.GetID()] = obj.(*Player)
+	case *NPC:
+		m.npcs[obj.GetID()] = obj.(*NPC)
+	case *Monster:
+		m.monsters[obj.GetID()] = obj.(*Monster)
+	}
+
 	return "", true
 }
 
@@ -106,6 +114,15 @@ func (m *Map) DeleteObject(obj IMapObject) {
 		return
 	}
 	c.DeleteObject(obj)
+
+	switch obj.(type) {
+	case *Player:
+		delete(m.players, obj.GetID())
+	case *Monster:
+		delete(m.monsters, obj.GetID())
+	case *NPC:
+		delete(m.npcs, obj.GetID())
+	}
 }
 
 // UpdateObject 更新对象在 Cells, AOI 中的数据, 如果更新成功返回 true
