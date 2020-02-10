@@ -1,4 +1,4 @@
-package main
+package mir
 
 const (
 	StopGameServerClosed              = 0

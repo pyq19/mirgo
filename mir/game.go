@@ -1,4 +1,4 @@
-package main
+package mir
 
 import (
 	"github.com/davyxu/cellnet"
