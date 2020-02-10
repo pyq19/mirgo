@@ -1,4 +1,4 @@
-package main
+package mir
 
 import (
 	"fmt"
@@ -42,11 +42,10 @@ type Monster struct {
 	Master      *Player
 	ActionList  *sync.Map // map[uint32]DelayedAction
 	ActionTime  time.Time
-	SearchTime  time.Time // 怪物下一次搜索目标的时间
-	RoamTime    time.Time
 	AttackTime  time.Time
 	DeadTime    time.Time
 	MoveTime    time.Time
+	Behavior    IBehavior
 }
 
 func (m *Monster) String() string {
@@ -91,11 +90,10 @@ func NewMonster(mp *Map, p common.Point, mi *common.MonsterInfo) (m *Monster) {
 	m.DamageRate = 1.0
 	m.ActionList = new(sync.Map)
 	now := time.Now()
-	m.SearchTime = now
-	m.RoamTime = now
 	m.ActionTime = now
 	m.MoveTime = now
 	m.ViewRange = mi.ViewRange
+	m.Behavior = NewBehavior(m.AI, m)
 	return m
 }
 
@@ -240,7 +238,8 @@ func (m *Monster) Process() {
 		return
 	}
 
-	m.ProcessAI()
+	m.Behavior.Process()
+
 	m.ProcessBuffs()
 	m.ProcessRegan()
 	m.ProcessPoison()
@@ -610,93 +609,6 @@ func (m *Monster) FindTarget() {
 
 		return true
 	})
-}
-
-func (m *Monster) ProcessAI() {
-	if m.IsDead() {
-		return
-	}
-	if m.Master != nil {
-
-	}
-	m.ProcessSearch()
-	m.ProcessRoam()
-	m.ProcessTarget()
-}
-
-func (m *Monster) ProcessTarget() {
-	if m.Target == nil || !m.CanAttack() {
-		return
-	}
-	if m.InAttackRange() {
-		m.Attack()
-		if m.Target.IsDead() {
-			m.FindTarget()
-		}
-		return
-	}
-	m.MoveTo(m.Target.GetPoint())
-}
-
-// ProcessSearch 寻找目标
-func (m *Monster) ProcessSearch() {
-	now := time.Now()
-	if m.SearchTime.After(now) {
-		return
-	}
-	m.SearchTime = now.Add(1 * time.Second)
-
-	if m.CanMove() && m.CheckStacked() {
-
-		// Walk Randomly
-		if !m.Walk(m.CurrentDirection) {
-
-			dir := m.CurrentDirection
-
-			switch RandomNext(3) {
-			case 0:
-				for i := 0; i < common.MirDirectionCount; i++ {
-					dir = NextDirection(dir)
-
-					if m.Walk(dir) {
-						break
-					}
-				}
-			default:
-				for i := 0; i < common.MirDirectionCount; i++ {
-					dir = NextDirection(dir)
-
-					if m.Walk(dir) {
-						break
-					}
-				}
-			}
-		}
-	}
-
-	if m.Target == nil {
-		m.FindTarget()
-	}
-}
-
-// 巡逻
-func (m *Monster) ProcessRoam() {
-	now := time.Now()
-	if m.RoamTime.After(now) {
-		return
-	}
-	m.RoamTime = now.Add(1 * time.Second)
-
-	if RandomNext(10) != 0 {
-		return
-	}
-
-	switch RandomNext(3) {
-	case 0:
-		m.Turn(RandomDirection())
-	default:
-		m.Walk(m.CurrentDirection)
-	}
 }
 
 func (m *Monster) CheckStacked() bool {
