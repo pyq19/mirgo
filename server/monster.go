@@ -453,8 +453,12 @@ func (m *Monster) Walk(dir common.MirDirection) bool {
 	m.Map.GetCell(m.CurrentLocation).DeleteObject(m)
 	destcell.AddObject(m)
 
+	oldpos := m.CurrentLocation
+
 	m.CurrentDirection = dir
 	m.CurrentLocation = dest
+
+	m.WalkNotify(oldpos, destcell.Point)
 
 	m.MoveTime = m.MoveTime.Add(time.Duration(int64(m.MoveSpeed)) * time.Millisecond)
 
@@ -465,6 +469,31 @@ func (m *Monster) Walk(dir common.MirDirection) bool {
 	})
 
 	return true
+}
+
+func (m *Monster) WalkNotify(from, to common.Point) {
+	cells := m.Map.CalcDiff(from, to, DataRange)
+	for c, isadd := range cells.M {
+		if isadd {
+			c.Objects.Range(func(k, v interface{}) bool {
+				switch v.(type) {
+				case *Player:
+					v.(*Player).Enqueue(ServerMessage{}.Object(m))
+				}
+
+				return true
+			})
+		} else {
+			c.Objects.Range(func(k, v interface{}) bool {
+				switch v.(type) {
+				case *Player:
+					v.(*Player).Enqueue(ServerMessage{}.ObjectRemove(m))
+				}
+				return true
+			})
+		}
+
+	}
 }
 
 func (m *Monster) Turn(dir common.MirDirection) {
