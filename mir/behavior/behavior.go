@@ -1,27 +1,27 @@
-package mir
+package behavior
 
 import (
 	"time"
 
 	"github.com/yenkeia/mirgo/common"
+	"github.com/yenkeia/mirgo/mir"
 )
 
-type IBehavior interface {
-	Process()
+func init() {
+	mir.SetMonsterBehaviorFactory(NewBehavior)
 }
 
-func NewBehavior(id int, mon *Monster) IBehavior {
+func NewBehavior(id int, mon *mir.Monster) mir.IBehavior {
 	return NewBehaviorDefault(mon)
 }
 
 type BehaviorDefault struct {
-	Mon        *Monster
-	Target     IMapObject
+	Mon        *mir.Monster
 	SearchTime time.Time // 怪物下一次搜索目标的时间
 	RoamTime   time.Time
 }
 
-func NewBehaviorDefault(mon *Monster) *BehaviorDefault {
+func NewBehaviorDefault(mon *mir.Monster) *BehaviorDefault {
 	m := &BehaviorDefault{Mon: mon}
 	now := time.Now()
 	m.SearchTime = now
@@ -53,10 +53,10 @@ func (b *BehaviorDefault) ProcessSearch() {
 
 			dir := b.Mon.CurrentDirection
 
-			switch RandomNext(3) {
+			switch mir.RandomNext(3) {
 			case 0:
 				for i := 0; i < common.MirDirectionCount; i++ {
-					dir = NextDirection(dir)
+					dir = mir.NextDirection(dir)
 
 					if b.Mon.Walk(dir) {
 						break
@@ -64,7 +64,7 @@ func (b *BehaviorDefault) ProcessSearch() {
 				}
 			default:
 				for i := 0; i < common.MirDirectionCount; i++ {
-					dir = NextDirection(dir)
+					dir = mir.NextDirection(dir)
 
 					if b.Mon.Walk(dir) {
 						break
@@ -87,13 +87,13 @@ func (b *BehaviorDefault) ProcessRoam() {
 	}
 	b.RoamTime = now.Add(1 * time.Second)
 
-	if RandomNext(10) != 0 {
+	if mir.RandomNext(10) != 0 {
 		return
 	}
 
-	switch RandomNext(3) {
+	switch mir.RandomNext(3) {
 	case 0:
-		b.Mon.Turn(RandomDirection())
+		b.Mon.Turn(mir.RandomDirection())
 	default:
 		b.Mon.Walk(b.Mon.CurrentDirection)
 	}

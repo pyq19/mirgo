@@ -9,11 +9,24 @@ import (
 	"github.com/yenkeia/mirgo/proto/server"
 )
 
+type IBehavior interface {
+	Process()
+}
+
+type BehaviroFactory func(id int, mon *Monster) IBehavior
+
+var behaviorFactory BehaviroFactory
+
+func SetMonsterBehaviorFactory(fac BehaviroFactory) {
+	behaviorFactory = fac
+}
+
 // Monster ...
 type Monster struct {
 	MapObject
 	Image       common.Monster
 	AI          int
+	Behavior    IBehavior
 	Effect      int
 	Poison      common.PoisonType
 	Light       uint8
@@ -45,7 +58,6 @@ type Monster struct {
 	AttackTime  time.Time
 	DeadTime    time.Time
 	MoveTime    time.Time
-	Behavior    IBehavior
 }
 
 func (m *Monster) String() string {
@@ -93,7 +105,7 @@ func NewMonster(mp *Map, p common.Point, mi *common.MonsterInfo) (m *Monster) {
 	m.ActionTime = now
 	m.MoveTime = now
 	m.ViewRange = mi.ViewRange
-	m.Behavior = NewBehavior(m.AI, m)
+	m.Behavior = behaviorFactory(m.AI, m)
 	return m
 }
 
