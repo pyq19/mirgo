@@ -1,11 +1,11 @@
-package main
+package mir
 
 import (
 	"errors"
 	"reflect"
 	"regexp"
 
-	"github.com/yenkeia/mirgo/server/script"
+	"github.com/yenkeia/mirgo/mir/script"
 )
 
 func _CHECKPKPOINT(npc *NPC, plr *Player, op script.CompareOp, v int) bool {

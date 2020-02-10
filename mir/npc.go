@@ -1,12 +1,12 @@
-package main
+package mir
 
 import (
 	"fmt"
 	"time"
 
 	"github.com/yenkeia/mirgo/common"
+	"github.com/yenkeia/mirgo/mir/script"
 	"github.com/yenkeia/mirgo/proto/server"
-	"github.com/yenkeia/mirgo/server/script"
 	"github.com/yenkeia/mirgo/setting"
 )
 
