@@ -375,11 +375,30 @@ func (p *Player) HellFire(magic *common.UserMagic) {
 
 // ThunderBolt 雷电术
 func (p *Player) ThunderBolt(target IMapObject, magic *common.UserMagic) {
-
+	if target == nil || !target.IsAttackTarget(p) {
+		return
+	}
+	damage := magic.GetDamage(p.GetAttackPower(int(p.MinMC), int(p.MaxMC)))
+	// if (target.Undead) damage = (int)(damage * 1.5F);
+	action := NewDelayedAction(p.NewObjectID(), DelayedTypeMagic, NewTask(p.CompleteMagic, magic, damage, target))
+	p.ActionList.Store(action.ID, action)
 }
 
 // SoulFireball 灵魂火符
 func (p *Player) SoulFireball(target IMapObject, magic *common.UserMagic) bool {
+	userItem := p.GetAmulet(1)
+	if userItem == nil {
+		return false
+	}
+	if target == nil || !target.IsAttackTarget(p) { //|| !CanFly(target.CurrentLocation)) return false;
+		return false
+	}
+	damage := magic.GetDamage(p.GetAttackPower(int(p.MinSC), int(p.MaxSC)))
+	// int delay = Functions.MaxDistance(CurrentLocation, target.CurrentLocation) * 50 + 500; //50 MS per Step
+	// DelayedAction action = new DelayedAction(DelayedType.Magic, Envir.Time + delay, magic, damage, target);
+	action := NewDelayedAction(p.NewObjectID(), DelayedTypeMagic, NewTask(p.CompleteMagic, magic, damage, target))
+	p.ActionList.Store(action.ID, action)
+	p.ConsumeItem(userItem, 1)
 	return true
 }
 
