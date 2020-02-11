@@ -297,6 +297,15 @@ func (p *Player) GetBaseStats() BaseStats {
 	}
 }
 
+// AddBuff ...
+func (p *Player) AddBuff(buff *Buff) {
+	p.Buffs = append(p.Buffs, buff)
+}
+
+func (p *Player) ApplyPoison(poison *Poison, caster IMapObject) {
+
+}
+
 func (p *Player) NewObjectID() uint32 {
 	return p.Map.Env.NewObjectID()
 }

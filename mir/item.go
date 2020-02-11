@@ -86,6 +86,10 @@ func (i *Item) GetBaseStats() BaseStats {
 	return BaseStats{}
 }
 
+func (i *Item) AddBuff(buff *Buff) {}
+
+func (i *Item) ApplyPoison(poison *Poison, caster IMapObject) {}
+
 func (i *Item) GetItemInfo() common.ItemInfo {
 	return *i.Map.Env.GameDB.GetItemInfoByID(int(i.UserItem.ItemID))
 }

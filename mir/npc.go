@@ -112,6 +112,10 @@ func (n *NPC) GetBaseStats() BaseStats {
 	return BaseStats{}
 }
 
+func (n *NPC) AddBuff(buff *Buff) {}
+
+func (n *NPC) ApplyPoison(poison *Poison, caster IMapObject) {}
+
 func (n *NPC) String() string {
 	return fmt.Sprintf("NPC pos: %s, ID: %d, name: %s\n", n.GetPoint(), n.ID, n.Name)
 }

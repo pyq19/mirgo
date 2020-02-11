@@ -161,6 +161,10 @@ func (m *Monster) GetBaseStats() BaseStats {
 	}
 }
 
+func (m *Monster) AddBuff(buff *Buff) {}
+
+func (m *Monster) ApplyPoison(poison *Poison, caster IMapObject) {}
+
 func (m *Monster) Broadcast(msg interface{}) {
 	m.Map.BroadcastP(m.CurrentLocation, msg, nil)
 }
