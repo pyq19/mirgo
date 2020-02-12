@@ -517,22 +517,38 @@ func (p *Player) SoulShield(magic *common.UserMagic, location common.Point) bool
 }
 
 // FireWall 火墙
-func (p *Player) FireWall(magic *common.UserMagic, location common.Point) {}
+func (p *Player) FireWall(magic *common.UserMagic, location common.Point) {
+	damage := magic.GetDamage(p.GetAttackPower(int(p.MinMC), int(p.MaxMC)))
+	action := NewDelayedAction(p.NewObjectID(), DelayedTypeMagic, NewTask(p.Map.CompleteMagic, magic, p, damage, location))
+	p.Map.Env.ActionList.Store(action.ID, action)
+}
 
 // Lightning 疾光电影
-func (p *Player) Lightning(magic *common.UserMagic) {}
+func (p *Player) Lightning(magic *common.UserMagic) {
+	damage := magic.GetDamage(p.GetAttackPower(int(p.MinMC), int(p.MaxMC)))
+	action := NewDelayedAction(p.NewObjectID(), DelayedTypeMagic, NewTask(p.Map.CompleteMagic, magic, p, damage, p.CurrentLocation, p.CurrentDirection))
+	p.Map.Env.ActionList.Store(action.ID, action)
+}
 
 // HeavenlySword ..
 func (p *Player) HeavenlySword(magic *common.UserMagic) {}
 
 // MassHealing 群体治疗术
-func (p *Player) MassHealing(magic *common.UserMagic, location common.Point) {}
+func (p *Player) MassHealing(magic *common.UserMagic, location common.Point) {
+	value := magic.GetDamage(p.GetAttackPower(int(p.MinSC), int(p.MaxSC)))
+	action := NewDelayedAction(p.NewObjectID(), DelayedTypeMagic, NewTask(p.Map.CompleteMagic, magic, p, value, location))
+	p.Map.Env.ActionList.Store(action.ID, action)
+}
 
 // ShoulderDash 野蛮冲撞
 func (p *Player) ShoulderDash(magic *common.UserMagic) {}
 
 // ThunderStorm 地狱雷光
-func (p *Player) ThunderStorm(magic *common.UserMagic) {}
+func (p *Player) ThunderStorm(magic *common.UserMagic) {
+	damage := magic.GetDamage(p.GetAttackPower(int(p.MinMC), int(p.MaxMC)))
+	action := NewDelayedAction(p.NewObjectID(), DelayedTypeMagic, NewTask(p.Map.CompleteMagic, magic, p, damage, p.CurrentLocation))
+	p.Map.Env.ActionList.Store(action.ID, action)
+}
 
 // FlameDisruptor 火龙术
 func (p *Player) FlameDisruptor(target IMapObject, magic *common.UserMagic) {}

@@ -490,5 +490,20 @@ func (m *Map) CompleteMagic(args ...interface{}) {
 			}
 			return true
 		})
+	case common.SpellFireWall:
+		// player := args[1].(*Player)
+		// value := args[2].(int)
+		// location := args[3].(common.Point)
+		// player.LevelMagic(magic)
+		// TODO SpellObject
+	case common.SpellLightning:
+		// player := args[1].(*Player)
+		// value := args[2].(int)
+		// location := args[3].(common.Point)
+		// direction := args[4].(common.MirDirection)
+	case common.SpellThunderStorm, common.SpellFlameField, common.SpellNapalmShot, common.SpellStormEscape:
+		// player := args[1].(*Player)
+		// value := args[2].(int)
+		// location := args[3].(common.Point)
 	}
 }
