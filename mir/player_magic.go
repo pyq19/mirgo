@@ -490,10 +490,31 @@ func (p *Player) ImmortalSkin(magic *common.UserMagic) bool { return true }
 func (p *Player) FireBang(magic *common.UserMagic, location common.Point) {}
 
 // MassHiding 集体隐身术
-func (p *Player) MassHiding(magic *common.UserMagic, location common.Point) bool { return true }
+func (p *Player) MassHiding(magic *common.UserMagic, location common.Point) bool {
+	userItem := p.GetAmulet(1)
+	if userItem == nil {
+		return false
+	}
+	// int delay = Functions.MaxDistance(CurrentLocation, location) * 50 + 500; //50 MS per Step
+	// DelayedAction action = new DelayedAction(DelayedType.Magic, Envir.Time + delay, this, magic, GetAttackPower(MinSC, MaxSC) / 2 + (magic.Level + 1) * 2, location);
+	action := NewDelayedAction(p.NewObjectID(), DelayedTypeMagic, NewTask(p.Map.CompleteMagic, magic, p.GetAttackPower(int(p.MinSC), int(p.MaxSC))/2+(magic.Level+1)*2, location, p))
+	p.Map.Env.ActionList.Store(action.ID, action)
+	return true
+}
 
 // SoulShield 幽灵盾
-func (p *Player) SoulShield(magic *common.UserMagic, location common.Point) bool { return true }
+func (p *Player) SoulShield(magic *common.UserMagic, location common.Point) bool {
+	userItem := p.GetAmulet(1)
+	if userItem == nil {
+		return false
+	}
+	// int delay = Functions.MaxDistance(CurrentLocation, location) * 50 + 500; //50 MS per Step
+	// DelayedAction action = new DelayedAction(DelayedType.Magic, Envir.Time + delay, this, magic, GetAttackPower(MinSC, MaxSC) * 2 + (magic.Level + 1) * 10, location);
+	action := NewDelayedAction(p.NewObjectID(), DelayedTypeMagic, NewTask(p.Map.CompleteMagic, magic, p.GetAttackPower(int(p.MinSC), int(p.MaxSC))*2+(magic.Level+1)*10, location, p))
+	p.Map.Env.ActionList.Store(action.ID, action)
+	p.ConsumeItem(userItem, 1)
+	return true
+}
 
 // FireWall 火墙
 func (p *Player) FireWall(magic *common.UserMagic, location common.Point) {}
