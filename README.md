@@ -4,22 +4,24 @@
 #### 开发进度
 - [x] 注册/登陆/创建角色/进游戏
 - [x] 地图/怪物/NPC加载
-- [x] 玩家移动
+- [x] 角色移动
 - [ ] 玩家退出时保存角色信息
 - [ ] 定时保存游戏数据
-- [x] 玩家背包
-- [x] 物品掉落/拾取
-- [x] 玩家装备
+- [x] 玩家背包/物品掉落/拾取
 - [x] 玩家属性(升级/基础属性/装备属性计算)
-- [ ] 怪物属性
 - [ ] 玩家/怪物状态(Buff/Poison)
-- [ ] 玩家攻击(战斗系统)
 - [ ] 技能
 - [ ] NPC 交互
 - [ ] 怪物 AI
 
 #### BUG
 - 别的玩家装备显示不正确
+
+#### 计划
+- [ ] 客户端汉化（打算直接用 https://github.com/cjlaaa/mir2)
+- [ ] WEB 管理后台
+- [ ] 数据库换成 MySQL
+- [ ] 刺客/弓箭手
 
 #### 用到的开源库/工具
 - [Cellnet](https://github.com/davyxu/cellnet)
@@ -58,14 +60,10 @@ mkdir database
 cd database
 unrar x ../Daneo1989_Server.rar -pLOMCN -y
 ```
-编译
-```bash
-cd $GOPATH/src/github.com/yenkeia/mirgo/server
-go build -o smain
-```
 运行
 ```bash
-./smain
+cd $GOPATH/src/github.com/yenkeia/mirgo
+go run server/main.go
 ```
 
 #### 联系方式
