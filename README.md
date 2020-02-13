@@ -19,9 +19,7 @@
 - [ ] 怪物 AI
 
 #### BUG
-- 客户端声音
 - 别的玩家装备显示不正确
-- 怪物加载重叠
 
 #### 用到的开源库/工具
 - [Cellnet](https://github.com/davyxu/cellnet)
