@@ -695,6 +695,7 @@ func (p *Player) Attacked(attacker IMapObject, damageFinal int, defenceType comm
 
 }
 
+// GainExp 为玩家增加经验
 func (p *Player) GainExp(amount uint32) {
 	p.Experience += int64(amount)
 	p.Enqueue(ServerMessage{}.GainExperience(amount))
@@ -704,6 +705,20 @@ func (p *Player) GainExp(amount uint32) {
 	p.Experience -= p.MaxExperience
 	p.Level++
 	p.LevelUp()
+}
+
+// WinExp 玩家获取经验
+func (p *Player) WinExp(amount, targetLevel int) {
+	// 	if (Level < targetLevel + 10 || !Settings.ExpMobLevelDifference)
+	// 		expPoint = (int)amount;
+	// 	else
+	// 		expPoint = (int)amount - (int)Math.Round(Math.Max(amount / 15, 1) * ((double)Level - (targetLevel + 10)));
+	expPoint := amount
+	if expPoint <= 0 {
+		expPoint = 1
+	}
+	// if (GroupMembers != null)
+	p.GainExp(uint32(expPoint))
 }
 
 func (p *Player) SetHP(amount uint32) {

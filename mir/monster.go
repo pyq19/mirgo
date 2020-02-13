@@ -20,6 +20,7 @@ type Monster struct {
 	Target      IMapObject
 	Level       uint16
 	PetLevel    uint16
+	Experience  uint16
 	HP          uint32
 	MaxHP       uint32
 	MinAC       uint16
@@ -40,6 +41,7 @@ type Monster struct {
 	DamageRate  float32
 	ViewRange   int
 	Master      *Player
+	EXPOwner    *Player
 	ActionList  *sync.Map // map[uint32]DelayedAction
 	ActionTime  time.Time
 	AttackTime  time.Time
@@ -70,6 +72,7 @@ func NewMonster(mp *Map, p common.Point, mi *common.MonsterInfo) (m *Monster) {
 	m.Dead = false
 	m.Level = uint16(mi.Level)
 	m.PetLevel = 0
+	m.Experience = mi.Experience
 	m.HP = uint32(mi.HP)
 	m.MaxHP = uint32(mi.HP)
 	m.MinAC = uint16(mi.MinAC)
@@ -320,6 +323,14 @@ func (m *Monster) Die() {
 
 	m.Broadcast(ServerMessage{}.ObjectDied(m.GetID(), m.GetDirection(), m.GetPoint()))
 	// EXPOwner.WinExp(Experience, Level);
+
+	if m.EXPOwner != nil && m.Master == nil && m.EXPOwner.GetRace() == common.ObjectTypePlayer {
+		m.EXPOwner.WinExp(int(m.Experience), int(m.Level))
+		// PlayerObject playerObj = (PlayerObject)EXPOwner;
+		// playerObj.CheckGroupQuestKill(Info);
+		// m.EXPOwner.CheckGroupQuestKill(Info)
+	}
+
 	m.Drop()
 }
 
