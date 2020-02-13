@@ -27,6 +27,10 @@ func (i *Item) AttackMode() common.AttackMode {
 
 func (i *Item) IsDead() bool { return i.Dead }
 
+func (i *Item) IsUndead() bool {
+	return false
+}
+
 func (i *Item) GetRace() common.ObjectType {
 	return common.ObjectTypeItem
 }

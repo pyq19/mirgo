@@ -79,6 +79,7 @@ type IMapObject interface {
 	IsAttackTarget(IMapObject) bool
 	IsFriendlyTarget(IMapObject) bool
 	IsDead() bool
+	IsUndead() bool
 	IsBlocking() bool
 	AttackMode() common.AttackMode
 	AddBuff(*Buff)
