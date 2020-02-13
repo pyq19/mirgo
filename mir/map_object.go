@@ -8,13 +8,27 @@ import (
 
 type Poison struct {
 	ObjectID   uint32
+	Owner      IMapObject
 	PoisonType common.PoisonType
-	Value      int       // 效果总数
-	NextTime   time.Time // 下次生效时间
-	Duration   time.Time // 两次生效时间间隔
-	ExpireTime time.Time // 结束时间
-	TickNum    int       // 总共跳几次
-	TickTime   int       // 当前第几跳
+	Value      int           // 效果总数
+	NextTime   time.Time     // 下次生效时间
+	Duration   time.Duration // 两次生效时间间隔
+	TickNum    int           // 总共跳几次
+	TickTime   int           // 当前第几跳
+}
+
+// NewPoison caster 释放者, value 总伤害, typ 毒类型, duration 两次间隔, tickNum 总共跳几次
+func NewPoison(id uint32, caster IMapObject, value int, typ common.PoisonType, duration time.Duration, tickNum int) *Poison {
+	return &Poison{
+		ObjectID:   id,
+		Owner:      caster,
+		PoisonType: typ,
+		Value:      value,
+		NextTime:   time.Now().Add(duration),
+		Duration:   duration,
+		TickNum:    tickNum,
+		TickTime:   0,
+	}
 }
 
 type Buff struct {
@@ -67,6 +81,8 @@ type IMapObject interface {
 	IsDead() bool
 	IsBlocking() bool
 	AttackMode() common.AttackMode
+	AddBuff(*Buff)
+	ApplyPoison(*Poison, IMapObject)
 }
 
 type MapObject struct {

@@ -297,6 +297,15 @@ func (p *Player) GetBaseStats() BaseStats {
 	}
 }
 
+// AddBuff ...
+func (p *Player) AddBuff(buff *Buff) {
+	p.Buffs = append(p.Buffs, buff)
+}
+
+func (p *Player) ApplyPoison(poison *Poison, caster IMapObject) {
+
+}
+
 func (p *Player) NewObjectID() uint32 {
 	return p.Map.Env.NewObjectID()
 }
@@ -1218,7 +1227,52 @@ func (p *Player) RemoveSlotItem(grid common.MirGridType, id uint64, to int32, to
 }
 
 func (p *Player) SplitItem(grid common.MirGridType, id uint64, count uint32) {
-
+	msg := &server.SplitItem1{
+		Grid:     grid,
+		UniqueID: id,
+		Count:    count,
+		Success:  false,
+	}
+	var array []common.UserItem
+	switch grid {
+	case common.MirGridTypeInventory:
+		_, userItem := p.GetUserItemByID(common.MirGridTypeInventory, id)
+		if userItem == nil {
+			p.Enqueue(msg)
+			return
+		}
+		userItem.Count -= count
+		itemInfo := p.Map.Env.GameDB.GetItemInfoByID(int(userItem.ItemID))
+		newUserItem := p.Map.Env.NewUserItem(itemInfo)
+		newUserItem.Count = count
+		msg.Success = true
+		p.Enqueue(msg)
+		p.Enqueue(&server.SplitItem{Item: *newUserItem, Grid: grid})
+		a, b := 0, 6
+		if itemInfo.Type == common.ItemTypePotion || itemInfo.Type == common.ItemTypeScroll { // 药水 卷轴
+			a = 0
+			b = 4
+		} else if itemInfo.Type == common.ItemTypeAmulet { // 护身符
+			a = 4
+			b = 6
+		} else {
+			a = 6
+			b = len(array)
+		}
+		for i := a; i < b; i++ {
+			if array[i].ID != 0 {
+				continue
+			}
+			array[i] = *newUserItem
+			p.RefreshBagWeight()
+			return
+		}
+	case common.MirGridTypeStorage:
+		// TODO
+		p.Enqueue(msg)
+	default:
+		p.Enqueue(msg)
+	}
 }
 
 func (p *Player) UseItem(id uint64) {

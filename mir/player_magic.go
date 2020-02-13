@@ -267,6 +267,25 @@ func (p *Player) CompleteMagic(args ...interface{}) {
 		p.LevelMagic(userMagic)
 	case common.SpellElectricShock:
 	case common.SpellPoisoning:
+		value := args[1].(int)
+		target := args[2].(IMapObject)
+		userItem := args[3].(*common.UserItem)
+		itemInfo := p.Map.Env.GameDB.GetItemInfoByID(int(userItem.ItemID))
+		if itemInfo == nil {
+			return
+		}
+		if target == nil || target.IsAttackTarget(p) {
+			return
+		}
+		duration := time.Duration(2000) * time.Millisecond
+		tickNum := (userMagic.Level + 1) * 7
+		switch itemInfo.Shape {
+		case 1:
+			target.ApplyPoison(NewPoison(p.NewObjectID(), p, value, common.PoisonTypeGreen, duration, tickNum), p)
+		case 2:
+			target.ApplyPoison(NewPoison(p.NewObjectID(), p, value, common.PoisonTypeRed, duration, tickNum), p)
+		}
+		p.LevelMagic(userMagic)
 	case common.SpellStormEscape:
 	case common.SpellTeleport:
 	case common.SpellBlink:
@@ -279,10 +298,16 @@ func (p *Player) CompleteMagic(args ...interface{}) {
 		value := args[1].(int)
 		expireTime := time.Now().Add(time.Duration(value*1000) * time.Millisecond)
 		buff := NewBuff(p.NewObjectID(), common.BuffTypeHiding, 0, expireTime)
-		p.Buffs = append(p.Buffs, buff)
+		p.AddBuff(buff)
 		p.LevelMagic(userMagic)
 	case common.SpellHaste:
 	case common.SpellFury:
+		// p.AddBuff(new Buff { Type = BuffType.Fury, Caster = this, ExpireTime = Envir.Time + 60000 + magic.Level * 10000, Values = new int[] { 4 }, Visible = true });
+		expireTime := time.Now().Add(time.Duration(60000 + userMagic.Level*10000))
+		buff := NewBuff(p.NewObjectID(), common.BuffTypeFury, 4, expireTime)
+		buff.Visible = true
+		p.AddBuff(buff)
+		p.LevelMagic(userMagic)
 	case common.SpellImmortalSkin:
 	case common.SpellLightBody:
 	case common.SpellMagicShield:
@@ -329,6 +354,17 @@ func (p *Player) Repulsion(magic *common.UserMagic) {
 
 // Poisoning 施毒术
 func (p *Player) Poisoning(target IMapObject, magic *common.UserMagic) bool {
+	if target == nil || target.IsAttackTarget(p) {
+		return false
+	}
+	item := p.GetPoison(1)
+	if item == nil {
+		return false
+	}
+	power := magic.GetDamage(p.GetAttackPower(int(p.MinSC), int(p.MaxSC)))
+	action := NewDelayedAction(p.NewObjectID(), DelayedTypeMagic, NewTask(p.CompleteMagic, magic, power, target, item))
+	p.ActionList.Store(action.ID, action)
+	p.ConsumeItem(item, 1)
 	return true
 }
 
@@ -339,11 +375,30 @@ func (p *Player) HellFire(magic *common.UserMagic) {
 
 // ThunderBolt 雷电术
 func (p *Player) ThunderBolt(target IMapObject, magic *common.UserMagic) {
-
+	if target == nil || !target.IsAttackTarget(p) {
+		return
+	}
+	damage := magic.GetDamage(p.GetAttackPower(int(p.MinMC), int(p.MaxMC)))
+	// if (target.Undead) damage = (int)(damage * 1.5F);
+	action := NewDelayedAction(p.NewObjectID(), DelayedTypeMagic, NewTask(p.CompleteMagic, magic, damage, target))
+	p.ActionList.Store(action.ID, action)
 }
 
 // SoulFireball 灵魂火符
 func (p *Player) SoulFireball(target IMapObject, magic *common.UserMagic) bool {
+	userItem := p.GetAmulet(1)
+	if userItem == nil {
+		return false
+	}
+	if target == nil || !target.IsAttackTarget(p) { //|| !CanFly(target.CurrentLocation)) return false;
+		return false
+	}
+	damage := magic.GetDamage(p.GetAttackPower(int(p.MinSC), int(p.MaxSC)))
+	// int delay = Functions.MaxDistance(CurrentLocation, target.CurrentLocation) * 50 + 500; //50 MS per Step
+	// DelayedAction action = new DelayedAction(DelayedType.Magic, Envir.Time + delay, magic, damage, target);
+	action := NewDelayedAction(p.NewObjectID(), DelayedTypeMagic, NewTask(p.CompleteMagic, magic, damage, target))
+	p.ActionList.Store(action.ID, action)
+	p.ConsumeItem(userItem, 1)
 	return true
 }
 
@@ -394,6 +449,20 @@ func (p *Player) GetAmulet(count int) *common.UserItem {
 	return nil
 }
 
+// GetPoison 获取玩家身上装备的毒药
+func (p *Player) GetPoison(count int) *common.UserItem {
+	for i := range p.Equipment {
+		userItem := p.Equipment[i]
+		itemInfo := p.Map.Env.GameDB.GetItemInfoByID(int(userItem.ItemID))
+		if itemInfo != nil && itemInfo.Type == common.ItemTypeAmulet && int(userItem.Count) > count {
+			if itemInfo.Shape == 1 || itemInfo.Shape == 2 {
+				return &userItem
+			}
+		}
+	}
+	return nil
+}
+
 // Hiding 隐身术
 func (p *Player) Hiding(magic *common.UserMagic) {
 	userItem := p.GetAmulet(1)
@@ -407,7 +476,12 @@ func (p *Player) Hiding(magic *common.UserMagic) {
 }
 
 // FurySpell 龙血剑法 SpellFury
-func (p *Player) FurySpell(magic *common.UserMagic) bool { return true }
+func (p *Player) FurySpell(magic *common.UserMagic) bool {
+	// ActionList.Add(new DelayedAction(DelayedType.Magic, Envir.Time + 500, magic));
+	action := NewDelayedAction(p.NewObjectID(), DelayedTypeMagic, NewTask(p.CompleteMagic, magic))
+	p.ActionList.Store(action.ID, action)
+	return true
+}
 
 // ImmortalSkin ...
 func (p *Player) ImmortalSkin(magic *common.UserMagic) bool { return true }
@@ -416,28 +490,65 @@ func (p *Player) ImmortalSkin(magic *common.UserMagic) bool { return true }
 func (p *Player) FireBang(magic *common.UserMagic, location common.Point) {}
 
 // MassHiding 集体隐身术
-func (p *Player) MassHiding(magic *common.UserMagic, location common.Point) bool { return true }
+func (p *Player) MassHiding(magic *common.UserMagic, location common.Point) bool {
+	userItem := p.GetAmulet(1)
+	if userItem == nil {
+		return false
+	}
+	// int delay = Functions.MaxDistance(CurrentLocation, location) * 50 + 500; //50 MS per Step
+	// DelayedAction action = new DelayedAction(DelayedType.Magic, Envir.Time + delay, this, magic, GetAttackPower(MinSC, MaxSC) / 2 + (magic.Level + 1) * 2, location);
+	action := NewDelayedAction(p.NewObjectID(), DelayedTypeMagic, NewTask(p.Map.CompleteMagic, magic, p.GetAttackPower(int(p.MinSC), int(p.MaxSC))/2+(magic.Level+1)*2, location, p))
+	p.Map.Env.ActionList.Store(action.ID, action)
+	return true
+}
 
 // SoulShield 幽灵盾
-func (p *Player) SoulShield(magic *common.UserMagic, location common.Point) bool { return true }
+func (p *Player) SoulShield(magic *common.UserMagic, location common.Point) bool {
+	userItem := p.GetAmulet(1)
+	if userItem == nil {
+		return false
+	}
+	// int delay = Functions.MaxDistance(CurrentLocation, location) * 50 + 500; //50 MS per Step
+	// DelayedAction action = new DelayedAction(DelayedType.Magic, Envir.Time + delay, this, magic, GetAttackPower(MinSC, MaxSC) * 2 + (magic.Level + 1) * 10, location);
+	action := NewDelayedAction(p.NewObjectID(), DelayedTypeMagic, NewTask(p.Map.CompleteMagic, magic, p.GetAttackPower(int(p.MinSC), int(p.MaxSC))*2+(magic.Level+1)*10, location, p))
+	p.Map.Env.ActionList.Store(action.ID, action)
+	p.ConsumeItem(userItem, 1)
+	return true
+}
 
 // FireWall 火墙
-func (p *Player) FireWall(magic *common.UserMagic, location common.Point) {}
+func (p *Player) FireWall(magic *common.UserMagic, location common.Point) {
+	damage := magic.GetDamage(p.GetAttackPower(int(p.MinMC), int(p.MaxMC)))
+	action := NewDelayedAction(p.NewObjectID(), DelayedTypeMagic, NewTask(p.Map.CompleteMagic, magic, p, damage, location))
+	p.Map.Env.ActionList.Store(action.ID, action)
+}
 
 // Lightning 疾光电影
-func (p *Player) Lightning(magic *common.UserMagic) {}
+func (p *Player) Lightning(magic *common.UserMagic) {
+	damage := magic.GetDamage(p.GetAttackPower(int(p.MinMC), int(p.MaxMC)))
+	action := NewDelayedAction(p.NewObjectID(), DelayedTypeMagic, NewTask(p.Map.CompleteMagic, magic, p, damage, p.CurrentLocation, p.CurrentDirection))
+	p.Map.Env.ActionList.Store(action.ID, action)
+}
 
 // HeavenlySword ..
 func (p *Player) HeavenlySword(magic *common.UserMagic) {}
 
 // MassHealing 群体治疗术
-func (p *Player) MassHealing(magic *common.UserMagic, location common.Point) {}
+func (p *Player) MassHealing(magic *common.UserMagic, location common.Point) {
+	value := magic.GetDamage(p.GetAttackPower(int(p.MinSC), int(p.MaxSC)))
+	action := NewDelayedAction(p.NewObjectID(), DelayedTypeMagic, NewTask(p.Map.CompleteMagic, magic, p, value, location))
+	p.Map.Env.ActionList.Store(action.ID, action)
+}
 
 // ShoulderDash 野蛮冲撞
 func (p *Player) ShoulderDash(magic *common.UserMagic) {}
 
 // ThunderStorm 地狱雷光
-func (p *Player) ThunderStorm(magic *common.UserMagic) {}
+func (p *Player) ThunderStorm(magic *common.UserMagic) {
+	damage := magic.GetDamage(p.GetAttackPower(int(p.MinMC), int(p.MaxMC)))
+	action := NewDelayedAction(p.NewObjectID(), DelayedTypeMagic, NewTask(p.Map.CompleteMagic, magic, p, damage, p.CurrentLocation))
+	p.Map.Env.ActionList.Store(action.ID, action)
+}
 
 // FlameDisruptor 火龙术
 func (p *Player) FlameDisruptor(target IMapObject, magic *common.UserMagic) {}

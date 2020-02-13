@@ -511,10 +511,9 @@ type StoreItem struct {
 	Success bool
 }
 
-// TODO
 type SplitItem struct {
-	//Item common.UserItem
-	//Grid common.MirGridType
+	Item common.UserItem
+	Grid common.MirGridType
 }
 
 type SplitItem1 struct {
