@@ -2,6 +2,7 @@ package mir
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/yenkeia/mirgo/common"
 )
@@ -458,5 +459,51 @@ func (m *Map) CompleteMagic(args ...interface{}) {
 		}
 		pets := monster.Master.Pets
 		pets = append(pets, monster)
+	case common.SpellMassHealing:
+		value := args[1].(int)
+		location := args[2].(common.Point)
+		player := args[3].(*Player)
+		m.RangeObject(location, 1, func(o IMapObject) bool {
+			if o.GetRace() == common.ObjectTypePlayer && o.IsFriendlyTarget(player) {
+				target := o.(*Player)
+				for i := range target.Buffs {
+					if target.Buffs[i].BuffType == common.BuffTypeHiding {
+						return true
+					}
+				}
+				target.AddBuff(NewBuff(player.NewObjectID(), common.BuffTypeHiding, 0, time.Now().Add(time.Duration(value*1000)*time.Millisecond)))
+			}
+			return true
+		})
+	case common.SpellSoulShield, common.SpellBlessedArmour:
+		value := args[1].(int)
+		location := args[2].(common.Point)
+		player := args[3].(*Player)
+		buffType := common.BuffTypeSoulShield
+		if magic.Spell == common.SpellBlessedArmour {
+			buffType = common.BuffTypeBlessedArmour
+		}
+		m.RangeObject(location, 1, func(o IMapObject) bool {
+			if o.GetRace() == common.ObjectTypePlayer {
+				target := o.(*Player)
+				target.AddBuff(NewBuff(player.NewObjectID(), buffType, int(target.Level)/7+4, time.Now().Add(time.Duration(value*1000)*time.Millisecond)))
+			}
+			return true
+		})
+	case common.SpellFireWall:
+		// player := args[1].(*Player)
+		// value := args[2].(int)
+		// location := args[3].(common.Point)
+		// player.LevelMagic(magic)
+		// TODO SpellObject
+	case common.SpellLightning:
+		// player := args[1].(*Player)
+		// value := args[2].(int)
+		// location := args[3].(common.Point)
+		// direction := args[4].(common.MirDirection)
+	case common.SpellThunderStorm, common.SpellFlameField, common.SpellNapalmShot, common.SpellStormEscape:
+		// player := args[1].(*Player)
+		// value := args[2].(int)
+		// location := args[3].(common.Point)
 	}
 }
