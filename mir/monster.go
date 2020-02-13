@@ -184,6 +184,10 @@ func (m *Monster) IsDead() bool {
 	return m.Dead
 }
 
+func (m *Monster) IsUndead() bool {
+	return false
+}
+
 func (m *Monster) IsBlocking() bool {
 	return !m.IsDead()
 }

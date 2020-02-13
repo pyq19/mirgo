@@ -314,6 +314,10 @@ func (p *Player) IsDead() bool {
 	return false
 }
 
+func (p *Player) IsUndead() bool {
+	return false
+}
+
 func (p *Player) IsHidden() bool {
 	return false
 }

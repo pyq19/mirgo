@@ -53,6 +53,10 @@ func (n *NPC) IsDead() bool {
 	return n.Dead
 }
 
+func (n *NPC) IsUndead() bool {
+	return false
+}
+
 func (n *NPC) GetID() uint32 {
 	return n.ID
 }
