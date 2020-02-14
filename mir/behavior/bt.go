@@ -48,6 +48,8 @@ func NewBehavior(id int, mon *Monster) IBehavior {
 	switch id {
 	case 2:
 		root = DeerBrain()
+	case 6:
+		root = GuardBrain()
 	default:
 		root = DefaultBrain()
 	}
