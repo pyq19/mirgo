@@ -150,3 +150,22 @@ func testft(m *Map, fx, fy, tx, ty, datarange int) {
 	fmt.Println(s)
 	fmt.Println(s1)
 }
+
+func TestAllMaps(t *testing.T) {
+	gopath := os.Getenv("GOPATH")
+	mappath := gopath + "/src/github.com/yenkeia/mirgo/dotnettools/database/Maps/"
+
+	maps := GetFiles(mappath, []string{".map"})
+
+	mark := map[byte]bool{}
+
+	for _, m := range maps {
+		bytes, _ := ioutil.ReadFile(m)
+		mark[DetectMapVersion(bytes)] = true
+		// fmt.Println(m, )
+	}
+
+	for k, v := range mark {
+		fmt.Println(k, v)
+	}
+}

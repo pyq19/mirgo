@@ -84,7 +84,7 @@ func NewMonster(mp *Map, p common.Point, mi *common.MonsterInfo) (m *Monster) {
 	m.Dead = false
 	m.Level = uint16(mi.Level)
 	m.PetLevel = 0
-	m.Experience = mi.Experience
+	m.Experience = uint16(mi.Experience)
 	m.HP = uint32(mi.HP)
 	m.MaxHP = uint32(mi.HP)
 	m.MinAC = uint16(mi.MinAC)
