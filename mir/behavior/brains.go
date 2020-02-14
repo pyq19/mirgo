@@ -25,6 +25,21 @@ func DeerBrain() INode {
 	return root
 }
 
+// 守卫（大刀卫士）
+func GuardBrain() INode {
+
+	root := Priority(1*time.Second,
+		While(FindMonsterInViewRange, GuardAttack()),
+	)
+
+	return root
+}
+
 func HasTarget(c *BT) bool {
+	return c.Monster.Target != nil
+}
+
+func FindMonsterInViewRange(c *BT) bool {
+	c.Monster.FindTarget()
 	return c.Monster.Target != nil
 }
