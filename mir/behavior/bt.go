@@ -46,8 +46,10 @@ func NewBehavior(id int, mon *Monster) IBehavior {
 	var root INode
 
 	switch id {
-	default:
+	case 2:
 		root = DeerBrain()
+	default:
+		root = DefaultBrain()
 	}
 
 	bt := &BT{
