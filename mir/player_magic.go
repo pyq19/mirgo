@@ -551,10 +551,35 @@ func (p *Player) ThunderStorm(magic *common.UserMagic) {
 }
 
 // FlameDisruptor 火龙术
-func (p *Player) FlameDisruptor(target IMapObject, magic *common.UserMagic) {}
+func (p *Player) FlameDisruptor(target IMapObject, magic *common.UserMagic) {
+	if target == nil || (target.GetRace() != common.ObjectTypePlayer && target.GetRace() != common.ObjectTypeMonster) || !target.IsAttackTarget(p) {
+		return
+	}
+	damage := magic.GetDamage(p.GetAttackPower(int(p.MinMC), int(p.MaxMC)))
+	// if (!target.Undead) damage = (int)(damage * 1.5F);
+	action := NewDelayedAction(p.NewObjectID(), DelayedTypeMagic, NewTask(p.CompleteMagic, magic, damage, target))
+	p.ActionList.Store(action.ID, action)
+}
 
 // TurnUndead 圣言术
-func (p *Player) TurnUndead(target IMapObject, magic *common.UserMagic) {}
+func (p *Player) TurnUndead(target IMapObject, magic *common.UserMagic) {
+	if target == nil || target.GetRace() != common.ObjectTypeMonster || !target.IsUndead() || !target.IsAttackTarget(p) {
+		return
+	}
+	// if (Envir.Random.Next(2) + Level - 1 <= target.Level)
+	// {
+	// 	target.Target = this;
+	// 	return;
+	// }
+	// int dif = Level - target.Level + 15;
+	// if (Envir.Random.Next(100) >= (magic.Level + 1 << 3) + dif)
+	// {
+	// 	target.Target = this;
+	// 	return;
+	// }
+	// DelayedAction action = new DelayedAction(DelayedType.Magic, Envir.Time + 500, magic, target);
+	// ActionList.Add(action);
+}
 
 // MagicBooster 深延术
 func (p *Player) MagicBooster(magic *common.UserMagic) {}
