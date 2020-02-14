@@ -215,7 +215,34 @@ func (m *Monster) IsHidden() bool {
 	return false
 }
 
+func (m *Monster) IsAttackTargetMonster(attacker *Monster) bool {
+	if attacker == m {
+		return false
+	}
+
+	if m.AI == 6 || m.AI == 58 {
+		return false
+	}
+
+	if attacker.AI == 6 {
+		if m.AI != 1 && m.AI != 2 && m.AI != 3 { //Not Dear/Hen/Tree/Pets or Red Master
+			return true
+		}
+	} else if attacker.AI == 58 {
+		if m.AI != 1 && m.AI != 2 && m.AI != 3 {
+			return true
+		}
+	}
+	return false
+}
+
 func (m *Monster) IsAttackTarget(attacker IMapObject) bool {
+
+	switch attacker.(type) {
+	case *Monster:
+		return m.IsAttackTargetMonster(attacker.(*Monster))
+	case *Player:
+	}
 	return true
 }
 
@@ -553,6 +580,57 @@ func (m *Monster) Turn(dir common.MirDirection) {
 
 }
 
+func ObjectBack(m IMapObject) common.Point {
+	return m.GetPoint().NextPoint(m.GetDirection(), 1)
+}
+
+// 专用于大刀卫士攻击
+func (m *Monster) GuardAttack() {
+	if !m.Target.IsAttackTarget(m) {
+		return
+	}
+
+	target := ObjectBack(m.Target)
+
+	m.CurrentDirection = DirectionFromPoint(target, m.Target.GetPoint())
+
+	m.Broadcast(&server.ObjectAttack{
+		ObjectID:  m.GetID(),
+		LocationX: int32(target.X),
+		LocationY: int32(target.Y),
+		Direction: m.CurrentDirection,
+		Spell:     common.SpellNone,
+		Level:     uint8(0),
+		Type:      uint8(0),
+	})
+	m.Broadcast(&server.ObjectTurn{
+		ObjectID:  m.GetID(),
+		Direction: m.CurrentDirection,
+		Location:  m.CurrentLocation,
+	})
+
+	now := time.Now()
+	// ActionTime = Envir.Time + 300;
+	m.AttackTime = now.Add(time.Duration(m.AttackSpeed) * time.Millisecond)
+
+	damage := m.GetAttackPower(int(m.MinDC), int(m.MaxDC))
+
+	if m.Target.GetRace() == common.ObjectTypePlayer {
+		damage = int(^uint(0) >> 1) // INTMAX
+	}
+
+	if damage <= 0 {
+		return
+	}
+
+	switch m.Target.GetRace() {
+	case common.ObjectTypePlayer:
+		m.Target.(*Player).Attacked(m, damage, common.DefenceTypeAgility, false)
+	case common.ObjectTypeMonster:
+		m.Target.(*Monster).Attacked(m, damage, common.DefenceTypeAgility, false)
+	}
+}
+
 func (m *Monster) Attack() {
 	if !m.Target.IsAttackTarget(m) {
 		m.Target = nil
@@ -623,7 +701,19 @@ func (m *Monster) MoveTo(location common.Point) {
 // FindTarget 怪物寻找攻击目标
 func (m *Monster) FindTarget() {
 	m.Map.RangeObject(m.CurrentLocation, m.ViewRange, func(o IMapObject) bool {
+
+		if o == m {
+			return true
+		}
+
 		switch o.GetRace() {
+		case common.ObjectTypeMonster:
+			if !o.IsAttackTarget(m) {
+				return true
+			}
+			// if (ob.Hidden && (!CoolEye || Level < ob.Level)) continue;
+			m.Target = o
+
 		case common.ObjectTypePlayer:
 
 			if !o.IsAttackTarget(m) { // continue
