@@ -6,18 +6,20 @@ import (
 	"regexp"
 
 	"github.com/yenkeia/mirgo/mir/script"
+	"github.com/yenkeia/mirgo/proto/server"
 )
 
 func _CHECKPKPOINT(npc *NPC, plr *Player, op script.CompareOp, v int) bool {
-	return false
+	return script.CompareInt(op, plr.PKPoints, v)
 }
 
 func _LEVEL(npc *NPC, plr *Player, op script.CompareOp, v int) bool {
-	return true
+	return script.CompareInt(op, int(plr.Level), v)
 }
 
 func _CHECKGOLD(npc *NPC, plr *Player, op script.CompareOp, v int) bool {
-	return true
+	// FIX int64->int
+	return script.CompareInt(op, int(plr.Gold), v)
 }
 
 func _GIVEBUFF(npc *NPC, plr *Player, bufname string, time int) {
@@ -28,7 +30,11 @@ func _MOVE(npc *NPC, plr *Player, mapname string, x, y int) {
 }
 
 func _TAKEGOLD(npc *NPC, plr *Player, gold int) {
-
+	if gold < 0 || uint64(gold) > plr.Gold {
+		log.Warnf("gold error")
+	}
+	plr.Gold -= uint64(gold)
+	plr.Enqueue(&server.LoseGold{Gold: uint32(gold)})
 }
 
 func _INGUILD(npc *NPC, plr *Player) bool {
