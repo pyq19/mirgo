@@ -334,6 +334,31 @@ func (p *Player) CompleteMagic(args ...interface{}) {
 		p.AddBuff(buff)
 		p.LevelMagic(userMagic)
 	case common.SpellPurification:
+		target := args[1].(IMapObject)
+		if target == nil || !target.IsFriendlyTarget(p) { // || target.CurrentMap != CurrentMap || target.Node == null) return;
+			return
+		}
+		// if (Envir.Random.Next(4) > magic.Level || target.PoisonList.Count == 0) return;
+		// target.ExplosionInflictedTime = 0;
+		// target.ExplosionInflictedStage = 0;
+
+		// for (int i = 0; i < target.Buffs.Count; i++)
+		// {
+		//     if (target.Buffs[i].Type == BuffType.Curse)
+		//     {
+		//         target.Buffs.RemoveAt(i);
+		//         break;
+		//     }
+		// }
+
+		// target.PoisonList.Clear();
+		// target.OperateTime = 0;
+
+		// if (target.ObjectID == ObjectID)
+		//     Enqueue(new S.RemoveDelayedExplosion { ObjectID = target.ObjectID });
+		// target.Broadcast(new S.RemoveDelayedExplosion { ObjectID = target.ObjectID });
+
+		// LevelMagic(magic);
 	case common.SpellRevelation:
 	case common.SpellReincarnation:
 	case common.SpellEntrapment:
@@ -619,10 +644,48 @@ func (p *Player) Vampirism(target IMapObject, magic *common.UserMagic) {
 }
 
 // SummonShinsu 召唤神兽
-func (p *Player) SummonShinsu(magic *common.UserMagic) {}
+func (p *Player) SummonShinsu(magic *common.UserMagic) {
+	skeletonName := "Shinsu"
+	for i := range p.Pets {
+		if p.Pets[i].GetName() == skeletonName {
+			m := p.Pets[i].(*Monster)
+			action := NewDelayedAction(p.NewObjectID(), DelayedTypeRecall, NewTask(m.PetRecall))
+			m.ActionList.Store(action.ID, action)
+			return
+		}
+	}
+	if len(p.Pets) > 1 {
+		return
+	}
+	userItem := p.GetAmulet(5)
+	if userItem == nil {
+		return
+	}
+	monsterInfo := p.Map.Env.GameDB.GetMonsterInfoByName(skeletonName)
+	p.LevelMagic(magic)
+	p.ConsumeItem(userItem, 5) // 减少物品数量
+	dir := int(p.CurrentDirection) + 4
+	if dir > 8 {
+		dir -= 8
+	}
+	monster := NewMonster(p.Map, p.GetPoint().NextPoint(common.MirDirection(dir), 1), monsterInfo)
+	monster.PetLevel = uint16(magic.Level)
+	monster.Master = p
+	monster.ActionTime = time.Now().Add(time.Duration(1000) * time.Millisecond)
+	// monster.RefreshNameColour(false);
+	// DelayedAction action = new DelayedAction(DelayedType.Magic, Envir.Time + 500, this, magic, monster, Front);
+	action := NewDelayedAction(p.NewObjectID(), DelayedTypeMagic, NewTask(p.Map.CompleteMagic, magic, p, monster, p.GetFrontPoint()))
+	p.Map.Env.ActionList.Store(action.ID, action)
+}
 
 // Purification 净化术
-func (p *Player) Purification(target IMapObject, magic *common.UserMagic) {}
+func (p *Player) Purification(target IMapObject, magic *common.UserMagic) {
+	if target == nil || !target.IsFriendlyTarget(p) {
+		return
+	}
+	action := NewDelayedAction(p.NewObjectID(), DelayedTypeMagic, NewTask(p.CompleteMagic, magic, target))
+	p.ActionList.Store(action.ID, action)
+}
 
 // Revelation 心灵启示
 func (p *Player) Revelation(target IMapObject, magic *common.UserMagic) {}
