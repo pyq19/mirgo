@@ -5,6 +5,7 @@ import (
 	"time"
 )
 
+// 游荡
 type WanderNode struct {
 	Node
 	waittime time.Duration
@@ -23,7 +24,7 @@ func (n *WanderNode) Visit(c *BT) {
 	} else if n.Status() == RUNNING {
 
 		if c.GetTime() > n.waittime {
-			if RandomNext(10) == 1 {
+			if RandomNext(10) <= 3 {
 				n.PickNewDirection(c)
 			}
 		}
