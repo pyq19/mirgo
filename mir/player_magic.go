@@ -241,6 +241,14 @@ func (p *Player) CompleteMagic(args ...interface{}) {
 		return
 	case common.SpellFrostCrunch:
 	case common.SpellVampirism:
+		// value = args[1].(int)
+		// target = args[2].(IMapObject)
+		// if (target == null || !target.IsAttackTarget(this) || target.CurrentMap != CurrentMap || target.Node == null) return;
+		// value = target.Attacked(this, value, DefenceType.MAC, false);
+		// if (value == 0) return;
+		// LevelMagic(magic);
+		// if (VampAmount == 0) VampTime = Envir.Time + 1000;
+		// VampAmount += (ushort)(value * (magic.Level + 1) * 0.25F);
 	case common.SpellHealing:
 		value := args[1].(int)
 		target := args[2].(IMapObject)
@@ -313,6 +321,18 @@ func (p *Player) CompleteMagic(args ...interface{}) {
 	case common.SpellMagicShield:
 	case common.SpellTurnUndead:
 	case common.SpellMagicBooster:
+		// buff := NewBuff { Type = BuffType.MagicBooster
+		// 	 Caster = this
+		// 	  ExpireTime = Envir.Time + 60000,
+		// 	   Values = new int[] { value, 6 + magic.Level }
+		// 	    Visible = true });
+		value := args[1].(int)
+		values := value + 6 + int(userMagic.Level)
+		expireTime := time.Now().Add(time.Duration(60000) * time.Millisecond)
+		buff := NewBuff(p.NewObjectID(), common.BuffTypeMagicBooster, values, expireTime)
+		buff.Visible = true
+		p.AddBuff(buff)
+		p.LevelMagic(userMagic)
 	case common.SpellPurification:
 	case common.SpellRevelation:
 	case common.SpellReincarnation:
@@ -582,10 +602,21 @@ func (p *Player) TurnUndead(target IMapObject, magic *common.UserMagic) {
 }
 
 // MagicBooster 深延术
-func (p *Player) MagicBooster(magic *common.UserMagic) {}
+func (p *Player) MagicBooster(magic *common.UserMagic) {
+	bonus := 6 + magic.Level*6
+	action := NewDelayedAction(p.NewObjectID(), DelayedTypeMagic, NewTask(p.CompleteMagic, magic, bonus))
+	p.ActionList.Store(action.ID, action)
+}
 
 // Vampirism 嗜血术
-func (p *Player) Vampirism(target IMapObject, magic *common.UserMagic) {}
+func (p *Player) Vampirism(target IMapObject, magic *common.UserMagic) {
+	if target == nil || !target.IsAttackTarget(p) {
+		return
+	}
+	damage := magic.GetDamage(p.GetAttackPower(int(p.MinMC), int(p.MaxMC)))
+	action := NewDelayedAction(p.NewObjectID(), DelayedTypeMagic, NewTask(p.CompleteMagic, magic, damage, target))
+	p.ActionList.Store(action.ID, action)
+}
 
 // SummonShinsu 召唤神兽
 func (p *Player) SummonShinsu(magic *common.UserMagic) {}
