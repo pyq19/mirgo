@@ -360,6 +360,19 @@ func (p *Player) CompleteMagic(args ...interface{}) {
 
 		// LevelMagic(magic);
 	case common.SpellRevelation:
+		// value := args[1].(int)
+		target := args[2].(IMapObject)
+		if target == nil { // || target.CurrentMap != CurrentMap || target.Node == null) return;
+			return
+		}
+		if target.GetRace() != common.ObjectTypePlayer && target.GetRace() != common.ObjectTypeMonster {
+			return
+		}
+		// if (Envir.Random.Next(4) > magic.Level || Envir.Time < target.RevTime) return;
+		// target.RevTime = Envir.Time + value * 1000;
+		// target.OperateTime = 0;
+		// target.BroadcastHealthChange()
+		p.LevelMagic(userMagic)
 	case common.SpellReincarnation:
 	case common.SpellEntrapment:
 	case common.SpellHallucination:
@@ -688,7 +701,14 @@ func (p *Player) Purification(target IMapObject, magic *common.UserMagic) {
 }
 
 // Revelation 心灵启示
-func (p *Player) Revelation(target IMapObject, magic *common.UserMagic) {}
+func (p *Player) Revelation(target IMapObject, magic *common.UserMagic) {
+	if target == nil {
+		return
+	}
+	value := p.GetAttackPower(int(p.MinSC), int(p.MaxSC)) + magic.GetPower(magic.MPower())
+	action := NewDelayedAction(p.NewObjectID(), DelayedTypeMagic, NewTask(p.CompleteMagic, magic, value, target))
+	p.ActionList.Store(action.ID, action)
+}
 
 // PoisonCloud 毒云
 func (p *Player) PoisonCloud(magic *common.UserMagic, location common.Point) bool { return true }

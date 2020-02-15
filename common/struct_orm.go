@@ -376,8 +376,18 @@ func (um *UserMagic) GetDamage(damageBase int) int {
 }
 
 // TODO
-func (um *UserMagic) GetPower(int) int {
+func (um *UserMagic) GetPower(power int) int {
 	// return (int)Math.Round(power / 4F * (Level + 1) + DefPower());
+	return 0
+}
+
+func (um *UserMagic) MPower() int {
+	// 	if (Info.MPowerBonus > 0)
+	// 	{
+	// 		return SMain.Envir.Random.Next(Info.MPowerBase, Info.MPowerBonus + Info.MPowerBase);
+	// 	}
+	// 	else
+	// 		return Info.MPowerBase;
 	return 0
 }
 
