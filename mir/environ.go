@@ -233,7 +233,7 @@ func (e *Environ) InitMaps() {
 		if mi.ID != 1 {
 			continue
 		}
-		m := GetMapV1(GetMapBytes(mapDirPath + uppercaseNameRealNameMap[strings.ToUpper(mi.Filename+".map")]))
+		m := LoadMap(mapDirPath + uppercaseNameRealNameMap[strings.ToUpper(mi.Filename+".map")])
 		m.Env = e
 		m.Info = &mi
 		e.Maps.Store(mi.ID, m)

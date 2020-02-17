@@ -1,10 +1,38 @@
 package mir
 
 import (
+	"fmt"
+	"io/ioutil"
 	"sync"
 
 	"github.com/yenkeia/mirgo/common"
 )
+
+func LoadMap(filepath string) *Map {
+	fileBytes, err := ioutil.ReadFile(filepath)
+	if err != nil {
+		panic(err)
+	}
+	v := DetectMapVersion(fileBytes)
+
+	switch v {
+	case 0:
+		return GetMapV0(fileBytes)
+
+	case 1:
+		return GetMapV1(fileBytes)
+
+	case 3:
+		return GetMapV3(fileBytes)
+
+	case 5:
+		return GetMapV5(fileBytes)
+	default:
+		panic(fmt.Sprintf("map version not support! %d", int(v)))
+	}
+
+	return nil
+}
 
 func DetectMapVersion(input []byte) byte {
 	//c# custom map format
@@ -49,6 +77,45 @@ func DetectMapVersion(input []byte) byte {
 	return 0
 }
 
+func GetMapV0(bytes []byte) *Map {
+	offset := 0
+	w := common.BytesToUint16(bytes[offset:])
+	offset += 2
+	h := common.BytesToUint16(bytes[offset:])
+	width := int(w)
+	height := int(h)
+
+	m := NewMap(width, height)
+
+	offset = 52
+	for i := 0; i < width; i++ {
+		for j := 0; j < height; j++ {
+			p := common.Point{X: uint32(i), Y: uint32(j)}
+			c := new(Cell)
+			c.Map = m
+			c.Point = p
+			c.Objects = new(sync.Map)
+			if (common.BytesToUint16(bytes[offset:]) & 0x8000) != 0 {
+				c.Attribute = common.CellAttributeHighWall
+			}
+
+			offset += 2
+			if (common.BytesToUint16(bytes[offset:]) & 0x8000) != 0 {
+				c.Attribute = common.CellAttributeLowWall
+			}
+
+			if c.Attribute == common.CellAttributeWalk {
+				m.SetCell(p, c)
+			}
+
+			offset += 9
+		}
+	}
+	m.Width = width
+	m.Height = height
+	return m
+}
+
 func GetMapV1(bytes []byte) *Map {
 	offset := 21
 	w := common.BytesToUint16(bytes[offset : offset+2])
@@ -79,6 +146,82 @@ func GetMapV1(bytes []byte) *Map {
 				m.SetCell(p, c)
 			}
 			offset += 15
+		}
+	}
+	m.Width = width
+	m.Height = height
+	return m
+}
+
+func GetMapV3(bytes []byte) *Map {
+	offset := 0
+	w := common.BytesToUint16(bytes[offset:])
+	offset += 2
+	h := common.BytesToUint16(bytes[offset:])
+	width := int(w)
+	height := int(h)
+
+	m := NewMap(width, height)
+
+	offset = 52
+	for i := 0; i < width; i++ {
+		for j := 0; j < height; j++ {
+			p := common.Point{X: uint32(i), Y: uint32(j)}
+			c := new(Cell)
+			c.Map = m
+			c.Point = p
+			c.Objects = new(sync.Map)
+			if (common.BytesToUint16(bytes[offset:]) & 0x8000) != 0 {
+				c.Attribute = common.CellAttributeHighWall
+			}
+
+			offset += 2
+			if (common.BytesToUint16(bytes[offset:]) & 0x8000) != 0 {
+				c.Attribute = common.CellAttributeLowWall
+			}
+
+			if c.Attribute == common.CellAttributeWalk {
+				m.SetCell(p, c)
+			}
+
+			offset += 16
+			offset += 17
+		}
+	}
+	m.Width = width
+	m.Height = height
+	return m
+}
+
+func GetMapV5(bytes []byte) *Map {
+	offset := 22
+	w := common.BytesToUint16(bytes[offset:])
+	offset += 2
+	h := common.BytesToUint16(bytes[offset:])
+	width := int(w)
+	height := int(h)
+
+	m := NewMap(width, height)
+
+	offset = 28 + (3 * ((width / 2) + (width % 2)) * (height / 2))
+
+	for i := 0; i < width; i++ {
+		for j := 0; j < height; j++ {
+			p := common.Point{X: uint32(i), Y: uint32(j)}
+			c := new(Cell)
+			c.Map = m
+			c.Point = p
+			c.Objects = new(sync.Map)
+			if (bytes[offset] & 0x01) != 1 {
+				c.Attribute = common.CellAttributeHighWall
+			} else if (bytes[offset] & 0x02) != 2 {
+				c.Attribute = common.CellAttributeLowWall
+			}
+			offset += 13
+
+			if c.Attribute == common.CellAttributeWalk {
+				m.SetCell(p, c)
+			}
 		}
 	}
 	m.Width = width
