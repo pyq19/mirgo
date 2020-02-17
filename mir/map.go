@@ -208,13 +208,6 @@ func (m *Map) UpdateObject(obj IMapObject, points ...common.Point) bool {
 }
 
 func (m *Map) changeAOI(obj IMapObject, c1 *Cell, c2 *Cell) {
-	// g1 := m.AOI.GetGridByPoint(c1.Point)
-	// g2 := m.AOI.GetGridByPoint(c2.Point)
-	// if g1.GID == g2.GID {
-	// 	return
-	// }
-	// g1.DeleteObject(obj)
-	// g2.AddObject(obj)
 	switch obj.GetRace() {
 	case common.ObjectTypePlayer:
 		p := obj.(*Player)
@@ -232,7 +225,6 @@ func (m *Map) InitNPCs() error {
 		ni := ni
 		if ni.MapID == m.Info.ID {
 			n := NewNPC(m, &ni)
-			// m.Env.AddNPC(n)
 			m.AddObject(n)
 		}
 	}
