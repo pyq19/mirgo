@@ -492,7 +492,7 @@ func (p *Player) SummonSkeleton(magic *common.UserMagic) {
 	// monster.RefreshNameColour(false);
 	// DelayedAction action = new DelayedAction(DelayedType.Magic, Envir.Time + 500, this, magic, monster, Front);
 	action := NewDelayedAction(p.NewObjectID(), DelayedTypeMagic, NewTask(p.Map.CompleteMagic, magic, p, monster, p.GetFrontPoint()))
-	p.Map.Env.ActionList.Store(action.ID, action)
+	p.Map.PushAction(action)
 }
 
 // GetAmulet 获取玩家身上装备的护身符
@@ -556,7 +556,8 @@ func (p *Player) MassHiding(magic *common.UserMagic, location common.Point) bool
 	// int delay = Functions.MaxDistance(CurrentLocation, location) * 50 + 500; //50 MS per Step
 	// DelayedAction action = new DelayedAction(DelayedType.Magic, Envir.Time + delay, this, magic, GetAttackPower(MinSC, MaxSC) / 2 + (magic.Level + 1) * 2, location);
 	action := NewDelayedAction(p.NewObjectID(), DelayedTypeMagic, NewTask(p.Map.CompleteMagic, magic, p.GetAttackPower(int(p.MinSC), int(p.MaxSC))/2+(magic.Level+1)*2, location, p))
-	p.Map.Env.ActionList.Store(action.ID, action)
+	// p.Map.Env.ActionList.Store(action.ID, action)
+	p.Map.PushAction(action)
 	return true
 }
 
@@ -569,7 +570,8 @@ func (p *Player) SoulShield(magic *common.UserMagic, location common.Point) bool
 	// int delay = Functions.MaxDistance(CurrentLocation, location) * 50 + 500; //50 MS per Step
 	// DelayedAction action = new DelayedAction(DelayedType.Magic, Envir.Time + delay, this, magic, GetAttackPower(MinSC, MaxSC) * 2 + (magic.Level + 1) * 10, location);
 	action := NewDelayedAction(p.NewObjectID(), DelayedTypeMagic, NewTask(p.Map.CompleteMagic, magic, p.GetAttackPower(int(p.MinSC), int(p.MaxSC))*2+(magic.Level+1)*10, location, p))
-	p.Map.Env.ActionList.Store(action.ID, action)
+	// p.Map.Env.ActionList.Store(action.ID, action)
+	p.Map.PushAction(action)
 	p.ConsumeItem(userItem, 1)
 	return true
 }
@@ -578,14 +580,16 @@ func (p *Player) SoulShield(magic *common.UserMagic, location common.Point) bool
 func (p *Player) FireWall(magic *common.UserMagic, location common.Point) {
 	damage := magic.GetDamage(p.GetAttackPower(int(p.MinMC), int(p.MaxMC)))
 	action := NewDelayedAction(p.NewObjectID(), DelayedTypeMagic, NewTask(p.Map.CompleteMagic, magic, p, damage, location))
-	p.Map.Env.ActionList.Store(action.ID, action)
+	p.Map.PushAction(action)
+	// p.Map.Env.ActionList.Store(action.ID, action)
 }
 
 // Lightning 疾光电影
 func (p *Player) Lightning(magic *common.UserMagic) {
 	damage := magic.GetDamage(p.GetAttackPower(int(p.MinMC), int(p.MaxMC)))
 	action := NewDelayedAction(p.NewObjectID(), DelayedTypeMagic, NewTask(p.Map.CompleteMagic, magic, p, damage, p.CurrentLocation, p.CurrentDirection))
-	p.Map.Env.ActionList.Store(action.ID, action)
+	p.Map.PushAction(action)
+	// p.Map.Env.ActionList.Store(action.ID, action)
 }
 
 // HeavenlySword ..
@@ -595,7 +599,8 @@ func (p *Player) HeavenlySword(magic *common.UserMagic) {}
 func (p *Player) MassHealing(magic *common.UserMagic, location common.Point) {
 	value := magic.GetDamage(p.GetAttackPower(int(p.MinSC), int(p.MaxSC)))
 	action := NewDelayedAction(p.NewObjectID(), DelayedTypeMagic, NewTask(p.Map.CompleteMagic, magic, p, value, location))
-	p.Map.Env.ActionList.Store(action.ID, action)
+	p.Map.PushAction(action)
+	// p.Map.Env.ActionList.Store(action.ID, action)
 }
 
 // ShoulderDash 野蛮冲撞
@@ -605,7 +610,8 @@ func (p *Player) ShoulderDash(magic *common.UserMagic) {}
 func (p *Player) ThunderStorm(magic *common.UserMagic) {
 	damage := magic.GetDamage(p.GetAttackPower(int(p.MinMC), int(p.MaxMC)))
 	action := NewDelayedAction(p.NewObjectID(), DelayedTypeMagic, NewTask(p.Map.CompleteMagic, magic, p, damage, p.CurrentLocation))
-	p.Map.Env.ActionList.Store(action.ID, action)
+	p.Map.PushAction(action)
+	// p.Map.Env.ActionList.Store(action.ID, action)
 }
 
 // FlameDisruptor 火龙术
@@ -688,7 +694,8 @@ func (p *Player) SummonShinsu(magic *common.UserMagic) {
 	// monster.RefreshNameColour(false);
 	// DelayedAction action = new DelayedAction(DelayedType.Magic, Envir.Time + 500, this, magic, monster, Front);
 	action := NewDelayedAction(p.NewObjectID(), DelayedTypeMagic, NewTask(p.Map.CompleteMagic, magic, p, monster, p.GetFrontPoint()))
-	p.Map.Env.ActionList.Store(action.ID, action)
+	p.Map.PushAction(action)
+	// p.Map.Env.ActionList.Store(action.ID, action)
 }
 
 // Purification 净化术
