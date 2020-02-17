@@ -162,7 +162,6 @@ func TestAllMaps(t *testing.T) {
 	for _, m := range maps {
 		bytes, _ := ioutil.ReadFile(m)
 		mark[DetectMapVersion(bytes)] = true
-		// fmt.Println(m, )
 	}
 
 	for k, v := range mark {
