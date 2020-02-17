@@ -1,7 +1,6 @@
 package mir
 
 import (
-	"io/ioutil"
 	"math/rand"
 	"os"
 	"path"
@@ -9,14 +8,6 @@ import (
 
 	"github.com/yenkeia/mirgo/common"
 )
-
-func GetMapBytes(mapAbsPath string) []byte {
-	fileBytes, err := ioutil.ReadFile(mapAbsPath)
-	if err != nil {
-		panic(err)
-	}
-	return fileBytes
-}
 
 func AbsInt(i int) int {
 	if i < 0 {

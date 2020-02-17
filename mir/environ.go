@@ -6,7 +6,6 @@ import (
 	"strings"
 	"sync"
 	"sync/atomic"
-	"time"
 
 	"github.com/davyxu/cellnet"
 	_ "github.com/yenkeia/mirgo/codec/mircodec"
@@ -25,8 +24,6 @@ type Environ struct {
 	ObjectID           uint32
 	Players            []*Player
 	lock               *sync.Mutex
-	ActionList         *sync.Map // map[uint32]*DelayedAction  mapID: DelayedAction.ID
-	NPCs               *sync.Map // map[uint32]*NPC  mapID: NPC.ID
 }
 
 // NewEnviron ...
@@ -39,12 +36,6 @@ func NewEnviron(g *Game) (env *Environ) {
 	env.ObjectID = 100000
 	env.Players = make([]*Player, 0)
 	env.lock = new(sync.Mutex)
-	env.ActionList = new(sync.Map)
-	env.NPCs = new(sync.Map)
-	err := env.InitObjects()
-	if err != nil {
-		panic(err)
-	}
 	env.SessionIDPlayerMap = new(sync.Map)
 	PrintEnviron(env)
 	return
@@ -69,39 +60,19 @@ func (e *Environ) InitGameDB() {
 	gdb := new(GameDB)
 	e.GameDB = gdb
 	db := e.Game.DB
-	b := new(common.Basic)
-	db.Table("basic").Find(b)
-	gdb.Basic = *b
-	gsi := make([]common.GameShopItem, 106)
-	db.Table("game_shop_item").Find(&gsi)
-	gdb.GameShopItems = gsi
-	ii := make([]common.ItemInfo, 1346)
-	db.Table("item").Find(&ii)
-	gdb.ItemInfos = ii
-	mi := make([]common.MagicInfo, 105)
-	db.Table("magic").Find(&mi)
-	gdb.MagicInfos = mi
-	mp := make([]common.MapInfo, 386)
-	db.Table("map").Find(&mp)
-	gdb.MapInfos = mp
-	ms := make([]common.MonsterInfo, 506)
-	db.Table("monster").Find(&ms)
-	gdb.MonsterInfos = ms
-	mm := make([]common.MovementInfo, 1837)
-	db.Table("movement").Find(&mm)
-	gdb.MovementInfos = mm
-	ni := make([]common.NpcInfo, 293)
-	db.Table("npc").Find(&ni)
-	gdb.NpcInfos = ni
-	qi := make([]common.QuestInfo, 157)
-	db.Table("quest").Find(&qi)
-	gdb.QuestInfos = qi
-	ri := make([]common.RespawnInfo, 5931)
-	db.Table("respawn").Find(&ri)
-	gdb.RespawnInfos = ri
-	si := make([]common.SafeZoneInfo, 19)
-	db.Table("safe_zone").Find(&si)
-	gdb.SafeZoneInfos = si
+
+	db.Table("basic").First(&gdb.Basic)
+	db.Table("game_shop_item").Find(&gdb.GameShopItems)
+	db.Table("item").Find(&gdb.ItemInfos)
+	db.Table("magic").Find(&gdb.MagicInfos)
+	db.Table("map").Find(&gdb.MapInfos)
+	db.Table("monster").Find(&gdb.MonsterInfos)
+	db.Table("movement").Find(&gdb.MovementInfos)
+	db.Table("npc").Find(&gdb.NpcInfos)
+	db.Table("quest").Find(&gdb.QuestInfos)
+	db.Table("respawn").Find(&gdb.RespawnInfos)
+	db.Table("safe_zone").Find(&gdb.SafeZoneInfos)
+
 	gdb.MapIDInfoMap = new(sync.Map)
 	gdb.ItemIDInfoMap = new(sync.Map)
 	gdb.ItemNameInfoMap = new(sync.Map)
@@ -210,32 +181,24 @@ func (e *Environ) InitMaps() {
 	if err != nil {
 		panic(err)
 	}
-	// FIXME get map v2 v3 ??
-	skipMap := map[string]bool{
-		"R05":   true,
-		"R07":   true,
-		"R08":   true,
-		"R10":   true,
-		"R11":   true,
-		"EM000": true,
-		"EM001": true,
-		"EM002": true,
-		"EM003": true,
-	}
-	//e.Maps = make([]Map, 386)
+
 	e.Maps = new(sync.Map)
 	for i := range e.GameDB.MapInfos {
 		mi := e.GameDB.MapInfos[i]
-		if skipMap[strings.ToUpper(mi.Filename)] {
-			continue
-		}
 		// FIXME 开发只加载第一张地图
 		if mi.ID != 1 {
 			continue
 		}
-		m := GetMapV1(GetMapBytes(mapDirPath + uppercaseNameRealNameMap[strings.ToUpper(mi.Filename+".map")]))
+		m := LoadMap(mapDirPath + uppercaseNameRealNameMap[strings.ToUpper(mi.Filename+".map")])
 		m.Env = e
 		m.Info = &mi
+		if err := m.InitMonsters(); err != nil {
+			panic(err)
+		}
+		if err := m.InitNPCs(); err != nil {
+			panic(err)
+		}
+		go m.Loop()
 		e.Maps.Store(mi.ID, m)
 		break
 	}
@@ -243,26 +206,6 @@ func (e *Environ) InitMaps() {
 
 func (e *Environ) NewObjectID() uint32 {
 	return atomic.AddUint32(&e.ObjectID, 1)
-}
-
-// InitObjects 初始化地图
-func (e *Environ) InitObjects() (err error) {
-	var maps []*Map
-	e.Maps.Range(func(k, v interface{}) bool {
-		maps = append(maps, v.(*Map))
-		return true
-	})
-	for _, m := range maps {
-		err = m.InitMonsters()
-		if err != nil {
-			return err
-		}
-		err = m.InitNPCs()
-		if err != nil {
-			return err
-		}
-	}
-	return nil
 }
 
 func (e *Environ) AddPlayer(p *Player) {
@@ -325,18 +268,6 @@ func (e *Environ) GetPlayersCount() int {
 	return c
 }
 
-func (e *Environ) AddNPC(n *NPC) {
-	e.NPCs.Store(n.ID, n)
-}
-
-func (e *Environ) GetNPC(id uint32) *NPC {
-	v, ok := e.NPCs.Load(id)
-	if !ok {
-		return nil
-	}
-	return v.(*NPC)
-}
-
 func (e *Environ) GetMap(mapID int) *Map {
 	v, ok := e.Maps.Load(mapID)
 	if !ok {
@@ -345,65 +276,20 @@ func (e *Environ) GetMap(mapID int) *Map {
 	return v.(*Map)
 }
 
-func (e *Environ) Submit(t *Task) {
-	e.Game.Pool.EntryChan <- t
-}
-
 func (e *Environ) Broadcast(msg interface{}) {
-	e.Maps.Range(func(k, v interface{}) bool {
-		v.(*Map).Broadcast(msg)
+	(*e.Game.Peer).(cellnet.SessionAccessor).VisitSession(func(ses cellnet.Session) bool {
+		ses.Send(msg)
 		return true
 	})
-}
-
-// StartLoop
-func (e *Environ) StartLoop() {
-	go e.TimeTick()
-	go e.Game.Pool.Run()
-}
-
-func (e *Environ) TimeTick() {
-	// 系统事件 广播 存档
-	systemBroadcastTicker := time.NewTicker(1 * time.Hour)
-
-	debugTicker := time.NewTicker(10 * time.Second)
-
-	// 地图事件 刷怪 地图物品
-	mapTicker := time.NewTicker(300 * time.Millisecond)
-
-	// 玩家事件 buff 等状态改变
-	playerTicker := time.NewTicker(200 * time.Millisecond)
-
-	// 怪物 / NPC 事件. 移动 buff
-	monsterNPCTicker := time.NewTicker(300 * time.Millisecond)
-
-	for {
-		select {
-		case <-debugTicker.C:
-			e.Debug()
-		case <-systemBroadcastTicker.C:
-			e.Submit(NewTask(e.SystemBroadcast))
-		case <-mapTicker.C:
-			e.Submit(NewTask(e.EnvironProcess))
-		case <-playerTicker.C:
-			e.Submit(NewTask(e.PlayerProcess))
-		case <-monsterNPCTicker.C:
-			e.Submit(NewTask(e.MonsterNPCProcess))
-		}
-	}
 }
 
 func (e *Environ) SystemBroadcast(...interface{}) {
 	envPlayerCount := e.GetPlayersCount()
 	text := "当前在线玩家人数: " + strconv.Itoa(envPlayerCount)
-	(*e.Game.Peer).(cellnet.SessionAccessor).VisitSession(func(ses cellnet.Session) bool {
-		ses.Send(&server.Chat{
-			Message: text,
-			Type:    common.ChatTypeSystem,
-		})
-		return true
+	e.Broadcast(&server.Chat{
+		Message: text,
+		Type:    common.ChatTypeSystem,
 	})
-
 }
 
 func (e *Environ) Debug() {
@@ -419,79 +305,4 @@ func (e *Environ) Debug() {
 	} else {
 		// log.Debugf("envPlayerCount: %d, map allPlayer: %d\n", envPlayerCount, len(allPlayer))
 	}
-}
-
-// TODO 待优化
-// func (e *Environ) GetActiveObjects() (monster []*Monster, npc []*NPC) {
-// 	e.lock.Lock()
-// 	defer e.lock.Unlock()
-// 	gridMap := make(map[int]*Grid)
-// 	for i := range e.Players {
-// 		g := e.Players[i].GetCurrentGrid()
-// 		gridMap[g.GID] = g
-// 	}
-// 	grids := make([]*Grid, 0)
-// 	for _, g := range gridMap {
-// 		grids = append(grids, g)
-// 	}
-// 	for i := range grids {
-// 		g := grids[i]
-// 		objs := g.GetAllObjects()
-// 		for i := range objs {
-// 			o := objs[i]
-// 			switch o.GetRace() {
-// 			case common.ObjectTypeMonster:
-// 				monster = append(monster, o.(*Monster))
-// 			case common.ObjectTypeMerchant:
-// 				npc = append(npc, o.(*NPC))
-// 			}
-// 		}
-// 	}
-// 	return
-// }
-
-func (e *Environ) EnvironProcess(...interface{}) {
-	finishID := make([]uint32, 0)
-	e.ActionList.Range(func(k, v interface{}) bool {
-		action := v.(*DelayedAction)
-		if action.Finish || time.Now().Before(action.ActionTime) {
-			return true
-		}
-		action.Task.Execute()
-		action.Finish = true
-		if action.Finish {
-			finishID = append(finishID, action.ID)
-		}
-		return true
-	})
-	for i := range finishID {
-		e.ActionList.Delete(finishID[i])
-	}
-}
-
-func (e *Environ) PlayerProcess(...interface{}) {
-	for i := range e.Players {
-		e.Players[i].Process()
-	}
-}
-
-func (e *Environ) MonsterNPCProcess(...interface{}) {
-	// monsters, npcs := e.GetActiveObjects()
-	// for i := range monsters {
-	// 	monsters[i].Process()
-	// }
-	// for i := range npcs {
-	// 	npcs[i].Process()
-	// }
-	e.Maps.Range(func(k, v interface{}) bool {
-		m := v.(*Map)
-		for _, v := range m.monsters {
-			v.Process()
-		}
-
-		for _, v := range m.npcs {
-			v.Process()
-		}
-		return true
-	})
 }

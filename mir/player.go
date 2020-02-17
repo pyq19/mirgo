@@ -1482,7 +1482,7 @@ func (p *Player) Harvest(direction common.MirDirection) {
 }
 
 func (p *Player) CallNPC(id uint32, key string) {
-	npc := p.Map.Env.GetNPC(id)
+	npc := p.Map.GetNPC(id)
 	if npc == nil {
 		return
 	}
