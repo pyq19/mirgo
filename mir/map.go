@@ -67,6 +67,9 @@ func (m *Map) Submit(t *Task) {
 func (m *Map) GetAllPlayers() map[uint32]*Player {
 	return m.players
 }
+func (m *Map) GetNPC(id uint32) *NPC {
+	return m.npcs[id]
+}
 
 // Broadcast send message to all players in this map
 func (m *Map) Broadcast(msg interface{}) {
@@ -200,7 +203,7 @@ func (m *Map) InitNPCs() error {
 		ni := ni
 		if ni.MapID == m.Info.ID {
 			n := NewNPC(m, &ni)
-			m.Env.AddNPC(n)
+			// m.Env.AddNPC(n)
 			m.AddObject(n)
 		}
 	}
@@ -405,40 +408,40 @@ func (m *Map) CalcDiff(from, to common.Point, datarange int) *CellSet {
 }
 
 // for test CalcDiff.
-func (m *Map) CalcDiff1(from, to common.Point, datarange int) *CellSet {
-	fx, fy, tx, ty := int(from.X), int(from.Y), int(to.X), int(to.Y)
+// func (m *Map) CalcDiff1(from, to common.Point, datarange int) *CellSet {
+// 	fx, fy, tx, ty := int(from.X), int(from.Y), int(to.X), int(to.Y)
 
-	oldcells := map[int]bool{}
-	m.RangeCell(common.NewPoint(fx, fy), datarange, func(c *Cell, x, y int) bool {
-		oldcells[x*10000+y] = true
-		return true
-	})
+// 	oldcells := map[int]bool{}
+// 	m.RangeCell(common.NewPoint(fx, fy), datarange, func(c *Cell, x, y int) bool {
+// 		oldcells[x*10000+y] = true
+// 		return true
+// 	})
 
-	newcells := map[int]bool{}
-	m.RangeCell(common.NewPoint(tx, ty), datarange, func(c *Cell, x, y int) bool {
-		newcells[x*10000+y] = true
-		return true
-	})
+// 	newcells := map[int]bool{}
+// 	m.RangeCell(common.NewPoint(tx, ty), datarange, func(c *Cell, x, y int) bool {
+// 		newcells[x*10000+y] = true
+// 		return true
+// 	})
 
-	added := map[int]bool{}
-	for c := range newcells {
-		if _, ok := oldcells[c]; ok {
-			delete(oldcells, c)
-		} else {
-			added[c] = true
-		}
-	}
+// 	added := map[int]bool{}
+// 	for c := range newcells {
+// 		if _, ok := oldcells[c]; ok {
+// 			delete(oldcells, c)
+// 		} else {
+// 			added[c] = true
+// 		}
+// 	}
 
-	cs := NewCellSet()
-	for c := range oldcells {
-		cs.Add(m, c/10000, c%10000, false)
-	}
+// 	cs := NewCellSet()
+// 	for c := range oldcells {
+// 		cs.Add(m, c/10000, c%10000, false)
+// 	}
 
-	for c := range added {
-		cs.Add(m, c/10000, c%10000, true)
-	}
-	return cs
-}
+// 	for c := range added {
+// 		cs.Add(m, c/10000, c%10000, true)
+// 	}
+// 	return cs
+// }
 
 // CompleteMagic ...
 func (m *Map) CompleteMagic(args ...interface{}) {

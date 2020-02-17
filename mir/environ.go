@@ -26,7 +26,6 @@ type Environ struct {
 	Players            []*Player
 	lock               *sync.Mutex
 	ActionList         *sync.Map // map[uint32]*DelayedAction  mapID: DelayedAction.ID
-	NPCs               *sync.Map // map[uint32]*NPC  mapID: NPC.ID
 }
 
 // NewEnviron ...
@@ -40,7 +39,7 @@ func NewEnviron(g *Game) (env *Environ) {
 	env.Players = make([]*Player, 0)
 	env.lock = new(sync.Mutex)
 	env.ActionList = new(sync.Map)
-	env.NPCs = new(sync.Map)
+	// env.NPCs = new(sync.Map)
 	err := env.InitObjects()
 	if err != nil {
 		panic(err)
@@ -210,25 +209,11 @@ func (e *Environ) InitMaps() {
 	if err != nil {
 		panic(err)
 	}
-	// FIXME get map v2 v3 ??
-	skipMap := map[string]bool{
-		"R05":   true,
-		"R07":   true,
-		"R08":   true,
-		"R10":   true,
-		"R11":   true,
-		"EM000": true,
-		"EM001": true,
-		"EM002": true,
-		"EM003": true,
-	}
+
 	//e.Maps = make([]Map, 386)
 	e.Maps = new(sync.Map)
 	for i := range e.GameDB.MapInfos {
 		mi := e.GameDB.MapInfos[i]
-		if skipMap[strings.ToUpper(mi.Filename)] {
-			continue
-		}
 		// FIXME 开发只加载第一张地图
 		if mi.ID != 1 {
 			continue
@@ -325,18 +310,6 @@ func (e *Environ) GetPlayersCount() int {
 	return c
 }
 
-func (e *Environ) AddNPC(n *NPC) {
-	e.NPCs.Store(n.ID, n)
-}
-
-func (e *Environ) GetNPC(id uint32) *NPC {
-	v, ok := e.NPCs.Load(id)
-	if !ok {
-		return nil
-	}
-	return v.(*NPC)
-}
-
 func (e *Environ) GetMap(mapID int) *Map {
 	v, ok := e.Maps.Load(mapID)
 	if !ok {
@@ -420,35 +393,6 @@ func (e *Environ) Debug() {
 		// log.Debugf("envPlayerCount: %d, map allPlayer: %d\n", envPlayerCount, len(allPlayer))
 	}
 }
-
-// TODO 待优化
-// func (e *Environ) GetActiveObjects() (monster []*Monster, npc []*NPC) {
-// 	e.lock.Lock()
-// 	defer e.lock.Unlock()
-// 	gridMap := make(map[int]*Grid)
-// 	for i := range e.Players {
-// 		g := e.Players[i].GetCurrentGrid()
-// 		gridMap[g.GID] = g
-// 	}
-// 	grids := make([]*Grid, 0)
-// 	for _, g := range gridMap {
-// 		grids = append(grids, g)
-// 	}
-// 	for i := range grids {
-// 		g := grids[i]
-// 		objs := g.GetAllObjects()
-// 		for i := range objs {
-// 			o := objs[i]
-// 			switch o.GetRace() {
-// 			case common.ObjectTypeMonster:
-// 				monster = append(monster, o.(*Monster))
-// 			case common.ObjectTypeMerchant:
-// 				npc = append(npc, o.(*NPC))
-// 			}
-// 		}
-// 	}
-// 	return
-// }
 
 func (e *Environ) EnvironProcess(...interface{}) {
 	finishID := make([]uint32, 0)
