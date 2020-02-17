@@ -13,7 +13,8 @@ import (
 )
 
 func (g *Game) HandleEvent(ev cellnet.Event) {
-	g.Pool.Submit(NewTask(_HandleEvent, g, ev))
+	// g.Pool.Submit(NewTask(_HandleEvent, g, ev))
+	_HandleEvent(g, ev)
 }
 
 func _HandleEvent(args ...interface{}) {

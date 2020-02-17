@@ -35,3 +35,19 @@ func NewDelayedAction(id uint32, typ DelayedType, task *Task) *DelayedAction {
 		Task:        task,
 	}
 }
+
+type Task struct {
+	f    func(...interface{})
+	args []interface{}
+}
+
+func NewTask(f func(...interface{}), args ...interface{}) *Task {
+	return &Task{
+		f:    f,
+		args: args,
+	}
+}
+
+func (t *Task) Execute() {
+	t.f(t.args...)
+}
