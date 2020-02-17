@@ -6,7 +6,6 @@ import (
 	"strings"
 	"sync"
 	"sync/atomic"
-	"time"
 
 	"github.com/davyxu/cellnet"
 	_ "github.com/yenkeia/mirgo/codec/mircodec"
@@ -25,7 +24,7 @@ type Environ struct {
 	ObjectID           uint32
 	Players            []*Player
 	lock               *sync.Mutex
-	ActionList         *sync.Map // map[uint32]*DelayedAction  mapID: DelayedAction.ID
+	// ActionList         *sync.Map // map[uint32]*DelayedAction  mapID: DelayedAction.ID
 }
 
 // NewEnviron ...
@@ -38,7 +37,7 @@ func NewEnviron(g *Game) (env *Environ) {
 	env.ObjectID = 100000
 	env.Players = make([]*Player, 0)
 	env.lock = new(sync.Mutex)
-	env.ActionList = new(sync.Map)
+	// env.ActionList = new(sync.Map)
 	// env.NPCs = new(sync.Map)
 	err := env.InitObjects()
 	if err != nil {
@@ -210,7 +209,6 @@ func (e *Environ) InitMaps() {
 		panic(err)
 	}
 
-	//e.Maps = make([]Map, 386)
 	e.Maps = new(sync.Map)
 	for i := range e.GameDB.MapInfos {
 		mi := e.GameDB.MapInfos[i]
@@ -221,6 +219,7 @@ func (e *Environ) InitMaps() {
 		m := LoadMap(mapDirPath + uppercaseNameRealNameMap[strings.ToUpper(mi.Filename+".map")])
 		m.Env = e
 		m.Info = &mi
+		go m.Loop()
 		e.Maps.Store(mi.ID, m)
 		break
 	}
@@ -318,10 +317,6 @@ func (e *Environ) GetMap(mapID int) *Map {
 	return v.(*Map)
 }
 
-func (e *Environ) Submit(t *Task) {
-	e.Game.Pool.EntryChan <- t
-}
-
 func (e *Environ) Broadcast(msg interface{}) {
 	e.Maps.Range(func(k, v interface{}) bool {
 		v.(*Map).Broadcast(msg)
@@ -331,40 +326,40 @@ func (e *Environ) Broadcast(msg interface{}) {
 
 // StartLoop
 func (e *Environ) StartLoop() {
-	go e.TimeTick()
-	go e.Game.Pool.Run()
+	// go e.TimeTick()
+	// go e.Game.Pool.Run()
 }
 
-func (e *Environ) TimeTick() {
-	// 系统事件 广播 存档
-	systemBroadcastTicker := time.NewTicker(1 * time.Hour)
+// func (e *Environ) TimeTick() {
+// 	// 系统事件 广播 存档
+// 	systemBroadcastTicker := time.NewTicker(1 * time.Hour)
 
-	debugTicker := time.NewTicker(10 * time.Second)
+// 	debugTicker := time.NewTicker(10 * time.Second)
 
-	// 地图事件 刷怪 地图物品
-	mapTicker := time.NewTicker(300 * time.Millisecond)
+// 	// 地图事件 刷怪 地图物品
+// 	mapTicker := time.NewTicker(300 * time.Millisecond)
 
-	// 玩家事件 buff 等状态改变
-	playerTicker := time.NewTicker(200 * time.Millisecond)
+// 	// 玩家事件 buff 等状态改变
+// 	playerTicker := time.NewTicker(200 * time.Millisecond)
 
-	// 怪物 / NPC 事件. 移动 buff
-	monsterNPCTicker := time.NewTicker(300 * time.Millisecond)
+// 	// 怪物 / NPC 事件. 移动 buff
+// 	monsterNPCTicker := time.NewTicker(300 * time.Millisecond)
 
-	for {
-		select {
-		case <-debugTicker.C:
-			e.Debug()
-		case <-systemBroadcastTicker.C:
-			e.Submit(NewTask(e.SystemBroadcast))
-		case <-mapTicker.C:
-			e.Submit(NewTask(e.EnvironProcess))
-		case <-playerTicker.C:
-			e.Submit(NewTask(e.PlayerProcess))
-		case <-monsterNPCTicker.C:
-			e.Submit(NewTask(e.MonsterNPCProcess))
-		}
-	}
-}
+// 	for {
+// 		select {
+// 		case <-debugTicker.C:
+// 			e.Debug()
+// 		case <-systemBroadcastTicker.C:
+// 			e.Submit(NewTask(e.SystemBroadcast))
+// 		case <-mapTicker.C:
+// 			e.Submit(NewTask(e.EnvironProcess))
+// 		case <-playerTicker.C:
+// 			e.Submit(NewTask(e.PlayerProcess))
+// 		case <-monsterNPCTicker.C:
+// 			e.Submit(NewTask(e.MonsterNPCProcess))
+// 		}
+// 	}
+// }
 
 func (e *Environ) SystemBroadcast(...interface{}) {
 	envPlayerCount := e.GetPlayersCount()
@@ -394,48 +389,48 @@ func (e *Environ) Debug() {
 	}
 }
 
-func (e *Environ) EnvironProcess(...interface{}) {
-	finishID := make([]uint32, 0)
-	e.ActionList.Range(func(k, v interface{}) bool {
-		action := v.(*DelayedAction)
-		if action.Finish || time.Now().Before(action.ActionTime) {
-			return true
-		}
-		action.Task.Execute()
-		action.Finish = true
-		if action.Finish {
-			finishID = append(finishID, action.ID)
-		}
-		return true
-	})
-	for i := range finishID {
-		e.ActionList.Delete(finishID[i])
-	}
-}
+// func (e *Environ) EnvironProcess(...interface{}) {
+// 	finishID := make([]uint32, 0)
+// 	e.ActionList.Range(func(k, v interface{}) bool {
+// 		action := v.(*DelayedAction)
+// 		if action.Finish || time.Now().Before(action.ActionTime) {
+// 			return true
+// 		}
+// 		action.Task.Execute()
+// 		action.Finish = true
+// 		if action.Finish {
+// 			finishID = append(finishID, action.ID)
+// 		}
+// 		return true
+// 	})
+// 	for i := range finishID {
+// 		e.ActionList.Delete(finishID[i])
+// 	}
+// }
 
-func (e *Environ) PlayerProcess(...interface{}) {
-	for i := range e.Players {
-		e.Players[i].Process()
-	}
-}
+// func (e *Environ) PlayerProcess(...interface{}) {
+// 	for i := range e.Players {
+// 		e.Players[i].Process()
+// 	}
+// }
 
-func (e *Environ) MonsterNPCProcess(...interface{}) {
-	// monsters, npcs := e.GetActiveObjects()
-	// for i := range monsters {
-	// 	monsters[i].Process()
-	// }
-	// for i := range npcs {
-	// 	npcs[i].Process()
-	// }
-	e.Maps.Range(func(k, v interface{}) bool {
-		m := v.(*Map)
-		for _, v := range m.monsters {
-			v.Process()
-		}
+// func (e *Environ) MonsterNPCProcess(...interface{}) {
+// 	// monsters, npcs := e.GetActiveObjects()
+// 	// for i := range monsters {
+// 	// 	monsters[i].Process()
+// 	// }
+// 	// for i := range npcs {
+// 	// 	npcs[i].Process()
+// 	// }
+// 	e.Maps.Range(func(k, v interface{}) bool {
+// 		m := v.(*Map)
+// 		for _, v := range m.monsters {
+// 			v.Process()
+// 		}
 
-		for _, v := range m.npcs {
-			v.Process()
-		}
-		return true
-	})
-}
+// 		for _, v := range m.npcs {
+// 			v.Process()
+// 		}
+// 		return true
+// 	})
+// }

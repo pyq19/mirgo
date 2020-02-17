@@ -14,11 +14,12 @@ type Map struct {
 	Height int
 	Info   *common.MapInfo
 	cells  []*Cell
-	// AOI    *AOIManager
 
 	players  map[uint32]*Player
 	monsters map[uint32]*Monster
 	npcs     map[uint32]*NPC
+
+	ActionList map[uint32]*DelayedAction
 }
 
 func NewMap(w, h int) *Map {
@@ -30,8 +31,49 @@ func NewMap(w, h int) *Map {
 		monsters: map[uint32]*Monster{},
 		npcs:     map[uint32]*NPC{},
 	}
-	// m.AOI = newAOI(m, w, h)
 	return m
+}
+
+func (m *Map) Loop() {
+	// 地图事件 刷怪 地图物品
+	mapTicker := time.NewTicker(300 * time.Millisecond)
+
+	// 玩家事件 buff 等状态改变
+	playerTicker := time.NewTicker(200 * time.Millisecond)
+
+	// 怪物 / NPC 事件. 移动 buff
+	monsterNPCTicker := time.NewTicker(300 * time.Millisecond)
+
+	for {
+		select {
+		case <-mapTicker.C:
+
+			for i, action := range m.ActionList {
+				if !action.Finish && !time.Now().Before(action.ActionTime) {
+					action.Task.Execute()
+				}
+				delete(m.ActionList, i)
+			}
+
+		case <-playerTicker.C:
+
+			for _, p := range m.players {
+				p.Process()
+			}
+
+		case <-monsterNPCTicker.C:
+			for _, monster := range m.monsters {
+				monster.Process()
+			}
+			for _, npc := range m.npcs {
+				npc.Process()
+			}
+		}
+	}
+}
+
+func (m *Map) PushAction(action *DelayedAction) {
+	m.ActionList[action.ID] = action
 }
 
 func (m *Map) GetCell(p common.Point) *Cell {
@@ -60,9 +102,9 @@ func (m *Map) String() string {
 	return fmt.Sprintf("Map(%d, Filename: %s, Title: %s, Width: %d, Height: %d)", m.Info.ID, m.Info.Filename, m.Info.Title, m.Width, m.Height)
 }
 
-func (m *Map) Submit(t *Task) {
-	m.Env.Game.Pool.EntryChan <- t
-}
+// func (m *Map) Submit(t *Task) {
+// 	m.Env.Game.Pool.EntryChan <- t
+// }
 
 func (m *Map) GetAllPlayers() map[uint32]*Player {
 	return m.players
@@ -82,32 +124,21 @@ const DataRange = 6
 
 // 位置，消息，跳过玩家
 func (m *Map) BroadcastP(pos common.Point, msg interface{}, me *Player) {
-	m.Submit(NewTask(func(args ...interface{}) {
-		for _, plr := range m.players {
-			if InRange(pos, plr.CurrentLocation, DataRange) {
-				if plr != me {
-					plr.Enqueue(msg)
-				}
+	// m.Submit(NewTask(func(args ...interface{}) {
+	for _, plr := range m.players {
+		if InRange(pos, plr.CurrentLocation, DataRange) {
+			if plr != me {
+				plr.Enqueue(msg)
 			}
 		}
-		// grids := m.AOI.GetSurroundGrids(p)
-		// for i := range grids {
-		// 	areaPlayers := grids[i].GetAllPlayer()
-		// 	for _, p := range areaPlayers {
-		// 		if p != me {
-		// 			areaPlayers[i].Enqueue(msg)
-		// 		}
-		// 	}
-		// }
-	}))
+	}
+	// }))
 }
 
 func (m *Map) AddObject(obj IMapObject) (string, bool) {
 	if obj == nil || obj.GetID() == 0 {
 		return "", false
 	}
-	// grid := m.AOI.GetGridByPoint(obj.GetPoint())
-	// grid.AddObject(obj)
 	c := m.GetCell(obj.GetPoint())
 	if c == nil {
 		// FIXME
@@ -131,8 +162,6 @@ func (m *Map) DeleteObject(obj IMapObject) {
 	if obj == nil || obj.GetID() == 0 {
 		return
 	}
-	// grid := m.AOI.GetGridByPoint(obj.GetPoint())
-	// grid.DeleteObject(obj)
 	c := m.GetCell(obj.GetPoint())
 	if c == nil {
 		return
@@ -256,28 +285,6 @@ func (m *Map) GetNextCell(cell *Cell, direction common.MirDirection, step uint32
 	p := cell.Point.NextPoint(direction, step)
 	return m.GetCell(p)
 }
-
-// GetAreaMapObjects 传入一个点，获取该点附近 9 个 AOI 区域内 MapObject
-// func (m *Map) GetAreaObjects(p common.Point) (objs []IMapObject) {
-// 	grids := m.AOI.GetSurroundGrids(p)
-// 	for i := range grids {
-// 		g := grids[i]
-// 		objs = append(objs, g.GetAllObjects()...)
-// 	}
-// 	return
-// }
-
-// GetObjectInAreaByID 查找点 p 附近的区域中 ObjectID 为 id 的对象
-// func (m *Map) GetObjectInAreaByID(id uint32, p common.Point) IMapObject {
-// 	areaObjects := m.GetAreaObjects(p)
-// 	for i := range areaObjects {
-// 		obj := areaObjects[i]
-// 		if obj.GetID() == id {
-// 			return obj
-// 		}
-// 	}
-// 	return nil
-// }
 
 func (m *Map) GetObjectInAreaByID(id uint32, p common.Point) IMapObject {
 	var ret IMapObject
@@ -406,42 +413,6 @@ func (m *Map) CalcDiff(from, to common.Point, datarange int) *CellSet {
 
 	return set
 }
-
-// for test CalcDiff.
-// func (m *Map) CalcDiff1(from, to common.Point, datarange int) *CellSet {
-// 	fx, fy, tx, ty := int(from.X), int(from.Y), int(to.X), int(to.Y)
-
-// 	oldcells := map[int]bool{}
-// 	m.RangeCell(common.NewPoint(fx, fy), datarange, func(c *Cell, x, y int) bool {
-// 		oldcells[x*10000+y] = true
-// 		return true
-// 	})
-
-// 	newcells := map[int]bool{}
-// 	m.RangeCell(common.NewPoint(tx, ty), datarange, func(c *Cell, x, y int) bool {
-// 		newcells[x*10000+y] = true
-// 		return true
-// 	})
-
-// 	added := map[int]bool{}
-// 	for c := range newcells {
-// 		if _, ok := oldcells[c]; ok {
-// 			delete(oldcells, c)
-// 		} else {
-// 			added[c] = true
-// 		}
-// 	}
-
-// 	cs := NewCellSet()
-// 	for c := range oldcells {
-// 		cs.Add(m, c/10000, c%10000, false)
-// 	}
-
-// 	for c := range added {
-// 		cs.Add(m, c/10000, c%10000, true)
-// 	}
-// 	return cs
-// }
 
 // CompleteMagic ...
 func (m *Map) CompleteMagic(args ...interface{}) {

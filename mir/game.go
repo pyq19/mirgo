@@ -17,7 +17,6 @@ var log = golog.New("server.game")
 // Game ...
 type Game struct {
 	DB   *gorm.DB
-	Pool *Pool
 	Env  *Environ
 	Peer *cellnet.GenericPeer
 }
@@ -31,7 +30,6 @@ func NewGame() *Game {
 	}
 	//defer db.Close()
 	g.DB = db
-	g.Pool = NewPool(10)
 	g.Env = NewEnviron(g)
 	g.Env.StartLoop()
 	return g
