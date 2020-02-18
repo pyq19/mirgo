@@ -11,7 +11,6 @@ import (
 // Cell 地图格子
 type Cell struct {
 	Point     common.Point
-	Map       *Map
 	Attribute common.CellAttribute
 	Objects   *sync.Map // map[IMapObject.ID]IMapObject
 }
