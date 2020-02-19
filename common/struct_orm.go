@@ -1,6 +1,11 @@
 package common
 
-import "fmt"
+import (
+	"fmt"
+	"math"
+
+	"github.com/yenkeia/mirgo/ut"
+)
 
 // Account 账号
 type Account struct {
@@ -366,29 +371,34 @@ type UserMagic struct {
 	Key         int `gorm:"Column:magic_key"` // byte
 	Experience  int // uint16
 	IsTempSpell bool
-	CastTime    int // int64
-	//Magic       MagicInfo `gorm:"-"` // orm ignore
+	CastTime    int        // int64
+	Info        *MagicInfo `gorm:"-"` // orm ignore
 }
 
-// TODO
 func (um *UserMagic) GetDamage(damageBase int) int {
-	return 0
+	return damageBase + um.GetPower()
 }
 
-// TODO
-func (um *UserMagic) GetPower(power int) int {
-	// return (int)Math.Round(power / 4F * (Level + 1) + DefPower());
-	return 0
+func (um *UserMagic) GetPower() int {
+	return um.GetPower1(um.MPower())
+}
+func (um *UserMagic) GetPower1(power int) int {
+	return int(math.Round((float64(power)/4.0)*float64(um.Level+1) + float64(um.DefPower())))
 }
 
 func (um *UserMagic) MPower() int {
-	// 	if (Info.MPowerBonus > 0)
-	// 	{
-	// 		return SMain.Envir.Random.Next(Info.MPowerBase, Info.MPowerBonus + Info.MPowerBase);
-	// 	}
-	// 	else
-	// 		return Info.MPowerBase;
-	return 0
+	if um.Info.MPowerBonus > 0 {
+		return ut.RandomNext2(um.Info.MPowerBase, um.Info.MPowerBonus+um.Info.MPowerBase)
+	} else {
+		return um.Info.MPowerBase
+	}
+}
+func (um *UserMagic) DefPower() int {
+	if um.Info.MPowerBonus > 0 {
+		return ut.RandomNext2(um.Info.PowerBase, um.Info.PowerBonus+um.Info.PowerBase)
+	} else {
+		return um.Info.MPowerBase
+	}
 }
 
 func (um *UserMagic) GetClientMagic(info *MagicInfo) ClientMagic {

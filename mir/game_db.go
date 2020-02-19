@@ -9,17 +9,17 @@ import (
 // GameDB ...
 type GameDB struct {
 	Basic              common.Basic
-	GameShopItems      []common.GameShopItem
-	ItemInfos          []common.ItemInfo
-	MagicInfos         []common.MagicInfo
-	MapInfos           []common.MapInfo
-	MonsterInfos       []common.MonsterInfo
-	MovementInfos      []common.MovementInfo
-	NpcInfos           []common.NpcInfo
-	QuestInfos         []common.QuestInfo
-	RespawnInfos       []common.RespawnInfo
-	SafeZoneInfos      []common.SafeZoneInfo
-	UserMagics         []common.UserMagic
+	GameShopItems      []*common.GameShopItem
+	ItemInfos          []*common.ItemInfo
+	MagicInfos         []*common.MagicInfo
+	MapInfos           []*common.MapInfo
+	MonsterInfos       []*common.MonsterInfo
+	MovementInfos      []*common.MovementInfo
+	NpcInfos           []*common.NpcInfo
+	QuestInfos         []*common.QuestInfo
+	RespawnInfos       []*common.RespawnInfo
+	SafeZoneInfos      []*common.SafeZoneInfo
+	UserMagics         []*common.UserMagic
 	MapIDInfoMap       *sync.Map // key: MapID, value: MapInfo
 	ItemIDInfoMap      *sync.Map // key: ItemID, value: ItemInfo
 	ItemNameInfoMap    *sync.Map // key: ItemName, value: ItemInfo

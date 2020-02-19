@@ -8,6 +8,7 @@ import (
 	"github.com/yenkeia/mirgo/mir/script"
 	"github.com/yenkeia/mirgo/proto/server"
 	"github.com/yenkeia/mirgo/setting"
+	"github.com/yenkeia/mirgo/ut"
 )
 
 type NPC struct {
@@ -31,7 +32,7 @@ func NewNPC(m *Map, ni *common.NpcInfo) *NPC {
 			NameColor:        common.Color{R: 255, G: 255, B: 255},
 			Map:              m,
 			CurrentLocation:  common.NewPoint(ni.LocationX, ni.LocationY),
-			CurrentDirection: common.MirDirection(RandomInt(0, 1)),
+			CurrentDirection: common.MirDirection(ut.RandomInt(0, 1)),
 		},
 		Image:    ni.Image,
 		Light:    0, // TODO
@@ -130,8 +131,8 @@ func (n *NPC) Broadcast(msg interface{}) {
 
 func (n *NPC) Process() {
 	if n.TurnTime.Before(time.Now()) {
-		n.TurnTime = time.Now().Add(time.Second * time.Duration(RandomInt(20, 60)))
-		n.CurrentDirection = common.MirDirection(RandomInt(0, 1))
+		n.TurnTime = time.Now().Add(time.Second * time.Duration(ut.RandomInt(20, 60)))
+		n.CurrentDirection = common.MirDirection(ut.RandomInt(0, 1))
 		n.Broadcast(ServerMessage{}.ObjectTurn(n))
 	}
 }

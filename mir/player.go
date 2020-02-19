@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/yenkeia/mirgo/setting"
+	"github.com/yenkeia/mirgo/ut"
 
 	"github.com/davyxu/cellnet"
 	"github.com/yenkeia/mirgo/common"
@@ -90,7 +91,7 @@ type Player struct {
 	CraftRate          uint8
 	GoldDropRateOffset float32
 	AttackBonus        uint8
-	Magics             []common.UserMagic
+	Magics             []*common.UserMagic
 	ActionList         *sync.Map // map[uint32]DelayedAction
 	Health             Health    // 状态恢复
 	Pets               []IMapObject
@@ -687,7 +688,7 @@ func (p *Player) GetAttackPower(min, max int) int {
 		max = min
 	}
 	// TODO luck
-	return RandomInt(min, max)
+	return ut.RandomInt(min, max)
 }
 
 // TODO
@@ -765,59 +766,6 @@ func (p *Player) Teleport(m *Map, pt common.Point) {
 
 }
 
-// func (p *Player) EnqueueAreaObjects(oldGrid, newGrid *Grid) {
-// 	oldAreaGrids := make([]*Grid, 0)
-// 	if oldGrid != nil {
-// 		oldAreaGrids = p.Map.AOI.GetSurroundGridsByGridID(oldGrid.GID)
-// 	}
-// 	newAreaGrids := p.Map.AOI.GetSurroundGridsByGridID(newGrid.GID)
-// 	send := make(map[int]bool)
-// 	for i := range newAreaGrids {
-// 		ng := newAreaGrids[i]
-// 		send[ng.GID] = true
-// 		for j := range oldAreaGrids {
-// 			og := oldAreaGrids[j]
-// 			if ng.GID == og.GID {
-// 				send[ng.GID] = false
-// 			}
-// 		}
-// 	}
-// 	newAreaObjects := make([]IMapObject, 0)
-// 	for i := range newAreaGrids {
-// 		ng := newAreaGrids[i]
-// 		if send[ng.GID] {
-// 			newAreaObjects = append(newAreaObjects, ng.GetAllObjects()...)
-// 		}
-// 	}
-// 	for i := range newAreaObjects {
-// 		if o := newAreaObjects[i]; o.GetID() != p.GetID() {
-// 			p.Enqueue(ServerMessage{}.Object(o))
-// 		}
-// 	}
-// 	drop := make(map[int]bool)
-// 	for i := range oldAreaGrids {
-// 		og := oldAreaGrids[i]
-// 		drop[og.GID] = true
-// 		for j := range newAreaGrids {
-// 			ng := newAreaGrids[j]
-// 			if og.GID == ng.GID {
-// 				drop[og.GID] = false
-// 			}
-// 		}
-// 	}
-// 	oldAreaObjects := make([]IMapObject, 0)
-// 	for i := range oldAreaGrids {
-// 		og := oldAreaGrids[i]
-// 		if drop[og.GID] {
-// 			oldAreaObjects = append(oldAreaObjects, og.GetAllObjects()...)
-// 		}
-// 	}
-// 	for i := range oldAreaObjects {
-// 		if o := oldAreaObjects[i]; o.GetID() != p.GetID() {
-// 			p.Enqueue(ServerMessage{}.ObjectRemove(o))
-// 		}
-// 	}
-// }
 func (p *Player) EnqueueAreaObjects(oldCell, newCell *Cell) {
 	if oldCell == nil {
 		p.Map.RangeObject(p.CurrentLocation, DataRange, func(o IMapObject) bool {
