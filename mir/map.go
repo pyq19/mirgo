@@ -1,10 +1,13 @@
 package mir
 
 import (
+	"container/list"
 	"fmt"
+	"sync"
 	"time"
 
 	"github.com/yenkeia/mirgo/common"
+	"github.com/yenkeia/mirgo/ut"
 )
 
 // Map ...
@@ -20,6 +23,9 @@ type Map struct {
 	npcs     map[uint32]*NPC
 
 	ActionList map[uint32]*DelayedAction
+
+	msgMutex sync.Mutex
+	MsgList  list.List
 }
 
 func NewMap(w, h int) *Map {
@@ -35,19 +41,20 @@ func NewMap(w, h int) *Map {
 }
 
 func (m *Map) Loop() {
-	// 地图事件 刷怪 地图物品
-	mapTicker := time.NewTicker(300 * time.Millisecond)
-
-	// 玩家事件 buff 等状态改变
-	playerTicker := time.NewTicker(200 * time.Millisecond)
-
-	// 怪物 / NPC 事件. 移动 buff
-	monsterNPCTicker := time.NewTicker(300 * time.Millisecond)
 
 	for {
-		select {
-		case <-mapTicker.C:
+		m.msgMutex.Lock()
+		if m.MsgList.Len() > 0 {
+			for it := m.MsgList.Front(); it != nil; {
+				curr := it
+				it = it.Next()
+				m.MsgList.Remove(curr).(func())()
+			}
+		}
+		m.msgMutex.Unlock()
 
+		// TODO: 帧率
+		{
 			for i, action := range m.ActionList {
 				if !action.Finish && !time.Now().Before(action.ActionTime) {
 					action.Task.Execute()
@@ -55,13 +62,9 @@ func (m *Map) Loop() {
 				delete(m.ActionList, i)
 			}
 
-		case <-playerTicker.C:
-
 			for _, p := range m.players {
 				p.Process()
 			}
-
-		case <-monsterNPCTicker.C:
 			for _, monster := range m.monsters {
 				monster.Process()
 			}
@@ -70,6 +73,12 @@ func (m *Map) Loop() {
 			}
 		}
 	}
+}
+
+func (m *Map) Run(f func()) {
+	m.msgMutex.Lock()
+	m.MsgList.PushBack(f)
+	m.msgMutex.Unlock()
 }
 
 func (m *Map) PushAction(action *DelayedAction) {
@@ -101,10 +110,6 @@ func (m *Map) SetCellXY(x, y int, c *Cell) {
 func (m *Map) String() string {
 	return fmt.Sprintf("Map(%d, Filename: %s, Title: %s, Width: %d, Height: %d)", m.Info.ID, m.Info.Filename, m.Info.Title, m.Width, m.Height)
 }
-
-// func (m *Map) Submit(t *Task) {
-// 	m.Env.Game.Pool.EntryChan <- t
-// }
 
 func (m *Map) GetAllPlayers() map[uint32]*Player {
 	return m.players
@@ -224,7 +229,7 @@ func (m *Map) InitNPCs() error {
 	for _, ni := range m.Env.GameDB.NpcInfos {
 		ni := ni
 		if ni.MapID == m.Info.ID {
-			n := NewNPC(m, &ni)
+			n := NewNPC(m, ni)
 			m.AddObject(n)
 		}
 	}
@@ -261,8 +266,8 @@ func (m *Map) GetValidPoint(x int, y int, spread int) (common.Point, error) {
 
 	for i := 0; i < 500; i++ {
 		p := common.Point{
-			X: uint32(AbsInt(x + RandomInt(-spread, spread))),
-			Y: uint32(AbsInt(y + RandomInt(-spread, spread))),
+			X: uint32(ut.AbsInt(x + ut.RandomInt(-spread, spread))),
+			Y: uint32(ut.AbsInt(y + ut.RandomInt(-spread, spread))),
 		}
 		c := m.GetCell(p)
 		if c == nil || !c.CanWalk() {

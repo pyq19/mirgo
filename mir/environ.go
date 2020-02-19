@@ -81,21 +81,21 @@ func (e *Environ) InitGameDB() {
 	gdb.MagicIDInfoMap = new(sync.Map)
 	for i := range gdb.MapInfos {
 		v := gdb.MapInfos[i]
-		gdb.MapIDInfoMap.Store(v.ID, &v)
+		gdb.MapIDInfoMap.Store(v.ID, v)
 	}
 	for i := range gdb.ItemInfos {
 		v := gdb.ItemInfos[i]
-		gdb.ItemIDInfoMap.Store(int(v.ID), &v)
-		gdb.ItemNameInfoMap.Store(v.Name, &v)
+		gdb.ItemIDInfoMap.Store(int(v.ID), v)
+		gdb.ItemNameInfoMap.Store(v.Name, v)
 	}
 	for i := range gdb.MonsterInfos {
 		v := gdb.MonsterInfos[i]
-		gdb.MonsterNameInfoMap.Store(v.Name, &v)
-		gdb.MonsterIDInfoMap.Store(v.ID, &v)
+		gdb.MonsterNameInfoMap.Store(v.Name, v)
+		gdb.MonsterIDInfoMap.Store(v.ID, v)
 	}
 	for i := range gdb.MagicInfos {
 		v := gdb.MagicInfos[i]
-		gdb.MagicIDInfoMap.Store(v.ID, &v)
+		gdb.MagicIDInfoMap.Store(v.ID, v)
 	}
 }
 
@@ -191,7 +191,7 @@ func (e *Environ) InitMaps() {
 		}
 		m := LoadMap(mapDirPath + uppercaseNameRealNameMap[strings.ToUpper(mi.Filename+".map")])
 		m.Env = e
-		m.Info = &mi
+		m.Info = mi
 		if err := m.InitMonsters(); err != nil {
 			panic(err)
 		}
