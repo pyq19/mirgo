@@ -1,6 +1,9 @@
 package common
 
-import "fmt"
+import (
+	"fmt"
+	"math"
+)
 
 // Account 账号
 type Account struct {
@@ -378,6 +381,7 @@ func (um *UserMagic) GetDamage(damageBase int) int {
 // TODO
 func (um *UserMagic) GetPower(power int) int {
 	// return (int)Math.Round(power / 4F * (Level + 1) + DefPower());
+	math.Round(0.0)
 	return 0
 }
 
