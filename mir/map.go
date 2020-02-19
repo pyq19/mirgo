@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/yenkeia/mirgo/common"
+	"github.com/yenkeia/mirgo/ut"
 )
 
 // Map ...
@@ -228,7 +229,7 @@ func (m *Map) InitNPCs() error {
 	for _, ni := range m.Env.GameDB.NpcInfos {
 		ni := ni
 		if ni.MapID == m.Info.ID {
-			n := NewNPC(m, &ni)
+			n := NewNPC(m, ni)
 			m.AddObject(n)
 		}
 	}
@@ -265,8 +266,8 @@ func (m *Map) GetValidPoint(x int, y int, spread int) (common.Point, error) {
 
 	for i := 0; i < 500; i++ {
 		p := common.Point{
-			X: uint32(AbsInt(x + RandomInt(-spread, spread))),
-			Y: uint32(AbsInt(y + RandomInt(-spread, spread))),
+			X: uint32(ut.AbsInt(x + ut.RandomInt(-spread, spread))),
+			Y: uint32(ut.AbsInt(y + ut.RandomInt(-spread, spread))),
 		}
 		c := m.GetCell(p)
 		if c == nil || !c.CanWalk() {
