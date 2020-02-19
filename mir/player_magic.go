@@ -11,7 +11,7 @@ func (p *Player) GetMagic(spell common.Spell) *common.UserMagic {
 	for i := range p.Magics {
 		userMagic := p.Magics[i]
 		if userMagic.Spell == spell {
-			return &userMagic
+			return userMagic
 		}
 	}
 	return nil
@@ -134,7 +134,7 @@ func (p *Player) UseMagic(spell common.Spell, magic *common.UserMagic, target IM
 		*/
 	case common.SpellMagicShield:
 		// ActionList.Add(new DelayedAction(DelayedType.Magic, Envir.Time + 500, magic, magic.GetPower(GetAttackPower(MinMC, MaxMC) + 15)));
-		action := NewDelayedAction(p.NewObjectID(), DelayedTypeMagic, NewTask(p.CompleteMagic, magic, magic.GetPower(p.GetAttackPower(int(p.MinMC), int(p.MaxMC))+15)))
+		action := NewDelayedAction(p.NewObjectID(), DelayedTypeMagic, NewTask(p.CompleteMagic, magic, magic.GetPower1(p.GetAttackPower(int(p.MinMC), int(p.MaxMC))+15)))
 		p.ActionList.Store(action.ID, action)
 	case common.SpellFlameDisruptor:
 		p.FlameDisruptor(target, magic)
@@ -712,7 +712,7 @@ func (p *Player) Revelation(target IMapObject, magic *common.UserMagic) {
 	if target == nil {
 		return
 	}
-	value := p.GetAttackPower(int(p.MinSC), int(p.MaxSC)) + magic.GetPower(magic.MPower())
+	value := p.GetAttackPower(int(p.MinSC), int(p.MaxSC)) + magic.GetPower()
 	action := NewDelayedAction(p.NewObjectID(), DelayedTypeMagic, NewTask(p.CompleteMagic, magic, value, target))
 	p.ActionList.Store(action.ID, action)
 }

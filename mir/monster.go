@@ -7,6 +7,7 @@ import (
 
 	"github.com/yenkeia/mirgo/common"
 	"github.com/yenkeia/mirgo/proto/server"
+	"github.com/yenkeia/mirgo/ut"
 )
 
 type IBehavior interface {
@@ -335,7 +336,7 @@ func (m *Monster) GetDefencePower(min, max int) int {
 	if min > max {
 		max = min
 	}
-	return RandomInt(min, max)
+	return ut.RandomInt(min, max)
 }
 
 // GetAttackPower 获取攻击值
@@ -347,7 +348,7 @@ func (m *Monster) GetAttackPower(min, max int) int {
 		max = min
 	}
 	// TODO luck
-	return RandomInt(min, max+1)
+	return ut.RandomInt(min, max+1)
 }
 
 // Die ...
@@ -401,7 +402,7 @@ func (m *Monster) Attacked(attacker IMapObject, damage int, defenceType common.D
 	armor := 0
 	switch defenceType {
 	case common.DefenceTypeACAgility:
-		if RandomInt(0, int(m.Agility)) > int(attacker.GetBaseStats().Accuracy) {
+		if ut.RandomInt(0, int(m.Agility)) > int(attacker.GetBaseStats().Accuracy) {
 			m.BroadcastDamageIndicator(common.DamageTypeMiss, 0)
 			return
 		}
@@ -409,7 +410,7 @@ func (m *Monster) Attacked(attacker IMapObject, damage int, defenceType common.D
 	case common.DefenceTypeAC:
 		armor = m.GetDefencePower(int(m.MinAC), int(m.MaxAC))
 	case common.DefenceTypeMACAgility:
-		if RandomInt(0, int(m.Agility)) > int(attacker.GetBaseStats().Accuracy) {
+		if ut.RandomInt(0, int(m.Agility)) > int(attacker.GetBaseStats().Accuracy) {
 			m.BroadcastDamageIndicator(common.DamageTypeMiss, 0)
 			return
 		}
@@ -417,7 +418,7 @@ func (m *Monster) Attacked(attacker IMapObject, damage int, defenceType common.D
 	case common.DefenceTypeMAC:
 		armor = m.GetDefencePower(int(m.MinMAC), int(m.MaxMAC))
 	case common.DefenceTypeAgility:
-		if RandomInt(0, int(m.Agility)) > int(attacker.GetBaseStats().Accuracy) {
+		if ut.RandomInt(0, int(m.Agility)) > int(attacker.GetBaseStats().Accuracy) {
 			m.BroadcastDamageIndicator(common.DamageTypeMiss, 0)
 			return
 		}
@@ -447,7 +448,7 @@ func (m *Monster) Drop() {
 	mapItems := make([]Item, 0)
 	for i := range dropInfos {
 		drop := dropInfos[i]
-		if RandomInt(1, drop.Chance) != 1 {
+		if ut.RandomInt(1, drop.Chance) != 1 {
 			continue
 		}
 		if drop.Gold > 0 {
@@ -680,7 +681,7 @@ func (m *Monster) MoveTo(location common.Point) {
 	if m.Walk(dir) {
 		return
 	}
-	switch RandomNext(2) { //No favour
+	switch ut.RandomNext(2) { //No favour
 	case 0:
 		for i := 0; i < 7; i++ {
 			dir = NextDirection(dir)
