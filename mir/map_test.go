@@ -36,7 +36,7 @@ func TestSaveMapText(t *testing.T) {
 	gopath := os.Getenv("GOPATH")
 	filePath := gopath + "/src/github.com/yenkeia/mirgo/01.txt"
 	mapAbsPath := gopath + "/src/github.com/yenkeia/mirgo/dotnettools/database/Maps/0.map"
-	m := GetMapV1(GetMapBytes(mapAbsPath))
+	m := LoadMap(mapAbsPath)
 	// t.Log(m)
 	str := ""
 	for i := 0; i < int(m.Width); i++ {
@@ -58,9 +58,8 @@ func TestSaveMapText(t *testing.T) {
 }
 
 func TestMap_GetNextCell(t *testing.T) {
-	m := GetMapV1(GetMapBytes(os.Getenv("GOPATH") + "/src/github.com/yenkeia/mirgo/dotnettools/database/Maps/0.map"))
+	m := LoadMap(os.Getenv("GOPATH") + "/src/github.com/yenkeia/mirgo/dotnettools/database/Maps/0.map")
 	c := &Cell{
-		Map:       m,
 		Point:     common.Point{100, 200},
 		Attribute: 0,
 		Objects:   nil,
@@ -105,7 +104,7 @@ func TestEnviron_LoadAllMap(t *testing.T) {
 func TestMapRange(t *testing.T) {
 	gopath := os.Getenv("GOPATH")
 	mapAbsPath := gopath + "/src/github.com/yenkeia/mirgo/dotnettools/database/Maps/0.map"
-	m := GetMapV1(GetMapBytes(mapAbsPath))
+	m := LoadMap(mapAbsPath)
 
 	p := common.Point{X: 1, Y: 1}
 
@@ -126,29 +125,6 @@ func TestMapRange(t *testing.T) {
 
 	fmt.Println("---")
 	m.RangeCell(p, 2, printpos)
-}
-
-func TestCalc(t *testing.T) {
-	gopath := os.Getenv("GOPATH")
-	mapAbsPath := gopath + "/src/github.com/yenkeia/mirgo/dotnettools/database/Maps/0.map"
-	m := GetMapV1(GetMapBytes(mapAbsPath))
-
-	// testft(m, 100, 100, 101, 101, 1)
-	// testft(m, 100, 100, 102, 102, 1)
-
-	// testft(m, 100, 100, 101, 101, 6)
-	// testft(m, 100, 100, 101, 100, 6)
-	// testft(m, 1, 1, 0, 0, 1)
-	testft(m, 284, 608, 285, 608, 1)
-}
-
-func testft(m *Map, fx, fy, tx, ty, datarange int) {
-	pf, pt := common.NewPoint(fx, fy), common.NewPoint(tx, ty)
-	s := m.CalcDiff(pf, pt, datarange)
-	fmt.Println(fmt.Sprintf("=====> test from(%d,%d) to(%d,%d)", fx, fy, tx, ty))
-	s1 := m.CalcDiff1(pf, pt, datarange)
-	fmt.Println(s)
-	fmt.Println(s1)
 }
 
 func TestAllMaps(t *testing.T) {
