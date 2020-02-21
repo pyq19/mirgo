@@ -1,8 +1,9 @@
 package behavior
 
 import (
-	. "github.com/yenkeia/mirgo/mir"
 	"time"
+
+	"github.com/yenkeia/mirgo/mir"
 )
 
 type Status uint8
@@ -24,7 +25,7 @@ type INode interface {
 type BT struct {
 	timer   time.Duration // 记录从启动开始的时间
 	Root    INode
-	Monster *Monster
+	Monster *mir.Monster
 }
 
 func (c *BT) GetTime() time.Duration {
@@ -38,10 +39,10 @@ func (c *BT) Process() {
 }
 
 func init() {
-	SetMonsterBehaviorFactory(NewBehavior)
+	mir.SetMonsterBehaviorFactory(NewBehavior)
 }
 
-func NewBehavior(id int, mon *Monster) IBehavior {
+func NewBehavior(id int, mon *mir.Monster) mir.IBehavior {
 
 	var root INode
 
