@@ -30,12 +30,13 @@ type Map struct {
 
 func NewMap(w, h int) *Map {
 	m := &Map{
-		Width:    w,
-		Height:   h,
-		cells:    make([]*Cell, w*h),
-		players:  map[uint32]*Player{},
-		monsters: map[uint32]*Monster{},
-		npcs:     map[uint32]*NPC{},
+		Width:      w,
+		Height:     h,
+		cells:      make([]*Cell, w*h),
+		players:    map[uint32]*Player{},
+		monsters:   map[uint32]*Monster{},
+		npcs:       map[uint32]*NPC{},
+		ActionList: map[uint32]*DelayedAction{},
 	}
 	return m
 }
