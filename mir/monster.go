@@ -189,7 +189,14 @@ func (m *Monster) Broadcast(msg interface{}) {
 func (m *Monster) Spawn(mp *Map, p common.Point) {
 	m.Map = mp
 	m.CurrentLocation = p
-	mp.AddObject(m)
+	msg, ok := mp.AddObject(m)
+	if !ok {
+		log.Warnln(msg)
+		return
+	}
+	// RefreshAll();
+	// SetHP(MaxHP);
+	m.Broadcast(ServerMessage{}.Object(m))
 }
 
 func (m *Monster) BroadcastDamageIndicator(typ common.DamageType, dmg int) {
