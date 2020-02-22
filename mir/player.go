@@ -1560,7 +1560,15 @@ func (p *Player) Magic(spell common.Spell, direction common.MirDirection, target
 }
 
 func (p *Player) MagicKey(spell common.Spell, key uint8) {
-
+	clientMagics := p.GetClientMagics()
+	for _, cm := range clientMagics {
+		// log.Debugln(cm)
+		if cm.Spell == spell {
+			cm.Key = key
+			// log.Debugln("found: ", cm.Spell)
+			return
+		}
+	}
 }
 
 func (p *Player) SwitchGroup(group bool) {

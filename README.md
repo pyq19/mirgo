@@ -19,6 +19,7 @@
 - 别的玩家装备显示不正确
 
 #### 计划
+- [ ] CPU 使用率优化
 - [ ] 客户端汉化（打算直接用 https://github.com/cjlaaa/mir2)
 - [ ] WEB 管理后台
 - [ ] 数据库换成 MySQL
