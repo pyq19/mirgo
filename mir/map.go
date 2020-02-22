@@ -126,8 +126,6 @@ func (m *Map) Broadcast(msg interface{}) {
 	}
 }
 
-const DataRange = 6
-
 // 位置，消息，跳过玩家
 func (m *Map) BroadcastP(pos common.Point, msg interface{}, me *Player) {
 	// m.Submit(NewTask(func(args ...interface{}) {

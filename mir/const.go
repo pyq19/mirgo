@@ -1,5 +1,7 @@
 package mir
 
+const DataRange = 20
+
 const (
 	StopGameServerClosed              = 0
 	StopGameDoubleLogin               = 1
