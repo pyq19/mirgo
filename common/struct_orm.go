@@ -406,6 +406,7 @@ func (um *UserMagic) GetClientMagic(info *MagicInfo) ClientMagic {
 	//castTime := (CastTime != 0) && (SMain.Envir.Time > CastTime) ? SMain.Envir.Time - CastTime : 0
 	castTime := 0
 	return ClientMagic{
+		Name:       info.Name,
 		Spell:      um.Spell,
 		BaseCost:   uint8(info.BaseCost),
 		LevelCost:  uint8(info.LevelCost),
