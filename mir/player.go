@@ -138,6 +138,20 @@ func (p *Player) GetFrontPoint() common.Point {
 	return p.Point().NextPoint(p.CurrentDirection, 1)
 }
 
+func (m *Player) AddPlayerCount(n int) {
+	m.PlayerCount += n
+	switch m.PlayerCount {
+	case 1:
+		m.Map.AddActiveObj(m)
+	case 0:
+		m.Map.DelActiveObj(m)
+	}
+}
+
+func (m *Player) GetPlayerCount() int {
+	return m.PlayerCount
+}
+
 func (p *Player) GetRace() common.ObjectType {
 	return common.ObjectTypePlayer
 }
@@ -376,7 +390,7 @@ func (p *Player) Broadcast(msg interface{}) {
 	p.Map.BroadcastP(p.CurrentLocation, msg, p)
 }
 
-func (p *Player) Process() {
+func (p *Player) Process(dt time.Duration) {
 	finishID := make([]uint32, 0)
 	now := time.Now()
 	p.ActionList.Range(func(k, v interface{}) bool {
@@ -770,6 +784,7 @@ func (p *Player) EnqueueAreaObjects(oldCell, newCell *Cell) {
 	if oldCell == nil {
 		p.Map.RangeObject(p.CurrentLocation, DataRange, func(o IMapObject) bool {
 			if o != p {
+				o.AddPlayerCount(1)
 				p.Enqueue(ServerMessage{}.Object(o))
 			}
 			return true
@@ -781,11 +796,13 @@ func (p *Player) EnqueueAreaObjects(oldCell, newCell *Cell) {
 	for c, isadd := range cells.M {
 		if isadd {
 			c.Objects.Range(func(k, v interface{}) bool {
+				v.(IMapObject).AddPlayerCount(1)
 				p.Enqueue(ServerMessage{}.Object(v.(IMapObject)))
 				return true
 			})
 		} else {
 			c.Objects.Range(func(k, v interface{}) bool {
+				v.(IMapObject).AddPlayerCount(-1)
 				p.Enqueue(ServerMessage{}.ObjectRemove(v.(IMapObject)))
 				return true
 			})

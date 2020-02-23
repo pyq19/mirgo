@@ -2,6 +2,7 @@ package mir
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/yenkeia/mirgo/common"
 	"github.com/yenkeia/mirgo/proto/server"
@@ -21,6 +22,20 @@ func (i *Item) GetName() string {
 	return i.Name
 }
 
+func (m *Item) AddPlayerCount(n int) {
+	m.PlayerCount += n
+	switch m.PlayerCount {
+	case 1:
+		m.Map.AddActiveObj(m)
+	case 0:
+		m.Map.DelActiveObj(m)
+	}
+}
+
+func (m *Item) GetPlayerCount() int {
+	return m.PlayerCount
+}
+
 func (i *Item) AttackMode() common.AttackMode {
 	return common.AttackModePeace
 }
@@ -29,6 +44,10 @@ func (i *Item) IsDead() bool { return i.Dead }
 
 func (i *Item) IsUndead() bool {
 	return false
+}
+
+func (i *Item) Process(dt time.Duration) {
+
 }
 
 func (i *Item) GetRace() common.ObjectType {
