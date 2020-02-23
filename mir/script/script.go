@@ -4,6 +4,7 @@ import (
 	"container/list"
 	"errors"
 	"fmt"
+	"github.com/yenkeia/mirgo/ut"
 	"io"
 	"os"
 	"path/filepath"
@@ -13,7 +14,22 @@ import (
 	"strings"
 )
 
-var EnvirPath = ""
+var SearchPaths = []string{}
+
+func fullpath(file string) string {
+	file = strings.ReplaceAll(file, "\\", "/")
+
+	if filepath.IsAbs(file) {
+		return file
+	}
+	for _, v := range SearchPaths {
+		full := filepath.Join(v, file)
+		if ut.IsFile(full) {
+			return full
+		}
+	}
+	return file
+}
 
 // skip npc, player
 const argsSkip = 2
@@ -35,9 +51,9 @@ type PageScript struct {
 }
 
 func LoadFile(file string) (*Script, error) {
-	r, err := os.Open(filepath.Join(EnvirPath, file))
+	r, err := os.Open(fullpath(file))
 	if err != nil {
-		return nil, err
+		return nil, errors.New("LoadFile error " + file + ":" + err.Error())
 	}
 	return Load(r)
 }
@@ -151,7 +167,7 @@ func (ps *PageScript) parsePage(p *PageSource) error {
 			case "ELSESAY":
 				currentSay = elseSay
 			default:
-				return errors.New("error")
+				return errors.New("error:" + p.Name + "---" + match[1])
 			}
 			continue
 		}

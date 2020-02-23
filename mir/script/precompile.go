@@ -2,13 +2,13 @@ package script
 
 import (
 	"errors"
-	"path/filepath"
 	"regexp"
 	"strings"
 )
 
 var (
 	regexInclude = regexp.MustCompile(`#INCLUDE\s*\[([^\n]+)\]\s*(@[^\n]+)`)
+	regexInsert  = regexp.MustCompile(`#INSERT\s*\[([^\n]+)\]\s*(@[^\n]+)`)
 	regexPage    = regexp.MustCompile(`^(\[[^\n]+\])\s*$`)
 )
 
@@ -97,7 +97,17 @@ func expandScript(lines []string) ([]string, error) {
 		}
 		if line[0] == '#' {
 			if StartsWithI(line, "#INSERT") {
-				panic("#INSERT not impl yet.")
+				match := regexInsert.FindStringSubmatch(line)
+				insertLines, err := ReadLines(fullpath(match[1]))
+				if err != nil {
+					return nil, err
+				}
+				insertLines, err = expandScript(insertLines)
+				if err != nil {
+					return nil, err
+				}
+				compiled = append(compiled, insertLines...)
+				continue
 
 			} else if StartsWithI(line, "#INCLUDE") {
 				match := regexInclude.FindStringSubmatch(line)
@@ -117,7 +127,7 @@ func expandScript(lines []string) ([]string, error) {
 }
 
 func loadScriptPage(file, page string) ([]string, error) {
-	lines, err := ReadLines(filepath.Join(EnvirPath, file))
+	lines, err := ReadLines(fullpath(file))
 	if err != nil {
 		return nil, err
 	}
