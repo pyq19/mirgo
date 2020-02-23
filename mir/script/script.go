@@ -218,7 +218,7 @@ func (ps *PageScript) parseAction(mp map[string]*ScriptFunc, s string) (*Functio
 
 	method, has := mp[funName]
 	if !has {
-		return nil, errors.New("no function " + funName)
+		return nil, errors.New("no function [" + funName + "]")
 	}
 
 	expect := len(method.ArgsParser)

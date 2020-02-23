@@ -192,7 +192,7 @@ func (p *Player) IsAttackTarget(attacker IMapObject) bool {
 	case common.ObjectTypePlayer:
 	case common.ObjectTypeMonster:
 		monster := attacker.(*Monster)
-		monsterInfo := p.Map.Env.GameDB.GetMonsterInfoByName(monster.Name)
+		monsterInfo := env.GameDB.GetMonsterInfoByName(monster.Name)
 		if monsterInfo.AI == 6 || monsterInfo.AI == 58 {
 			return p.PKPoints >= 200
 		}
@@ -322,7 +322,7 @@ func (p *Player) ApplyPoison(poison *Poison, caster IMapObject) {
 }
 
 func (p *Player) NewObjectID() uint32 {
-	return p.Map.Env.NewObjectID()
+	return env.NewObjectID()
 }
 
 func (p *Player) IsDead() bool {
@@ -435,7 +435,7 @@ func (p *Player) Process(dt time.Duration) {
 }
 
 func (p *Player) EnqueueItemInfos() {
-	gdb := p.Map.Env.GameDB
+	gdb := env.GameDB
 	itemInfos := make([]*common.ItemInfo, 0)
 	for i := range p.Inventory {
 		if p.Inventory[i] != nil {
@@ -467,7 +467,7 @@ func (p *Player) EnqueueItemInfo(itemID int32) {
 			return
 		}
 	}
-	item := p.Map.Env.GameDB.GetItemInfoByID(int(itemID))
+	item := env.GameDB.GetItemInfoByID(int(itemID))
 	if item == nil {
 		return
 	}
@@ -566,14 +566,14 @@ func (p *Player) RefreshBagWeight() {
 	p.CurrentBagWeight = 0
 	for _, ui := range p.Inventory {
 		if ui != nil {
-			it := p.Map.Env.GameDB.GetItemInfoByID(int(ui.ItemID))
+			it := env.GameDB.GetItemInfoByID(int(ui.ItemID))
 			p.CurrentBagWeight += int(it.Weight)
 		}
 	}
 }
 
 func (p *Player) RefreshEquipmentStats() {
-	gdb := p.Map.Env.GameDB
+	gdb := env.GameDB
 	for _, v := range p.Equipment {
 		if v != nil {
 			e := gdb.GetItemInfoByID(int(v.ItemID))
@@ -646,7 +646,7 @@ func (p *Player) ConsumeItem(userItem *common.UserItem, count int) {
 
 // GainItem 为玩家增加物品，增加成功返回 true
 func (p *Player) GainItem(ui *common.UserItem) bool {
-	item := p.Map.Env.GameDB.GetItemInfoByID(int(ui.ItemID))
+	item := env.GameDB.GetItemInfoByID(int(ui.ItemID))
 	if item == nil {
 		return false
 	}
@@ -775,7 +775,94 @@ func (p *Player) Die() {
 }
 
 func (p *Player) Teleport(m *Map, pt common.Point) {
+	oldMap := p.Map
 
+	{ // MapObject Teleport
+		if m == nil || !m.ValidPoint(pt) {
+			log.Warnln("Teleport: map not valid", m == nil)
+			return
+		}
+		oldMap.DeleteObject(p)
+		p.Broadcast(&server.ObjectTeleportOut{ObjectID: p.GetID(), Type: 0})
+		p.Broadcast(&server.ObjectRemove{ObjectID: p.GetID()})
+
+		p.Map = m
+		p.CurrentLocation = pt
+
+		// InTrapRock = false;
+		m.AddObject(p)
+		p.Broadcast(p.GetInfo())
+
+		p.Broadcast(&server.ObjectTeleportIn{ObjectID: p.GetID(), Type: 0})
+
+		// BroadcastHealthChange()
+	}
+
+	p.Enqueue(&server.MapChanged{
+		FileName:     m.Info.Filename,
+		Title:        m.Info.Title,
+		MiniMap:      uint16(m.Info.MiniMap),
+		BigMap:       uint16(m.Info.BigMap),
+		Lights:       common.LightSetting(m.Info.Light),
+		Location:     p.CurrentLocation,
+		Direction:    p.CurrentDirection,
+		MapDarkLight: uint8(m.Info.MapDarkLight),
+		Music:        uint16(m.Info.Music),
+	})
+
+	p.EnqueueAreaObjects(nil, p.GetCell())
+
+	p.Enqueue(&server.ObjectTeleportIn{ObjectID: p.GetID(), Type: 0})
+	/* TODO
+	//Cancel actions
+	if (TradePartner != null)
+	TradeCancel();
+
+	if (ItemRentalPartner != null)
+		CancelItemRental();
+
+	if (RidingMount) RefreshMount();
+	if (ActiveBlizzard) ActiveBlizzard = false;
+
+	GetObjectsPassive();
+
+	SafeZoneInfo szi = CurrentMap.GetSafeZone(CurrentLocation);
+
+	if (szi != null)
+	{
+		BindLocation = szi.Location;
+		BindMapIndex = CurrentMapIndex;
+		InSafeZone = true;
+	}
+	else
+		InSafeZone = false;
+
+	CheckConquest();
+
+	Fishing = false;
+	Enqueue(GetFishInfo());
+
+	if (mapChanged)
+	{
+		CallDefaultNPC(DefaultNPCType.MapEnter, CurrentMap.Info.FileName);
+
+		if (Info.Married != 0)
+		{
+			CharacterInfo Lover = Envir.GetCharacterInfo(Info.Married);
+			PlayerObject player = Envir.GetPlayer(Lover.Name);
+
+			if (player != null) player.GetRelationship(false);
+		}
+	}
+
+	if (CheckStacked())
+	{
+		StackingTime = Envir.Time + 1000;
+		Stacking = true;
+	}
+
+	Report.MapChange("Teleported", oldMap.Info, CurrentMap.Info);
+	*/
 }
 
 func (p *Player) EnqueueAreaObjects(oldCell, newCell *Cell) {
@@ -894,7 +981,7 @@ func (p *Player) Chat(message string) {
 		case "LOGIN":
 		case "KILL": // @kill 杀死面前的怪物，@kill name 杀死名字为 name 的玩家
 			if len(parts) == 2 {
-				o := curMap.Env.GetPlayerByName(parts[1])
+				o := env.GetPlayerByName(parts[1])
 				if o == nil {
 					p.ReceiveChat(fmt.Sprintf("找不到玩家(%s)", parts[1]), common.ChatTypeSystem)
 					return
@@ -919,7 +1006,7 @@ func (p *Player) Chat(message string) {
 			if len(parts) != 3 {
 				return
 			}
-			info := curMap.Env.GameDB.GetItemInfoByName(parts[1])
+			info := env.GameDB.GetItemInfoByName(parts[1])
 			if info == nil {
 				return
 			}
@@ -930,12 +1017,12 @@ func (p *Player) Chat(message string) {
 			count := uint32(tmp)
 			for count > 0 {
 				if info.StackSize >= count {
-					userItem := curMap.Env.NewUserItem(info)
+					userItem := env.NewUserItem(info)
 					userItem.Count = count
 					p.GainItem(userItem)
 					return
 				}
-				userItem := curMap.Env.NewUserItem(info)
+				userItem := env.NewUserItem(info)
 				userItem.Count = count
 				count -= info.StackSize
 				p.GainItem(userItem)
@@ -984,7 +1071,7 @@ func (p *Player) Chat(message string) {
 				p.ReceiveChat(fmt.Sprintf("生成怪物失败"), common.ChatTypeSystem)
 				return
 			}
-			mi := curMap.Env.GameDB.GetMonsterInfoByName(parts[1])
+			mi := env.GameDB.GetMonsterInfoByName(parts[1])
 			if mi == nil {
 				p.ReceiveChat(fmt.Sprintf("生成怪物失败，找不到怪物 %s", parts[1]), common.ChatTypeSystem)
 				return
@@ -1224,8 +1311,8 @@ func (p *Player) SplitItem(grid common.MirGridType, id uint64, count uint32) {
 			return
 		}
 		userItem.Count -= count
-		itemInfo := p.Map.Env.GameDB.GetItemInfoByID(int(userItem.ItemID))
-		newUserItem := p.Map.Env.NewUserItem(itemInfo)
+		itemInfo := env.GameDB.GetItemInfoByID(int(userItem.ItemID))
+		newUserItem := env.NewUserItem(itemInfo)
 		newUserItem.Count = count
 		msg.Success = true
 		p.Enqueue(msg)
@@ -1270,7 +1357,7 @@ func (p *Player) UseItem(id uint64) {
 		return
 	}
 	ph := &p.Health
-	info := p.Map.Env.GameDB.GetItemInfoByID(int(item.ItemID))
+	info := env.GameDB.GetItemInfoByID(int(item.ItemID))
 	switch info.Type {
 	case common.ItemTypePotion:
 		switch info.Shape {
@@ -1328,11 +1415,11 @@ func (p *Player) CallDefaultNPC(calltype DefaultNPCType, args ...interface{}) {
 	key = fmt.Sprintf("[@_%s]", key)
 
 	action := NewDelayedAction(p.NewObjectID(), DelayedTypeNPC, NewTask(func(...interface{}) {
-		p.CallNPC1(p.Map.Env.DefaultNPC, key)
+		p.CallNPC1(env.DefaultNPC, key)
 	}))
 	p.ActionList.Store(action.ID, action)
 
-	p.Enqueue(&server.NPCUpdate{NPCID: p.Map.Env.DefaultNPC.GetID()})
+	p.Enqueue(&server.NPCUpdate{NPCID: env.DefaultNPC.GetID()})
 }
 
 func (p *Player) DropItem(id uint64, count uint32) {
@@ -1346,7 +1433,7 @@ func (p *Player) DropItem(id uint64, count uint32) {
 		p.Enqueue(msg)
 		return
 	}
-	obj := p.Map.Env.CreateDropItem(p.Map, userItem, 0)
+	obj := env.CreateDropItem(p.Map, userItem, 0)
 	if dropMsg, ok := obj.Drop(p.GetPoint(), 1); !ok {
 		p.ReceiveChat(dropMsg, common.ChatTypeSystem)
 		return
@@ -1365,7 +1452,7 @@ func (p *Player) DropGold(gold uint64) {
 	if p.Gold < gold {
 		return
 	}
-	obj := p.Map.Env.CreateDropItem(p.Map, nil, gold)
+	obj := env.CreateDropItem(p.Map, nil, gold)
 	if dropMsg, ok := obj.Drop(p.GetPoint(), 3); !ok {
 		p.ReceiveChat(dropMsg, common.ChatTypeSystem)
 		return
@@ -1404,9 +1491,9 @@ func (p *Player) PickUp() {
 }
 
 func (p *Player) Inspect(id uint32) {
-	o := p.Map.Env.GetPlayer(id)
+	o := env.GetPlayer(id)
 	for i := range o.Equipment {
-		item := p.Map.Env.GameDB.GetItemInfoByID(int(o.Equipment[i].ItemID))
+		item := env.GameDB.GetItemInfoByID(int(o.Equipment[i].ItemID))
 		if item != nil {
 			p.EnqueueItemInfo(item.ID)
 		}
@@ -1468,8 +1555,8 @@ func (p *Player) CallNPC(id uint32, key string) {
 
 	var npc *NPC
 
-	if id == p.Map.Env.DefaultNPC.GetID() {
-		npc = p.Map.Env.DefaultNPC
+	if id == env.DefaultNPC.GetID() {
+		npc = env.DefaultNPC
 	} else {
 		npc = p.Map.GetNPC(id)
 	}
@@ -1529,13 +1616,13 @@ func sendBuyKey(p *Player, npc *NPC) {
 			}
 			count = c
 		}
-		item := p.Map.Env.GameDB.GetItemInfoByName(name)
+		item := env.GameDB.GetItemInfoByName(name)
 		if item == nil {
 			log.Warnf("Good name err: %s\n", name)
 			continue
 		}
 		p.EnqueueItemInfo(item.ID)
-		g := p.Map.Env.NewUserItem(item)
+		g := env.NewUserItem(item)
 		g.Count = uint32(count)
 		goods = append(goods, *g)
 		npc.Goods = goods
@@ -1593,7 +1680,7 @@ func (p *Player) Magic(spell common.Spell, direction common.MirDirection, target
 		p.Enqueue(ServerMessage{}.UserLocation(p))
 		return
 	}
-	info := p.Map.Env.GameDB.GetMagicInfoByID(userMagic.MagicID)
+	info := env.GameDB.GetMagicInfoByID(userMagic.MagicID)
 	cost := info.BaseCost + info.LevelCost*userMagic.Level
 	if uint16(cost) > p.MP {
 		p.Enqueue(ServerMessage{}.UserLocation(p))

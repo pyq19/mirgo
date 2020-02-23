@@ -10,7 +10,6 @@ import (
 
 // Map ...
 type Map struct {
-	Env    *Environ
 	Width  int
 	Height int
 	Info   *common.MapInfo
@@ -100,6 +99,11 @@ func (m *Map) GetCellXY(x, y int) *Cell {
 
 func (m *Map) InMap(x, y int) bool {
 	return x >= 0 && x < m.Width && y >= 0 && y < m.Height
+}
+
+func (m *Map) ValidPoint(p common.Point) bool {
+	c := m.GetCell(p)
+	return c != nil && c.IsValid()
 }
 
 func (m *Map) SetCell(p common.Point, c *Cell) {
@@ -228,10 +232,10 @@ func (m *Map) changeAOI(obj IMapObject, c1 *Cell, c2 *Cell) {
 
 // InitNPCs 初始化地图上的 NPC
 func (m *Map) InitNPCs() error {
-	for _, ni := range m.Env.GameDB.NpcInfos {
+	for _, ni := range env.GameDB.NpcInfos {
 		ni := ni
 		if ni.MapID == m.Info.ID {
-			n := NewNPC(m, m.Env.NewObjectID(), ni)
+			n := NewNPC(m, env.NewObjectID(), ni)
 			m.AddObject(n)
 		}
 	}
@@ -240,7 +244,7 @@ func (m *Map) InitNPCs() error {
 
 // InitMonsters 初始化地图上的怪物
 func (m *Map) InitMonsters() error {
-	for _, ri := range m.Env.GameDB.RespawnInfos {
+	for _, ri := range env.GameDB.RespawnInfos {
 		ri := ri
 		if ri.MapID == m.Info.ID {
 			cnt := ri.Count
@@ -249,7 +253,7 @@ func (m *Map) InitMonsters() error {
 				if err != nil {
 					continue
 				}
-				m.AddObject(NewMonster(m, p, m.Env.GameDB.GetMonsterInfoByID(ri.MonsterID)))
+				m.AddObject(NewMonster(m, p, env.GameDB.GetMonsterInfoByID(ri.MonsterID)))
 			}
 		}
 	}
