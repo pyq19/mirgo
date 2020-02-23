@@ -501,7 +501,7 @@ func (p *Player) GetAmulet(count int) *common.UserItem {
 		userItem := p.Equipment[i]
 		itemInfo := p.Map.Env.GameDB.GetItemInfoByID(int(userItem.ItemID))
 		if itemInfo != nil && itemInfo.Type == common.ItemTypeAmulet && int(userItem.Count) > count {
-			return &userItem
+			return userItem
 		}
 	}
 	return nil
@@ -514,7 +514,7 @@ func (p *Player) GetPoison(count int) *common.UserItem {
 		itemInfo := p.Map.Env.GameDB.GetItemInfoByID(int(userItem.ItemID))
 		if itemInfo != nil && itemInfo.Type == common.ItemTypeAmulet && int(userItem.Count) > count {
 			if itemInfo.Shape == 1 || itemInfo.Shape == 2 {
-				return &userItem
+				return userItem
 			}
 		}
 	}

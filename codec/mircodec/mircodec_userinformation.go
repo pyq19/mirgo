@@ -70,7 +70,7 @@ func (*MirUserInformationCodec) Encode(msgObj interface{}, ctx cellnet.ContextSe
 			if !hasUserItem {
 				continue
 			}
-			writer.Write(&ui.Inventory[i])
+			writer.Write(ui.Inventory[i])
 		}
 	}
 
@@ -90,7 +90,7 @@ func (*MirUserInformationCodec) Encode(msgObj interface{}, ctx cellnet.ContextSe
 			if !hasUserItem {
 				continue
 			}
-			writer.Write(&ui.Equipment[i])
+			writer.Write(ui.Equipment[i])
 		}
 	}
 
@@ -110,7 +110,7 @@ func (*MirUserInformationCodec) Encode(msgObj interface{}, ctx cellnet.ContextSe
 			if !hasUserItem {
 				continue
 			}
-			writer.Write(&ui.QuestInventory[i])
+			writer.Write(ui.QuestInventory[i])
 		}
 	}
 	writer.Write(ui.Gold)
@@ -126,8 +126,8 @@ func (*MirUserInformationCodec) Encode(msgObj interface{}, ctx cellnet.ContextSe
 	return *writer.Bytes, nil
 }
 
-func IsNull(ui common.UserItem) bool {
-	if ui.ID == 0 && ui.ItemID == 0 {
+func IsNull(ui *common.UserItem) bool {
+	if ui == nil || (ui.ID == 0 && ui.ItemID == 0) {
 		return true
 	}
 	return false
@@ -161,7 +161,7 @@ func (*MirUserInformationCodec) Decode(data interface{}, msgObj interface{}) err
 	// Inventory
 	if reader.ReadBoolean() {
 		count := reader.ReadInt32()
-		ui.Inventory = make([]common.UserItem, count)
+		ui.Inventory = make([]*common.UserItem, count)
 		for i := 0; i < int(count); i++ {
 			if reader.ReadBoolean() {
 				last := reader.Last()
@@ -174,7 +174,7 @@ func (*MirUserInformationCodec) Decode(data interface{}, msgObj interface{}) err
 	// Equipment
 	if reader.ReadBoolean() {
 		count := reader.ReadInt32()
-		ui.Equipment = make([]common.UserItem, count)
+		ui.Equipment = make([]*common.UserItem, count)
 		for i := 0; i < int(count); i++ {
 			if reader.ReadBoolean() {
 				last := reader.Last()
@@ -187,7 +187,7 @@ func (*MirUserInformationCodec) Decode(data interface{}, msgObj interface{}) err
 	// QuestInventory
 	if reader.ReadBoolean() {
 		count := reader.ReadInt32()
-		ui.QuestInventory = make([]common.UserItem, count)
+		ui.QuestInventory = make([]*common.UserItem, count)
 		for i := 0; i < int(count); i++ {
 			if reader.ReadBoolean() {
 				last := reader.Last()

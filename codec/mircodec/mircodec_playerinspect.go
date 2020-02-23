@@ -1,11 +1,12 @@
 package mircodec
 
 import (
+	"reflect"
+
 	"github.com/davyxu/cellnet"
 	"github.com/davyxu/cellnet/codec"
 	"github.com/yenkeia/mirgo/common"
 	"github.com/yenkeia/mirgo/proto/server"
-	"reflect"
 )
 
 func init() {
@@ -48,7 +49,7 @@ func (*MirPlayerInspectCodec) Encode(msgObj interface{}, ctx cellnet.ContextSet)
 		if !hasUserItem {
 			continue
 		}
-		writer.Write(&pi.Equipment[i])
+		writer.Write(pi.Equipment[i])
 	}
 
 	writer.Write(pi.Class)
@@ -68,7 +69,7 @@ func (*MirPlayerInspectCodec) Decode(data interface{}, msgObj interface{}) error
 	pi.GuildName = reader.ReadString()
 	pi.GuildRank = reader.ReadString()
 	count := reader.ReadInt32()
-	pi.Equipment = make([]common.UserItem, count)
+	pi.Equipment = make([]*common.UserItem, count)
 	for i := 0; i < int(count); i++ {
 		if reader.ReadBoolean() {
 			last := reader.Last()
