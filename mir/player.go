@@ -672,6 +672,7 @@ func (p *Player) GainItem(ui *common.UserItem) bool {
 		break
 	}
 	p.EnqueueItemInfo(ui.ItemID)
+	ui.SoulBoundId = p.GetID()
 	p.Enqueue(ServerMessage{}.GainedItem(ui))
 	p.RefreshBagWeight()
 	return true
