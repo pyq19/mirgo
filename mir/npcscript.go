@@ -44,7 +44,19 @@ func _INGUILD(npc *NPC, plr *Player) bool {
 }
 
 func _CHECKITEM(npc *NPC, plr *Player, itemname string, n int) bool {
-	return true
+
+	info := plr.Map.Env.GameDB.GetItemInfoByName(itemname)
+
+	for _, item := range plr.Inventory {
+		if item != nil && item.ItemID == info.ID {
+			n -= int(item.Count)
+			if n <= 0 {
+				return true
+			}
+		}
+	}
+
+	return false
 }
 
 func _CHECKQUEST(npc *NPC, plr *Player, quest int, stat QuestStatus) bool {
@@ -70,7 +82,24 @@ func _ADDNAMELIST(npc *NPC, plr *Player, message string) {
 }
 
 func _GIVEITEM(npc *NPC, plr *Player, itemname string, n int) {
-
+	count := uint32(n)
+	curMap := plr.Map
+	info := curMap.Env.GameDB.GetItemInfoByName(itemname)
+	if info == nil {
+		return
+	}
+	for count > 0 {
+		if info.StackSize >= count {
+			userItem := curMap.Env.NewUserItem(info)
+			userItem.Count = count
+			plr.GainItem(userItem)
+			return
+		}
+		userItem := curMap.Env.NewUserItem(info)
+		userItem.Count = count
+		count -= info.StackSize
+		plr.GainItem(userItem)
+	}
 }
 
 func _CLOSE(npc *NPC, plr *Player) {
