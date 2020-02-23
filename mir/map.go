@@ -49,11 +49,18 @@ func (m *Map) DelActiveObj(o interface{}) {
 
 func (m *Map) Frame(dt time.Duration) {
 
+	now := time.Now()
+
 	for i, action := range m.ActionList {
-		if !action.Finish && !time.Now().Before(action.ActionTime) {
+		// log.Debugln(i, " frame action.ID: ", action.ID, " actionTime: ", action.ActionTime, " now: ", now)
+		if !action.Finish && now.After(action.ActionTime) {
+			// log.Debugln("action execute: ", action.ID)
 			action.Task.Execute()
+			action.Finish = true
 		}
-		delete(m.ActionList, i)
+		if action.Finish {
+			delete(m.ActionList, i)
+		}
 	}
 
 	for _, p := range m.players {
