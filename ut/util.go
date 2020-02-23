@@ -3,6 +3,8 @@ package ut
 import (
 	"math/rand"
 	"os"
+	"path"
+	"path/filepath"
 )
 
 func AbsInt(i int) int {
@@ -54,4 +56,30 @@ func IsFile(path string) bool {
 		return false
 	}
 	return !s.IsDir()
+}
+
+func GetFiles(dir string, allow []string) []string {
+
+	allowMap := map[string]bool{}
+	if allow != nil {
+		for _, v := range allow {
+			allowMap[v] = true
+		}
+	}
+
+	ret := []string{}
+	filepath.Walk(dir, func(fpath string, f os.FileInfo, err error) error {
+		if f == nil || f.IsDir() {
+			return nil
+		}
+
+		ext := path.Ext(fpath)
+		if allowMap[ext] {
+			ret = append(ret, filepath.ToSlash(fpath))
+		}
+
+		return nil
+	})
+
+	return ret
 }
