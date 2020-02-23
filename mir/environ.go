@@ -3,6 +3,7 @@ package mir
 import (
 	"container/list"
 	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"sync"
@@ -12,6 +13,7 @@ import (
 	"github.com/davyxu/cellnet"
 	_ "github.com/yenkeia/mirgo/codec/mircodec"
 	"github.com/yenkeia/mirgo/common"
+	"github.com/yenkeia/mirgo/mir/script"
 	_ "github.com/yenkeia/mirgo/proc/mirtcp"
 	"github.com/yenkeia/mirgo/proto/server"
 	"github.com/yenkeia/mirgo/setting"
@@ -26,6 +28,8 @@ type Environ struct {
 	ObjectID           uint32
 	Players            []*Player
 	lock               *sync.Mutex
+
+	DefaultNPC *NPC
 
 	msgMutex sync.Mutex
 	MsgList  list.List
@@ -73,9 +77,21 @@ func (e *Environ) Loop() {
 func NewEnviron(g *Game) (env *Environ) {
 	env = new(Environ)
 	env.Game = g
+
+	script.SearchPaths = []string{
+		filepath.Join(setting.Conf.EnvirPath, "NPCs"),
+		setting.Conf.EnvirPath,
+	}
+
 	env.InitGameDB()
 	env.InitMonsterDrop()
 	env.InitMaps()
+
+	env.DefaultNPC = NewNPC(nil, env.NewObjectID(), &common.NpcInfo{
+		Name:     "DefaultNPC",
+		Filename: "00Default",
+	})
+
 	env.ObjectID = 100000
 	env.Players = make([]*Player, 0)
 	env.lock = new(sync.Mutex)

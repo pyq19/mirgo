@@ -16,3 +16,20 @@ const (
 	StopGameUserReturnedToSelectChar  = 23
 	StopGameUnknown                   = 24
 )
+
+type DefaultNPCType byte
+
+const (
+	DefaultNPCTypeLogin DefaultNPCType = iota
+	DefaultNPCTypeLevelUp
+	DefaultNPCTypeUseItem
+	DefaultNPCTypeMapCoord
+	DefaultNPCTypeMapEnter
+	DefaultNPCTypeDie
+	DefaultNPCTypeTrigger
+	DefaultNPCTypeCustomCommand
+	DefaultNPCTypeOnAcceptQuest
+	DefaultNPCTypeOnFinishQuest
+	DefaultNPCTypeDaily
+	DefaultNPCTypeTalkMonster
+)

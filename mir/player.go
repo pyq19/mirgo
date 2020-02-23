@@ -1266,6 +1266,7 @@ func (p *Player) UseItem(id uint64) {
 		return
 	}
 	index, item := p.GetUserItemByID(common.MirGridTypeInventory, id)
+
 	if item == nil || item.ID == 0 || !p.CanUseItem(item) {
 		p.Enqueue(msg)
 		return
@@ -1300,6 +1301,7 @@ func (p *Player) UseItem(id uint64) {
 	case common.ItemTypeScroll:
 	case common.ItemTypeBook:
 	case common.ItemTypeScript:
+		p.CallDefaultNPC(DefaultNPCTypeUseItem, info.Shape)
 	case common.ItemTypeFood:
 	case common.ItemTypePets:
 	case common.ItemTypeTransform: //Transforms
@@ -1315,6 +1317,21 @@ func (p *Player) UseItem(id uint64) {
 	p.RefreshBagWeight()
 	msg.Success = true
 	p.Enqueue(msg)
+}
+
+func (p *Player) CallDefaultNPC(calltype DefaultNPCType, args ...interface{}) {
+	var key string
+
+	switch calltype {
+	case DefaultNPCTypeUseItem:
+		key = fmt.Sprintf("UseItem(%v)", args[0])
+	}
+
+	key = fmt.Sprintf("[@_%s]", key)
+
+	p.CallNPC1(p.Map.Env.DefaultNPC, key)
+
+	p.Enqueue(&server.NPCUpdate{NPCID: p.Map.Env.DefaultNPC.GetID()})
 }
 
 func (p *Player) DropItem(id uint64, count uint32) {
@@ -1447,13 +1464,27 @@ func (p *Player) Harvest(direction common.MirDirection) {
 }
 
 func (p *Player) CallNPC(id uint32, key string) {
-	npc := p.Map.GetNPC(id)
+
+	var npc *NPC
+
+	if id == p.Map.Env.DefaultNPC.GetID() {
+		npc = p.Map.Env.DefaultNPC
+	} else {
+		npc = p.Map.GetNPC(id)
+	}
+
 	if npc == nil {
+		log.Warnf("NPC 不存在: %d %s\n", id, key)
 		return
 	}
+	p.CallNPC1(npc, key)
+}
+
+func (p *Player) CallNPC1(npc *NPC, key string) {
+
 	say, err := npc.CallScript(p, key)
 	if err != nil {
-		log.Warnf("NPC 脚本执行失败: %d %s %s\n", id, key, err.Error())
+		log.Warnf("NPC 脚本执行失败: %d %s %s\n", npc.GetID(), key, err.Error())
 	}
 
 	p.Enqueue(ServerMessage{}.NPCResponse(replaceTemplates(npc, p, say)))

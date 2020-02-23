@@ -7,7 +7,6 @@ import (
 	"github.com/yenkeia/mirgo/common"
 	"github.com/yenkeia/mirgo/mir/script"
 	"github.com/yenkeia/mirgo/proto/server"
-	"github.com/yenkeia/mirgo/setting"
 	"github.com/yenkeia/mirgo/ut"
 )
 
@@ -20,14 +19,14 @@ type NPC struct {
 	Goods    []common.UserItem
 }
 
-func NewNPC(m *Map, ni *common.NpcInfo) *NPC {
-	sc, err := script.LoadFile(setting.Conf.NPCDirPath + ni.Filename + ".txt")
+func NewNPC(m *Map, id uint32, ni *common.NpcInfo) *NPC {
+	sc, err := script.LoadFile(ni.Filename + ".txt")
 	if err != nil {
 		log.Warnf("NPC %s 脚本加载失败: %s\n", ni.Name, err.Error())
 	}
 	return &NPC{
 		MapObject: MapObject{
-			ID:               m.Env.NewObjectID(),
+			ID:               id,
 			Name:             ni.Name,
 			NameColor:        common.Color{R: 255, G: 255, B: 255},
 			Map:              m,
