@@ -1,11 +1,13 @@
 package mir
 
 import (
+	"container/list"
 	"os"
 	"strconv"
 	"strings"
 	"sync"
 	"sync/atomic"
+	"time"
 
 	"github.com/davyxu/cellnet"
 	_ "github.com/yenkeia/mirgo/codec/mircodec"
@@ -24,6 +26,47 @@ type Environ struct {
 	ObjectID           uint32
 	Players            []*Player
 	lock               *sync.Mutex
+
+	msgMutex sync.Mutex
+	MsgList  list.List
+}
+
+func (e *Environ) PushMsg(f func()) {
+	e.msgMutex.Lock()
+	e.MsgList.PushBack(f)
+	e.msgMutex.Unlock()
+}
+
+func (e *Environ) Loop() {
+
+	fpsicker := time.NewTicker(time.Second / time.Duration(60))
+	var lastFrame = time.Now()
+	var now time.Time
+
+	for {
+
+		select {
+		case <-fpsicker.C:
+			e.msgMutex.Lock()
+			if e.MsgList.Len() > 0 {
+				for it := e.MsgList.Front(); it != nil; {
+					curr := it
+					it = it.Next()
+					e.MsgList.Remove(curr).(func())()
+				}
+			}
+			e.msgMutex.Unlock()
+
+			now = time.Now()
+			dt := now.Sub(lastFrame)
+			lastFrame = now
+
+			e.Maps.Range(func(_, v interface{}) bool {
+				v.(*Map).Frame(dt)
+				return false
+			})
+		}
+	}
 }
 
 // NewEnviron ...
@@ -198,7 +241,6 @@ func (e *Environ) InitMaps() {
 		if err := m.InitNPCs(); err != nil {
 			panic(err)
 		}
-		go m.Loop()
 		e.Maps.Store(mi.ID, m)
 		break
 	}

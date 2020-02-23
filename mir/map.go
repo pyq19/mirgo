@@ -1,9 +1,7 @@
 package mir
 
 import (
-	"container/list"
 	"fmt"
-	"sync"
 	"time"
 
 	"github.com/yenkeia/mirgo/common"
@@ -18,68 +16,64 @@ type Map struct {
 	Info   *common.MapInfo
 	cells  []*Cell
 
-	players  map[uint32]*Player
-	monsters map[uint32]*Monster
-	npcs     map[uint32]*NPC
+	players        map[uint32]*Player
+	monsters       map[uint32]*Monster
+	npcs           map[uint32]*NPC
+	activedObjects map[uint32]IProcessObject
 
 	ActionList map[uint32]*DelayedAction
-
-	msgMutex sync.Mutex
-	MsgList  list.List
 }
 
 func NewMap(w, h int) *Map {
 	m := &Map{
-		Width:      w,
-		Height:     h,
-		cells:      make([]*Cell, w*h),
-		players:    map[uint32]*Player{},
-		monsters:   map[uint32]*Monster{},
-		npcs:       map[uint32]*NPC{},
-		ActionList: map[uint32]*DelayedAction{},
+		Width:          w,
+		Height:         h,
+		cells:          make([]*Cell, w*h),
+		players:        map[uint32]*Player{},
+		monsters:       map[uint32]*Monster{},
+		npcs:           map[uint32]*NPC{},
+		activedObjects: map[uint32]IProcessObject{},
+		ActionList:     map[uint32]*DelayedAction{},
 	}
 	return m
 }
 
-func (m *Map) Loop() {
-
-	for {
-		m.msgMutex.Lock()
-		if m.MsgList.Len() > 0 {
-			for it := m.MsgList.Front(); it != nil; {
-				curr := it
-				it = it.Next()
-				m.MsgList.Remove(curr).(func())()
-			}
-		}
-		m.msgMutex.Unlock()
-
-		// TODO: 帧率
-		{
-			for i, action := range m.ActionList {
-				if !action.Finish && !time.Now().Before(action.ActionTime) {
-					action.Task.Execute()
-				}
-				delete(m.ActionList, i)
-			}
-
-			for _, p := range m.players {
-				p.Process()
-			}
-			for _, monster := range m.monsters {
-				monster.Process()
-			}
-			for _, npc := range m.npcs {
-				npc.Process()
-			}
-		}
-	}
+func (m *Map) AddActiveObj(o interface{}) {
+	v := o.(IProcessObject)
+	m.activedObjects[v.GetID()] = v
 }
 
-func (m *Map) Run(f func()) {
-	m.msgMutex.Lock()
-	m.MsgList.PushBack(f)
-	m.msgMutex.Unlock()
+func (m *Map) DelActiveObj(o interface{}) {
+	delete(m.activedObjects, o.(IProcessObject).GetID())
+}
+
+func (m *Map) Frame(dt time.Duration) {
+
+	for i, action := range m.ActionList {
+		if !action.Finish && !time.Now().Before(action.ActionTime) {
+			action.Task.Execute()
+		}
+		delete(m.ActionList, i)
+	}
+
+	for _, p := range m.players {
+		p.Process(dt)
+	}
+
+	for _, o := range m.activedObjects {
+		o.Process(dt)
+	}
+
+	// for _, monster := range m.monsters {
+	// 	if monster.GetPlayerCount() > 0 {
+	// 		monster.Process(dt)
+	// 	}
+	// }
+	// for _, npc := range m.npcs {
+	// 	if npc.GetPlayerCount() > 0 {
+	// 		npc.Process(dt)
+	// 	}
+	// }
 }
 
 func (m *Map) PushAction(action *DelayedAction) {
@@ -171,6 +165,8 @@ func (m *Map) DeleteObject(obj IMapObject) {
 		return
 	}
 	c.DeleteObject(obj)
+
+	delete(m.activedObjects, obj.GetID())
 
 	switch obj.(type) {
 	case *Player:

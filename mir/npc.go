@@ -58,6 +58,20 @@ func (n *NPC) IsUndead() bool {
 	return false
 }
 
+func (m *NPC) AddPlayerCount(n int) {
+	m.PlayerCount += n
+	switch m.PlayerCount {
+	case 1:
+		m.Map.AddActiveObj(m)
+	case 0:
+		m.Map.DelActiveObj(m)
+	}
+}
+
+func (m *NPC) GetPlayerCount() int {
+	return m.PlayerCount
+}
+
 func (n *NPC) GetID() uint32 {
 	return n.ID
 }
@@ -129,7 +143,7 @@ func (n *NPC) Broadcast(msg interface{}) {
 	n.Map.BroadcastP(n.CurrentLocation, msg, nil)
 }
 
-func (n *NPC) Process() {
+func (n *NPC) Process(dt time.Duration) {
 	if n.TurnTime.Before(time.Now()) {
 		n.TurnTime = time.Now().Add(time.Second * time.Duration(ut.RandomInt(20, 60)))
 		n.CurrentDirection = common.MirDirection(ut.RandomInt(0, 1))

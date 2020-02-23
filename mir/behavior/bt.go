@@ -32,8 +32,8 @@ func (c *BT) GetTime() time.Duration {
 	return c.timer
 }
 
-func (c *BT) Process() {
-	c.timer += 1 * time.Second
+func (c *BT) Process(dt time.Duration) {
+	c.timer += dt
 	c.Root.Visit(c)
 	c.Root.Step()
 }

@@ -11,7 +11,7 @@ import (
 )
 
 type IBehavior interface {
-	Process()
+	Process(dt time.Duration)
 }
 
 type BehaviroFactory func(id int, mon *Monster) IBehavior
@@ -115,6 +115,20 @@ func NewMonster(mp *Map, p common.Point, mi *common.MonsterInfo) (m *Monster) {
 
 func (m *Monster) GetID() uint32 {
 	return m.ID
+}
+
+func (m *Monster) AddPlayerCount(n int) {
+	m.PlayerCount += n
+	switch m.PlayerCount {
+	case 1:
+		m.Map.AddActiveObj(m)
+	case 0:
+		m.Map.DelActiveObj(m)
+	}
+}
+
+func (m *Monster) GetPlayerCount() int {
+	return m.PlayerCount
 }
 
 func (m *Monster) GetName() string {
@@ -281,7 +295,7 @@ func (m *Monster) InAttackRange() bool {
 }
 
 // Process 怪物定时轮询
-func (m *Monster) Process() {
+func (m *Monster) Process(dt time.Duration) {
 	if m.Target != nil &&
 		//m.Target.GetMap() != m.Map ||
 		(!m.Target.IsAttackTarget(m) || !InRange(m.CurrentLocation, m.Target.GetPoint(), DataRange)) {
@@ -296,7 +310,7 @@ func (m *Monster) Process() {
 		return
 	}
 
-	m.Behavior.Process()
+	m.Behavior.Process(dt)
 
 	m.ProcessBuffs()
 	m.ProcessRegan()
@@ -544,6 +558,7 @@ func (m *Monster) WalkNotify(from, to common.Point) {
 			c.Objects.Range(func(k, v interface{}) bool {
 				switch v.(type) {
 				case *Player:
+					m.AddPlayerCount(1)
 					v.(*Player).Enqueue(ServerMessage{}.Object(m))
 				}
 
@@ -553,6 +568,7 @@ func (m *Monster) WalkNotify(from, to common.Point) {
 			c.Objects.Range(func(k, v interface{}) bool {
 				switch v.(type) {
 				case *Player:
+					m.AddPlayerCount(-1)
 					v.(*Player).Enqueue(ServerMessage{}.ObjectRemove(m))
 				}
 				return true
