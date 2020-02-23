@@ -19,7 +19,7 @@ func (p *Player) GetMagic(spell common.Spell) *common.UserMagic {
 
 // GetClientMagics ...
 func (p *Player) GetClientMagics() []common.ClientMagic {
-	gdb := p.Map.Env.GameDB
+	gdb := env.GameDB
 	res := make([]common.ClientMagic, 0)
 	for i := range p.Magics {
 		userMagic := p.Magics[i]
@@ -278,7 +278,7 @@ func (p *Player) CompleteMagic(args ...interface{}) {
 		value := args[1].(int)
 		target := args[2].(IMapObject)
 		userItem := args[3].(*common.UserItem)
-		itemInfo := p.Map.Env.GameDB.GetItemInfoByID(int(userItem.ItemID))
+		itemInfo := env.GameDB.GetItemInfoByID(int(userItem.ItemID))
 		if itemInfo == nil {
 			return
 		}
@@ -478,7 +478,7 @@ func (p *Player) SummonSkeleton(magic *common.UserMagic) {
 	if userItem == nil {
 		return
 	}
-	monsterInfo := p.Map.Env.GameDB.GetMonsterInfoByName(skeletonName)
+	monsterInfo := env.GameDB.GetMonsterInfoByName(skeletonName)
 	p.LevelMagic(magic)
 	p.ConsumeItem(userItem, 1) // 减少物品数量
 	dir := int(p.CurrentDirection) + 4
@@ -503,7 +503,7 @@ func (p *Player) GetAmulet(count int) *common.UserItem {
 		if userItem == nil {
 			continue
 		}
-		itemInfo := p.Map.Env.GameDB.GetItemInfoByID(int(userItem.ItemID))
+		itemInfo := env.GameDB.GetItemInfoByID(int(userItem.ItemID))
 		if itemInfo != nil && itemInfo.Type == common.ItemTypeAmulet && int(userItem.Count) > count {
 			return userItem
 		}
@@ -518,7 +518,7 @@ func (p *Player) GetPoison(count int) *common.UserItem {
 		if userItem == nil {
 			continue
 		}
-		itemInfo := p.Map.Env.GameDB.GetItemInfoByID(int(userItem.ItemID))
+		itemInfo := env.GameDB.GetItemInfoByID(int(userItem.ItemID))
 		if itemInfo != nil && itemInfo.Type == common.ItemTypeAmulet && int(userItem.Count) > count {
 			if itemInfo.Shape == 1 || itemInfo.Shape == 2 {
 				return userItem
@@ -563,7 +563,7 @@ func (p *Player) MassHiding(magic *common.UserMagic, location common.Point) bool
 	// int delay = Functions.MaxDistance(CurrentLocation, location) * 50 + 500; //50 MS per Step
 	// DelayedAction action = new DelayedAction(DelayedType.Magic, Envir.Time + delay, this, magic, GetAttackPower(MinSC, MaxSC) / 2 + (magic.Level + 1) * 2, location);
 	action := NewDelayedAction(p.NewObjectID(), DelayedTypeMagic, NewTask(p.Map.CompleteMagic, magic, p.GetAttackPower(int(p.MinSC), int(p.MaxSC))/2+(magic.Level+1)*2, location, p))
-	// p.Map.Env.ActionList.Store(action.ID, action)
+	// env.ActionList.Store(action.ID, action)
 	p.Map.PushAction(action)
 	return true
 }
@@ -577,7 +577,7 @@ func (p *Player) SoulShield(magic *common.UserMagic, location common.Point) bool
 	// int delay = Functions.MaxDistance(CurrentLocation, location) * 50 + 500; //50 MS per Step
 	// DelayedAction action = new DelayedAction(DelayedType.Magic, Envir.Time + delay, this, magic, GetAttackPower(MinSC, MaxSC) * 2 + (magic.Level + 1) * 10, location);
 	action := NewDelayedAction(p.NewObjectID(), DelayedTypeMagic, NewTask(p.Map.CompleteMagic, magic, p.GetAttackPower(int(p.MinSC), int(p.MaxSC))*2+(magic.Level+1)*10, location, p))
-	// p.Map.Env.ActionList.Store(action.ID, action)
+	// env.ActionList.Store(action.ID, action)
 	p.Map.PushAction(action)
 	p.ConsumeItem(userItem, 1)
 	return true
@@ -588,7 +588,7 @@ func (p *Player) FireWall(magic *common.UserMagic, location common.Point) {
 	damage := magic.GetDamage(p.GetAttackPower(int(p.MinMC), int(p.MaxMC)))
 	action := NewDelayedAction(p.NewObjectID(), DelayedTypeMagic, NewTask(p.Map.CompleteMagic, magic, p, damage, location))
 	p.Map.PushAction(action)
-	// p.Map.Env.ActionList.Store(action.ID, action)
+	// env.ActionList.Store(action.ID, action)
 }
 
 // Lightning 疾光电影
@@ -596,7 +596,7 @@ func (p *Player) Lightning(magic *common.UserMagic) {
 	damage := magic.GetDamage(p.GetAttackPower(int(p.MinMC), int(p.MaxMC)))
 	action := NewDelayedAction(p.NewObjectID(), DelayedTypeMagic, NewTask(p.Map.CompleteMagic, magic, p, damage, p.CurrentLocation, p.CurrentDirection))
 	p.Map.PushAction(action)
-	// p.Map.Env.ActionList.Store(action.ID, action)
+	// env.ActionList.Store(action.ID, action)
 }
 
 // HeavenlySword ..
@@ -607,7 +607,7 @@ func (p *Player) MassHealing(magic *common.UserMagic, location common.Point) {
 	value := magic.GetDamage(p.GetAttackPower(int(p.MinSC), int(p.MaxSC)))
 	action := NewDelayedAction(p.NewObjectID(), DelayedTypeMagic, NewTask(p.Map.CompleteMagic, magic, p, value, location))
 	p.Map.PushAction(action)
-	// p.Map.Env.ActionList.Store(action.ID, action)
+	// env.ActionList.Store(action.ID, action)
 }
 
 // ShoulderDash 野蛮冲撞
@@ -618,7 +618,7 @@ func (p *Player) ThunderStorm(magic *common.UserMagic) {
 	damage := magic.GetDamage(p.GetAttackPower(int(p.MinMC), int(p.MaxMC)))
 	action := NewDelayedAction(p.NewObjectID(), DelayedTypeMagic, NewTask(p.Map.CompleteMagic, magic, p, damage, p.CurrentLocation))
 	p.Map.PushAction(action)
-	// p.Map.Env.ActionList.Store(action.ID, action)
+	// env.ActionList.Store(action.ID, action)
 }
 
 // FlameDisruptor 火龙术
@@ -687,7 +687,7 @@ func (p *Player) SummonShinsu(magic *common.UserMagic) {
 	if userItem == nil {
 		return
 	}
-	monsterInfo := p.Map.Env.GameDB.GetMonsterInfoByName(skeletonName)
+	monsterInfo := env.GameDB.GetMonsterInfoByName(skeletonName)
 	p.LevelMagic(magic)
 	p.ConsumeItem(userItem, 5) // 减少物品数量
 	dir := int(p.CurrentDirection) + 4
@@ -702,7 +702,7 @@ func (p *Player) SummonShinsu(magic *common.UserMagic) {
 	// DelayedAction action = new DelayedAction(DelayedType.Magic, Envir.Time + 500, this, magic, monster, Front);
 	action := NewDelayedAction(p.NewObjectID(), DelayedTypeMagic, NewTask(p.Map.CompleteMagic, magic, p, monster, p.GetFrontPoint()))
 	p.Map.PushAction(action)
-	// p.Map.Env.ActionList.Store(action.ID, action)
+	// env.ActionList.Store(action.ID, action)
 }
 
 // Purification 净化术

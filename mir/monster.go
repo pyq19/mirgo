@@ -70,7 +70,7 @@ func (m *Monster) String() string {
 // NewMonster ...
 func NewMonster(mp *Map, p common.Point, mi *common.MonsterInfo) (m *Monster) {
 	m = new(Monster)
-	m.ID = mp.Env.NewObjectID()
+	m.ID = env.NewObjectID()
 	m.Map = mp
 	m.Name = mi.Name
 	m.NameColor = common.Color{R: 255, G: 255, B: 255}
@@ -462,7 +462,7 @@ func (m *Monster) Attacked(attacker IMapObject, damage int, defenceType common.D
 
 // Drop 怪物掉落物品
 func (m *Monster) Drop() {
-	value, ok := m.Map.Env.GameDB.DropInfoMap.Load(m.Name)
+	value, ok := env.GameDB.DropInfoMap.Load(m.Name)
 	if !ok {
 		return
 	}
@@ -476,7 +476,7 @@ func (m *Monster) Drop() {
 		if drop.Gold > 0 {
 			mapItems = append(mapItems, Item{
 				MapObject: MapObject{
-					ID:  m.Map.Env.NewObjectID(),
+					ID:  env.NewObjectID(),
 					Map: m.Map,
 				},
 				Gold:     uint64(drop.Gold),
@@ -484,17 +484,17 @@ func (m *Monster) Drop() {
 			})
 			continue
 		}
-		info := m.Map.Env.GameDB.GetItemInfoByName(drop.ItemName)
+		info := env.GameDB.GetItemInfoByName(drop.ItemName)
 		if info == nil {
 			continue
 		}
 		mapItems = append(mapItems, Item{
 			MapObject: MapObject{
-				ID:  m.Map.Env.NewObjectID(),
+				ID:  env.NewObjectID(),
 				Map: m.Map,
 			},
 			Gold:     0,
-			UserItem: m.Map.Env.NewUserItem(info),
+			UserItem: env.NewUserItem(info),
 		})
 	}
 	for i := range mapItems {
