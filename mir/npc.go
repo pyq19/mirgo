@@ -22,7 +22,7 @@ type NPC struct {
 func NewNPC(m *Map, id uint32, ni *common.NpcInfo) *NPC {
 	sc, err := script.LoadFile(ni.Filename + ".txt")
 	if err != nil {
-		log.Warnf("NPC %s 脚本加载失败: %s\n", ni.Name, err.Error())
+		log.Warnf("NPC [%s] [%s] 脚本加载失败: %s\n", ni.Name, ni.Filename, err.Error())
 	}
 	return &NPC{
 		MapObject: MapObject{
@@ -162,7 +162,6 @@ func (n *NPC) GetUserItemByID(id uint64) (item *common.UserItem) {
 
 // Buy 玩家向 NPC 购买物品
 func (n *NPC) Buy(p *Player, userItemID uint64, count uint32) {
-	env := n.Map.Env
 	userItem := n.GetUserItemByID(userItemID)
 	if userItem == nil {
 		return

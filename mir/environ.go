@@ -2,13 +2,13 @@ package mir
 
 import (
 	"container/list"
-	"os"
 	"path/filepath"
 	"strconv"
 	"strings"
 	"sync"
 	"sync/atomic"
 	"time"
+	"weshare/ut"
 
 	"github.com/davyxu/cellnet"
 	_ "github.com/yenkeia/mirgo/codec/mircodec"
@@ -23,8 +23,8 @@ import (
 type Environ struct {
 	Game               *Game
 	GameDB             *GameDB
-	SessionIDPlayerMap *sync.Map // map[int64]*Player
-	Maps               *sync.Map // map[int]*Map	// mapID: Map
+	SessionIDPlayerMap *sync.Map    // map[int64]*Player
+	Maps               map[int]*Map // mapID: Map
 	ObjectID           uint32
 	Players            []*Player
 	lock               *sync.Mutex
@@ -34,6 +34,8 @@ type Environ struct {
 	msgMutex sync.Mutex
 	MsgList  list.List
 }
+
+var env *Environ
 
 func (e *Environ) PushMsg(f func()) {
 	e.msgMutex.Lock()
@@ -65,16 +67,15 @@ func (e *Environ) Loop() {
 			dt := now.Sub(lastFrame)
 			lastFrame = now
 
-			e.Maps.Range(func(_, v interface{}) bool {
-				v.(*Map).Frame(dt)
-				return false
-			})
+			for _, m := range e.Maps {
+				m.Frame(dt)
+			}
 		}
 	}
 }
 
 // NewEnviron ...
-func NewEnviron(g *Game) (env *Environ) {
+func NewEnviron(g *Game) *Environ {
 	env = new(Environ)
 	env.Game = g
 
@@ -97,20 +98,18 @@ func NewEnviron(g *Game) (env *Environ) {
 	env.lock = new(sync.Mutex)
 	env.SessionIDPlayerMap = new(sync.Map)
 	PrintEnviron(env)
-	return
+	return env
 }
 
 func PrintEnviron(env *Environ) {
 	mapCount := 0
 	monsterCount := 0
 	npcCount := 0
-	env.Maps.Range(func(k, v interface{}) bool {
+	for _, m := range env.Maps {
 		mapCount++
-		m := v.(*Map)
 		monsterCount += len(m.monsters)
 		npcCount += len(m.npcs)
-		return true
-	})
+	}
 	log.Debugf("共加载了 %d 张地图，%d 怪物，%d NPC\n", mapCount, monsterCount, npcCount)
 }
 
@@ -224,32 +223,23 @@ func (e *Environ) NewUserItem(i *common.ItemInfo) *common.UserItem {
 
 // InitMaps ...
 func (e *Environ) InitMaps() {
-	mapDirPath := setting.Conf.MapDirPath
-	uppercaseNameRealNameMap := make(map[string]string) // 目录下的文件名大写与该文件的真实文件名对应关系
-	f, err := os.OpenFile(mapDirPath, os.O_RDONLY, os.ModeDir)
-	if err != nil {
-		panic(err)
-	}
-	fileInfo, _ := f.Readdir(-1)
-	for _, info := range fileInfo {
-		if !info.IsDir() {
-			uppercaseNameRealNameMap[strings.ToUpper(info.Name())] = info.Name()
-		}
-	}
-	err = f.Close()
-	if err != nil {
-		panic(err)
+
+	uppercaseNameRealNameMap := map[string]string{}
+	files := ut.GetFiles(setting.Conf.MapDirPath, []string{".map"})
+
+	for _, f := range files {
+		uppercaseNameRealNameMap[strings.ToUpper(filepath.Base(f))] = f
 	}
 
-	e.Maps = new(sync.Map)
-	for i := range e.GameDB.MapInfos {
-		mi := e.GameDB.MapInfos[i]
-		// FIXME 开发只加载第一张地图
-		if mi.ID != 1 {
+	e.Maps = map[int]*Map{}
+	for _, mi := range e.GameDB.MapInfos {
+		// FIXME 开发只加载部分地图
+		if mi.ID != 1 && mi.ID != 384 {
 			continue
 		}
-		m := LoadMap(mapDirPath + uppercaseNameRealNameMap[strings.ToUpper(mi.Filename+".map")])
-		m.Env = e
+
+		m := LoadMap(uppercaseNameRealNameMap[strings.ToUpper(mi.Filename+".map")])
+		mi.Filename = strings.ToUpper(mi.Filename)
 		m.Info = mi
 		if err := m.InitMonsters(); err != nil {
 			panic(err)
@@ -257,8 +247,7 @@ func (e *Environ) InitMaps() {
 		if err := m.InitNPCs(); err != nil {
 			panic(err)
 		}
-		e.Maps.Store(mi.ID, m)
-		break
+		e.Maps[mi.ID] = m
 	}
 }
 
@@ -326,12 +315,22 @@ func (e *Environ) GetPlayersCount() int {
 	return c
 }
 
+func (e *Environ) GetMapByName(filename string) *Map {
+
+	for _, m := range e.Maps {
+		if m.Info.Filename == filename {
+			return m
+		}
+	}
+	return nil
+}
+
 func (e *Environ) GetMap(mapID int) *Map {
-	v, ok := e.Maps.Load(mapID)
+	v, ok := e.Maps[mapID]
 	if !ok {
 		return nil
 	}
-	return v.(*Map)
+	return v
 }
 
 func (e *Environ) Broadcast(msg interface{}) {
@@ -353,11 +352,9 @@ func (e *Environ) SystemBroadcast(...interface{}) {
 func (e *Environ) Debug() {
 	envPlayerCount := e.GetPlayersCount()
 	nplayers := 0
-	e.Maps.Range(func(k, v interface{}) bool {
-		m := v.(*Map)
+	for _, m := range e.Maps {
 		nplayers += len(m.GetAllPlayers())
-		return true
-	})
+	}
 	if nplayers != envPlayerCount {
 		log.Errorf("!!! warning envPlayerCount: %d != map allPlayer: %d\n", envPlayerCount, nplayers)
 	} else {

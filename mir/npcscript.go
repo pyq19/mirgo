@@ -4,50 +4,57 @@ import (
 	"errors"
 	"reflect"
 	"regexp"
+	"strings"
 
+	"github.com/yenkeia/mirgo/common"
 	"github.com/yenkeia/mirgo/mir/script"
 	"github.com/yenkeia/mirgo/proto/server"
 )
 
-func _CHECKPKPOINT(npc *NPC, plr *Player, op script.CompareOp, v int) bool {
-	return script.CompareInt(op, plr.PKPoints, v)
+func _CHECKPKPOINT(npc *NPC, p *Player, op script.CompareOp, v int) bool {
+	return script.CompareInt(op, p.PKPoints, v)
 }
 
-func _LEVEL(npc *NPC, plr *Player, op script.CompareOp, v int) bool {
-	return script.CompareInt(op, int(plr.Level), v)
+func _LEVEL(npc *NPC, p *Player, op script.CompareOp, v int) bool {
+	return script.CompareInt(op, int(p.Level), v)
 }
 
-func _CHECKGOLD(npc *NPC, plr *Player, op script.CompareOp, v int) bool {
+func _CHECKGOLD(npc *NPC, p *Player, op script.CompareOp, v int) bool {
 	// FIX int64->int
-	return script.CompareInt(op, int(plr.Gold), v)
+	return script.CompareInt(op, int(p.Gold), v)
 }
 
-func _GIVEBUFF(npc *NPC, plr *Player, bufname string, time int) {
+func _GIVEBUFF(npc *NPC, p *Player, bufname string, time int) {
 }
-func _REMOVEBUFF(npc *NPC, plr *Player, bufname string) {
-}
-
-func _MOVE(npc *NPC, plr *Player, mapname string, x, y int) {
-
+func _REMOVEBUFF(npc *NPC, p *Player, bufname string) {
 }
 
-func _TAKEGOLD(npc *NPC, plr *Player, gold int) {
-	if gold < 0 || uint64(gold) > plr.Gold {
+func _MOVE(npc *NPC, p *Player, mapname string, x, y int) {
+	m := env.GetMapByName(strings.ToUpper(mapname))
+	if x < 0 || y < 0 {
+		// random teleport
+	} else {
+		p.Teleport(m, common.NewPoint(x, y))
+	}
+}
+
+func _TAKEGOLD(npc *NPC, p *Player, gold int) {
+	if gold < 0 || uint64(gold) > p.Gold {
 		log.Warnf("gold error")
 	}
-	plr.Gold -= uint64(gold)
-	plr.Enqueue(&server.LoseGold{Gold: uint32(gold)})
+	p.Gold -= uint64(gold)
+	p.Enqueue(&server.LoseGold{Gold: uint32(gold)})
 }
 
-func _INGUILD(npc *NPC, plr *Player) bool {
+func _INGUILD(npc *NPC, p *Player) bool {
 	return true
 }
 
-func _CHECKITEM(npc *NPC, plr *Player, itemname string, n int) bool {
+func _CHECKITEM(npc *NPC, p *Player, itemname string, n int) bool {
 
-	info := plr.Map.Env.GameDB.GetItemInfoByName(itemname)
+	info := env.GameDB.GetItemInfoByName(itemname)
 
-	for _, item := range plr.Inventory {
+	for _, item := range p.Inventory {
 		if item != nil && item.ItemID == info.ID {
 			n -= int(item.Count)
 			if n <= 0 {
@@ -59,109 +66,120 @@ func _CHECKITEM(npc *NPC, plr *Player, itemname string, n int) bool {
 	return false
 }
 
-func _CHECKQUEST(npc *NPC, plr *Player, quest int, stat QuestStatus) bool {
+func _CHECKQUEST(npc *NPC, p *Player, quest int, stat QuestStatus) bool {
 	return true
 }
 
-func _LOCALMESSAGE(npc *NPC, plr *Player, message string, typ string) {
+func _LOCALMESSAGE(npc *NPC, p *Player, message string, typ string) {
 
 }
 
-func _SET(npc *NPC, plr *Player, flag Flag, v int) {
+func _SET(npc *NPC, p *Player, flag Flag, v int) {
 }
 
-func _CHECK(npc *NPC, plr *Player, flag Flag, v int) bool {
+func _CHECK(npc *NPC, p *Player, flag Flag, v int) bool {
 	return false
 }
 
-func _ADDTOGUILD(npc *NPC, plr *Player, message string) {
+func _ADDTOGUILD(npc *NPC, p *Player, message string) {
 
 }
-func _ADDNAMELIST(npc *NPC, plr *Player, message string) {
+func _ADDNAMELIST(npc *NPC, p *Player, message string) {
 
 }
 
-func _GIVEITEM(npc *NPC, plr *Player, itemname string, n int) {
+func _GIVEITEM(npc *NPC, p *Player, itemname string, n int) {
 	count := uint32(n)
-	curMap := plr.Map
-	info := curMap.Env.GameDB.GetItemInfoByName(itemname)
+	info := env.GameDB.GetItemInfoByName(itemname)
 	if info == nil {
 		return
 	}
 	for count > 0 {
 		if info.StackSize >= count {
-			userItem := curMap.Env.NewUserItem(info)
+			userItem := env.NewUserItem(info)
 			userItem.Count = count
-			plr.GainItem(userItem)
+			p.GainItem(userItem)
 			return
 		}
-		userItem := curMap.Env.NewUserItem(info)
+		userItem := env.NewUserItem(info)
 		userItem.Count = count
 		count -= info.StackSize
-		plr.GainItem(userItem)
+		p.GainItem(userItem)
 	}
 }
 
-func _CLOSE(npc *NPC, plr *Player) {
+func _CLOSE(npc *NPC, p *Player) {
 
 }
 
-func _REDUCEPKPOINT(npc *NPC, plr *Player, n int) {
+func _REDUCEPKPOINT(npc *NPC, p *Player, n int) {
 
 }
 
-func _CHECKMAP(npc *NPC, plr *Player, mapname string) bool {
+func _CHECKMAP(npc *NPC, p *Player, mapname string) bool {
 	return false
 }
 
-func _ENTERMAP(npc *NPC, plr *Player) {
+func _ENTERMAP(npc *NPC, p *Player) {
 }
 
-func _PETCOUNT(npc *NPC, plr *Player, op script.CompareOp, n int) bool {
+func _PETCOUNT(npc *NPC, p *Player, op script.CompareOp, n int) bool {
 	return false
 }
 
-func _CHECKGENDER(npc *NPC, plr *Player, g string) bool {
+func _CHECKGENDER(npc *NPC, p *Player, g string) bool {
 	return false
 }
-func _CHANGEGENDER(npc *NPC, plr *Player) {
+func _CHANGEGENDER(npc *NPC, p *Player) {
 }
 
-func _CLEARPETS(npc *NPC, plr *Player) {
+func _CLEARPETS(npc *NPC, p *Player) {
 }
-func _GIVEPET(npc *NPC, plr *Player, petname string) {
-}
-
-func _CHECKNAMELIST(npc *NPC, plr *Player, g string) bool {
-	return false
+func _GIVEPET(npc *NPC, p *Player, petname string) {
 }
 
-func _REMOVENAMELIST(npc *NPC, plr *Player, g string) bool {
+func _CHECKNAMELIST(npc *NPC, p *Player, g string) bool {
 	return false
 }
 
-func _ISADMIN(npc *NPC, plr *Player) bool {
+func _REMOVENAMELIST(npc *NPC, p *Player, g string) bool {
 	return false
 }
 
-func _REMOVEFROMGUILD(npc *NPC, plr *Player, g string) {
-}
-
-func _CHECKHUM(npc *NPC, plr *Player, g1 string, g2 string) bool {
+func _ISADMIN(npc *NPC, p *Player) bool {
 	return false
 }
 
-func _MONCLEAR(npc *NPC, plr *Player, g1 string) {
+func _REMOVEFROMGUILD(npc *NPC, p *Player, g string) {
 }
 
-func _PARAM1(npc *NPC, plr *Player, g1 string) {
-}
-func _PARAM2(npc *NPC, plr *Player, g1 string) {
-}
-func _PARAM3(npc *NPC, plr *Player, g1 string) {
+func _CHECKHUM(npc *NPC, p *Player, g1 string, g2 string) bool {
+	return false
 }
 
-func _MONGEN(npc *NPC, plr *Player, g1 string, n int) {
+func _MONCLEAR(npc *NPC, p *Player, g1 string) {
+}
+
+func _PARAM1(npc *NPC, p *Player, g1 string) {
+}
+func _PARAM2(npc *NPC, p *Player, g1 string) {
+}
+func _PARAM3(npc *NPC, p *Player, g1 string) {
+}
+
+func _MONGEN(npc *NPC, p *Player, g1 string, n int) {
+}
+
+func _GIVESKILL(npc *NPC, p *Player, name string, v int) {
+}
+
+func _GIVEGOLD(npc *NPC, p *Player, v int) {
+}
+
+func _LINEMESSAGE(npc *NPC, p *Player, msg string, t string) {
+}
+
+func _CHANGELEVEL(npc *NPC, p *Player, lv int) {
 }
 
 func init() {
@@ -173,7 +191,7 @@ func init() {
 	script.Check("LEVEL", _LEVEL)
 	script.Check("CHECKLEVEL", _LEVEL)
 	script.Check("CHECKGOLD", _CHECKGOLD)
-	script.Check("CHECKITEM", _CHECKITEM, 1) // TODO: 验证默认是否为1
+	script.Check("CHECKITEM", _CHECKITEM, 1)
 	script.Check("CHECKQUEST", _CHECKQUEST)
 	script.Check("INGUILD", _INGUILD)
 	script.Check("CHECK", _CHECK)
@@ -184,6 +202,11 @@ func init() {
 	script.Check("ISADMIN", _ISADMIN)
 	script.Check("CHECKHUM", _CHECKHUM)
 
+	script.Action("CHECKITEM", _CHECKITEM, 1) // GM-Manager.txt 32行：可能是配置写错了。
+	script.Action("CHANGELEVEL", _CHANGELEVEL)
+	script.Action("LINEMESSAGE", _LINEMESSAGE)
+	script.Action("GIVEGOLD", _GIVEGOLD)
+	script.Action("GIVESKILL", _GIVESKILL, 1)
 	script.Action("PARAM1", _PARAM1)
 	script.Action("PARAM2", _PARAM2)
 	script.Action("PARAM3", _PARAM3)
