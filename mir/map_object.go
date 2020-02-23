@@ -66,6 +66,11 @@ type BaseStats struct {
 	Agility  uint8
 }
 
+type IProcessObject interface {
+	GetID() uint32
+	Process(dt time.Duration)
+}
+
 type IMapObject interface {
 	GetID() uint32
 	GetName() string
@@ -84,6 +89,8 @@ type IMapObject interface {
 	AttackMode() common.AttackMode
 	AddBuff(*Buff)
 	ApplyPoison(*Poison, IMapObject)
+	AddPlayerCount(n int)
+	GetPlayerCount() int
 }
 
 type MapObject struct {
@@ -96,4 +103,5 @@ type MapObject struct {
 	Poisons          []*Poison
 	Buffs            []*Buff
 	Dead             bool
+	PlayerCount      int // 记录在DataRange内有多少个玩家
 }

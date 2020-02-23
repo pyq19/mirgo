@@ -47,8 +47,7 @@ func (g *Game) HandleEvent(ev cellnet.Event) {
 			return
 		}
 
-		// 地图内部相关消息，在地图线程执行
-		p.Map.Run(func() { _HandleEvent(p, g, ev, s) })
+		g.Env.PushMsg(func() { _HandleEvent(p, g, ev, s) })
 	}
 }
 

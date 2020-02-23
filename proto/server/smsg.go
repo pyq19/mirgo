@@ -1115,7 +1115,9 @@ type GuildRequestWar struct{}
 
 type DefaultNPC struct{}
 
-type NPCUpdate struct{}
+type NPCUpdate struct {
+	NPCID uint32
+}
 
 type NPCImageUpdate struct{}
 

@@ -7,7 +7,6 @@ import (
 	"github.com/yenkeia/mirgo/common"
 	"github.com/yenkeia/mirgo/mir/script"
 	"github.com/yenkeia/mirgo/proto/server"
-	"github.com/yenkeia/mirgo/setting"
 	"github.com/yenkeia/mirgo/ut"
 )
 
@@ -20,14 +19,14 @@ type NPC struct {
 	Goods    []common.UserItem
 }
 
-func NewNPC(m *Map, ni *common.NpcInfo) *NPC {
-	sc, err := script.LoadFile(setting.Conf.NPCDirPath + ni.Filename + ".txt")
+func NewNPC(m *Map, id uint32, ni *common.NpcInfo) *NPC {
+	sc, err := script.LoadFile(ni.Filename + ".txt")
 	if err != nil {
 		log.Warnf("NPC %s 脚本加载失败: %s\n", ni.Name, err.Error())
 	}
 	return &NPC{
 		MapObject: MapObject{
-			ID:               m.Env.NewObjectID(),
+			ID:               id,
 			Name:             ni.Name,
 			NameColor:        common.Color{R: 255, G: 255, B: 255},
 			Map:              m,
@@ -56,6 +55,20 @@ func (n *NPC) IsDead() bool {
 
 func (n *NPC) IsUndead() bool {
 	return false
+}
+
+func (m *NPC) AddPlayerCount(n int) {
+	m.PlayerCount += n
+	switch m.PlayerCount {
+	case 1:
+		m.Map.AddActiveObj(m)
+	case 0:
+		m.Map.DelActiveObj(m)
+	}
+}
+
+func (m *NPC) GetPlayerCount() int {
+	return m.PlayerCount
 }
 
 func (n *NPC) GetID() uint32 {
@@ -129,7 +142,7 @@ func (n *NPC) Broadcast(msg interface{}) {
 	n.Map.BroadcastP(n.CurrentLocation, msg, nil)
 }
 
-func (n *NPC) Process() {
+func (n *NPC) Process(dt time.Duration) {
 	if n.TurnTime.Before(time.Now()) {
 		n.TurnTime = time.Now().Add(time.Second * time.Duration(ut.RandomInt(20, 60)))
 		n.CurrentDirection = common.MirDirection(ut.RandomInt(0, 1))

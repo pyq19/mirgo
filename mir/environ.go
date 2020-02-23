@@ -1,15 +1,19 @@
 package mir
 
 import (
+	"container/list"
 	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"sync"
 	"sync/atomic"
+	"time"
 
 	"github.com/davyxu/cellnet"
 	_ "github.com/yenkeia/mirgo/codec/mircodec"
 	"github.com/yenkeia/mirgo/common"
+	"github.com/yenkeia/mirgo/mir/script"
 	_ "github.com/yenkeia/mirgo/proc/mirtcp"
 	"github.com/yenkeia/mirgo/proto/server"
 	"github.com/yenkeia/mirgo/setting"
@@ -24,15 +28,70 @@ type Environ struct {
 	ObjectID           uint32
 	Players            []*Player
 	lock               *sync.Mutex
+
+	DefaultNPC *NPC
+
+	msgMutex sync.Mutex
+	MsgList  list.List
+}
+
+func (e *Environ) PushMsg(f func()) {
+	e.msgMutex.Lock()
+	e.MsgList.PushBack(f)
+	e.msgMutex.Unlock()
+}
+
+func (e *Environ) Loop() {
+
+	fpsicker := time.NewTicker(time.Second / time.Duration(60))
+	var lastFrame = time.Now()
+	var now time.Time
+
+	for {
+
+		select {
+		case <-fpsicker.C:
+			e.msgMutex.Lock()
+			if e.MsgList.Len() > 0 {
+				for it := e.MsgList.Front(); it != nil; {
+					curr := it
+					it = it.Next()
+					e.MsgList.Remove(curr).(func())()
+				}
+			}
+			e.msgMutex.Unlock()
+
+			now = time.Now()
+			dt := now.Sub(lastFrame)
+			lastFrame = now
+
+			e.Maps.Range(func(_, v interface{}) bool {
+				v.(*Map).Frame(dt)
+				return false
+			})
+		}
+	}
 }
 
 // NewEnviron ...
 func NewEnviron(g *Game) (env *Environ) {
 	env = new(Environ)
 	env.Game = g
+
+	script.SearchPaths = []string{
+		filepath.Join(setting.Conf.EnvirPath, "NPCs"),
+		setting.Conf.EnvirPath,
+	}
+
 	env.InitGameDB()
 	env.InitMonsterDrop()
 	env.InitMaps()
+
+	env.DefaultNPC = NewNPC(nil, env.NewObjectID(), &common.NpcInfo{
+		Name:     "DefaultNPC",
+		Filename: "00Default",
+	})
+
 	env.ObjectID = 100000
 	env.Players = make([]*Player, 0)
 	env.lock = new(sync.Mutex)
@@ -198,7 +257,6 @@ func (e *Environ) InitMaps() {
 		if err := m.InitNPCs(); err != nil {
 			panic(err)
 		}
-		go m.Loop()
 		e.Maps.Store(mi.ID, m)
 		break
 	}
