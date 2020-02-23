@@ -493,12 +493,16 @@ func (p *Player) SummonSkeleton(magic *common.UserMagic) {
 	// DelayedAction action = new DelayedAction(DelayedType.Magic, Envir.Time + 500, this, magic, monster, Front);
 	action := NewDelayedAction(p.NewObjectID(), DelayedTypeMagic, NewTask(p.Map.CompleteMagic, magic, p, monster, p.GetFrontPoint()))
 	p.Map.PushAction(action)
+	// log.Debugln(action.ID)
 }
 
 // GetAmulet 获取玩家身上装备的护身符
 func (p *Player) GetAmulet(count int) *common.UserItem {
 	for i := range p.Equipment {
 		userItem := p.Equipment[i]
+		if userItem == nil {
+			continue
+		}
 		itemInfo := p.Map.Env.GameDB.GetItemInfoByID(int(userItem.ItemID))
 		if itemInfo != nil && itemInfo.Type == common.ItemTypeAmulet && int(userItem.Count) > count {
 			return userItem
@@ -511,6 +515,9 @@ func (p *Player) GetAmulet(count int) *common.UserItem {
 func (p *Player) GetPoison(count int) *common.UserItem {
 	for i := range p.Equipment {
 		userItem := p.Equipment[i]
+		if userItem == nil {
+			continue
+		}
 		itemInfo := p.Map.Env.GameDB.GetItemInfoByID(int(userItem.ItemID))
 		if itemInfo != nil && itemInfo.Type == common.ItemTypeAmulet && int(userItem.Count) > count {
 			if itemInfo.Shape == 1 || itemInfo.Shape == 2 {
