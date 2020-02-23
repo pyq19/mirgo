@@ -445,7 +445,7 @@ func saveToDB(msg *server.UserInformation) {
 }
 
 func TestEmptySlice(t *testing.T) {
-	slice := make([]common.UserItem, 5)
+	slice := make([]*common.UserItem, 5)
 	slice[0].ItemID = 1
 	t.Log(len(slice))
 	t.Log(slice[0])
@@ -529,7 +529,7 @@ func TestEncodeDecodePlayerInspect(t *testing.T) {
 		Name:      "testName",
 		GuildName: "testGuildName",
 		GuildRank: "testGuildRank",
-		Equipment: make([]common.UserItem, 14),
+		Equipment: make([]*common.UserItem, 14),
 		Class:     common.MirClassTaoist,
 		Gender:    common.MirGenderFemale,
 		Hair:      1,

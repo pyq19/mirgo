@@ -39,16 +39,16 @@ type Player struct {
 	Gender             common.MirGender
 	Hair               uint8
 	Light              uint8
-	Inventory          []common.UserItem // 46
-	Equipment          []common.UserItem // 14
-	QuestInventory     []common.UserItem // 40
-	Trade              []common.UserItem // 10
-	Refine             []common.UserItem // 16
+	Inventory          []*common.UserItem // 46
+	Equipment          []*common.UserItem // 14
+	QuestInventory     []*common.UserItem // 40
+	Trade              []*common.UserItem // 10
+	Refine             []*common.UserItem // 16
 	LooksArmour        int
 	LooksWings         int
 	LooksWeapon        int
 	LooksWeaponEffect  int
-	SendItemInfo       []common.ItemInfo
+	SendItemInfo       []*common.ItemInfo
 	CurrentBagWeight   int
 	MaxHP              uint16
 	MaxMP              uint16
@@ -438,25 +438,22 @@ func (p *Player) EnqueueItemInfos() {
 	gdb := p.Map.Env.GameDB
 	itemInfos := make([]*common.ItemInfo, 0)
 	for i := range p.Inventory {
-		itemID := int(p.Inventory[i].ItemID)
-		if itemID == 0 {
-			continue
+		if p.Inventory[i] != nil {
+			itemID := int(p.Inventory[i].ItemID)
+			itemInfos = append(itemInfos, gdb.GetItemInfoByID(itemID))
 		}
-		itemInfos = append(itemInfos, gdb.GetItemInfoByID(itemID))
 	}
 	for i := range p.Equipment {
-		itemID := int(p.Equipment[i].ItemID)
-		if itemID == 0 {
-			continue
+		if p.Equipment[i] != nil {
+			itemID := int(p.Equipment[i].ItemID)
+			itemInfos = append(itemInfos, gdb.GetItemInfoByID(itemID))
 		}
-		itemInfos = append(itemInfos, gdb.GetItemInfoByID(itemID))
 	}
 	for i := range p.QuestInventory {
-		itemID := int(p.QuestInventory[i].ItemID)
-		if itemID == 0 {
-			continue
+		if p.QuestInventory[i] != nil {
+			itemID := int(p.QuestInventory[i].ItemID)
+			itemInfos = append(itemInfos, gdb.GetItemInfoByID(itemID))
 		}
-		itemInfos = append(itemInfos, gdb.GetItemInfoByID(itemID))
 	}
 	for i := range itemInfos {
 		p.EnqueueItemInfo(itemInfos[i].ID)
@@ -475,7 +472,7 @@ func (p *Player) EnqueueItemInfo(itemID int32) {
 		return
 	}
 	p.Enqueue(ServerMessage{}.NewItemInfo(item))
-	p.SendItemInfo = append(p.SendItemInfo, *item)
+	p.SendItemInfo = append(p.SendItemInfo, item)
 }
 
 func (p *Player) EnqueueQuestInfo() {
@@ -567,9 +564,8 @@ func (p *Player) RefreshLevelStats() {
 
 func (p *Player) RefreshBagWeight() {
 	p.CurrentBagWeight = 0
-	for i := range p.Inventory {
-		ui := p.Inventory[i]
-		if ui.ID != 0 {
+	for _, ui := range p.Inventory {
+		if ui != nil {
 			it := p.Map.Env.GameDB.GetItemInfoByID(int(ui.ItemID))
 			p.CurrentBagWeight += int(it.Weight)
 		}
@@ -578,18 +574,20 @@ func (p *Player) RefreshBagWeight() {
 
 func (p *Player) RefreshEquipmentStats() {
 	gdb := p.Map.Env.GameDB
-	for i := range p.Equipment {
-		e := gdb.GetItemInfoByID(int(p.Equipment[i].ItemID))
-		if e == nil {
-			continue
-		}
-		switch e.Type {
-		case common.ItemTypeArmour:
-			p.LooksArmour = int(e.Shape)
-			p.LooksWings = int(e.Effect)
-		case common.ItemTypeWeapon:
-			p.LooksWeapon = int(e.Shape)
-			p.LooksWeaponEffect = int(e.Effect)
+	for _, v := range p.Equipment {
+		if v != nil {
+			e := gdb.GetItemInfoByID(int(v.ItemID))
+			if e == nil {
+				continue
+			}
+			switch e.Type {
+			case common.ItemTypeArmour:
+				p.LooksArmour = int(e.Shape)
+				p.LooksWings = int(e.Effect)
+			case common.ItemTypeWeapon:
+				p.LooksWeapon = int(e.Shape)
+				p.LooksWeaponEffect = int(e.Effect)
+			}
 		}
 	}
 }
@@ -624,7 +622,7 @@ func (p *Player) RefreshGuildBuffs() {
 
 // GetUserItemByID 获取物品，返回该物品在容器的索引和是否成功
 func (p *Player) GetUserItemByID(mirGridType common.MirGridType, id uint64) (index int, item *common.UserItem) {
-	var arr []common.UserItem
+	var arr []*common.UserItem
 	switch mirGridType {
 	case common.MirGridTypeInventory:
 		arr = p.Inventory
@@ -633,10 +631,9 @@ func (p *Player) GetUserItemByID(mirGridType common.MirGridType, id uint64) (ind
 	default:
 		panic("error mirGridType")
 	}
-	for i := range arr {
-		item := arr[i]
-		if item.ID == id {
-			return i, &item
+	for i, v := range arr {
+		if v != nil && v.ID == id {
+			return i, v
 		}
 	}
 	return -1, nil
@@ -667,11 +664,11 @@ func (p *Player) GainItem(ui *common.UserItem) bool {
 		i = 6
 	}
 	for i < j {
-		if p.Inventory[i].ID != 0 {
+		if p.Inventory[i] != nil {
 			i++
 			continue
 		}
-		p.Inventory[i] = *ui
+		p.Inventory[i] = ui
 		break
 	}
 	p.EnqueueItemInfo(ui.ItemID)
@@ -1154,7 +1151,7 @@ func (p *Player) EquipItem(mirGridType common.MirGridType, id uint64, to int32) 
 			return
 		}
 		p.Inventory[index] = p.Equipment[to]
-		p.Equipment[to] = *item
+		p.Equipment[to] = item
 	case common.MirGridTypeStorage:
 		// TODO
 	}
@@ -1190,7 +1187,7 @@ func (p *Player) RemoveItem(mirGridType common.MirGridType, id uint64, to int32)
 		}
 		for i := range p.Inventory[6:] {
 			tmp := p.Inventory[6:][i]
-			if tmp.ID != 0 {
+			if tmp != nil {
 				continue
 			}
 			p.Inventory[6:][i], p.Equipment[index] = p.Equipment[index], p.Inventory[6:][i]
@@ -1217,7 +1214,7 @@ func (p *Player) SplitItem(grid common.MirGridType, id uint64, count uint32) {
 		Count:    count,
 		Success:  false,
 	}
-	var array []common.UserItem
+	var array []*common.UserItem
 	switch grid {
 	case common.MirGridTypeInventory:
 		_, userItem := p.GetUserItemByID(common.MirGridTypeInventory, id)
@@ -1231,7 +1228,7 @@ func (p *Player) SplitItem(grid common.MirGridType, id uint64, count uint32) {
 		newUserItem.Count = count
 		msg.Success = true
 		p.Enqueue(msg)
-		p.Enqueue(&server.SplitItem{Item: *newUserItem, Grid: grid})
+		p.Enqueue(&server.SplitItem{Item: newUserItem, Grid: grid})
 		a, b := 0, 6
 		if itemInfo.Type == common.ItemTypePotion || itemInfo.Type == common.ItemTypeScroll { // 药水 卷轴
 			a = 0
@@ -1244,10 +1241,10 @@ func (p *Player) SplitItem(grid common.MirGridType, id uint64, count uint32) {
 			b = len(array)
 		}
 		for i := a; i < b; i++ {
-			if array[i].ID != 0 {
+			if array[i] != nil {
 				continue
 			}
-			array[i] = *newUserItem
+			array[i] = newUserItem
 			p.RefreshBagWeight()
 			return
 		}
@@ -1312,7 +1309,7 @@ func (p *Player) UseItem(id uint64) {
 	if item.Count > 1 {
 		item.Count--
 	} else {
-		p.Inventory[index] = common.UserItem{}
+		p.Inventory[index] = nil
 	}
 	p.RefreshBagWeight()
 	msg.Success = true
@@ -1329,7 +1326,10 @@ func (p *Player) CallDefaultNPC(calltype DefaultNPCType, args ...interface{}) {
 
 	key = fmt.Sprintf("[@_%s]", key)
 
-	p.CallNPC1(p.Map.Env.DefaultNPC, key)
+	action := NewDelayedAction(p.NewObjectID(), DelayedTypeNPC, NewTask(func(...interface{}) {
+		p.CallNPC1(p.Map.Env.DefaultNPC, key)
+	}))
+	p.ActionList.Store(action.ID, action)
 
 	p.Enqueue(&server.NPCUpdate{NPCID: p.Map.Env.DefaultNPC.GetID()})
 }
@@ -1351,7 +1351,7 @@ func (p *Player) DropItem(id uint64, count uint32) {
 		return
 	}
 	if count >= userItem.Count {
-		p.Inventory[index] = common.UserItem{}
+		p.Inventory[index] = nil
 	} else {
 		p.Inventory[index].Count -= count
 	}

@@ -513,14 +513,14 @@ func updatePlayerInfo(g *Game, p *Player, c *common.Character) {
 		}
 		userItemIDIndexMap[i.UserItemID] = i.Index
 	}
-	inventory := make([]common.UserItem, 46)
-	equipment := make([]common.UserItem, 14)
-	questInventory := make([]common.UserItem, 40)
-	trade := make([]common.UserItem, 0)
-	refine := make([]common.UserItem, 0)
-	uii := make([]common.UserItem, 0, 46)
-	uie := make([]common.UserItem, 0, 14)
-	uiq := make([]common.UserItem, 0, 40)
+	inventory := make([]*common.UserItem, 46)
+	equipment := make([]*common.UserItem, 14)
+	questInventory := make([]*common.UserItem, 40)
+	trade := make([]*common.UserItem, 0)
+	refine := make([]*common.UserItem, 0)
+	uii := make([]*common.UserItem, 0, 46)
+	uie := make([]*common.UserItem, 0, 14)
+	uiq := make([]*common.UserItem, 0, 40)
 	g.DB.Table("user_item").Where("id in (?)", is).Find(&uii)
 	g.DB.Table("user_item").Where("id in (?)", es).Find(&uie)
 	g.DB.Table("user_item").Where("id in (?)", qs).Find(&uiq)
@@ -556,7 +556,7 @@ func updatePlayerInfo(g *Game, p *Player, c *common.Character) {
 	p.QuestInventory = questInventory
 	p.Trade = trade
 	p.Refine = refine
-	p.SendItemInfo = make([]common.ItemInfo, 0)
+	p.SendItemInfo = make([]*common.ItemInfo, 0)
 	p.MaxExperience = 100
 	p.Magics = magics
 	p.ActionList = new(sync.Map)

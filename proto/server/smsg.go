@@ -369,9 +369,9 @@ type UserInformation struct {
 	Experience                int64
 	MaxExperience             int64
 	LevelEffect               common.LevelEffects
-	Inventory                 []common.UserItem
-	Equipment                 []common.UserItem
-	QuestInventory            []common.UserItem
+	Inventory                 []*common.UserItem
+	Equipment                 []*common.UserItem
+	QuestInventory            []*common.UserItem
 	Gold                      uint32
 	Credit                    uint32
 	HasExpandedStorage        bool
@@ -512,7 +512,7 @@ type StoreItem struct {
 }
 
 type SplitItem struct {
-	Item common.UserItem
+	Item *common.UserItem
 	Grid common.MirGridType
 }
 
@@ -579,7 +579,7 @@ type PlayerInspect struct {
 	Name      string
 	GuildName string
 	GuildRank string
-	Equipment []common.UserItem
+	Equipment []*common.UserItem
 	Class     common.MirClass
 	Gender    common.MirGender
 	Hair      uint8
