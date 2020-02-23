@@ -31,6 +31,8 @@ func NewGame() *Game {
 	//defer db.Close()
 	g.DB = db
 	g.Env = NewEnviron(g)
+	go g.Env.Loop()
+
 	return g
 }
 

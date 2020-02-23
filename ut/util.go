@@ -1,6 +1,9 @@
 package ut
 
-import "math/rand"
+import (
+	"math/rand"
+	"os"
+)
 
 func AbsInt(i int) int {
 	if i < 0 {
@@ -35,4 +38,20 @@ func RandomString(length int) string {
 		bytes[i] = byte(b)
 	}
 	return string(bytes)
+}
+
+func IsDir(path string) bool {
+	s, err := os.Stat(path)
+	if err != nil {
+		return false
+	}
+	return s.IsDir()
+}
+
+func IsFile(path string) bool {
+	s, err := os.Stat(path)
+	if err != nil {
+		return false
+	}
+	return !s.IsDir()
 }

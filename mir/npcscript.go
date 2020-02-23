@@ -24,6 +24,8 @@ func _CHECKGOLD(npc *NPC, plr *Player, op script.CompareOp, v int) bool {
 
 func _GIVEBUFF(npc *NPC, plr *Player, bufname string, time int) {
 }
+func _REMOVEBUFF(npc *NPC, plr *Player, bufname string) {
+}
 
 func _MOVE(npc *NPC, plr *Player, mapname string, x, y int) {
 
@@ -71,19 +73,102 @@ func _GIVEITEM(npc *NPC, plr *Player, itemname string, n int) {
 
 }
 
+func _CLOSE(npc *NPC, plr *Player) {
+
+}
+
+func _REDUCEPKPOINT(npc *NPC, plr *Player, n int) {
+
+}
+
+func _CHECKMAP(npc *NPC, plr *Player, mapname string) bool {
+	return false
+}
+
+func _ENTERMAP(npc *NPC, plr *Player) {
+}
+
+func _PETCOUNT(npc *NPC, plr *Player, op script.CompareOp, n int) bool {
+	return false
+}
+
+func _CHECKGENDER(npc *NPC, plr *Player, g string) bool {
+	return false
+}
+func _CHANGEGENDER(npc *NPC, plr *Player) {
+}
+
+func _CLEARPETS(npc *NPC, plr *Player) {
+}
+func _GIVEPET(npc *NPC, plr *Player, petname string) {
+}
+
+func _CHECKNAMELIST(npc *NPC, plr *Player, g string) bool {
+	return false
+}
+
+func _REMOVENAMELIST(npc *NPC, plr *Player, g string) bool {
+	return false
+}
+
+func _ISADMIN(npc *NPC, plr *Player) bool {
+	return false
+}
+
+func _REMOVEFROMGUILD(npc *NPC, plr *Player, g string) {
+}
+
+func _CHECKHUM(npc *NPC, plr *Player, g1 string, g2 string) bool {
+	return false
+}
+
+func _MONCLEAR(npc *NPC, plr *Player, g1 string) {
+}
+
+func _PARAM1(npc *NPC, plr *Player, g1 string) {
+}
+func _PARAM2(npc *NPC, plr *Player, g1 string) {
+}
+func _PARAM3(npc *NPC, plr *Player, g1 string) {
+}
+
+func _MONGEN(npc *NPC, plr *Player, g1 string, n int) {
+}
+
 func init() {
 	script.AddParser(reflect.TypeOf(Flag(0)), parseFlag)
 	script.AddParser(reflect.TypeOf(QuestStatus(0)), parseQuestStatus)
 
 	// if
 	script.Check("CHECKPKPOINT", _CHECKPKPOINT)
-	script.Check("LEVEL", _CHECKPKPOINT)
+	script.Check("LEVEL", _LEVEL)
+	script.Check("CHECKLEVEL", _LEVEL)
 	script.Check("CHECKGOLD", _CHECKGOLD)
 	script.Check("CHECKITEM", _CHECKITEM, 1) // TODO: 验证默认是否为1
 	script.Check("CHECKQUEST", _CHECKQUEST)
 	script.Check("INGUILD", _INGUILD)
 	script.Check("CHECK", _CHECK)
+	script.Check("CHECKMAP", _CHECKMAP)
+	script.Check("PETCOUNT", _PETCOUNT)
+	script.Check("CHECKGENDER", _CHECKGENDER)
+	script.Check("CHECKNAMELIST", _CHECKNAMELIST)
+	script.Check("ISADMIN", _ISADMIN)
+	script.Check("CHECKHUM", _CHECKHUM)
 
+	script.Action("PARAM1", _PARAM1)
+	script.Action("PARAM2", _PARAM2)
+	script.Action("PARAM3", _PARAM3)
+	script.Action("MONGEN", _MONGEN)
+	script.Action("REMOVENAMELIST", _REMOVENAMELIST)
+	script.Action("MONCLEAR", _MONCLEAR)
+	script.Action("REMOVEFROMGUILD", _REMOVEFROMGUILD)
+	script.Action("GIVEPET", _GIVEPET)
+	script.Action("CHANGEGENDER", _CHANGEGENDER)
+	script.Action("REMOVEBUFF", _REMOVEBUFF)
+	script.Action("CLEARPETS", _CLEARPETS)
+	script.Action("ENTERMAP", _ENTERMAP)
+	script.Action("REDUCEPKPOINT", _REDUCEPKPOINT)
+	script.Action("CLOSE", _CLOSE)
 	script.Action("GIVEBUFF", _GIVEBUFF)
 	script.Action("SET", _SET)
 	script.Action("MOVE", _MOVE, -1, -1)

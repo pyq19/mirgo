@@ -24,7 +24,7 @@ func PrintJson(v interface{}) {
 
 func setpath() {
 	gopath := os.Getenv("GOPATH")
-	EnvirPath = filepath.Join(gopath, "src/github.com/yenkeia/mirgo/dotnettools/database/Envir")
+	SearchPaths = []string{filepath.Join(gopath, "src/github.com/yenkeia/mirgo/dotnettools/database/Envir")}
 }
 
 func TestXXX(X *testing.T) {
@@ -48,7 +48,7 @@ func TestPrecompile(t *testing.T) {
 		panic(err)
 	}
 	Print(v)
-	lines, err := ReadLines(filepath.Join(EnvirPath, "NPCs/BichonProvince/BichonWall/Sir.MoguBW.txt"))
+	lines, err := ReadLines(fullpath("NPCs/BichonProvince/BichonWall/Sir.MoguBW.txt"))
 	if err != nil {
 		panic(err)
 	}
