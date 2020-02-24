@@ -9,6 +9,7 @@ import (
 
 	"github.com/jinzhu/gorm"
 	"github.com/yenkeia/mirgo/common"
+	"github.com/yenkeia/mirgo/ut"
 )
 
 func TestMapAbsPath(t *testing.T) {
@@ -131,7 +132,7 @@ func TestAllMaps(t *testing.T) {
 	gopath := os.Getenv("GOPATH")
 	mappath := gopath + "/src/github.com/yenkeia/mirgo/dotnettools/database/Maps/"
 
-	maps := GetFiles(mappath, []string{".map"})
+	maps := ut.GetFiles(mappath, []string{".map"})
 
 	mark := map[byte]bool{}
 
