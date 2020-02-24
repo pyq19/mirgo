@@ -114,7 +114,7 @@ func (i *Item) AddBuff(buff *Buff) {}
 func (i *Item) ApplyPoison(poison *Poison, caster IMapObject) {}
 
 func (i *Item) GetItemInfo() *common.ItemInfo {
-	return env.GameDB.GetItemInfoByID(int(i.UserItem.ItemID))
+	return data.GetItemInfoByID(int(i.UserItem.ItemID))
 }
 
 func (i *Item) GetImage() uint16 {
