@@ -1,5 +1,7 @@
 package mir
 
+import "github.com/yenkeia/mirgo/setting"
+
 const DataRange = 20
 
 const (
@@ -33,3 +35,5 @@ const (
 	DefaultNPCTypeDaily
 	DefaultNPCTypeTalkMonster
 )
+
+var settings = setting.DefaultSettings()

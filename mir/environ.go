@@ -1,7 +1,6 @@
 package mir
 
 import (
-	"container/list"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -15,62 +14,31 @@ import (
 	"github.com/yenkeia/mirgo/mir/script"
 	_ "github.com/yenkeia/mirgo/proc/mirtcp"
 	"github.com/yenkeia/mirgo/proto/server"
-	"github.com/yenkeia/mirgo/setting"
 	"github.com/yenkeia/mirgo/ut"
 )
 
 // Environ ...
 type Environ struct {
 	Game               *Game
-	GameDB             *GameDB
 	SessionIDPlayerMap *sync.Map    // map[int64]*Player
 	Maps               map[int]*Map // mapID: Map
 	ObjectID           uint32
 	Players            []*Player
 	lock               *sync.Mutex
+	lastFrame          time.Time
 
 	DefaultNPC *NPC
-
-	msgMutex sync.Mutex
-	MsgList  list.List
 }
 
 var env *Environ
 
-func (e *Environ) PushMsg(f func()) {
-	e.msgMutex.Lock()
-	e.MsgList.PushBack(f)
-	e.msgMutex.Unlock()
-}
-
 func (e *Environ) Loop() {
+	now := time.Now()
+	dt := now.Sub(e.lastFrame)
+	e.lastFrame = now
 
-	fpsicker := time.NewTicker(time.Second / time.Duration(60))
-	var lastFrame = time.Now()
-	var now time.Time
-
-	for {
-
-		select {
-		case <-fpsicker.C:
-			e.msgMutex.Lock()
-			if e.MsgList.Len() > 0 {
-				for it := e.MsgList.Front(); it != nil; {
-					curr := it
-					it = it.Next()
-					e.MsgList.Remove(curr).(func())()
-				}
-			}
-			e.msgMutex.Unlock()
-
-			now = time.Now()
-			dt := now.Sub(lastFrame)
-			lastFrame = now
-
-			for _, m := range e.Maps {
-				m.Frame(dt)
-			}
-		}
+	for _, m := range e.Maps {
+		m.Frame(dt)
 	}
 }
 
@@ -78,26 +46,29 @@ func (e *Environ) Loop() {
 func NewEnviron(g *Game) *Environ {
 	env = new(Environ)
 	env.Game = g
+	env.lastFrame = time.Now()
+
+	data.Load(g.DB)
 
 	script.SearchPaths = []string{
-		filepath.Join(setting.Conf.EnvirPath, "NPCs"),
-		setting.Conf.EnvirPath,
+		filepath.Join(settings.EnvirPath, "NPCs"),
+		settings.EnvirPath,
 	}
-
-	env.InitGameDB()
-	env.InitMonsterDrop()
-	env.InitMaps()
 
 	env.DefaultNPC = NewNPC(nil, env.NewObjectID(), &common.NpcInfo{
 		Name:     "DefaultNPC",
 		Filename: "00Default",
 	})
 
+	env.InitMaps()
+
 	env.ObjectID = 100000
 	env.Players = make([]*Player, 0)
 	env.lock = new(sync.Mutex)
 	env.SessionIDPlayerMap = new(sync.Map)
+
 	PrintEnviron(env)
+
 	return env
 }
 
@@ -111,69 +82,6 @@ func PrintEnviron(env *Environ) {
 		npcCount += len(m.npcs)
 	}
 	log.Debugf("共加载了 %d 张地图，%d 怪物，%d NPC\n", mapCount, monsterCount, npcCount)
-}
-
-// InitGameDB ...
-func (e *Environ) InitGameDB() {
-	gdb := new(GameDB)
-	e.GameDB = gdb
-	db := e.Game.DB
-
-	db.Table("basic").First(&gdb.Basic)
-	db.Table("game_shop_item").Find(&gdb.GameShopItems)
-	db.Table("item").Find(&gdb.ItemInfos)
-	db.Table("magic").Find(&gdb.MagicInfos)
-	db.Table("map").Find(&gdb.MapInfos)
-	db.Table("monster").Find(&gdb.MonsterInfos)
-	db.Table("movement").Find(&gdb.MovementInfos)
-	db.Table("npc").Find(&gdb.NpcInfos)
-	db.Table("quest").Find(&gdb.QuestInfos)
-	db.Table("respawn").Find(&gdb.RespawnInfos)
-	db.Table("safe_zone").Find(&gdb.SafeZoneInfos)
-
-	gdb.MapIDInfoMap = new(sync.Map)
-	gdb.ItemIDInfoMap = new(sync.Map)
-	gdb.ItemNameInfoMap = new(sync.Map)
-	gdb.MonsterIDInfoMap = new(sync.Map)
-	gdb.MonsterNameInfoMap = new(sync.Map)
-	gdb.MagicIDInfoMap = new(sync.Map)
-	for i := range gdb.MapInfos {
-		v := gdb.MapInfos[i]
-		gdb.MapIDInfoMap.Store(v.ID, v)
-	}
-	for i := range gdb.ItemInfos {
-		v := gdb.ItemInfos[i]
-		gdb.ItemIDInfoMap.Store(int(v.ID), v)
-		gdb.ItemNameInfoMap.Store(v.Name, v)
-	}
-	for i := range gdb.MonsterInfos {
-		v := gdb.MonsterInfos[i]
-		gdb.MonsterNameInfoMap.Store(v.Name, v)
-		gdb.MonsterIDInfoMap.Store(v.ID, v)
-	}
-	for i := range gdb.MagicInfos {
-		v := gdb.MagicInfos[i]
-		gdb.MagicIDInfoMap.Store(v.ID, v)
-	}
-}
-
-func (e *Environ) InitMonsterDrop() {
-	gdb := e.GameDB
-	itemMap := make(map[string]int32)
-	for i := range gdb.ItemInfos {
-		v := gdb.ItemInfos[i]
-		itemMap[v.Name] = v.ID
-	}
-	gdb.DropInfoMap = new(sync.Map)
-	for i := range gdb.MonsterInfos {
-		v := gdb.MonsterInfos[i]
-		dropInfos, err := common.GetDropInfosByMonsterName(setting.Conf.DropDirPath, v.Name)
-		if err != nil {
-			log.Warnln("加载怪物掉落错误", v.Name, err.Error())
-			continue
-		}
-		gdb.DropInfoMap.Store(v.Name, dropInfos)
-	}
 }
 
 func (e *Environ) CreateDropItem(m *Map, userItem *common.UserItem, gold uint64) *Item {
@@ -225,14 +133,14 @@ func (e *Environ) NewUserItem(i *common.ItemInfo) *common.UserItem {
 func (e *Environ) InitMaps() {
 
 	uppercaseNameRealNameMap := map[string]string{}
-	files := ut.GetFiles(setting.Conf.MapDirPath, []string{".map"})
+	files := ut.GetFiles(settings.MapDirPath, []string{".map"})
 
 	for _, f := range files {
 		uppercaseNameRealNameMap[strings.ToUpper(filepath.Base(f))] = f
 	}
 
 	e.Maps = map[int]*Map{}
-	for _, mi := range e.GameDB.MapInfos {
+	for _, mi := range data.MapInfos {
 		// FIXME 开发只加载部分地图
 		if mi.ID != 1 && mi.ID != 384 {
 			continue

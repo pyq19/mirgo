@@ -192,7 +192,7 @@ func (p *Player) IsAttackTarget(attacker IMapObject) bool {
 	case common.ObjectTypePlayer:
 	case common.ObjectTypeMonster:
 		monster := attacker.(*Monster)
-		monsterInfo := env.GameDB.GetMonsterInfoByName(monster.Name)
+		monsterInfo := data.GetMonsterInfoByName(monster.Name)
 		if monsterInfo.AI == 6 || monsterInfo.AI == 58 {
 			return p.PKPoints >= 200
 		}
@@ -435,7 +435,7 @@ func (p *Player) Process(dt time.Duration) {
 }
 
 func (p *Player) EnqueueItemInfos() {
-	gdb := env.GameDB
+	gdb := data
 	itemInfos := make([]*common.ItemInfo, 0)
 	for i := range p.Inventory {
 		if p.Inventory[i] != nil {
@@ -467,7 +467,7 @@ func (p *Player) EnqueueItemInfo(itemID int32) {
 			return
 		}
 	}
-	item := env.GameDB.GetItemInfoByID(int(itemID))
+	item := data.GetItemInfoByID(int(itemID))
 	if item == nil {
 		return
 	}
@@ -566,14 +566,14 @@ func (p *Player) RefreshBagWeight() {
 	p.CurrentBagWeight = 0
 	for _, ui := range p.Inventory {
 		if ui != nil {
-			it := env.GameDB.GetItemInfoByID(int(ui.ItemID))
+			it := data.GetItemInfoByID(int(ui.ItemID))
 			p.CurrentBagWeight += int(it.Weight)
 		}
 	}
 }
 
 func (p *Player) RefreshEquipmentStats() {
-	gdb := env.GameDB
+	gdb := data
 	for _, v := range p.Equipment {
 		if v != nil {
 			e := gdb.GetItemInfoByID(int(v.ItemID))
@@ -646,7 +646,7 @@ func (p *Player) ConsumeItem(userItem *common.UserItem, count int) {
 
 // GainItem 为玩家增加物品，增加成功返回 true
 func (p *Player) GainItem(ui *common.UserItem) bool {
-	item := env.GameDB.GetItemInfoByID(int(ui.ItemID))
+	item := data.GetItemInfoByID(int(ui.ItemID))
 	if item == nil {
 		return false
 	}
@@ -1006,7 +1006,7 @@ func (p *Player) Chat(message string) {
 			if len(parts) != 3 {
 				return
 			}
-			info := env.GameDB.GetItemInfoByName(parts[1])
+			info := data.GetItemInfoByName(parts[1])
 			if info == nil {
 				return
 			}
@@ -1071,7 +1071,7 @@ func (p *Player) Chat(message string) {
 				p.ReceiveChat(fmt.Sprintf("生成怪物失败"), common.ChatTypeSystem)
 				return
 			}
-			mi := env.GameDB.GetMonsterInfoByName(parts[1])
+			mi := data.GetMonsterInfoByName(parts[1])
 			if mi == nil {
 				p.ReceiveChat(fmt.Sprintf("生成怪物失败，找不到怪物 %s", parts[1]), common.ChatTypeSystem)
 				return
@@ -1311,7 +1311,7 @@ func (p *Player) SplitItem(grid common.MirGridType, id uint64, count uint32) {
 			return
 		}
 		userItem.Count -= count
-		itemInfo := env.GameDB.GetItemInfoByID(int(userItem.ItemID))
+		itemInfo := data.GetItemInfoByID(int(userItem.ItemID))
 		newUserItem := env.NewUserItem(itemInfo)
 		newUserItem.Count = count
 		msg.Success = true
@@ -1357,7 +1357,7 @@ func (p *Player) UseItem(id uint64) {
 		return
 	}
 	ph := &p.Health
-	info := env.GameDB.GetItemInfoByID(int(item.ItemID))
+	info := data.GetItemInfoByID(int(item.ItemID))
 	switch info.Type {
 	case common.ItemTypePotion:
 		switch info.Shape {
@@ -1493,7 +1493,7 @@ func (p *Player) PickUp() {
 func (p *Player) Inspect(id uint32) {
 	o := env.GetPlayer(id)
 	for i := range o.Equipment {
-		item := env.GameDB.GetItemInfoByID(int(o.Equipment[i].ItemID))
+		item := data.GetItemInfoByID(int(o.Equipment[i].ItemID))
 		if item != nil {
 			p.EnqueueItemInfo(item.ID)
 		}
@@ -1616,7 +1616,7 @@ func sendBuyKey(p *Player, npc *NPC) {
 			}
 			count = c
 		}
-		item := env.GameDB.GetItemInfoByName(name)
+		item := data.GetItemInfoByName(name)
 		if item == nil {
 			log.Warnf("Good name err: %s\n", name)
 			continue
@@ -1680,7 +1680,7 @@ func (p *Player) Magic(spell common.Spell, direction common.MirDirection, target
 		p.Enqueue(ServerMessage{}.UserLocation(p))
 		return
 	}
-	info := env.GameDB.GetMagicInfoByID(userMagic.MagicID)
+	info := data.GetMagicInfoByID(userMagic.MagicID)
 	cost := info.BaseCost + info.LevelCost*userMagic.Level
 	if uint16(cost) > p.MP {
 		p.Enqueue(ServerMessage{}.UserLocation(p))

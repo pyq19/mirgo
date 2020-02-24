@@ -166,7 +166,7 @@ func (n *NPC) Buy(p *Player, userItemID uint64, count uint32) {
 	if userItem == nil {
 		return
 	}
-	itemInfo := env.GameDB.GetItemInfoByID(int(userItem.ItemID))
+	itemInfo := data.GetItemInfoByID(int(userItem.ItemID))
 	if itemInfo == nil {
 		return
 	}

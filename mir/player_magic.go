@@ -19,7 +19,7 @@ func (p *Player) GetMagic(spell common.Spell) *common.UserMagic {
 
 // GetClientMagics ...
 func (p *Player) GetClientMagics() []common.ClientMagic {
-	gdb := env.GameDB
+	gdb := data
 	res := make([]common.ClientMagic, 0)
 	for i := range p.Magics {
 		userMagic := p.Magics[i]
@@ -278,7 +278,7 @@ func (p *Player) CompleteMagic(args ...interface{}) {
 		value := args[1].(int)
 		target := args[2].(IMapObject)
 		userItem := args[3].(*common.UserItem)
-		itemInfo := env.GameDB.GetItemInfoByID(int(userItem.ItemID))
+		itemInfo := data.GetItemInfoByID(int(userItem.ItemID))
 		if itemInfo == nil {
 			return
 		}
@@ -478,7 +478,7 @@ func (p *Player) SummonSkeleton(magic *common.UserMagic) {
 	if userItem == nil {
 		return
 	}
-	monsterInfo := env.GameDB.GetMonsterInfoByName(skeletonName)
+	monsterInfo := data.GetMonsterInfoByName(skeletonName)
 	p.LevelMagic(magic)
 	p.ConsumeItem(userItem, 1) // 减少物品数量
 	dir := int(p.CurrentDirection) + 4
@@ -503,7 +503,7 @@ func (p *Player) GetAmulet(count int) *common.UserItem {
 		if userItem == nil {
 			continue
 		}
-		itemInfo := env.GameDB.GetItemInfoByID(int(userItem.ItemID))
+		itemInfo := data.GetItemInfoByID(int(userItem.ItemID))
 		if itemInfo != nil && itemInfo.Type == common.ItemTypeAmulet && int(userItem.Count) > count {
 			return userItem
 		}
@@ -518,7 +518,7 @@ func (p *Player) GetPoison(count int) *common.UserItem {
 		if userItem == nil {
 			continue
 		}
-		itemInfo := env.GameDB.GetItemInfoByID(int(userItem.ItemID))
+		itemInfo := data.GetItemInfoByID(int(userItem.ItemID))
 		if itemInfo != nil && itemInfo.Type == common.ItemTypeAmulet && int(userItem.Count) > count {
 			if itemInfo.Shape == 1 || itemInfo.Shape == 2 {
 				return userItem
@@ -687,7 +687,7 @@ func (p *Player) SummonShinsu(magic *common.UserMagic) {
 	if userItem == nil {
 		return
 	}
-	monsterInfo := env.GameDB.GetMonsterInfoByName(skeletonName)
+	monsterInfo := data.GetMonsterInfoByName(skeletonName)
 	p.LevelMagic(magic)
 	p.ConsumeItem(userItem, 5) // 减少物品数量
 	dir := int(p.CurrentDirection) + 4

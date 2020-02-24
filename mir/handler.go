@@ -47,7 +47,7 @@ func (g *Game) HandleEvent(ev cellnet.Event) {
 			return
 		}
 
-		g.Env.PushMsg(func() { _HandleEvent(p, g, ev, s) })
+		_HandleEvent(p, g, ev, s)
 	}
 }
 
@@ -537,7 +537,7 @@ func updatePlayerInfo(g *Game, p *Player, c *common.Character) {
 	magics := make([]*common.UserMagic, 0)
 	g.DB.Table("user_magic").Where("character_id = ?", c.ID).Find(&magics)
 	for _, v := range magics {
-		v.Info = g.Env.GameDB.GetMagicInfoByID(v.MagicID)
+		v.Info = data.GetMagicInfoByID(v.MagicID)
 	}
 
 	healNextTime := time.Now().Add(10 * time.Second)
