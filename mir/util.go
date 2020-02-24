@@ -1,10 +1,6 @@
 package mir
 
 import (
-	"os"
-	"path"
-	"path/filepath"
-
 	"github.com/yenkeia/mirgo/common"
 	"github.com/yenkeia/mirgo/ut"
 )
@@ -90,30 +86,4 @@ func DirectionFromPoint(source, dest common.Point) common.MirDirection {
 	} else {
 		return common.MirDirectionUp
 	}
-}
-
-func GetFiles(dir string, allow []string) []string {
-
-	allowMap := map[string]bool{}
-	if allow != nil {
-		for _, v := range allow {
-			allowMap[v] = true
-		}
-	}
-
-	ret := []string{}
-	filepath.Walk(dir, func(fpath string, f os.FileInfo, err error) error {
-		if f == nil || f.IsDir() {
-			return nil
-		}
-
-		ext := path.Ext(fpath)
-		if allowMap[ext] {
-			ret = append(ret, filepath.ToSlash(fpath))
-		}
-
-		return nil
-	})
-
-	return ret
 }

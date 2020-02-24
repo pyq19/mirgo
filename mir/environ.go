@@ -8,7 +8,6 @@ import (
 	"sync"
 	"sync/atomic"
 	"time"
-	"weshare/ut"
 
 	"github.com/davyxu/cellnet"
 	_ "github.com/yenkeia/mirgo/codec/mircodec"
@@ -17,6 +16,7 @@ import (
 	_ "github.com/yenkeia/mirgo/proc/mirtcp"
 	"github.com/yenkeia/mirgo/proto/server"
 	"github.com/yenkeia/mirgo/setting"
+	"github.com/yenkeia/mirgo/ut"
 )
 
 // Environ ...
