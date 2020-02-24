@@ -47,7 +47,7 @@ func (g *Game) HandleEvent(ev cellnet.Event) {
 			return
 		}
 
-		g.Env.PushMsg(func() { _HandleEvent(p, g, ev, s) })
+		_HandleEvent(p, g, ev, s)
 	}
 }
 
