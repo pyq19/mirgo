@@ -1,7 +1,6 @@
 package mir
 
 import (
-	"container/list"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -27,49 +26,20 @@ type Environ struct {
 	ObjectID           uint32
 	Players            []*Player
 	lock               *sync.Mutex
+	lastFrame          time.Time
 
 	DefaultNPC *NPC
-
-	msgMutex sync.Mutex
-	MsgList  list.List
 }
 
 var env *Environ
 
-func (e *Environ) PushMsg(f func()) {
-	e.msgMutex.Lock()
-	e.MsgList.PushBack(f)
-	e.msgMutex.Unlock()
-}
-
 func (e *Environ) Loop() {
+	now := time.Now()
+	dt := now.Sub(e.lastFrame)
+	e.lastFrame = now
 
-	fpsicker := time.NewTicker(time.Second / time.Duration(60))
-	var lastFrame = time.Now()
-	var now time.Time
-
-	for {
-
-		select {
-		case <-fpsicker.C:
-			e.msgMutex.Lock()
-			if e.MsgList.Len() > 0 {
-				for it := e.MsgList.Front(); it != nil; {
-					curr := it
-					it = it.Next()
-					e.MsgList.Remove(curr).(func())()
-				}
-			}
-			e.msgMutex.Unlock()
-
-			now = time.Now()
-			dt := now.Sub(lastFrame)
-			lastFrame = now
-
-			for _, m := range e.Maps {
-				m.Frame(dt)
-			}
-		}
+	for _, m := range e.Maps {
+		m.Frame(dt)
 	}
 }
 
@@ -77,6 +47,7 @@ func (e *Environ) Loop() {
 func NewEnviron(g *Game) *Environ {
 	env = new(Environ)
 	env.Game = g
+	env.lastFrame = time.Now()
 
 	data.Load(g.DB)
 
