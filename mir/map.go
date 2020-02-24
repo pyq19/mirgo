@@ -232,7 +232,7 @@ func (m *Map) changeAOI(obj IMapObject, c1 *Cell, c2 *Cell) {
 
 // InitNPCs 初始化地图上的 NPC
 func (m *Map) InitNPCs() error {
-	for _, ni := range env.GameDB.NpcInfos {
+	for _, ni := range data.NpcInfos {
 		ni := ni
 		if ni.MapID == m.Info.ID {
 			n := NewNPC(m, env.NewObjectID(), ni)
@@ -244,7 +244,7 @@ func (m *Map) InitNPCs() error {
 
 // InitMonsters 初始化地图上的怪物
 func (m *Map) InitMonsters() error {
-	for _, ri := range env.GameDB.RespawnInfos {
+	for _, ri := range data.RespawnInfos {
 		ri := ri
 		if ri.MapID == m.Info.ID {
 			cnt := ri.Count
@@ -253,7 +253,7 @@ func (m *Map) InitMonsters() error {
 				if err != nil {
 					continue
 				}
-				m.AddObject(NewMonster(m, p, env.GameDB.GetMonsterInfoByID(ri.MonsterID)))
+				m.AddObject(NewMonster(m, p, data.GetMonsterInfoByID(ri.MonsterID)))
 			}
 		}
 	}
