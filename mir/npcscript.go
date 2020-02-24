@@ -52,7 +52,7 @@ func _INGUILD(npc *NPC, p *Player) bool {
 
 func _CHECKITEM(npc *NPC, p *Player, itemname string, n int) bool {
 
-	info := env.GameDB.GetItemInfoByName(itemname)
+	info := data.GetItemInfoByName(itemname)
 
 	for _, item := range p.Inventory {
 		if item != nil && item.ItemID == info.ID {
@@ -90,7 +90,7 @@ func _ADDNAMELIST(npc *NPC, p *Player, message string) {
 
 func _GIVEITEM(npc *NPC, p *Player, itemname string, n int) {
 	count := uint32(n)
-	info := env.GameDB.GetItemInfoByName(itemname)
+	info := data.GetItemInfoByName(itemname)
 	if info == nil {
 		return
 	}

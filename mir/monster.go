@@ -462,11 +462,10 @@ func (m *Monster) Attacked(attacker IMapObject, damage int, defenceType common.D
 
 // Drop 怪物掉落物品
 func (m *Monster) Drop() {
-	value, ok := env.GameDB.DropInfoMap.Load(m.Name)
+	dropInfos, ok := data.DropInfoMap[m.Name]
 	if !ok {
 		return
 	}
-	dropInfos := value.([]common.DropInfo)
 	mapItems := make([]Item, 0)
 	for i := range dropInfos {
 		drop := dropInfos[i]
@@ -484,7 +483,7 @@ func (m *Monster) Drop() {
 			})
 			continue
 		}
-		info := env.GameDB.GetItemInfoByName(drop.ItemName)
+		info := data.GetItemInfoByName(drop.ItemName)
 		if info == nil {
 			continue
 		}

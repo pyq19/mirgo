@@ -95,7 +95,7 @@ func TestEnviron_NewObjectID(t *testing.T) {
 
 func TestGameDB_GetItemInfoByID(t *testing.T) {
 	g := NewGame()
-	gdb := g.Env.GameDB
+	gdb := g.data
 	i1 := gdb.GetItemInfoByID(1)
 	i2 := gdb.GetItemInfoByID(2)
 	t.Log(i1)
@@ -104,7 +104,7 @@ func TestGameDB_GetItemInfoByID(t *testing.T) {
 
 func TestGameDB_GetMonsterInfoByID(t *testing.T) {
 	g := NewGame()
-	gdb := g.Env.GameDB
+	gdb := g.data
 	m1 := gdb.GetMonsterInfoByID(1)
 	m2 := gdb.GetMonsterInfoByID(2)
 	t.Log(m1)
