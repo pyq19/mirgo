@@ -14,7 +14,6 @@ import (
 	"github.com/yenkeia/mirgo/mir/script"
 	_ "github.com/yenkeia/mirgo/proc/mirtcp"
 	"github.com/yenkeia/mirgo/proto/server"
-	"github.com/yenkeia/mirgo/setting"
 	"github.com/yenkeia/mirgo/ut"
 )
 
@@ -52,8 +51,8 @@ func NewEnviron(g *Game) *Environ {
 	data.Load(g.DB)
 
 	script.SearchPaths = []string{
-		filepath.Join(setting.Conf.EnvirPath, "NPCs"),
-		setting.Conf.EnvirPath,
+		filepath.Join(settings.EnvirPath, "NPCs"),
+		settings.EnvirPath,
 	}
 
 	env.DefaultNPC = NewNPC(nil, env.NewObjectID(), &common.NpcInfo{
@@ -134,7 +133,7 @@ func (e *Environ) NewUserItem(i *common.ItemInfo) *common.UserItem {
 func (e *Environ) InitMaps() {
 
 	uppercaseNameRealNameMap := map[string]string{}
-	files := ut.GetFiles(setting.Conf.MapDirPath, []string{".map"})
+	files := ut.GetFiles(settings.MapDirPath, []string{".map"})
 
 	for _, f := range files {
 		uppercaseNameRealNameMap[strings.ToUpper(filepath.Base(f))] = f

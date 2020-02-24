@@ -1,9 +1,12 @@
 package mir
 
 import (
+	"fmt"
+	"path/filepath"
+
 	"github.com/jinzhu/gorm"
+	"github.com/pelletier/go-toml"
 	"github.com/yenkeia/mirgo/common"
-	"github.com/yenkeia/mirgo/setting"
 )
 
 // GameDB ...
@@ -86,7 +89,7 @@ func (d *GameData) LoadMonsterDrop() {
 
 	for i := range d.MonsterInfos {
 		v := d.MonsterInfos[i]
-		dropInfos, err := common.GetDropInfosByMonsterName(setting.Conf.DropDirPath, v.Name)
+		dropInfos, err := common.GetDropInfosByMonsterName(settings.DropDirPath, v.Name)
 		if err != nil {
 			log.Warnln("加载怪物掉落错误", v.Name, err.Error())
 			continue
@@ -96,7 +99,18 @@ func (d *GameData) LoadMonsterDrop() {
 }
 
 func (d *GameData) LoadExpList() {
+	t, err := toml.LoadFile(filepath.Join(settings.ConfigsPath, "ExpList.ini"))
+	if err != nil {
+		panic("load explist error  " + err.Error())
+	}
 
+	t = t.Get("Exp").(*toml.Tree)
+
+	d.ExpList = make([]int, 499)
+
+	for i := 1; i < 500; i++ {
+		d.ExpList[i-1] = int(t.Get(fmt.Sprintf("Level%d", i)).(int64))
+	}
 }
 
 // GetMapInfoByID ...

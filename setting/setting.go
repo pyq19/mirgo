@@ -5,20 +5,10 @@ import "os"
 import "github.com/yenkeia/mirgo/common"
 
 var (
-	Conf      config
 	BaseStats map[common.MirClass]baseStats
 )
 
 func init() {
-	gopath := os.Getenv("GOPATH")
-	Conf = config{
-		Addr:          "0.0.0.0:7000",
-		DBPath:        gopath + "/src/github.com/yenkeia/mirgo/dotnettools/mir.sqlite",
-		MapDirPath:    gopath + "/src/github.com/yenkeia/mirgo/dotnettools/database/Maps/",
-		ScriptDirPath: gopath + "/src/github.com/yenkeia/mirgo/script/",
-		DropDirPath:   gopath + "/src/github.com/yenkeia/mirgo/dotnettools/database/Envir/Drops/",
-		EnvirPath:     gopath + "/src/github.com/yenkeia/mirgo/dotnettools/database/Envir/",
-	}
 	BaseStats = make(map[common.MirClass]baseStats)
 	BaseStats[common.MirClassWarrior] = baseStats{
 		HpGain:              4,
@@ -94,13 +84,28 @@ func init() {
 	}
 }
 
-type config struct {
+type Settings struct {
 	Addr          string
 	DBPath        string
 	MapDirPath    string
 	ScriptDirPath string
 	DropDirPath   string
 	EnvirPath     string
+	ConfigsPath   string
+}
+
+func DefaultSettings() *Settings {
+	gopath := os.Getenv("GOPATH")
+
+	return &Settings{
+		Addr:          "0.0.0.0:7000",
+		DBPath:        gopath + "/src/github.com/yenkeia/mirgo/dotnettools/mir.sqlite",
+		MapDirPath:    gopath + "/src/github.com/yenkeia/mirgo/dotnettools/database/Maps/",
+		ScriptDirPath: gopath + "/src/github.com/yenkeia/mirgo/script/",
+		DropDirPath:   gopath + "/src/github.com/yenkeia/mirgo/dotnettools/database/Envir/Drops/",
+		EnvirPath:     gopath + "/src/github.com/yenkeia/mirgo/dotnettools/database/Envir/",
+		ConfigsPath:   gopath + "/src/github.com/yenkeia/mirgo/dotnettools/database/Configs/",
+	}
 }
 
 type baseStats struct {
