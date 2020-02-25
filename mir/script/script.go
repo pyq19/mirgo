@@ -4,7 +4,6 @@ import (
 	"container/list"
 	"errors"
 	"fmt"
-	"github.com/yenkeia/mirgo/ut"
 	"io"
 	"os"
 	"path/filepath"
@@ -12,6 +11,8 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+
+	"github.com/yenkeia/mirgo/ut"
 )
 
 var SearchPaths = []string{}
@@ -59,7 +60,7 @@ func LoadFile(file string) (*Script, error) {
 }
 
 func Load(r io.Reader) (*Script, error) {
-	lines := ReadLinesByReader(r)
+	lines := ut.ReadLinesByReader(r)
 
 	sc := &Script{}
 
@@ -212,7 +213,7 @@ func (ps *PageScript) parseActions(mp map[string]*ScriptFunc, lst *list.List) ([
 }
 
 func (ps *PageScript) parseAction(mp map[string]*ScriptFunc, s string) (*Function, error) {
-	parts := splitString(s)
+	parts := ut.SplitString(s)
 
 	funName := strings.ToUpper(parts[0])
 

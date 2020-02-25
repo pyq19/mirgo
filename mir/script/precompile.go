@@ -4,6 +4,8 @@ import (
 	"errors"
 	"regexp"
 	"strings"
+
+	"github.com/yenkeia/mirgo/ut"
 )
 
 var (
@@ -98,7 +100,7 @@ func expandScript(lines []string) ([]string, error) {
 		if line[0] == '#' {
 			if StartsWithI(line, "#INSERT") {
 				match := regexInsert.FindStringSubmatch(line)
-				insertLines, err := ReadLines(fullpath(match[1]))
+				insertLines, err := ut.ReadLines(fullpath(match[1]))
 				if err != nil {
 					return nil, err
 				}
@@ -127,7 +129,7 @@ func expandScript(lines []string) ([]string, error) {
 }
 
 func loadScriptPage(file, page string) ([]string, error) {
-	lines, err := ReadLines(fullpath(file))
+	lines, err := ut.ReadLines(fullpath(file))
 	if err != nil {
 		return nil, err
 	}

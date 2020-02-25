@@ -467,19 +467,17 @@ func (m *Monster) Drop() {
 		return
 	}
 	mapItems := make([]Item, 0)
-	for i := range dropInfos {
-		drop := dropInfos[i]
-		if ut.RandomInt(1, drop.Chance) != 1 {
+	for _, drop := range dropInfos {
+		if ut.RandomNext(drop.High) < drop.Low {
 			continue
 		}
-		if drop.Gold > 0 {
+		if drop.ItemName == "Gold" {
 			mapItems = append(mapItems, Item{
 				MapObject: MapObject{
 					ID:  env.NewObjectID(),
 					Map: m.Map,
 				},
-				Gold:     uint64(drop.Gold),
-				UserItem: nil,
+				Gold: uint64(drop.Count),
 			})
 			continue
 		}
