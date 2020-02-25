@@ -1,10 +1,13 @@
 package ut
 
 import (
+	"bufio"
+	"io"
 	"math/rand"
 	"os"
 	"path"
 	"path/filepath"
+	"unicode"
 )
 
 func AbsInt(i int) int {
@@ -82,4 +85,65 @@ func GetFiles(dir string, allow []string) []string {
 	})
 
 	return ret
+}
+
+// 按空格拆分字符串。如果加了引号，那么认为是一个字符串
+func SplitString(s string) []string {
+
+	ret := []string{}
+
+	start := 0
+	var stat byte
+
+	for i := 0; i < len(s); i++ {
+		if unicode.IsSpace(rune(s[i])) {
+			if stat == 1 {
+				ret = append(ret, s[start:i])
+				stat = 0
+			}
+
+		} else if s[i] == '\'' || s[i] == '"' {
+			if stat == s[i] {
+				ret = append(ret, s[start:i])
+				stat = 0
+			} else {
+				if stat == 0 {
+					stat = s[i]
+					start = i + 1
+				}
+			}
+		} else {
+			if stat == 0 {
+				start = i
+				stat = 1
+			}
+		}
+
+	}
+
+	if stat != 0 {
+		ret = append(ret, s[start:])
+	}
+
+	return ret
+}
+
+func ReadLines(filepath string) (lines []string, err error) {
+
+	file, err := os.Open(filepath)
+	if err != nil {
+		return
+	}
+
+	return ReadLinesByReader(file), nil
+}
+
+func ReadLinesByReader(r io.Reader) []string {
+	lines := []string{}
+	scanner := bufio.NewScanner(r)
+	for scanner.Scan() {
+		lines = append(lines, scanner.Text())
+	}
+
+	return lines
 }

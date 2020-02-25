@@ -3,10 +3,14 @@ package mir
 import (
 	"fmt"
 	"path/filepath"
+	"regexp"
+	"strconv"
+	"strings"
 
 	"github.com/jinzhu/gorm"
 	"github.com/pelletier/go-toml"
 	"github.com/yenkeia/mirgo/common"
+	"github.com/yenkeia/mirgo/ut"
 )
 
 // GameDB ...
@@ -28,7 +32,7 @@ type GameData struct {
 	ItemNameInfoMap    map[string]*common.ItemInfo
 	MonsterIDInfoMap   map[int]*common.MonsterInfo
 	MonsterNameInfoMap map[string]*common.MonsterInfo
-	DropInfoMap        map[string][]common.DropInfo
+	DropInfoMap        map[string][]*common.DropInfo
 	MagicIDInfoMap     map[int]*common.MagicInfo
 	ExpList            []int
 }
@@ -42,7 +46,7 @@ func NewGameData() *GameData {
 	d.ItemNameInfoMap = map[string]*common.ItemInfo{}
 	d.MonsterIDInfoMap = map[int]*common.MonsterInfo{}
 	d.MonsterNameInfoMap = map[string]*common.MonsterInfo{}
-	d.DropInfoMap = map[string][]common.DropInfo{}
+	d.DropInfoMap = map[string][]*common.DropInfo{}
 	d.MagicIDInfoMap = map[int]*common.MagicInfo{}
 	return d
 }
@@ -89,13 +93,72 @@ func (d *GameData) LoadMonsterDrop() {
 
 	for i := range d.MonsterInfos {
 		v := d.MonsterInfos[i]
-		dropInfos, err := common.GetDropInfosByMonsterName(settings.DropDirPath, v.Name)
+		dropInfos, err := d.loadDropFile(filepath.Join(settings.DropDirPath, v.Name+".txt"))
 		if err != nil {
-			log.Warnln("加载怪物掉落错误", v.Name, err.Error())
+			log.Warnln(err.Error())
 			continue
 		}
 		d.DropInfoMap[v.Name] = dropInfos
 	}
+}
+
+func (d *GameData) loadDropFile(filename string) ([]*common.DropInfo, error) {
+	lines, err := ut.ReadLines(filename)
+	if err != nil {
+		return nil, err
+	}
+
+	chanceReg := regexp.MustCompile(`(\d+)/(\d+)`)
+
+	lineError := func(line int, detail string) error {
+		return fmt.Errorf("DropInfo 格式不正确，%s行%d:%s %s", filename, line, lines[line], detail)
+	}
+
+	ret := []*common.DropInfo{}
+	for i, line := range lines {
+
+		line = strings.TrimSpace(line)
+		if line == "" || line[0] == ';' {
+			continue
+		}
+
+		res := ut.SplitString(line)
+
+		if len(res) != 3 && len(res) != 2 {
+			return nil, lineError(i, "参数个数")
+		}
+
+		match := chanceReg.FindStringSubmatch(res[0])
+		low, err := strconv.Atoi(match[1])
+		if err != nil {
+			return nil, lineError(i, "分子错误")
+		}
+
+		high, err := strconv.Atoi(match[2])
+		if err != nil {
+			return nil, lineError(i, "分母错误")
+		}
+
+		info := &common.DropInfo{Low: low, High: high, ItemName: res[1], Count: 1}
+
+		if len(res) == 3 { // 1/10 Gold 500
+			if strings.ToUpper(res[2]) == "Q" {
+				info.QuestRequired = true
+			} else {
+				count, err := strconv.Atoi(res[2])
+				info.Count = count
+				if err != nil {
+					for i, v := range res {
+						fmt.Println(i, v)
+					}
+					return nil, lineError(i, "参数错误")
+				}
+			}
+		}
+		ret = append(ret, info)
+	}
+
+	return ret, nil
 }
 
 func (d *GameData) LoadExpList() {
