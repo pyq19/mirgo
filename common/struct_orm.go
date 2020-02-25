@@ -7,6 +7,14 @@ import (
 	"github.com/yenkeia/mirgo/ut"
 )
 
+type DropInfo struct {
+	Low           int // 1/3 中的 3，2/10 中的 2
+	High          int // 1/3 中的 3，2/10 中的 10
+	Count         int
+	ItemName      string // ItemInfo.Name
+	QuestRequired bool
+}
+
 // Account 账号
 type Account struct {
 	ID       int `gorm:"primary_key"`
