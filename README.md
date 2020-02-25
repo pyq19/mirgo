@@ -54,6 +54,7 @@ go get -u -v github.com/davyxu/cellnet
 go get -u -v github.com/davyxu/golog
 go get -u -v github.com/davyxu/goobjfmt
 go get -u -v github.com/davyxu/protoplus
+go get -u -v github.com/pelletier/go-toml
 ```
 解压服务端资源到 mirgo/dotnettools/database 目录下
 ```bash
