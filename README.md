@@ -20,7 +20,7 @@
 
 #### 计划
 - [ ] CPU 使用率优化
-- [ ] 客户端汉化（打算直接用 https://github.com/cjlaaa/mir2)
+- [ ] 汉化(客户端/服务端配置) 打算直接用 https://github.com/cjlaaa/mir2
 - [ ] WEB 管理后台
 - [ ] 数据库换成 MySQL
 - [ ] 刺客/弓箭手
@@ -32,8 +32,8 @@
 #### 编译步骤
 环境设置
 ```bash
-go env -w GOPROXY=https://goproxy.cn,direct
 export GO111MODULE=off
+export GOPROXY="https://goproxy.io"
 ```
 新建项目文件夹，设置为 gopath
 ```bash
@@ -54,6 +54,7 @@ go get -u -v github.com/davyxu/cellnet
 go get -u -v github.com/davyxu/golog
 go get -u -v github.com/davyxu/goobjfmt
 go get -u -v github.com/davyxu/protoplus
+go get -u -v github.com/pelletier/go-toml
 ```
 解压服务端资源到 mirgo/dotnettools/database 目录下
 ```bash
