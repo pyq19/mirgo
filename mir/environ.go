@@ -125,6 +125,7 @@ func (e *Environ) NewUserItem(i *common.ItemInfo) *common.UserItem {
 		CriticalDamage: 0,
 		Freezing:       0,
 		PoisonAttack:   0,
+		Info:           i,
 	}
 	return res
 }

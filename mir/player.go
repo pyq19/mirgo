@@ -1595,6 +1595,11 @@ func sendBuyKey(p *Player, npc *NPC) {
 	p.CallingNPC = npc
 
 	goods := npc.Goods
+
+	for _, item := range npc.Goods {
+		p.EnqueueItemInfo(item.ItemID)
+	}
+
 	if len(goods) != 0 {
 		p.Enqueue(&server.NPCGoods{
 			Goods: goods,
@@ -1603,36 +1608,6 @@ func sendBuyKey(p *Player, npc *NPC) {
 		})
 		return
 	}
-
-	for _, name := range npc.Script.Goods {
-		res := strings.Split(name, " ")
-		name := res[0]
-		count := 1
-		if len(res) == 2 {
-			c, err := strconv.Atoi(res[1])
-			if err != nil {
-				log.Warnf("Good name err: %s\n", name)
-				continue
-			}
-			count = c
-		}
-		item := data.GetItemInfoByName(name)
-		if item == nil {
-			log.Warnf("Good name err: %s\n", name)
-			continue
-		}
-		p.EnqueueItemInfo(item.ID)
-		g := env.NewUserItem(item)
-		g.Count = uint32(count)
-		goods = append(goods, *g)
-		npc.Goods = goods
-	}
-
-	p.Enqueue(&server.NPCGoods{
-		Goods: goods,
-		Rate:  1.0,
-		Type:  common.PanelTypeBuy,
-	})
 }
 
 func (p *Player) TalkMonsterNPC(id uint32) {
@@ -1655,7 +1630,71 @@ func (p *Player) CraftItem() {
 }
 
 func (p *Player) SellItem(id uint64, count uint32) {
+	msg := &server.SellItem{UniqueID: id, Count: count}
+	if p.IsDead() || count == 0 {
+		p.Enqueue(msg)
+		return
+	}
 
+	// if (NPCPage == null || !(String.Equals(NPCPage.Key, NPCObject.BuySellKey, StringComparison.CurrentCultureIgnoreCase) || String.Equals(NPCPage.Key, NPCObject.SellKey, StringComparison.CurrentCultureIgnoreCase)))
+	//         {
+	//             Enqueue(p);
+	//             return;
+	//         }
+
+	var index int = -1
+	var temp *common.UserItem
+	for i, v := range p.Inventory {
+		if v == nil || v.ID != id {
+			continue
+		}
+
+		temp = v
+		index = i
+		break
+	}
+
+	if temp == nil || index == -1 || count > temp.Count {
+		p.Enqueue(msg)
+		return
+	}
+
+	// if (temp.Info.Bind.HasFlag(BindMode.DontSell))
+	// {
+	// 	Enqueue(p);
+	// 	return;
+	// }
+	// if (temp.RentalInformation != null && temp.RentalInformation.BindingFlags.HasFlag(BindMode.DontSell))
+	// {
+	// 	Enqueue(p);
+	// 	return;
+	// }
+
+	if p.CallingNPC.HasType(temp.Info.Type) {
+		p.ReceiveChat("You cannot sell this item here.", common.ChatTypeSystem)
+		p.Enqueue(msg)
+		return
+	}
+
+	if temp.Info.StackSize > 1 && count != temp.Count {
+		item := env.NewUserItem(temp.Info)
+		item.Count = count
+		if item.Price()/2+p.Gold > uint64(ut.UintMax) {
+			p.Enqueue(msg)
+			return
+		}
+
+		temp.Count -= count
+		temp = item
+	} else {
+		p.Inventory[index] = nil
+	}
+
+	p.CallingNPC.Sell(p, temp)
+	msg.Success = true
+	p.Enqueue(msg)
+	p.GainGold(temp.Price() / 2)
+	p.RefreshBagWeight()
 }
 
 func (p *Player) RepairItem(id uint64) {

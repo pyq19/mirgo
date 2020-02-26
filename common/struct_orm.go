@@ -364,6 +364,12 @@ type UserItem struct {
 	CriticalDamage uint8
 	Freezing       uint8
 	PoisonAttack   uint8
+	Info           *ItemInfo `gorm:"-"`
+}
+
+func (u *UserItem) Price() uint64 {
+	// TODO
+	return 0
 }
 
 func (u UserItem) String() string {
