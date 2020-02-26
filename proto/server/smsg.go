@@ -826,7 +826,7 @@ type ObjectTeleportIn struct {
 type TeleportIn struct{}
 
 type NPCGoods struct {
-	Goods []common.UserItem
+	Goods []*common.UserItem
 	Rate  float32
 	Type  common.PanelType
 }
