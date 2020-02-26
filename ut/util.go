@@ -10,6 +10,9 @@ import (
 	"unicode"
 )
 
+const UintMax = ^uint(0)
+const IntMax = int(^uint(0) >> 1)
+
 func AbsInt(i int) int {
 	if i < 0 {
 		return -i
