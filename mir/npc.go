@@ -2,6 +2,8 @@ package mir
 
 import (
 	"fmt"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/yenkeia/mirgo/common"
@@ -16,7 +18,7 @@ type NPC struct {
 	Light    uint8
 	TurnTime time.Time
 	Script   *script.Script
-	Goods    []common.UserItem
+	Goods    []*common.UserItem
 }
 
 func NewNPC(m *Map, id uint32, ni *common.NpcInfo) *NPC {
@@ -24,7 +26,7 @@ func NewNPC(m *Map, id uint32, ni *common.NpcInfo) *NPC {
 	if err != nil {
 		log.Warnf("NPC [%s] [%s] 脚本加载失败: %s\n", ni.Name, ni.Filename, err.Error())
 	}
-	return &NPC{
+	npc := &NPC{
 		MapObject: MapObject{
 			ID:               id,
 			Name:             ni.Name,
@@ -37,8 +39,43 @@ func NewNPC(m *Map, id uint32, ni *common.NpcInfo) *NPC {
 		Light:    0, // TODO
 		TurnTime: time.Now(),
 		Script:   sc,
-		Goods:    make([]common.UserItem, 0),
+		Goods:    []*common.UserItem{},
 	}
+
+	for _, name := range npc.Script.Goods {
+		res := strings.Split(name, " ")
+		name := res[0]
+		count := 1
+		if len(res) == 2 {
+			c, err := strconv.Atoi(res[1])
+			if err != nil {
+				log.Warnf("Good name err: %s\n", name)
+				continue
+			}
+			count = c
+		}
+		item := data.GetItemInfoByName(name)
+		if item == nil {
+			log.Warnf("Good name err: %s\n", name)
+			continue
+		}
+		g := env.NewUserItem(item)
+		g.Count = uint32(count)
+		npc.Goods = append(npc.Goods, g)
+	}
+
+	return npc
+}
+
+func (n *NPC) HasType(typ common.ItemType) bool {
+	if n.Script.Types != nil {
+		for _, v := range n.Script.Types {
+			if v == int(typ) {
+				return true
+			}
+		}
+	}
+	return false
 }
 
 func (n *NPC) CallScript(p *Player, key string) ([]string, error) {
@@ -151,10 +188,10 @@ func (n *NPC) Process(dt time.Duration) {
 }
 
 // GetUserItemByID 获取 NPC Goods
-func (n *NPC) GetUserItemByID(id uint64) (item *common.UserItem) {
-	for i := range n.Goods {
-		if n.Goods[i].ID == id {
-			return &n.Goods[i]
+func (n *NPC) GetUserItemByID(id uint64) *common.UserItem {
+	for _, v := range n.Goods {
+		if v.ID == id {
+			return v
 		}
 	}
 	return nil
@@ -173,4 +210,14 @@ func (n *NPC) Buy(p *Player, userItemID uint64, count uint32) {
 	ui := env.NewUserItem(itemInfo)
 	ui.Count = count
 	p.GainItem(ui)
+}
+
+func (n *NPC) Sell(p *Player, item *common.UserItem) {
+	// if (!BuyBack.ContainsKey(player.Name)) BuyBack[player.Name] = new List<UserItem>();
+
+	// if (BuyBack[player.Name].Count >= Settings.GoodsBuyBackMaxStored)
+	// 	BuyBack[player.Name].RemoveAt(0);
+
+	// item.BuybackExpiryDate = Envir.Now;
+	// BuyBack[player.Name].Add(item);
 }
