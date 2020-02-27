@@ -47,16 +47,12 @@ func NewNPC(m *Map, id uint32, ni *common.NpcInfo) *NPC {
 		name := res[0]
 		count := 1
 		if len(res) == 2 {
-			c, err := strconv.Atoi(res[1])
-			if err != nil {
-				log.Warnf("Good name err: %s\n", name)
-				continue
-			}
+			c, _ := strconv.Atoi(res[1])
 			count = c
 		}
 		item := data.GetItemInfoByName(name)
 		if item == nil {
-			log.Warnf("Good name err: %s\n", name)
+			log.Warnf("找不到 ItemInfo.Name = %s\n", name)
 			continue
 		}
 		g := env.NewUserItem(item)
