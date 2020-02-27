@@ -2,6 +2,7 @@ package mir
 
 import (
 	"fmt"
+	"math"
 	"strconv"
 	"strings"
 	"sync"
@@ -32,6 +33,7 @@ type Player struct {
 	MP                 uint16
 	Level              uint16
 	Experience         int64
+	MaxExperience      int64
 	Gold               uint64
 	GuildName          string
 	GuildRankName      string
@@ -62,7 +64,6 @@ type Player struct {
 	MaxMC              uint16
 	MinSC              uint16 // 道术力
 	MaxSC              uint16
-	MaxExperience      int64
 	Accuracy           uint8
 	Agility            uint8
 	CriticalRate       uint8
@@ -499,7 +500,11 @@ func (p *Player) RefreshLevelStats() {
 	p.Agility = uint8(baseStats.StartAgility)
 	p.CriticalRate = uint8(baseStats.StartCriticalRate)
 	p.CriticalDamage = uint8(baseStats.StartCriticalDamage)
-	p.MaxExperience = 100
+	if int(p.Level) < len(data.ExpList) {
+		p.MaxExperience = int64(data.ExpList[p.Level-1])
+	} else {
+		p.MaxExperience = 0
+	}
 	p.MaxHP = uint16(14 + (float32(p.Level)/baseStats.HpGain+baseStats.HpGainRate)*float32(p.Level))
 	p.MinAC = 0
 	if baseStats.MinAc > 0 {
@@ -716,18 +721,29 @@ func (p *Player) GainExp(amount uint32) {
 	if p.Experience < p.MaxExperience {
 		return
 	}
-	p.Experience -= p.MaxExperience
-	p.Level++
+
+	// 连续升级
+	var exp = p.Experience
+	for exp >= p.MaxExperience {
+		p.Level++
+		exp -= p.MaxExperience
+		p.RefreshStats()
+	}
+
+	p.Experience = exp
 	p.LevelUp()
 }
 
 // WinExp 玩家获取经验
 func (p *Player) WinExp(amount, targetLevel int) {
-	// 	if (Level < targetLevel + 10 || !Settings.ExpMobLevelDifference)
-	// 		expPoint = (int)amount;
-	// 	else
-	// 		expPoint = (int)amount - (int)Math.Round(Math.Max(amount / 15, 1) * ((double)Level - (targetLevel + 10)));
-	expPoint := amount
+	var expPoint int
+	level := int(p.Level)
+
+	if level < targetLevel+10 { //|| !Settings.ExpMobLevelDifference
+		expPoint = amount
+	} else {
+		expPoint = amount - int(math.Round(math.Max(float64(amount)/15.0, 1.0)*float64(level-(targetLevel+10))))
+	}
 	if expPoint <= 0 {
 		expPoint = 1
 	}
