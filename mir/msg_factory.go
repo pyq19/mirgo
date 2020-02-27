@@ -144,13 +144,6 @@ func (ServerMessage) ObjectNPC(o IMapObject) *server.ObjectNPC {
 	return o.GetInfo().(*server.ObjectNPC)
 }
 
-func (ServerMessage) NewItemInfo(item *common.ItemInfo) *server.NewItemInfo {
-	if item == nil {
-		panic("new item info, item = nil !!!")
-	}
-	return &server.NewItemInfo{Info: *item}
-}
-
 func (ServerMessage) PlayerInspect(p *Player) *server.PlayerInspect {
 	return &server.PlayerInspect{
 		Name:      p.Name,
