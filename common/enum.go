@@ -966,3 +966,22 @@ const (
 	DefenceTypeRepulsion
 	DefenceTypeNone
 )
+
+const (
+	BindModeNone                = 0    //
+	BindModeDontDeathdrop       = 1    //0x0001
+	BindModeDontDrop            = 2    //0x0002
+	BindModeDontSell            = 4    //0x0004
+	BindModeDontStore           = 8    //0x0008
+	BindModeDontTrade           = 16   //0x0010
+	BindModeDontRepair          = 32   //0x0020
+	BindModeDontUpgrade         = 64   //0x0040
+	BindModeDestroyOnDrop       = 128  //0x0080
+	BindModeBreakOnDeath        = 256  //0x0100
+	BindModeBindOnEquip         = 512  //0x0200
+	BindModeNoSRepair           = 1024 //0x0400
+	BindModeNoWeddingRing       = 2048 //0x0800
+	BindModeUnableToRent        = 4096
+	BindModeUnableToDisassemble = 8192
+	BindModeNoMail              = 16384
+)

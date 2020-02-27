@@ -11,7 +11,7 @@ func StartsWithI(str, s string) bool {
 		return false
 	}
 
-	return strings.ToUpper(str[:len(s)]) == strings.ToUpper(s)
+	return strings.EqualFold(str[:len(s)], s)
 }
 
 func TrimEnd(s string) string {
