@@ -218,3 +218,6 @@ func (n *NPC) Sell(p *Player, item *common.UserItem) {
 	// item.BuybackExpiryDate = Envir.Now;
 	// BuyBack[player.Name].Add(item);
 }
+
+func (n *NPC) Craft(p *Player, index uint64, count uint32, slots []int) {
+}

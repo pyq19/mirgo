@@ -357,6 +357,9 @@ type SellItem struct {
 
 // TODO
 type CraftItem struct {
+	UniqueID uint64
+	Count    uint32
+	Slots    []int
 }
 
 type RepairItem struct {

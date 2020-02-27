@@ -459,7 +459,7 @@ type ObjectChat struct {
 }
 
 type NewItemInfo struct {
-	Info common.ItemInfo
+	Info *common.ItemInfo
 }
 
 type MoveItem struct {

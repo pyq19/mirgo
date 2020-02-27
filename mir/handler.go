@@ -749,7 +749,7 @@ func (g *Game) BuyItem(p *Player, msg *client.BuyItem) {
 
 // TODO
 func (g *Game) CraftItem(p *Player, msg *client.CraftItem) {
-	p.CraftItem()
+	p.CraftItem(msg.UniqueID, msg.Count, msg.Slots)
 }
 
 func (g *Game) SellItem(p *Player, msg *client.SellItem) {
