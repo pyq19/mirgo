@@ -2,6 +2,7 @@ package mir
 
 import (
 	"fmt"
+	"math"
 	"strconv"
 	"strings"
 	"sync"
@@ -32,6 +33,7 @@ type Player struct {
 	MP                 uint16
 	Level              uint16
 	Experience         int64
+	MaxExperience      int64
 	Gold               uint64
 	GuildName          string
 	GuildRankName      string
@@ -62,7 +64,6 @@ type Player struct {
 	MaxMC              uint16
 	MinSC              uint16 // 道术力
 	MaxSC              uint16
-	MaxExperience      int64
 	Accuracy           uint8
 	Agility            uint8
 	CriticalRate       uint8
@@ -99,6 +100,7 @@ type Player struct {
 	AMode              common.AttackMode
 	PMode              common.PetMode
 	CallingNPC         *NPC
+	CallingNPCPage     string
 }
 
 type Health struct {
@@ -471,7 +473,7 @@ func (p *Player) EnqueueItemInfo(itemID int32) {
 	if item == nil {
 		return
 	}
-	p.Enqueue(&server.NewItemInfo{Info: *item})
+	p.Enqueue(&server.NewItemInfo{Info: item})
 	p.SendItemInfo = append(p.SendItemInfo, item)
 }
 
@@ -498,7 +500,11 @@ func (p *Player) RefreshLevelStats() {
 	p.Agility = uint8(baseStats.StartAgility)
 	p.CriticalRate = uint8(baseStats.StartCriticalRate)
 	p.CriticalDamage = uint8(baseStats.StartCriticalDamage)
-	p.MaxExperience = 100
+	if int(p.Level) < len(data.ExpList) {
+		p.MaxExperience = int64(data.ExpList[p.Level-1])
+	} else {
+		p.MaxExperience = 0
+	}
 	p.MaxHP = uint16(14 + (float32(p.Level)/baseStats.HpGain+baseStats.HpGainRate)*float32(p.Level))
 	p.MinAC = 0
 	if baseStats.MinAc > 0 {
@@ -715,18 +721,29 @@ func (p *Player) GainExp(amount uint32) {
 	if p.Experience < p.MaxExperience {
 		return
 	}
-	p.Experience -= p.MaxExperience
-	p.Level++
+
+	// 连续升级
+	var exp = p.Experience
+	for exp >= p.MaxExperience {
+		p.Level++
+		exp -= p.MaxExperience
+		p.RefreshStats()
+	}
+
+	p.Experience = exp
 	p.LevelUp()
 }
 
 // WinExp 玩家获取经验
 func (p *Player) WinExp(amount, targetLevel int) {
-	// 	if (Level < targetLevel + 10 || !Settings.ExpMobLevelDifference)
-	// 		expPoint = (int)amount;
-	// 	else
-	// 		expPoint = (int)amount - (int)Math.Round(Math.Max(amount / 15, 1) * ((double)Level - (targetLevel + 10)));
-	expPoint := amount
+	var expPoint int
+	level := int(p.Level)
+
+	if level < targetLevel+10 { //|| !Settings.ExpMobLevelDifference
+		expPoint = amount
+	} else {
+		expPoint = amount - int(math.Round(math.Max(float64(amount)/15.0, 1.0)*float64(level-(targetLevel+10))))
+	}
 	if expPoint <= 0 {
 		expPoint = 1
 	}
@@ -1575,6 +1592,9 @@ func (p *Player) CallNPC1(npc *NPC, key string) {
 		log.Warnf("NPC 脚本执行失败: %d %s %s\n", npc.GetID(), key, err.Error())
 	}
 
+	p.CallingNPC = npc
+	p.CallingNPCPage = key
+
 	p.Enqueue(ServerMessage{}.NPCResponse(replaceTemplates(npc, p, say)))
 
 	// ProcessSpecial
@@ -1592,7 +1612,6 @@ func (p *Player) CallNPC1(npc *NPC, key string) {
 }
 
 func sendBuyKey(p *Player, npc *NPC) {
-	p.CallingNPC = npc
 
 	goods := npc.Goods
 
@@ -1618,15 +1637,27 @@ func (p *Player) BuyItem(index uint64, count uint32, panelType common.PanelType)
 	if p.IsDead() {
 		return
 	}
+	if !ut.StringEqualFold(p.CallingNPCPage, BuySellKey, BuyKey, BuyBackKey, BuyUsedKey, PearlBuyKey) {
+		return
+	}
+
 	npc := p.CallingNPC
 	if npc == nil {
 		return
 	}
+
 	npc.Buy(p, index, count)
 }
 
-func (p *Player) CraftItem() {
+func (p *Player) CraftItem(index uint64, count uint32, slots []int) {
+	if p.IsDead() {
+		return
+	}
+	if p.CallingNPCPage == "" {
+		return
+	}
 
+	p.CallingNPC.Craft(p, index, count, slots)
 }
 
 func (p *Player) SellItem(id uint64, count uint32) {
@@ -1636,13 +1667,12 @@ func (p *Player) SellItem(id uint64, count uint32) {
 		return
 	}
 
-	// if (NPCPage == null || !(String.Equals(NPCPage.Key, NPCObject.BuySellKey, StringComparison.CurrentCultureIgnoreCase) || String.Equals(NPCPage.Key, NPCObject.SellKey, StringComparison.CurrentCultureIgnoreCase)))
-	//         {
-	//             Enqueue(p);
-	//             return;
-	//         }
+	if !ut.StringEqualFold(p.CallingNPCPage, BuySellKey, SellKey) {
+		p.Enqueue(msg)
+		return
+	}
 
-	var index int = -1
+	var index = -1
 	var temp *common.UserItem
 	for i, v := range p.Inventory {
 		if v == nil || v.ID != id {
@@ -1659,11 +1689,10 @@ func (p *Player) SellItem(id uint64, count uint32) {
 		return
 	}
 
-	// if (temp.Info.Bind.HasFlag(BindMode.DontSell))
-	// {
-	// 	Enqueue(p);
-	// 	return;
-	// }
+	if ut.HasFlagUint16(temp.Info.Bind, common.BindModeDontSell) {
+		p.Enqueue(msg)
+		return
+	}
 	// if (temp.RentalInformation != null && temp.RentalInformation.BindingFlags.HasFlag(BindMode.DontSell))
 	// {
 	// 	Enqueue(p);

@@ -7,11 +7,25 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"strings"
 	"unicode"
 )
 
 const UintMax = ^uint(0)
 const IntMax = int(^uint(0) >> 1)
+
+func HasFlagUint16(a, b uint16) bool {
+	return a&b != 0
+}
+
+func StringEqualFold(a string, b ...string) bool {
+	for _, v := range b {
+		if strings.EqualFold(a, v) {
+			return false
+		}
+	}
+	return true
+}
 
 func AbsInt(i int) int {
 	if i < 0 {
