@@ -52,7 +52,8 @@ func NewNPC(m *Map, id uint32, ni *common.NpcInfo) *NPC {
 		}
 		item := data.GetItemInfoByName(name)
 		if item == nil {
-			log.Warnf("找不到 ItemInfo.Name = %s\n", name)
+			// FIXME 在 mir.sqlite item 表加上物品
+			// log.Warnf("npc: %s 找不到 ItemInfo.Name = %s\n", npc.Name, name)
 			continue
 		}
 		g := env.NewUserItem(item)
