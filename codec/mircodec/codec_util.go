@@ -163,8 +163,7 @@ func encodeValue(v reflect.Value) (bytes []byte, err error) {
 			}
 		}
 	default:
-		log.Errorln("编码错误")
-		return bytes, errors.New("编码错误!")
+		return bytes, errors.New("编码错误")
 	}
 	return bytes, nil
 }

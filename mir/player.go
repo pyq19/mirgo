@@ -471,7 +471,7 @@ func (p *Player) EnqueueItemInfo(itemID int32) {
 	if item == nil {
 		return
 	}
-	p.Enqueue(ServerMessage{}.NewItemInfo(item))
+	p.Enqueue(&server.NewItemInfo{Info: *item})
 	p.SendItemInfo = append(p.SendItemInfo, item)
 }
 

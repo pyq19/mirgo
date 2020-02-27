@@ -1,11 +1,12 @@
 package mircodec
 
 import (
+	"reflect"
+
 	"github.com/davyxu/cellnet"
 	"github.com/davyxu/cellnet/codec"
 	"github.com/yenkeia/mirgo/common"
 	"github.com/yenkeia/mirgo/proto/server"
-	"reflect"
 )
 
 func init() {
@@ -165,6 +166,7 @@ func (*MirUserInformationCodec) Decode(data interface{}, msgObj interface{}) err
 		for i := 0; i < int(count); i++ {
 			if reader.ReadBoolean() {
 				last := reader.Last()
+				// FIXME
 				item := &ui.Inventory[i]
 				*reader.Bytes = decodeValue(reflect.ValueOf(item), last)
 			}
@@ -178,6 +180,7 @@ func (*MirUserInformationCodec) Decode(data interface{}, msgObj interface{}) err
 		for i := 0; i < int(count); i++ {
 			if reader.ReadBoolean() {
 				last := reader.Last()
+				// FIXME
 				item := &ui.Equipment[i]
 				*reader.Bytes = decodeValue(reflect.ValueOf(item), last)
 			}
@@ -191,6 +194,7 @@ func (*MirUserInformationCodec) Decode(data interface{}, msgObj interface{}) err
 		for i := 0; i < int(count); i++ {
 			if reader.ReadBoolean() {
 				last := reader.Last()
+				// FIXME
 				item := &ui.QuestInventory[i]
 				*reader.Bytes = decodeValue(reflect.ValueOf(item), last)
 			}
