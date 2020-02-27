@@ -99,6 +99,7 @@ type Player struct {
 	AMode              common.AttackMode
 	PMode              common.PetMode
 	CallingNPC         *NPC
+	CallingNPCPage     string
 }
 
 type Health struct {
@@ -471,7 +472,7 @@ func (p *Player) EnqueueItemInfo(itemID int32) {
 	if item == nil {
 		return
 	}
-	p.Enqueue(&server.NewItemInfo{Info: *item})
+	p.Enqueue(&server.NewItemInfo{Info: item})
 	p.SendItemInfo = append(p.SendItemInfo, item)
 }
 
@@ -1575,6 +1576,9 @@ func (p *Player) CallNPC1(npc *NPC, key string) {
 		log.Warnf("NPC 脚本执行失败: %d %s %s\n", npc.GetID(), key, err.Error())
 	}
 
+	p.CallingNPC = npc
+	p.CallingNPCPage = key
+
 	p.Enqueue(ServerMessage{}.NPCResponse(replaceTemplates(npc, p, say)))
 
 	// ProcessSpecial
@@ -1592,7 +1596,6 @@ func (p *Player) CallNPC1(npc *NPC, key string) {
 }
 
 func sendBuyKey(p *Player, npc *NPC) {
-	p.CallingNPC = npc
 
 	goods := npc.Goods
 
@@ -1618,15 +1621,27 @@ func (p *Player) BuyItem(index uint64, count uint32, panelType common.PanelType)
 	if p.IsDead() {
 		return
 	}
+	if !ut.StringEqualFold(p.CallingNPCPage, BuySellKey, BuyKey, BuyBackKey, BuyUsedKey, PearlBuyKey) {
+		return
+	}
+
 	npc := p.CallingNPC
 	if npc == nil {
 		return
 	}
+
 	npc.Buy(p, index, count)
 }
 
-func (p *Player) CraftItem() {
+func (p *Player) CraftItem(index uint64, count uint32, slots []int) {
+	if p.IsDead() {
+		return
+	}
+	if p.CallingNPCPage == "" {
+		return
+	}
 
+	p.CallingNPC.Craft(p, index, count, slots)
 }
 
 func (p *Player) SellItem(id uint64, count uint32) {
@@ -1636,13 +1651,12 @@ func (p *Player) SellItem(id uint64, count uint32) {
 		return
 	}
 
-	// if (NPCPage == null || !(String.Equals(NPCPage.Key, NPCObject.BuySellKey, StringComparison.CurrentCultureIgnoreCase) || String.Equals(NPCPage.Key, NPCObject.SellKey, StringComparison.CurrentCultureIgnoreCase)))
-	//         {
-	//             Enqueue(p);
-	//             return;
-	//         }
+	if !ut.StringEqualFold(p.CallingNPCPage, BuySellKey, SellKey) {
+		p.Enqueue(msg)
+		return
+	}
 
-	var index int = -1
+	var index = -1
 	var temp *common.UserItem
 	for i, v := range p.Inventory {
 		if v == nil || v.ID != id {
@@ -1659,11 +1673,10 @@ func (p *Player) SellItem(id uint64, count uint32) {
 		return
 	}
 
-	// if (temp.Info.Bind.HasFlag(BindMode.DontSell))
-	// {
-	// 	Enqueue(p);
-	// 	return;
-	// }
+	if ut.HasFlagUint16(temp.Info.Bind, common.BindModeDontSell) {
+		p.Enqueue(msg)
+		return
+	}
 	// if (temp.RentalInformation != null && temp.RentalInformation.BindingFlags.HasFlag(BindMode.DontSell))
 	// {
 	// 	Enqueue(p);

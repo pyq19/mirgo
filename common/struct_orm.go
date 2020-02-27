@@ -150,7 +150,7 @@ type ItemInfo struct {
 	Holy           uint8
 	Freezing       uint8
 	PoisonAttack   uint8
-	Bind           int16
+	Bind           uint16
 	Reflect        uint8
 	HpDrainRate    uint8
 	UniqueItem     int16
@@ -368,8 +368,29 @@ type UserItem struct {
 }
 
 func (u *UserItem) Price() uint64 {
-	// TODO
-	return 0
+	if u.Info == nil {
+		return 0
+	}
+
+	var p float64
+
+	if u.Info.Durability > 0 {
+		var r = float64(u.Info.Price) / 2.0 / float64(u.Info.Durability)
+
+		p = float64(u.MaxDura) * r
+
+		if u.MaxDura > 0 {
+			r = float64(u.CurrentDura) / float64(u.MaxDura)
+		}
+
+		p = math.Floor(p/2.0+((p/2.0)*r)) + float64(u.Info.Price)/2.0
+	}
+
+	v := int(u.AC + u.MAC + u.DC + u.MC + u.SC + u.Accuracy + u.Agility + u.HP + u.MP)
+	v += int(u.AttackSpeed + u.Luck)
+	v += int(u.Strong + u.MagicResist + u.PoisonResist + u.HealthRecovery + u.ManaRecovery + u.PoisonRecovery + u.CriticalRate + u.CriticalDamage + u.Freezing + u.PoisonAttack)
+
+	return uint64(p * (float64(v)*0.1 + 1))
 }
 
 func (u UserItem) String() string {
