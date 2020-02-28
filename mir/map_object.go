@@ -73,6 +73,7 @@ type IProcessObject interface {
 
 type IMapObject interface {
 	GetID() uint32
+	GetMap() *Map
 	GetName() string
 	GetRace() common.ObjectType
 	GetPoint() common.Point

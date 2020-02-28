@@ -122,6 +122,10 @@ type Health struct {
 	HealDuration time.Duration
 }
 
+func (i *Player) GetMap() *Map {
+	return i.Map
+}
+
 func (p *Player) GetID() uint32 {
 	return p.ID
 }

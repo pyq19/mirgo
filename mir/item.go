@@ -14,6 +14,10 @@ type Item struct {
 	UserItem *common.UserItem
 }
 
+func (i *Item) GetMap() *Map {
+	return i.Map
+}
+
 func (i *Item) GetID() uint32 {
 	return i.ID
 }
