@@ -199,7 +199,7 @@ func (ps *PageScript) parseActions(mp map[string]*ScriptFunc, lst *list.List) ([
 	actions := []*Function{}
 
 	for it := lst.Front(); it != nil; it = it.Next() {
-		ck, err := ps.parseAction(mp, it.Value.(string))
+		ck, err := parseAction(mp, it.Value.(string))
 		if err != nil {
 			return nil, err
 		}
@@ -209,7 +209,7 @@ func (ps *PageScript) parseActions(mp map[string]*ScriptFunc, lst *list.List) ([
 	return actions, nil
 }
 
-func (ps *PageScript) parseAction(mp map[string]*ScriptFunc, s string) (*Function, error) {
+func parseAction(mp map[string]*ScriptFunc, s string) (*Function, error) {
 	parts := ut.SplitString(s)
 
 	funName := strings.ToUpper(parts[0])
