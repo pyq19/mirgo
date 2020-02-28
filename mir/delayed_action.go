@@ -1,6 +1,9 @@
 package mir
 
-import "time"
+import (
+	"container/list"
+	"time"
+)
 
 type DelayedType int
 
@@ -19,35 +22,52 @@ const (
 )
 
 type DelayedAction struct {
-	ID          uint32
 	DelayedType DelayedType
 	ActionTime  time.Time
-	Finish      bool
-	Task        *Task
+	CB          Callback
 }
 
-func NewDelayedAction(id uint32, typ DelayedType, task *Task) *DelayedAction {
-	return &DelayedAction{
-		ID:          id,
+type Callback func()
+
+type ActionList struct {
+	List *list.List
+}
+
+func NewActionList() *ActionList {
+	ret := &ActionList{}
+
+	ret.List = list.New()
+
+	return ret
+}
+
+func (lst *ActionList) PushAction(typ DelayedType, cb Callback) {
+	lst.PushDelayAction(typ, 500, cb)
+}
+
+func (lst *ActionList) PushDelayAction(typ DelayedType, delay int, cb Callback) {
+	lst.List.PushBack(&DelayedAction{
 		DelayedType: typ,
-		ActionTime:  time.Now().Add(time.Millisecond * 500),
-		Finish:      false,
-		Task:        task,
+		ActionTime:  time.Now().Add(time.Millisecond * time.Duration(delay)),
+		CB:          cb,
+	})
+}
+
+func (lst *ActionList) PushActionSuper(typ DelayedType, cb func(...interface{}), args ...interface{}) {
+	lst.PushAction(typ, func() { cb(args...) })
+}
+
+func (lst *ActionList) Execute() {
+	now := time.Now()
+	for it := lst.List.Front(); it != nil; {
+		action := it.Value.(*DelayedAction)
+		if now.Before(action.ActionTime) {
+			it = it.Next()
+			continue
+		}
+		action.CB()
+		tmp := it
+		it = it.Next()
+		lst.List.Remove(tmp)
 	}
-}
-
-type Task struct {
-	f    func(...interface{})
-	args []interface{}
-}
-
-func NewTask(f func(...interface{}), args ...interface{}) *Task {
-	return &Task{
-		f:    f,
-		args: args,
-	}
-}
-
-func (t *Task) Execute() {
-	t.f(t.args...)
 }

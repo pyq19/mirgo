@@ -20,7 +20,7 @@ type Map struct {
 	npcs           map[uint32]*NPC
 	activedObjects map[uint32]IProcessObject
 
-	ActionList map[uint32]*DelayedAction
+	ActionList *ActionList
 }
 
 func NewMap(w, h int) *Map {
@@ -32,7 +32,7 @@ func NewMap(w, h int) *Map {
 		monsters:       map[uint32]*Monster{},
 		npcs:           map[uint32]*NPC{},
 		activedObjects: map[uint32]IProcessObject{},
-		ActionList:     map[uint32]*DelayedAction{},
+		ActionList:     NewActionList(),
 	}
 	return m
 }
@@ -48,19 +48,7 @@ func (m *Map) DelActiveObj(o interface{}) {
 
 func (m *Map) Frame(dt time.Duration) {
 
-	now := time.Now()
-
-	for i, action := range m.ActionList {
-		// log.Debugln(i, " frame action.ID: ", action.ID, " actionTime: ", action.ActionTime, " now: ", now)
-		if !action.Finish && now.After(action.ActionTime) {
-			// log.Debugln("action execute: ", action.ID)
-			action.Task.Execute()
-			action.Finish = true
-		}
-		if action.Finish {
-			delete(m.ActionList, i)
-		}
-	}
+	m.ActionList.Execute()
 
 	for _, p := range m.players {
 		p.Process(dt)
@@ -80,10 +68,6 @@ func (m *Map) Frame(dt time.Duration) {
 	// 		npc.Process(dt)
 	// 	}
 	// }
-}
-
-func (m *Map) PushAction(action *DelayedAction) {
-	m.ActionList[action.ID] = action
 }
 
 func (m *Map) GetCell(p common.Point) *Cell {

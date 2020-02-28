@@ -5,7 +5,6 @@ import (
 	"math"
 	"strconv"
 	"strings"
-	"sync"
 	"time"
 
 	"github.com/yenkeia/mirgo/setting"
@@ -93,8 +92,8 @@ type Player struct {
 	GoldDropRateOffset float32
 	AttackBonus        uint8
 	Magics             []*common.UserMagic
-	ActionList         *sync.Map // map[uint32]DelayedAction
-	Health             Health    // 状态恢复
+	ActionList         *ActionList
+	Health             Health // 状态恢复
 	Pets               []IMapObject
 	PKPoints           int
 	AMode              common.AttackMode
@@ -121,6 +120,10 @@ type Health struct {
 	// 角色生命/魔法回复
 	HealNextTime *time.Time
 	HealDuration time.Duration
+}
+
+func (i *Player) GetMap() *Map {
+	return i.Map
 }
 
 func (p *Player) GetID() uint32 {
@@ -393,23 +396,10 @@ func (p *Player) Broadcast(msg interface{}) {
 }
 
 func (p *Player) Process(dt time.Duration) {
-	finishID := make([]uint32, 0)
 	now := time.Now()
-	p.ActionList.Range(func(k, v interface{}) bool {
-		action := v.(*DelayedAction)
-		if action.Finish || now.Before(action.ActionTime) {
-			return true
-		}
-		action.Task.Execute()
-		action.Finish = true
-		if action.Finish {
-			finishID = append(finishID, action.ID)
-		}
-		return true
-	})
-	for i := range finishID {
-		p.ActionList.Delete(finishID[i])
-	}
+
+	p.ActionList.Execute()
+
 	ch := &p.Health
 	if ch.HPPotValue != 0 && ch.HPPotNextTime.Before(now) {
 		p.ChangeHP(ch.HPPotPerValue)
@@ -710,7 +700,7 @@ func (p *Player) GetAttackPower(min, max int) int {
 }
 
 // TODO
-func (p *Player) Attacked(attacker IMapObject, damageFinal int, defenceType common.DefenceType, damageWeapon bool) {
+func (p *Player) Attacked(attacker IMapObject, damageFinal int, defenceType common.DefenceType) {
 
 }
 
@@ -1431,10 +1421,9 @@ func (p *Player) CallDefaultNPC(calltype DefaultNPCType, args ...interface{}) {
 
 	key = fmt.Sprintf("[@_%s]", key)
 
-	action := NewDelayedAction(p.NewObjectID(), DelayedTypeNPC, NewTask(func(...interface{}) {
+	p.ActionList.PushAction(DelayedTypeNPC, func() {
 		p.CallNPC1(env.DefaultNPC, key)
-	}))
-	p.ActionList.Store(action.ID, action)
+	})
 
 	p.Enqueue(&server.NPCUpdate{NPCID: env.DefaultNPC.GetID()})
 }
@@ -1552,9 +1541,9 @@ func (p *Player) Attack(direction common.MirDirection, spell common.Spell) {
 		}
 		switch o.GetRace() {
 		case common.ObjectTypePlayer:
-			o.(*Player).Attacked(p, damageFinal, common.DefenceTypeAgility, false)
+			o.(*Player).Attacked(p, damageFinal, common.DefenceTypeAgility)
 		case common.ObjectTypeMonster:
-			o.(*Monster).Attacked(p, damageFinal, common.DefenceTypeAgility, false)
+			o.(*Monster).Attacked(p, damageFinal, common.DefenceTypeAgility)
 		}
 		return true
 	})

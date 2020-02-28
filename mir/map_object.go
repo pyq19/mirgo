@@ -73,6 +73,7 @@ type IProcessObject interface {
 
 type IMapObject interface {
 	GetID() uint32
+	GetMap() *Map
 	GetName() string
 	GetRace() common.ObjectType
 	GetPoint() common.Point
@@ -91,6 +92,7 @@ type IMapObject interface {
 	ApplyPoison(*Poison, IMapObject)
 	AddPlayerCount(n int)
 	GetPlayerCount() int
+	Attacked(attacker IMapObject, damage int, dtype common.DefenceType)
 }
 
 type MapObject struct {

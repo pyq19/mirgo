@@ -34,6 +34,14 @@ func AbsInt(i int) int {
 	return i
 }
 
+func MaxInt(a, b int) int {
+	if a > b {
+		return a
+	} else {
+		return b
+	}
+}
+
 // 随机 [low, high]
 func RandomInt(low int, high int) int {
 	if low == high {
