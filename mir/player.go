@@ -980,7 +980,7 @@ func (p *Player) Chat(message string) {
 	}
 
 	if strings.HasPrefix(message, "@") {
-		msg, err := cmd.Exec(message, p)
+		msg, err := cmd.Exec(message[1:], p)
 		if err != nil {
 			p.ReceiveChat(fmt.Sprintf("执行失败(%s)", err), common.ChatTypeSystem)
 		}
