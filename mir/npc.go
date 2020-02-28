@@ -105,6 +105,10 @@ func (m *NPC) GetPlayerCount() int {
 	return m.PlayerCount
 }
 
+func (i *NPC) GetMap() *Map {
+	return i.Map
+}
+
 func (n *NPC) GetID() uint32 {
 	return n.ID
 }
@@ -136,6 +140,10 @@ func (n *NPC) GetCell() *Cell {
 
 func (n *NPC) GetDirection() common.MirDirection {
 	return n.CurrentDirection
+}
+
+func (p *NPC) Attacked(attacker IMapObject, damageFinal int, defenceType common.DefenceType) {
+
 }
 
 func (n *NPC) GetInfo() interface{} {

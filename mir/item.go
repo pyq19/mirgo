@@ -14,6 +14,10 @@ type Item struct {
 	UserItem *common.UserItem
 }
 
+func (i *Item) GetMap() *Map {
+	return i.Map
+}
+
 func (i *Item) GetID() uint32 {
 	return i.ID
 }
@@ -30,6 +34,9 @@ func (m *Item) AddPlayerCount(n int) {
 	case 0:
 		m.Map.DelActiveObj(m)
 	}
+}
+
+func (m *Item) Attacked(attacker IMapObject, damage int, dtype common.DefenceType) {
 }
 
 func (m *Item) GetPlayerCount() int {

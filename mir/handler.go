@@ -1,7 +1,6 @@
 package mir
 
 import (
-	"sync"
 	"time"
 
 	"github.com/davyxu/cellnet"
@@ -559,7 +558,7 @@ func updatePlayerInfo(g *Game, p *Player, c *common.Character) {
 	p.SendItemInfo = make([]*common.ItemInfo, 0)
 	p.MaxExperience = 100
 	p.Magics = magics
-	p.ActionList = new(sync.Map)
+	p.ActionList = NewActionList()
 	p.Health = Health{
 		HPPotNextTime: new(time.Time),
 		HPPotDuration: 3 * time.Second,

@@ -51,6 +51,8 @@ func NewBehavior(id int, mon *mir.Monster) mir.IBehavior {
 		root = DeerBrain()
 	case 6:
 		root = GuardBrain()
+	case 57:
+		root = ArcherGuardBrain()
 	default:
 		root = DefaultBrain()
 	}
