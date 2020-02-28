@@ -2,7 +2,6 @@ package mir
 
 import (
 	"fmt"
-	"sync"
 	"time"
 
 	"github.com/yenkeia/mirgo/common"
@@ -56,7 +55,7 @@ type Monster struct {
 	ViewRange   int
 	Master      *Player
 	EXPOwner    *Player
-	ActionList  *sync.Map // map[uint32]DelayedAction
+	ActionList  *ActionList
 	ActionTime  time.Time
 	AttackTime  time.Time
 	DeadTime    time.Time
@@ -104,7 +103,7 @@ func NewMonster(mp *Map, p common.Point, mi *common.MonsterInfo) (m *Monster) {
 	m.AttackSpeed = int32(mi.AttackSpeed)
 	m.ArmourRate = 1.0
 	m.DamageRate = 1.0
-	m.ActionList = new(sync.Map)
+	m.ActionList = NewActionList()
 	now := time.Now()
 	m.ActionTime = now
 	m.MoveTime = now
@@ -316,22 +315,7 @@ func (m *Monster) Process(dt time.Duration) {
 	m.ProcessRegan()
 	m.ProcessPoison()
 
-	finishID := make([]uint32, 0)
-	m.ActionList.Range(func(k, v interface{}) bool {
-		action := v.(*DelayedAction)
-		if action.Finish || now.Before(action.ActionTime) {
-			return true
-		}
-		action.Task.Execute()
-		action.Finish = true
-		if action.Finish {
-			finishID = append(finishID, action.ID)
-		}
-		return true
-	})
-	for i := range finishID {
-		m.ActionList.Delete(finishID[i])
-	}
+	m.ActionList.Execute()
 }
 
 // ProcessBuffs 处理怪物增益效果
@@ -416,7 +400,7 @@ func (m *Monster) ChangeHP(amount int) {
 }
 
 // Attacked 被攻击
-func (m *Monster) Attacked(attacker IMapObject, damage int, defenceType common.DefenceType, damageWeapon bool) {
+func (m *Monster) Attacked(attacker IMapObject, damage int, defenceType common.DefenceType) {
 	if m.Target == nil && attacker.IsAttackTarget(m) {
 		m.Target = attacker
 	}
@@ -468,7 +452,7 @@ func (m *Monster) Drop() {
 	}
 	mapItems := make([]Item, 0)
 	for _, drop := range dropInfos {
-		if ut.RandomNext(drop.High) < drop.Low {
+		if ut.RandomNext(drop.High) > drop.Low {
 			continue
 		}
 		if drop.ItemName == "Gold" {
@@ -645,12 +629,7 @@ func (m *Monster) GuardAttack() {
 		return
 	}
 
-	switch m.Target.GetRace() {
-	case common.ObjectTypePlayer:
-		m.Target.(*Player).Attacked(m, damage, common.DefenceTypeAgility, false)
-	case common.ObjectTypeMonster:
-		m.Target.(*Monster).Attacked(m, damage, common.DefenceTypeAgility, false)
-	}
+	m.Target.Attacked(m, damage, common.DefenceTypeAgility)
 }
 
 func (m *Monster) Attack() {
@@ -667,12 +646,7 @@ func (m *Monster) Attack() {
 	if damage <= 0 {
 		return
 	}
-	switch m.Target.GetRace() {
-	case common.ObjectTypePlayer:
-		m.Target.(*Player).Attacked(m, damage, common.DefenceTypeAgility, false)
-	case common.ObjectTypeMonster:
-		m.Target.(*Monster).Attacked(m, damage, common.DefenceTypeAgility, false)
-	}
+	m.Target.Attacked(m, damage, common.DefenceTypeAgility)
 }
 
 func (m *Monster) MoveTo(location common.Point) {
@@ -771,6 +745,14 @@ func (m *Monster) CheckStacked() bool {
 }
 
 // PetRecall 宠物传送回玩家身边
-func (m *Monster) PetRecall(...interface{}) {
+func (m *Monster) PetRecall() {
 	log.Debugln("PetRecall", m.GetID())
+}
+
+func (m *Monster) CompleteAttack(target IMapObject, damage int, def common.DefenceType) {
+	if target == nil || !target.IsAttackTarget(m) { //target.CurrentMap != CurrentMap
+		return
+	}
+
+	target.Attacked(m, damage, def)
 }

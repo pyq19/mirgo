@@ -1,6 +1,8 @@
 package behavior
 
-import "time"
+import (
+	"time"
+)
 
 // 默认
 func DefaultBrain() INode {
@@ -35,11 +37,12 @@ func GuardBrain() INode {
 	return root
 }
 
-func HasTarget(c *BT) bool {
-	return c.Monster.Target != nil
-}
+// 弓箭守卫
+func ArcherGuardBrain() INode {
 
-func FindMonsterInViewRange(c *BT) bool {
-	c.Monster.FindTarget()
-	return c.Monster.Target != nil
+	root := Priority(1*time.Second,
+		While(FindPlayerByPKPoints200, WatchAndShoot()),
+	)
+
+	return root
 }
