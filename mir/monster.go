@@ -112,6 +112,10 @@ func NewMonster(mp *Map, p common.Point, mi *common.MonsterInfo) (m *Monster) {
 	return m
 }
 
+func (i *Monster) GetMap() *Map {
+	return i.Map
+}
+
 func (m *Monster) GetID() uint32 {
 	return m.ID
 }
@@ -289,15 +293,16 @@ func (m *Monster) CanAttack() bool {
 
 // InAttackRange 是否在怪物攻击范围内
 func (m *Monster) InAttackRange() bool {
-	// if (Target.CurrentMap != CurrentMap) return false;
+	if m.Target.GetMap() != m.GetMap() {
+		return false
+	}
 	return !m.Target.GetPoint().Equal(m.CurrentLocation) && InRange(m.CurrentLocation, m.Target.GetPoint(), 1)
 }
 
 // Process 怪物定时轮询
 func (m *Monster) Process(dt time.Duration) {
 	if m.Target != nil &&
-		//m.Target.GetMap() != m.Map ||
-		(!m.Target.IsAttackTarget(m) || !InRange(m.CurrentLocation, m.Target.GetPoint(), DataRange)) {
+		(m.Target.GetMap() != m.GetMap() || !m.Target.IsAttackTarget(m) || !InRange(m.CurrentLocation, m.Target.GetPoint(), DataRange)) {
 		m.Target = nil
 	}
 
@@ -750,7 +755,7 @@ func (m *Monster) PetRecall() {
 }
 
 func (m *Monster) CompleteAttack(target IMapObject, damage int, def common.DefenceType) {
-	if target == nil || !target.IsAttackTarget(m) { //target.CurrentMap != CurrentMap
+	if target == nil || !target.IsAttackTarget(m) || target.GetMap() != m.GetMap() {
 		return
 	}
 

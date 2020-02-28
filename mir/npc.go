@@ -105,6 +105,10 @@ func (m *NPC) GetPlayerCount() int {
 	return m.PlayerCount
 }
 
+func (i *NPC) GetMap() *Map {
+	return i.Map
+}
+
 func (n *NPC) GetID() uint32 {
 	return n.ID
 }
