@@ -111,5 +111,5 @@ func init() {
 	cmd.Action("MAP", _gmMap)
 	cmd.Action("INFO", _gmInfo)
 	cmd.Action("MOB", _gmMob)
-	cmd.Action("Move", _gmMove)
+	cmd.Action("MOVE", _gmMove)
 }
