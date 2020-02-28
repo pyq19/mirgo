@@ -7,6 +7,13 @@ import (
 	"strings"
 )
 
+type ArgParseFunc func(string) (reflect.Value, error)
+
+type ArgParser struct {
+	Fun  ArgParseFunc
+	Skip bool
+}
+
 func ParseInt(s string) (reflect.Value, error) {
 	i, err := strconv.Atoi(s)
 	if err != nil {
@@ -83,5 +90,3 @@ func CompareInt(op CompareOp, a, b int) bool {
 	}
 	return false
 }
-
-type ArgParseFunc func(string) (reflect.Value, error)

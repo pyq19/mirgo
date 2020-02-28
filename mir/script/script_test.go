@@ -6,8 +6,10 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"regexp"
+	"reflect"
 	"testing"
+
+	"github.com/yenkeia/mirgo/ut"
 )
 
 func Print(arr []string) {
@@ -48,7 +50,7 @@ func TestPrecompile(t *testing.T) {
 		panic(err)
 	}
 	Print(v)
-	lines, err := ReadLines(fullpath("NPCs/BichonProvince/BichonWall/Sir.MoguBW.txt"))
+	lines, err := ut.ReadLines(fullpath("NPCs/BichonProvince/BichonWall/Sir.MoguBW.txt"))
 	if err != nil {
 		panic(err)
 	}
@@ -75,6 +77,7 @@ I will not help an evil person like you...
 TEST 
 TEST 1
 TEST 1 2
+TEST2 100
 #ELSEACT
 GOTO @Main-1
 
@@ -88,38 +91,31 @@ Welcome, what can I do for you?
 <Close/@Exit>
 `
 
-	Check("CHECKPKPOINT", func(npc, player interface{}, op CompareOp, v int) bool {
+	// skip uint32
+	DefaultContext.AddParser(reflect.TypeOf(uint32(0)), nil)
+
+	Check("CHECKPKPOINT", func(op CompareOp, v int) bool {
 		return CompareInt(op, 3, v)
 	})
 
-	Action("TEST", func(npc, player interface{}, v1, v2 int) {
+	Action("TEST", func(v1, v2 int) {
 		fmt.Println(v1, v2)
 	}, -909, -8080)
+
+	Action("TEST2", func(v1 uint32, v2 int) {
+		fmt.Println(v1, v2)
+	})
 
 	sc, err := Load(bytes.NewReader([]byte(test)))
 	if err != nil {
 		panic(err)
 	}
 
-	say, err := sc.Call(1, 1, "[@main]")
+	say, err := sc.Call("[@main]", uint32(1009))
 	if err != nil {
 		fmt.Println("err", err)
 	}
 	Print(say)
-}
-
-func TestSplit(t *testing.T) {
-	Print(splitString("hello world += 1 "))
-	Print(splitString("\"hello world += 1 \""))
-	Print(splitString(`"hello world" += 1 "123"`))
-	Print(splitString(`CHECKGOLD > 100`))
-	Print(splitString(`CHECKQUEST 154 COMPLETE`))
-	s := "[234]"
-	fmt.Println(s[1 : len(s)-1])
-
-	var regNPCHotkey = regexp.MustCompile(`\<\$\w+\>`)
-
-	fmt.Println(regNPCHotkey.ReplaceAllStringFunc("asdjd<$username><hello>", replaces))
 }
 
 func replaces(s string) string {

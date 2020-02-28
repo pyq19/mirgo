@@ -76,7 +76,7 @@ func (n *NPC) HasType(typ common.ItemType) bool {
 }
 
 func (n *NPC) CallScript(p *Player, key string) ([]string, error) {
-	say, err := n.Script.Call(n, p, key)
+	say, err := n.Script.Call(key, n, p)
 	if err != nil {
 		return nil, err
 	}

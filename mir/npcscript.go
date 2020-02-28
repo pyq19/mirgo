@@ -183,6 +183,8 @@ func _CHANGELEVEL(npc *NPC, p *Player, lv int) {
 }
 
 func init() {
+	script.AddParser(reflect.TypeOf((*Player)(nil)), nil)
+	script.AddParser(reflect.TypeOf((*NPC)(nil)), nil)
 	script.AddParser(reflect.TypeOf(Flag(0)), parseFlag)
 	script.AddParser(reflect.TypeOf(QuestStatus(0)), parseQuestStatus)
 
