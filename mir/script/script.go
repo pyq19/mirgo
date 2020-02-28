@@ -32,9 +32,6 @@ func fullpath(file string) string {
 	return file
 }
 
-// skip npc, player
-const argsSkip = 2
-
 type Script struct {
 	Types  []int
 	Quests []int
@@ -222,7 +219,16 @@ func (ps *PageScript) parseAction(mp map[string]*ScriptFunc, s string) (*Functio
 		return nil, errors.New("no function [" + funName + "]")
 	}
 
-	expect := len(method.ArgsParser)
+	argsSkip := 0
+	for _, parser := range method.ArgsParser {
+		if parser.Fun == nil {
+			argsSkip++
+		} else {
+			break
+		}
+	}
+	expect := len(method.ArgsParser) - argsSkip
+
 	got := len(parts) - 1
 	opt := 0
 	if method.OptionArgs != nil {
@@ -237,16 +243,19 @@ func (ps *PageScript) parseAction(mp map[string]*ScriptFunc, s string) (*Functio
 	inst.Args = make([]reflect.Value, expect+argsSkip)
 	inst.Func = method.Func
 
+	if argsSkip > 0 {
+		inst.Skiped = true
+	}
+
 	for i := 0; i < expect; i++ {
 		if i >= got {
 			inst.Args[argsSkip+i] = method.OptionArgs[i-(expect-opt)]
 		} else {
-			value, err := method.ArgsParser[i](parts[i+1])
+			value, err := method.ArgsParser[argsSkip+i].Fun(parts[i+1])
 			if err != nil {
 				return nil, err
 			}
 			inst.Args[argsSkip+i] = value
-
 		}
 	}
 
@@ -254,7 +263,7 @@ func (ps *PageScript) parseAction(mp map[string]*ScriptFunc, s string) (*Functio
 }
 
 // call
-func (sc *Script) Call(npc, player interface{}, page string) ([]string, error) {
+func (sc *Script) Call(page string, args ...interface{}) ([]string, error) {
 
 	page = strings.ToUpper(page)
 	ps, has := sc.Pages[page]
@@ -265,7 +274,7 @@ func (sc *Script) Call(npc, player interface{}, page string) ([]string, error) {
 	var acts []*Function
 	var say []string
 
-	if ps.Check(npc, player) {
+	if ps.Check(args...) {
 		acts = ps.ActList
 		say = ps.Say
 	} else {
@@ -274,14 +283,14 @@ func (sc *Script) Call(npc, player interface{}, page string) ([]string, error) {
 	}
 
 	for _, act := range acts {
-		cmd := act.Exec(npc, player)
+		cmd := act.Exec(args...)
 		shouldBreak := false
 		if cmd != nil {
 			switch cmd.(type) {
 			case CMDBreak:
 				shouldBreak = true
 			case CMDGoto:
-				return sc.Call(npc, player, cmd.(CMDGoto).GOTO)
+				return sc.Call(cmd.(CMDGoto).GOTO, args...)
 			}
 		}
 		if shouldBreak {
@@ -292,14 +301,14 @@ func (sc *Script) Call(npc, player interface{}, page string) ([]string, error) {
 	return say, nil
 }
 
-func (ps *PageScript) Check(npc, player interface{}) bool {
+func (ps *PageScript) Check(args ...interface{}) bool {
 
 	if len(ps.CheckList) == 0 {
 		return true
 	}
 
 	for _, ck := range ps.CheckList {
-		if !ck.Check(npc, player) {
+		if !ck.Check(args...) {
 			return false
 		}
 	}

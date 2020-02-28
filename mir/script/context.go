@@ -1,18 +1,21 @@
 package script
 
-import "reflect"
+import (
+	"reflect"
+)
 
 // 对于if 和 act里面的命令都可以看作一个是一个golang函数
 type ScriptFunc struct {
 	Name       string
 	Func       reflect.Value
-	ArgsParser []ArgParseFunc
+	ArgsParser []*ArgParser
 	OptionArgs []reflect.Value
 }
 
 type Function struct {
-	Args []reflect.Value
-	Func reflect.Value
+	Skiped bool
+	Args   []reflect.Value
+	Func   reflect.Value
 }
 
 type CMDBreak struct {
@@ -22,41 +25,43 @@ type CMDGoto struct {
 	GOTO string
 }
 
+func (c *Function) doExec(args ...interface{}) []reflect.Value {
+	if c.Skiped {
+		for i, v := range args {
+			c.Args[i] = reflect.ValueOf(v)
+		}
+	}
+	return c.Func.Call(c.Args)
+}
+
 // 用于if，函数要求必须返回bool值
-func (c *Function) Check(npc, player interface{}) bool {
-	c.Args[0] = reflect.ValueOf(npc)
-	c.Args[1] = reflect.ValueOf(player)
-	retvars := c.Func.Call(c.Args)
-	return retvars[0].Bool()
+func (c *Function) Check(args ...interface{}) bool {
+	return c.doExec(args...)[0].Bool()
 }
 
 // 用于非if的地方
-func (c *Function) Exec(npc, player interface{}) interface{} {
-	c.Args[0] = reflect.ValueOf(npc)
-	c.Args[1] = reflect.ValueOf(player)
-	ret := c.Func.Call(c.Args)
+func (c *Function) Exec(args ...interface{}) interface{} {
+	ret := c.doExec(args...)
+
 	if ret != nil && len(ret) > 0 {
 		return ret[0].Interface()
 	}
+
 	return nil
 }
 
 type Context struct {
 	Checks  map[string]*ScriptFunc
 	Actions map[string]*ScriptFunc
-	parsers map[reflect.Type]ArgParseFunc
+	parsers map[reflect.Type]*ArgParser
 }
 
 var DefaultContext *Context
 
-var (
-	opType reflect.Type
-)
-
-func _GOTO(a, b interface{}, page string) CMDGoto {
+func _GOTO(page string) CMDGoto {
 	return CMDGoto{GOTO: "[" + page + "]"}
 }
-func _BREAK(a, b interface{}) CMDBreak {
+func _BREAK() CMDBreak {
 	return CMDBreak{}
 }
 
@@ -75,8 +80,9 @@ func Action(k string, fun interface{}, options ...interface{}) {
 	DefaultContext.Action(k, fun, options...)
 }
 
+// f==nil 表示不解析该参数，从外部传入。
 func (c *Context) AddParser(typ reflect.Type, f ArgParseFunc) {
-	c.parsers[typ] = f
+	c.parsers[typ] = &ArgParser{Fun: f}
 }
 
 func (c *Context) Check(k string, fun interface{}, options ...interface{}) {
@@ -107,12 +113,14 @@ func (c *Context) Action(k string, fun interface{}, options ...interface{}) {
 }
 
 func (c *Context) makefunc(k string, fun interface{}, options ...interface{}) *ScriptFunc {
-	return &ScriptFunc{
+	f := &ScriptFunc{
 		Name:       k,
 		Func:       reflect.ValueOf(fun),
 		ArgsParser: c.checkArgs(reflect.TypeOf(fun)),
 		OptionArgs: c.checkOptions(options...),
 	}
+
+	return f
 }
 
 func (c *Context) checkOptions(options ...interface{}) []reflect.Value {
@@ -126,12 +134,12 @@ func (c *Context) checkOptions(options ...interface{}) []reflect.Value {
 	return nil
 }
 
-func (c *Context) checkArgs(funcType reflect.Type) []ArgParseFunc {
-	n := funcType.NumIn() - argsSkip
+func (c *Context) checkArgs(funcType reflect.Type) []*ArgParser {
+	n := funcType.NumIn()
 	if n > 0 {
-		parsers := make([]ArgParseFunc, n)
+		parsers := make([]*ArgParser, n)
 		for i := 0; i < n; i++ {
-			argType := funcType.In(i + argsSkip)
+			argType := funcType.In(i)
 
 			par, has := c.parsers[argType]
 			if !has {
@@ -143,22 +151,26 @@ func (c *Context) checkArgs(funcType reflect.Type) []ArgParseFunc {
 		return parsers
 	}
 
-	return []ArgParseFunc{}
+	return []*ArgParser{}
+}
+
+func NewContext() *Context {
+	r := &Context{
+		Checks:  map[string]*ScriptFunc{},
+		Actions: map[string]*ScriptFunc{},
+		parsers: map[reflect.Type]*ArgParser{},
+	}
+
+	r.AddParser(reflect.TypeOf(bool(false)), ParseBool)
+	r.AddParser(reflect.TypeOf(int(0)), ParseInt)
+	r.AddParser(reflect.TypeOf(string("")), ParseString)
+	r.AddParser(reflect.TypeOf(GT), ParseCompare)
+
+	return r
 }
 
 func init() {
-	opType = reflect.TypeOf(CompareOp(0))
-
-	DefaultContext = &Context{
-		Checks:  map[string]*ScriptFunc{},
-		Actions: map[string]*ScriptFunc{},
-		parsers: map[reflect.Type]ArgParseFunc{},
-	}
-
-	AddParser(reflect.TypeOf(bool(false)), ParseBool)
-	AddParser(reflect.TypeOf(int(0)), ParseInt)
-	AddParser(reflect.TypeOf(string("")), ParseString)
-	AddParser(reflect.TypeOf(GT), ParseCompare)
+	DefaultContext = NewContext()
 
 	Action("GOTO", _GOTO)
 	Action("BREAK", _BREAK)
