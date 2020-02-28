@@ -980,7 +980,7 @@ func (p *Player) Chat(message string) {
 	}
 
 	if strings.HasPrefix(message, "@") {
-		msg, err := cmd.Exec(message, p)
+		msg, err := cmd.Exec(message[1:], p)
 		if err != nil {
 			p.ReceiveChat(fmt.Sprintf("执行失败(%s)", err), common.ChatTypeSystem)
 		}
@@ -1235,6 +1235,19 @@ func (p *Player) UseItem(id uint64) {
 		}
 	case common.ItemTypeScroll:
 	case common.ItemTypeBook:
+		magic := &common.UserMagic{}
+		magic.Spell = common.Spell(info.Shape)
+		magic.Info = data.GetMagicInfoBySpell(magic.Spell)
+
+		if magic.Info == nil {
+			p.Enqueue(msg)
+			return
+		}
+
+		p.Magics = append(p.Magics, magic)
+		p.Enqueue(magic.Info)
+		p.RefreshStats()
+
 	case common.ItemTypeScript:
 		p.CallDefaultNPC(DefaultNPCTypeUseItem, info.Shape)
 	case common.ItemTypeFood:

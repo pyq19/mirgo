@@ -21,10 +21,10 @@ func HasFlagUint16(a, b uint16) bool {
 func StringEqualFold(a string, b ...string) bool {
 	for _, v := range b {
 		if strings.EqualFold(a, v) {
-			return false
+			return true
 		}
 	}
-	return true
+	return false
 }
 
 func AbsInt(i int) int {

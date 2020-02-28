@@ -276,7 +276,7 @@ func ServerSendLTVPacket(writer io.Writer, ctx cellnet.ContextSet, data interfac
 	skip["server.OBJECT_TURN"] = true
 	packetName := GetPacketName("server", int(common.BytesToUint16(pkt[2:4])))
 	if !skip[packetName] {
-		// log.Debugln("---> 服务端发送 (" + packetName + ") " + strconv.Itoa(len(pkt)) + "字节: " + String(pkt))
+		log.Debugln("---> 服务端发送 (" + packetName + ") " + strconv.Itoa(len(pkt)) + "字节: " + String(pkt))
 	}
 
 	// Codec中使用内存池时的释放位置
