@@ -138,6 +138,10 @@ func (n *NPC) GetDirection() common.MirDirection {
 	return n.CurrentDirection
 }
 
+func (p *NPC) Attacked(attacker IMapObject, damageFinal int, defenceType common.DefenceType) {
+
+}
+
 func (n *NPC) GetInfo() interface{} {
 	res := &server.ObjectNPC{
 		ObjectID:  n.ID,

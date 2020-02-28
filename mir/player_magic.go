@@ -51,9 +51,7 @@ func (p *Player) UseMagic(spell common.Spell, magic *common.UserMagic, target IM
 	case common.SpellRepulsion, common.SpellEnergyRepulsor, common.SpellFireBurst:
 		p.Repulsion(magic)
 	case common.SpellElectricShock:
-		// ActionList.Add(new DelayedAction(DelayedType.Magic, Envir.Time + 500, magic, target as MonsterObject));
-		action := NewDelayedAction(p.NewObjectID(), DelayedTypeMagic, NewTask(p.CompleteMagic, magic, target))
-		p.ActionList.Store(action.ID, action)
+		p.ActionList.PushActionSuper(DelayedTypeMagic, p.CompleteMagic, magic, target)
 	case common.SpellPoisoning:
 		if !p.Poisoning(target, magic) {
 			cast = false
@@ -71,15 +69,13 @@ func (p *Player) UseMagic(spell common.Spell, magic *common.UserMagic, target IM
 	case common.SpellSummonSkeleton:
 		p.SummonSkeleton(magic)
 	case common.SpellTeleport, common.SpellBlink:
+		p.ActionList.PushActionSuper(DelayedTypeMagic, p.CompleteMagic, magic, p.GetPoint())
 		// ActionList.Add(new DelayedAction(DelayedType.Magic, Envir.Time + 200, magic, location));
-		action := NewDelayedAction(p.NewObjectID(), DelayedTypeMagic, NewTask(p.CompleteMagic, magic, p.GetPoint()))
-		p.ActionList.Store(action.ID, action)
 	case common.SpellHiding:
 		p.Hiding(magic)
 	case common.SpellHaste, common.SpellLightBody:
 		// ActionList.Add(new DelayedAction(DelayedType.Magic, Envir.Time + 500, magic));
-		action := NewDelayedAction(p.NewObjectID(), DelayedTypeMagic, NewTask(p.CompleteMagic, magic))
-		p.ActionList.Store(action.ID, action)
+		p.ActionList.PushActionSuper(DelayedTypeMagic, p.CompleteMagic, magic)
 	case common.SpellFury:
 		cast = p.FurySpell(magic)
 	case common.SpellImmortalSkin:
@@ -134,8 +130,7 @@ func (p *Player) UseMagic(spell common.Spell, magic *common.UserMagic, target IM
 		*/
 	case common.SpellMagicShield:
 		// ActionList.Add(new DelayedAction(DelayedType.Magic, Envir.Time + 500, magic, magic.GetPower(GetAttackPower(MinMC, MaxMC) + 15)));
-		action := NewDelayedAction(p.NewObjectID(), DelayedTypeMagic, NewTask(p.CompleteMagic, magic, magic.GetPower1(p.GetAttackPower(int(p.MinMC), int(p.MaxMC))+15)))
-		p.ActionList.Store(action.ID, action)
+		p.ActionList.PushActionSuper(DelayedTypeMagic, p.CompleteMagic, magic, magic.GetPower1(p.GetAttackPower(int(p.MinMC), int(p.MaxMC))+15))
 	case common.SpellFlameDisruptor:
 		p.FlameDisruptor(target, magic)
 	case common.SpellTurnUndead:
@@ -234,9 +229,9 @@ func (p *Player) CompleteMagic(args ...interface{}) {
 			return
 		}
 		if target.GetRace() == common.ObjectTypePlayer {
-			target.(*Player).Attacked(p, value, common.DefenceTypeMAC, false)
+			target.(*Player).Attacked(p, value, common.DefenceTypeMAC)
 		} else if target.GetRace() == common.ObjectTypeMonster {
-			target.(*Monster).Attacked(p, value, common.DefenceTypeMAC, false)
+			target.(*Monster).Attacked(p, value, common.DefenceTypeMAC)
 		}
 		return
 	case common.SpellFrostCrunch:
@@ -389,8 +384,7 @@ func (p *Player) Fireball(target IMapObject, magic *common.UserMagic) bool {
 		return false
 	}
 	damage := magic.GetDamage(p.GetAttackPower(int(p.MinMC), int(p.MaxMC)))
-	action := NewDelayedAction(p.NewObjectID(), DelayedTypeMagic, NewTask(p.CompleteMagic, magic, damage, target))
-	p.ActionList.Store(action.ID, action)
+	p.ActionList.PushActionSuper(DelayedTypeMagic, p.CompleteMagic, magic, damage, target)
 	return true
 }
 
@@ -401,8 +395,7 @@ func (p *Player) Healing(target IMapObject, magic *common.UserMagic) {
 	}
 	// int health = magic.GetDamage(GetAttackPower(MinSC, MaxSC) * 2) + Level;
 	health := magic.GetDamage(p.GetAttackPower(int(p.MinSC), int(p.MaxSC))*2) + int(p.Level)
-	action := NewDelayedAction(p.NewObjectID(), DelayedTypeMagic, NewTask(p.CompleteMagic, magic, health, target))
-	p.ActionList.Store(action.ID, action)
+	p.ActionList.PushActionSuper(DelayedTypeMagic, p.CompleteMagic, magic, health, target)
 }
 
 // Repulsion 抗拒火环
@@ -420,8 +413,7 @@ func (p *Player) Poisoning(target IMapObject, magic *common.UserMagic) bool {
 		return false
 	}
 	power := magic.GetDamage(p.GetAttackPower(int(p.MinSC), int(p.MaxSC)))
-	action := NewDelayedAction(p.NewObjectID(), DelayedTypeMagic, NewTask(p.CompleteMagic, magic, power, target, item))
-	p.ActionList.Store(action.ID, action)
+	p.ActionList.PushActionSuper(DelayedTypeMagic, p.CompleteMagic, magic, power, target, item)
 	p.ConsumeItem(item, 1)
 	return true
 }
@@ -438,8 +430,7 @@ func (p *Player) ThunderBolt(target IMapObject, magic *common.UserMagic) {
 	}
 	damage := magic.GetDamage(p.GetAttackPower(int(p.MinMC), int(p.MaxMC)))
 	// if (target.Undead) damage = (int)(damage * 1.5F);
-	action := NewDelayedAction(p.NewObjectID(), DelayedTypeMagic, NewTask(p.CompleteMagic, magic, damage, target))
-	p.ActionList.Store(action.ID, action)
+	p.ActionList.PushActionSuper(DelayedTypeMagic, p.CompleteMagic, magic, damage, target)
 }
 
 // SoulFireball 灵魂火符
@@ -454,8 +445,7 @@ func (p *Player) SoulFireball(target IMapObject, magic *common.UserMagic) bool {
 	damage := magic.GetDamage(p.GetAttackPower(int(p.MinSC), int(p.MaxSC)))
 	// int delay = Functions.MaxDistance(CurrentLocation, target.CurrentLocation) * 50 + 500; //50 MS per Step
 	// DelayedAction action = new DelayedAction(DelayedType.Magic, Envir.Time + delay, magic, damage, target);
-	action := NewDelayedAction(p.NewObjectID(), DelayedTypeMagic, NewTask(p.CompleteMagic, magic, damage, target))
-	p.ActionList.Store(action.ID, action)
+	p.ActionList.PushActionSuper(DelayedTypeMagic, p.CompleteMagic, magic, damage, target)
 	p.ConsumeItem(userItem, 1)
 	return true
 }
@@ -466,8 +456,7 @@ func (p *Player) SummonSkeleton(magic *common.UserMagic) {
 	for i := range p.Pets {
 		if p.Pets[i].GetName() == skeletonName {
 			m := p.Pets[i].(*Monster)
-			action := NewDelayedAction(p.NewObjectID(), DelayedTypeRecall, NewTask(m.PetRecall))
-			m.ActionList.Store(action.ID, action)
+			p.ActionList.PushAction(DelayedTypeRecall, m.PetRecall)
 			return
 		}
 	}
@@ -491,8 +480,7 @@ func (p *Player) SummonSkeleton(magic *common.UserMagic) {
 	monster.ActionTime = time.Now().Add(time.Duration(1000) * time.Millisecond)
 	// monster.RefreshNameColour(false);
 	// DelayedAction action = new DelayedAction(DelayedType.Magic, Envir.Time + 500, this, magic, monster, Front);
-	action := NewDelayedAction(p.NewObjectID(), DelayedTypeMagic, NewTask(p.Map.CompleteMagic, magic, p, monster, p.GetFrontPoint()))
-	p.Map.PushAction(action)
+	p.ActionList.PushActionSuper(DelayedTypeMagic, p.Map.CompleteMagic, magic, p, monster, p.GetFrontPoint())
 	// log.Debugln(action.ID)
 }
 
@@ -536,15 +524,13 @@ func (p *Player) Hiding(magic *common.UserMagic) {
 	}
 	p.ConsumeItem(userItem, 1)
 	damage := p.GetAttackPower(int(p.MinSC), int(p.MaxSC)) + (magic.Level+1)*5
-	action := NewDelayedAction(p.NewObjectID(), DelayedTypeMagic, NewTask(p.CompleteMagic, magic, damage))
-	p.ActionList.Store(action.ID, action)
+	p.ActionList.PushActionSuper(DelayedTypeMagic, p.CompleteMagic, magic, damage)
 }
 
 // FurySpell 龙血剑法 SpellFury
 func (p *Player) FurySpell(magic *common.UserMagic) bool {
 	// ActionList.Add(new DelayedAction(DelayedType.Magic, Envir.Time + 500, magic));
-	action := NewDelayedAction(p.NewObjectID(), DelayedTypeMagic, NewTask(p.CompleteMagic, magic))
-	p.ActionList.Store(action.ID, action)
+	p.ActionList.PushActionSuper(DelayedTypeMagic, p.CompleteMagic, magic)
 	return true
 }
 
@@ -562,9 +548,7 @@ func (p *Player) MassHiding(magic *common.UserMagic, location common.Point) bool
 	}
 	// int delay = Functions.MaxDistance(CurrentLocation, location) * 50 + 500; //50 MS per Step
 	// DelayedAction action = new DelayedAction(DelayedType.Magic, Envir.Time + delay, this, magic, GetAttackPower(MinSC, MaxSC) / 2 + (magic.Level + 1) * 2, location);
-	action := NewDelayedAction(p.NewObjectID(), DelayedTypeMagic, NewTask(p.Map.CompleteMagic, magic, p.GetAttackPower(int(p.MinSC), int(p.MaxSC))/2+(magic.Level+1)*2, location, p))
-	// env.ActionList.Store(action.ID, action)
-	p.Map.PushAction(action)
+	p.ActionList.PushActionSuper(DelayedTypeMagic, p.Map.CompleteMagic, magic, p.GetAttackPower(int(p.MinSC), int(p.MaxSC))/2+(magic.Level+1)*2, location, p)
 	return true
 }
 
@@ -576,9 +560,7 @@ func (p *Player) SoulShield(magic *common.UserMagic, location common.Point) bool
 	}
 	// int delay = Functions.MaxDistance(CurrentLocation, location) * 50 + 500; //50 MS per Step
 	// DelayedAction action = new DelayedAction(DelayedType.Magic, Envir.Time + delay, this, magic, GetAttackPower(MinSC, MaxSC) * 2 + (magic.Level + 1) * 10, location);
-	action := NewDelayedAction(p.NewObjectID(), DelayedTypeMagic, NewTask(p.Map.CompleteMagic, magic, p.GetAttackPower(int(p.MinSC), int(p.MaxSC))*2+(magic.Level+1)*10, location, p))
-	// env.ActionList.Store(action.ID, action)
-	p.Map.PushAction(action)
+	p.ActionList.PushActionSuper(DelayedTypeMagic, p.Map.CompleteMagic, magic, p.GetAttackPower(int(p.MinSC), int(p.MaxSC))*2+(magic.Level+1)*10, location, p)
 	p.ConsumeItem(userItem, 1)
 	return true
 }
@@ -586,17 +568,13 @@ func (p *Player) SoulShield(magic *common.UserMagic, location common.Point) bool
 // FireWall 火墙
 func (p *Player) FireWall(magic *common.UserMagic, location common.Point) {
 	damage := magic.GetDamage(p.GetAttackPower(int(p.MinMC), int(p.MaxMC)))
-	action := NewDelayedAction(p.NewObjectID(), DelayedTypeMagic, NewTask(p.Map.CompleteMagic, magic, p, damage, location))
-	p.Map.PushAction(action)
-	// env.ActionList.Store(action.ID, action)
+	p.ActionList.PushActionSuper(DelayedTypeMagic, p.Map.CompleteMagic, magic, p, damage, location)
 }
 
 // Lightning 疾光电影
 func (p *Player) Lightning(magic *common.UserMagic) {
 	damage := magic.GetDamage(p.GetAttackPower(int(p.MinMC), int(p.MaxMC)))
-	action := NewDelayedAction(p.NewObjectID(), DelayedTypeMagic, NewTask(p.Map.CompleteMagic, magic, p, damage, p.CurrentLocation, p.CurrentDirection))
-	p.Map.PushAction(action)
-	// env.ActionList.Store(action.ID, action)
+	p.ActionList.PushActionSuper(DelayedTypeMagic, p.Map.CompleteMagic, magic, p, damage, p.CurrentLocation, p.CurrentDirection)
 }
 
 // HeavenlySword ..
@@ -605,9 +583,7 @@ func (p *Player) HeavenlySword(magic *common.UserMagic) {}
 // MassHealing 群体治疗术
 func (p *Player) MassHealing(magic *common.UserMagic, location common.Point) {
 	value := magic.GetDamage(p.GetAttackPower(int(p.MinSC), int(p.MaxSC)))
-	action := NewDelayedAction(p.NewObjectID(), DelayedTypeMagic, NewTask(p.Map.CompleteMagic, magic, p, value, location))
-	p.Map.PushAction(action)
-	// env.ActionList.Store(action.ID, action)
+	p.ActionList.PushActionSuper(DelayedTypeMagic, p.Map.CompleteMagic, magic, p, value, location)
 }
 
 // ShoulderDash 野蛮冲撞
@@ -616,9 +592,7 @@ func (p *Player) ShoulderDash(magic *common.UserMagic) {}
 // ThunderStorm 地狱雷光
 func (p *Player) ThunderStorm(magic *common.UserMagic) {
 	damage := magic.GetDamage(p.GetAttackPower(int(p.MinMC), int(p.MaxMC)))
-	action := NewDelayedAction(p.NewObjectID(), DelayedTypeMagic, NewTask(p.Map.CompleteMagic, magic, p, damage, p.CurrentLocation))
-	p.Map.PushAction(action)
-	// env.ActionList.Store(action.ID, action)
+	p.ActionList.PushActionSuper(DelayedTypeMagic, p.Map.CompleteMagic, magic, p, damage, p.CurrentLocation)
 }
 
 // FlameDisruptor 火龙术
@@ -628,8 +602,7 @@ func (p *Player) FlameDisruptor(target IMapObject, magic *common.UserMagic) {
 	}
 	damage := magic.GetDamage(p.GetAttackPower(int(p.MinMC), int(p.MaxMC)))
 	// if (!target.Undead) damage = (int)(damage * 1.5F);
-	action := NewDelayedAction(p.NewObjectID(), DelayedTypeMagic, NewTask(p.CompleteMagic, magic, damage, target))
-	p.ActionList.Store(action.ID, action)
+	p.ActionList.PushActionSuper(DelayedTypeMagic, p.CompleteMagic, magic, damage, target)
 }
 
 // TurnUndead 圣言术
@@ -655,8 +628,7 @@ func (p *Player) TurnUndead(target IMapObject, magic *common.UserMagic) {
 // MagicBooster 深延术
 func (p *Player) MagicBooster(magic *common.UserMagic) {
 	bonus := 6 + magic.Level*6
-	action := NewDelayedAction(p.NewObjectID(), DelayedTypeMagic, NewTask(p.CompleteMagic, magic, bonus))
-	p.ActionList.Store(action.ID, action)
+	p.ActionList.PushActionSuper(DelayedTypeMagic, p.CompleteMagic, magic, bonus)
 }
 
 // Vampirism 嗜血术
@@ -665,8 +637,7 @@ func (p *Player) Vampirism(target IMapObject, magic *common.UserMagic) {
 		return
 	}
 	damage := magic.GetDamage(p.GetAttackPower(int(p.MinMC), int(p.MaxMC)))
-	action := NewDelayedAction(p.NewObjectID(), DelayedTypeMagic, NewTask(p.CompleteMagic, magic, damage, target))
-	p.ActionList.Store(action.ID, action)
+	p.ActionList.PushActionSuper(DelayedTypeMagic, p.CompleteMagic, magic, damage, target)
 }
 
 // SummonShinsu 召唤神兽
@@ -675,8 +646,7 @@ func (p *Player) SummonShinsu(magic *common.UserMagic) {
 	for i := range p.Pets {
 		if p.Pets[i].GetName() == skeletonName {
 			m := p.Pets[i].(*Monster)
-			action := NewDelayedAction(p.NewObjectID(), DelayedTypeRecall, NewTask(m.PetRecall))
-			m.ActionList.Store(action.ID, action)
+			m.ActionList.PushAction(DelayedTypeRecall, m.PetRecall)
 			return
 		}
 	}
@@ -700,9 +670,7 @@ func (p *Player) SummonShinsu(magic *common.UserMagic) {
 	monster.ActionTime = time.Now().Add(time.Duration(1000) * time.Millisecond)
 	// monster.RefreshNameColour(false);
 	// DelayedAction action = new DelayedAction(DelayedType.Magic, Envir.Time + 500, this, magic, monster, Front);
-	action := NewDelayedAction(p.NewObjectID(), DelayedTypeMagic, NewTask(p.Map.CompleteMagic, magic, p, monster, p.GetFrontPoint()))
-	p.Map.PushAction(action)
-	// env.ActionList.Store(action.ID, action)
+	p.ActionList.PushActionSuper(DelayedTypeMagic, p.Map.CompleteMagic, magic, p, monster, p.GetFrontPoint())
 }
 
 // Purification 净化术
@@ -710,8 +678,7 @@ func (p *Player) Purification(target IMapObject, magic *common.UserMagic) {
 	if target == nil || !target.IsFriendlyTarget(p) {
 		return
 	}
-	action := NewDelayedAction(p.NewObjectID(), DelayedTypeMagic, NewTask(p.CompleteMagic, magic, target))
-	p.ActionList.Store(action.ID, action)
+	p.ActionList.PushActionSuper(DelayedTypeMagic, p.CompleteMagic, magic, target)
 }
 
 // Revelation 心灵启示
@@ -720,8 +687,7 @@ func (p *Player) Revelation(target IMapObject, magic *common.UserMagic) {
 		return
 	}
 	value := p.GetAttackPower(int(p.MinSC), int(p.MaxSC)) + magic.GetPower()
-	action := NewDelayedAction(p.NewObjectID(), DelayedTypeMagic, NewTask(p.CompleteMagic, magic, value, target))
-	p.ActionList.Store(action.ID, action)
+	p.ActionList.PushActionSuper(DelayedTypeMagic, p.CompleteMagic, magic, value, target)
 }
 
 // PoisonCloud 毒云

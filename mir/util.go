@@ -10,6 +10,10 @@ func RandomDirection() common.MirDirection {
 	return common.MirDirection(ut.RandomInt(0, common.MirDirectionCount))
 }
 
+func MaxDistance(p1, p2 common.Point) int {
+	return ut.MaxInt(ut.AbsInt(int(p1.X)-int(p2.X)), ut.AbsInt(int(p1.Y)-int(p2.Y)))
+}
+
 func NextDirection(d common.MirDirection) common.MirDirection {
 	switch d {
 	case common.MirDirectionUp:
