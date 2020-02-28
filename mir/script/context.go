@@ -58,26 +58,29 @@ type Context struct {
 
 var DefaultContext *Context
 
-func _GOTO(page string) CMDGoto {
-	return CMDGoto{GOTO: "[" + page + "]"}
-}
-func _BREAK() CMDBreak {
-	return CMDBreak{}
+func NewContext() *Context {
+	r := &Context{
+		Checks:  map[string]*ScriptFunc{},
+		Actions: map[string]*ScriptFunc{},
+		parsers: map[reflect.Type]*ArgParser{},
+	}
+
+	r.AddParser(reflect.TypeOf(bool(false)), ParseBool)
+	r.AddParser(reflect.TypeOf(int(0)), ParseInt)
+	r.AddParser(reflect.TypeOf(string("")), ParseString)
+	r.AddParser(reflect.TypeOf(GT), ParseCompare)
+
+	return r
 }
 
-// 给类型添加解析函数
-func AddParser(typ reflect.Type, f ArgParseFunc) {
-	DefaultContext.AddParser(typ, f)
-}
+// 直接运行某字符串。如: Move map001 100 100
+func (c *Context) Exec(s string, args ...interface{}) (interface{}, error) {
+	f, err := parseAction(c.Actions, s)
+	if err != nil {
+		return nil, err
+	}
 
-// 函数名，函数，可选参数默认值
-func Check(k string, fun interface{}, options ...interface{}) {
-	DefaultContext.Check(k, fun, options...)
-}
-
-// 函数名，函数，可选参数默认值
-func Action(k string, fun interface{}, options ...interface{}) {
-	DefaultContext.Action(k, fun, options...)
+	return f.Exec(args...), nil
 }
 
 // f==nil 表示不解析该参数，从外部传入。
@@ -154,24 +157,31 @@ func (c *Context) checkArgs(funcType reflect.Type) []*ArgParser {
 	return []*ArgParser{}
 }
 
-func NewContext() *Context {
-	r := &Context{
-		Checks:  map[string]*ScriptFunc{},
-		Actions: map[string]*ScriptFunc{},
-		parsers: map[reflect.Type]*ArgParser{},
-	}
-
-	r.AddParser(reflect.TypeOf(bool(false)), ParseBool)
-	r.AddParser(reflect.TypeOf(int(0)), ParseInt)
-	r.AddParser(reflect.TypeOf(string("")), ParseString)
-	r.AddParser(reflect.TypeOf(GT), ParseCompare)
-
-	return r
-}
-
 func init() {
 	DefaultContext = NewContext()
 
 	Action("GOTO", _GOTO)
 	Action("BREAK", _BREAK)
+}
+
+func _GOTO(page string) CMDGoto {
+	return CMDGoto{GOTO: "[" + page + "]"}
+}
+func _BREAK() CMDBreak {
+	return CMDBreak{}
+}
+
+// 给类型添加解析函数
+func AddParser(typ reflect.Type, f ArgParseFunc) {
+	DefaultContext.AddParser(typ, f)
+}
+
+// 函数名，函数，可选参数默认值
+func Check(k string, fun interface{}, options ...interface{}) {
+	DefaultContext.Check(k, fun, options...)
+}
+
+// 函数名，函数，可选参数默认值
+func Action(k string, fun interface{}, options ...interface{}) {
+	DefaultContext.Action(k, fun, options...)
 }
