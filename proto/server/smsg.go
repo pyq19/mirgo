@@ -625,7 +625,7 @@ type ObjectGold struct {
 }
 
 type GainedItem struct {
-	Item common.UserItem
+	Item *common.UserItem
 }
 
 type GainedGold struct {
