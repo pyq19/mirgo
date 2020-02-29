@@ -13,7 +13,7 @@ import (
 	"github.com/yenkeia/mirgo/ut"
 )
 
-// GameDB ...
+// GameDB 服务端数据，启动时加载
 type GameData struct {
 	Basic              common.Basic
 	GameShopItems      []*common.GameShopItem
@@ -26,7 +26,6 @@ type GameData struct {
 	QuestInfos         []*common.QuestInfo
 	RespawnInfos       []*common.RespawnInfo
 	SafeZoneInfos      []*common.SafeZoneInfo
-	UserMagics         []*common.UserMagic
 	MapIDInfoMap       map[int]*common.MapInfo
 	ItemIDInfoMap      map[int]*common.ItemInfo
 	ItemNameInfoMap    map[string]*common.ItemInfo
