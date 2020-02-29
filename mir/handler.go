@@ -580,6 +580,7 @@ func (g *Game) StartGame(s cellnet.Session, msg *client.StartGame) {
 	if !ok {
 		return
 	}
+
 	c := new(common.Character)
 	g.DB.Table("character").Where("id = ?", msg.CharacterIndex).Find(c)
 	if c.ID == 0 {
@@ -593,7 +594,17 @@ func (g *Game) StartGame(s cellnet.Session, msg *client.StartGame) {
 	}
 	s.Send(ServerMessage{}.SetConcentration(p))
 	s.Send(ServerMessage{}.StartGame(4, 1024))
+
 	updatePlayerInfo(g, p, c)
+
+	if p.Level == 0 {
+		p.Level = 1
+		db.SyncLevel(p)
+		for _, v := range data.StartItems {
+			p.GainItem(env.NewUserItem(v))
+		}
+	}
+
 	log.Debugf("player login, AccountID(%d) Name(%s)\n", p.AccountID, p.Name)
 	p.Map = g.Env.GetMap(int(c.CurrentMapID))
 	g.Env.AddPlayer(p)
