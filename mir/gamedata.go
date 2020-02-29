@@ -18,6 +18,7 @@ type GameData struct {
 	Basic              common.Basic
 	GameShopItems      []*common.GameShopItem
 	ItemInfos          []*common.ItemInfo
+	StartItems         []*common.ItemInfo // 新玩家初始装备
 	MagicInfos         []*common.MagicInfo
 	MapInfos           []*common.MapInfo
 	MonsterInfos       []*common.MonsterInfo
@@ -62,6 +63,14 @@ func (d *GameData) Load(db *gorm.DB) {
 	db.Table("quest").Find(&d.QuestInfos)
 	db.Table("respawn").Find(&d.RespawnInfos)
 	db.Table("safe_zone").Find(&d.SafeZoneInfos)
+
+	d.StartItems = []*common.ItemInfo{}
+
+	for _, v := range d.ItemInfos {
+		if v.StartItem {
+			d.StartItems = append(d.StartItems, v)
+		}
+	}
 
 	for _, v := range d.MapInfos {
 		d.MapIDInfoMap[v.ID] = v
