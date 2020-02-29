@@ -26,12 +26,12 @@ type Game struct {
 // NewGame ...
 func NewGame() *Game {
 	g := new(Game)
-	db, err := gorm.Open("sqlite3", settings.DBPath)
+	gdb, err := gorm.Open("sqlite3", settings.DBPath)
 	if err != nil {
 		panic("failed to connect database")
 	}
-	//defer db.Close()
-	g.DB = db
+	db = &DB{db: gdb}
+	g.DB = gdb
 	g.Env = NewEnviron(g)
 
 	return g
