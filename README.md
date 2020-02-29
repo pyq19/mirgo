@@ -5,8 +5,7 @@
 - [x] 注册/登陆/创建角色/进游戏
 - [x] 地图/怪物/NPC加载
 - [x] 角色移动
-- [ ] 玩家退出时保存角色信息
-- [ ] 定时保存游戏数据
+- [ ] 玩家数据保存
 - [x] 玩家背包/物品掉落/拾取
 - [x] 玩家属性(升级/基础属性/装备属性计算)
 - [ ] 玩家/怪物状态(Buff/Poison)
@@ -19,11 +18,11 @@
 - 别的玩家装备显示不正确
 
 #### 计划
-- [ ] CPU 使用率优化
-- [ ] 汉化(客户端/服务端配置) 打算直接用 https://github.com/cjlaaa/mir2
-- [ ] WEB 管理后台
-- [ ] 数据库换成 MySQL
-- [ ] 刺客/弓箭手
+- 汉化(客户端/服务端配置) 打算直接用 https://github.com/cjlaaa/mir2
+- WEB 管理后台
+- 刺客/弓箭手
+- 按照[Go项目标准](https://github.com/golang-standards/project-layout)组织目录结构，按照语言规范重构第二版
+- 数据库换成 MongoDB
 
 #### 用到的开源库/工具
 - [Cellnet](https://github.com/davyxu/cellnet)
@@ -84,3 +83,6 @@ QQ 群: 32309474
 #### 参考资料
 - [Zinx应用-MMO游戏案例-(2)AOI兴趣点算法](https://www.jianshu.com/p/e5b5db9fa6fe)
 - [Zinx应用-MMO游戏案例-(8)移动位置与AOI广播](https://www.jianshu.com/p/8c8fafdace14)
+- [知乎 - 行为树](https://www.zhihu.com/search?type=content&q=%E8%A1%8C%E4%B8%BA%E6%A0%91)
+- [行为树概念与结构](https://zhuanlan.zhihu.com/p/92298402)
+- [行为树（Behavior Tree）实践（1）– 基本概念](http://www.aisharing.com/archives/90)

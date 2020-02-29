@@ -63,7 +63,7 @@ type Monster struct {
 }
 
 func (m *Monster) String() string {
-	return fmt.Sprintf("Monster: %s, (%v), ID: %d, ptr: %p\n", m.Name, m.CurrentLocation, m.ID, m)
+	return fmt.Sprintf("Monster: %s, ID: %d, AI: %d, ptr: %p\n", m.Name, m.ID, m.AI, m)
 }
 
 // NewMonster ...

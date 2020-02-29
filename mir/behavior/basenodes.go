@@ -32,6 +32,9 @@ func (n *Node) Step() {
 	}
 }
 
+// PriorityNode 选择节点
+// 顺序执行子节点，只要有一个子节点 SUCCESS/RUNNING
+// 那么自身状态就是 SUCCESS/RUNNING，否则 FAILED，类似逻辑或
 type PriorityNode struct {
 	Node
 	idx      int
@@ -89,6 +92,9 @@ func (n *PriorityNode) Visit(c *BT) {
 	}
 }
 
+// SequenceNode 顺序节点
+// 顺序遍历所有子节点，如果有一个子节点返回 RUNNING/FAILED 时修改自身状态为 RUNNING/FAILED 并返回
+// 如果所有节点 SUCCESS 则自身也 SUCCESS，类似逻辑与
 type SequenceNode struct {
 	Node
 	idx int
@@ -116,6 +122,11 @@ func (n *SequenceNode) Visit(c *BT) {
 	n.status = SUCCESS
 }
 
+// ParallelNode 并行节点
+// 顺序执行所有的子节点
+// 任一子节点返回 FAILED 则返回 FAILED
+// 任一子节点返回 RUNNING 则返回 RUNNING
+// 所有子节点返回 SUCCESS 则返回 SUCCESS
 type ParallelNode struct {
 	Node
 	stoponanycomplete bool
