@@ -84,3 +84,6 @@ QQ 群: 32309474
 #### 参考资料
 - [Zinx应用-MMO游戏案例-(2)AOI兴趣点算法](https://www.jianshu.com/p/e5b5db9fa6fe)
 - [Zinx应用-MMO游戏案例-(8)移动位置与AOI广播](https://www.jianshu.com/p/8c8fafdace14)
+- [知乎 - 行为树](https://www.zhihu.com/search?type=content&q=%E8%A1%8C%E4%B8%BA%E6%A0%91)
+- [行为树概念与结构](https://zhuanlan.zhihu.com/p/92298402)
+- [行为树（Behavior Tree）实践（1）– 基本概念](http://www.aisharing.com/archives/90)
