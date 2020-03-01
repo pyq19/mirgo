@@ -572,6 +572,7 @@ func updatePlayerInfo(g *Game, p *Player, c *common.Character) {
 	p.AMode = common.AttackModeAll
 	p.PMode = common.PetModeNone
 	p.CallingNPC = nil
+	p.SaveNextTime = time.Now().Add(SavePlayerDataDuration) // 30秒保存一次游戏数据
 }
 
 // StartGame 开始游戏

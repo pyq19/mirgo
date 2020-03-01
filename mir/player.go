@@ -99,6 +99,7 @@ type Player struct {
 	PMode              common.PetMode
 	CallingNPC         *NPC
 	CallingNPCPage     string
+	SaveNextTime       time.Time
 }
 
 type Health struct {
@@ -423,6 +424,16 @@ func (p *Player) Process(dt time.Duration) {
 		p.ChangeHP(int(float32(p.MaxHP)*0.03) + 1)
 		p.ChangeMP(int(float32(p.MaxMP)*0.03) + 1)
 	}
+
+	// 保存玩家数据
+	if now.After(p.SaveNextTime) {
+		p.SaveNextTime = now.Add(SavePlayerDataDuration)
+		p.SaveData()
+	}
+}
+
+func (p *Player) SaveData() {
+
 }
 
 func (p *Player) EnqueueItemInfos() {

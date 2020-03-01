@@ -1,8 +1,13 @@
 package mir
 
-import "github.com/yenkeia/mirgo/setting"
+import (
+	"time"
+
+	"github.com/yenkeia/mirgo/setting"
+)
 
 const DataRange = 20
+const SavePlayerDataDuration = 30 * time.Second // 30 秒保存一次玩家数据
 
 const (
 	StopGameServerClosed              = 0
