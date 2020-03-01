@@ -55,3 +55,4 @@ dotnettools/mysql2sqlite
 smain
 server/server
 server/__debug_bin
+account.sqlite

@@ -599,7 +599,7 @@ func (g *Game) StartGame(s cellnet.Session, msg *client.StartGame) {
 
 	if p.Level == 0 {
 		p.Level = 1
-		db.SyncLevel(p)
+		adb.SyncLevel(p)
 		for _, v := range data.StartItems {
 			p.GainItem(env.NewUserItem(v))
 		}

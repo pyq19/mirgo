@@ -667,7 +667,7 @@ func (p *Player) GainItem(ui *common.UserItem) bool {
 		break
 	}
 
-	db.AddItem(p, common.UserItemTypeInventory, i, ui)
+	adb.AddItem(p, common.UserItemTypeInventory, i, ui)
 
 	p.EnqueueItemInfo(ui.ItemID)
 	ui.SoulBoundId = p.GetID()
@@ -721,7 +721,7 @@ func (p *Player) GainExp(amount uint32) {
 		exp -= p.MaxExperience
 		p.RefreshStats()
 	}
-	db.SyncLevel(p)
+	adb.SyncLevel(p)
 
 	p.Experience = exp
 	p.LevelUp()
