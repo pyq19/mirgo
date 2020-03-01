@@ -72,13 +72,13 @@ type CharacterUserItem struct {
 }
 
 // CharacterUserMagic 角色魔法关系
-type CharacterUserMagic struct {
-	ID          int `gorm:"primary_key"`
-	CharacterID int
-	UserMagicID int
-	//Character   Character `gorm:"-"` // orm ignore
-	//UserMagic   UserMagic `gorm:"-"` // orm ignore
-}
+// type CharacterUserMagic struct {
+// 	ID          int `gorm:"primary_key"`
+// 	CharacterID int
+// 	UserMagicID int
+//	Character   Character `gorm:"-"` // orm ignore
+//	UserMagic   UserMagic `gorm:"-"` // orm ignore
+// }
 
 // GameShopItem 游戏内商城物品
 type GameShopItem struct {

@@ -9,7 +9,8 @@ type DB struct {
 	db *gorm.DB
 }
 
-var db *DB
+// adb 保存游戏运行时生成的数据
+var adb *DB
 
 func (d *DB) AddItem(p *Player, t common.UserItemType, index int, item *common.UserItem) {
 	d.db.Table("user_item").Create(item)

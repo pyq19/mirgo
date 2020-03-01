@@ -1,8 +1,10 @@
 package setting
 
-import "os"
+import (
+	"os"
 
-import "github.com/yenkeia/mirgo/common"
+	"github.com/yenkeia/mirgo/common"
+)
 
 var (
 	BaseStats map[common.MirClass]baseStats
@@ -87,6 +89,7 @@ func init() {
 type Settings struct {
 	Addr          string
 	DBPath        string
+	AccountDBPath string
 	MapDirPath    string
 	ScriptDirPath string
 	DropDirPath   string
@@ -100,6 +103,7 @@ func DefaultSettings() *Settings {
 	return &Settings{
 		Addr:          "0.0.0.0:7000",
 		DBPath:        gopath + "/src/github.com/yenkeia/mirgo/dotnettools/mir.sqlite",
+		AccountDBPath: gopath + "/src/github.com/yenkeia/mirgo/dotnettools/account.sqlite",
 		MapDirPath:    gopath + "/src/github.com/yenkeia/mirgo/dotnettools/database/Maps/",
 		ScriptDirPath: gopath + "/src/github.com/yenkeia/mirgo/script/",
 		DropDirPath:   gopath + "/src/github.com/yenkeia/mirgo/dotnettools/database/Envir/Drops/",

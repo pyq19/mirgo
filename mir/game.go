@@ -3,6 +3,8 @@ package mir
 import (
 	"time"
 
+	"github.com/yenkeia/mirgo/common"
+
 	"github.com/davyxu/cellnet"
 	"github.com/davyxu/cellnet/peer"
 	_ "github.com/davyxu/cellnet/peer/tcp"
@@ -26,12 +28,19 @@ type Game struct {
 // NewGame ...
 func NewGame() *Game {
 	g := new(Game)
-	gdb, err := gorm.Open("sqlite3", settings.DBPath)
-	if err != nil {
-		panic("failed to connect database")
-	}
-	db = &DB{db: gdb}
-	g.DB = gdb
+	gameData, _ := gorm.Open("sqlite3", settings.DBPath)
+	accountData, _ := gorm.Open("sqlite3", settings.AccountDBPath)
+	adb = &DB{db: accountData}
+	adb.db.AutoMigrate(
+		&common.Account{},
+		&common.AccountCharacter{},
+		&common.Character{},
+		&common.CharacterUserItem{},
+		&common.UserItem{},
+		&common.UserMagic{},
+	)
+
+	g.DB = gameData
 	g.Env = NewEnviron(g)
 
 	return g
