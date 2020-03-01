@@ -31,6 +31,7 @@ func NewGame() *Game {
 	gameData, _ := gorm.Open("sqlite3", settings.DBPath)
 	accountData, _ := gorm.Open("sqlite3", settings.AccountDBPath)
 	adb = &DB{db: accountData}
+	adb.db.SingularTable(true)
 	adb.db.AutoMigrate(
 		&common.Account{},
 		&common.AccountCharacter{},
