@@ -693,7 +693,19 @@ func (p *Player) GainGold(gold uint64) {
 		return
 	}
 	p.Gold += gold
+	adb.SyncGold(p)
 	p.Enqueue(ServerMessage{}.GainedGold(gold))
+}
+
+func (p *Player) TakeGold(gold uint64) {
+	if uint64(gold) > p.Gold {
+		log.Warnf("gold error take=%d,has=%d", gold, p.Gold)
+		p.Gold = 0
+	} else {
+		p.Gold -= uint64(gold)
+	}
+	adb.SyncGold(p)
+	p.Enqueue(&server.LoseGold{Gold: uint32(gold)})
 }
 
 func (p *Player) UpdateConcentration() {
@@ -1320,6 +1332,7 @@ func (p *Player) DropItem(id uint64, count uint32) {
 	} else {
 		p.Inventory[index].Count -= count
 	}
+	adb.DelItem(p, userItem)
 	p.RefreshBagWeight()
 	msg.Success = true
 	p.Enqueue(msg)
@@ -1334,8 +1347,8 @@ func (p *Player) DropGold(gold uint64) {
 		p.ReceiveChat(dropMsg, common.ChatTypeSystem)
 		return
 	}
-	p.Gold -= gold
-	p.Enqueue(&server.LoseGold{Gold: uint32(gold)})
+
+	p.TakeGold(gold)
 }
 
 func (p *Player) PickUp() {
