@@ -12,6 +12,11 @@ type DB struct {
 // adb 保存游戏运行时生成的数据
 var adb *DB
 
+func (d *DB) DelItem(p *Player, item *common.UserItem) {
+	d.db.Table("user_item").Where("id = ?", item.ID).Delete(&common.UserItem{})
+	d.db.Table("character_user_item").Where("useritemid = ?", item.ID).Delete(&common.CharacterUserItem{})
+}
+
 func (d *DB) AddItem(p *Player, t common.UserItemType, index int, item *common.UserItem) {
 	d.db.Table("user_item").Create(item)
 
