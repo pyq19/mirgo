@@ -11,6 +11,9 @@ import (
 	"github.com/yenkeia/mirgo/proto/server"
 )
 
+type Game struct {
+}
+
 func (g *Game) HandleEvent(ev cellnet.Event) {
 	// g.Pool.Submit(NewTask(_HandleEvent, g, ev))
 

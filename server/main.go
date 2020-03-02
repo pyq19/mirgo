@@ -6,5 +6,5 @@ import (
 )
 
 func main() {
-	mir.NewGame().ServerStart()
+	mir.NewEnviron().ServerStart()
 }
