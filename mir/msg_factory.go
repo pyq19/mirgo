@@ -197,12 +197,12 @@ func (ServerMessage) NewCharacterSuccess(g *Game, AccountID int, name string, cl
 	c.Experience = 0
 	c.AttackMode = common.AttackModeAll
 	c.PetMode = common.PetModeBoth
-	adb.db.Table("character").Create(c)
-	adb.db.Table("character").Where("name = ?", name).Last(c)
+	adb.Table("character").Create(c)
+	adb.Table("character").Where("name = ?", name).Last(c)
 	ac := new(common.AccountCharacter)
 	ac.AccountID = AccountID
 	ac.CharacterID = int(c.ID)
-	adb.db.Table("account_character").Create(ac)
+	adb.Table("account_character").Create(ac)
 	res := new(server.NewCharacterSuccess)
 	res.CharInfo.Index = uint32(c.ID)
 	res.CharInfo.Name = name
