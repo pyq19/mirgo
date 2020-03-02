@@ -2,6 +2,7 @@ package mir
 
 import (
 	"github.com/jinzhu/gorm"
+	"github.com/yenkeia/mirgo/common"
 )
 
 type DB struct {
@@ -10,6 +11,27 @@ type DB struct {
 
 // adb 保存游戏运行时生成的数据
 var adb *DB
+
+func NewDB(db *gorm.DB) *DB {
+
+	r := &DB{db: db}
+
+	db.SingularTable(true)
+	db.AutoMigrate(
+		&common.Account{},
+		&common.AccountCharacter{},
+		&common.Character{},
+		&common.CharacterUserItem{},
+		&common.UserItem{},
+		&common.UserMagic{},
+	)
+
+	return r
+}
+
+func (d *DB) Table(name string) *gorm.DB {
+	return d.db.Table(name)
+}
 
 func (d *DB) setCharacterAttr(p *Player, attr string, value interface{}) {
 	d.db.Table("character").Where("id = ?", p.ID).Update(attr, value)

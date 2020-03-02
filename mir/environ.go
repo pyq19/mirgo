@@ -19,7 +19,7 @@ import (
 
 // Environ ...
 type Environ struct {
-	Game               *Game
+	Peer               cellnet.GenericPeer
 	SessionIDPlayerMap *sync.Map    // map[int64]*Player
 	Maps               map[int]*Map // mapID: Map
 	ObjectID           uint32
@@ -43,12 +43,9 @@ func (e *Environ) Loop() {
 }
 
 // NewEnviron ...
-func NewEnviron(g *Game) *Environ {
-	env = new(Environ)
-	env.Game = g
+func NewEnviron() *Environ {
+	env := new(Environ)
 	env.lastFrame = time.Now()
-
-	data.Load(g.DB)
 
 	script.SearchPaths = []string{
 		filepath.Join(settings.EnvirPath, "NPCs"),
@@ -243,7 +240,7 @@ func (e *Environ) GetMap(mapID int) *Map {
 }
 
 func (e *Environ) Broadcast(msg interface{}) {
-	(*e.Game.Peer).(cellnet.SessionAccessor).VisitSession(func(ses cellnet.Session) bool {
+	e.Peer.(cellnet.SessionAccessor).VisitSession(func(ses cellnet.Session) bool {
 		ses.Send(msg)
 		return true
 	})

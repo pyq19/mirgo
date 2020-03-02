@@ -22,7 +22,7 @@ func BagLoadFromDB(p *Player, typ common.UserItemType, n int) *Bag {
 	b.Items = make([]*common.UserItem, n)
 
 	cui := []*common.CharacterUserItem{}
-	adb.db.Table("character_user_item").Where("character_id = ?", p.ID).Find(&cui)
+	adb.Table("character_user_item").Where("character_id = ?", p.ID).Find(&cui)
 	ids := make([]int, n)
 
 	userItemIDIndexMap := make(map[int]int)
@@ -35,7 +35,7 @@ func BagLoadFromDB(p *Player, typ common.UserItemType, n int) *Bag {
 	}
 
 	items := []*common.UserItem{}
-	adb.db.Table("user_item").Where("id in (?)", ids).Find(&items)
+	adb.Table("user_item").Where("id in (?)", ids).Find(&items)
 
 	for _, item := range items {
 		b.Items[userItemIDIndexMap[int(item.ID)]] = item
@@ -50,10 +50,10 @@ func (b *Bag) Move(from int, to int) error {
 	}
 
 	if b.Items[from] != nil {
-		adb.db.Table("character_user_item").Where("user_item_id = ?", b.Items[from].ID).Update("index", to)
+		adb.Table("character_user_item").Where("user_item_id = ?", b.Items[from].ID).Update("index", to)
 	}
 	if b.Items[to] != nil {
-		adb.db.Table("character_user_item").Where("user_item_id = ?", b.Items[to].ID).Update("index", from)
+		adb.Table("character_user_item").Where("user_item_id = ?", b.Items[to].ID).Update("index", from)
 	}
 
 	b.Items[from], b.Items[to] = b.Items[to], b.Items[from]
@@ -66,16 +66,16 @@ func (b *Bag) Set(i int, item *common.UserItem) {
 	}
 
 	if item != nil {
-		adb.db.Table("user_item").Create(item)
-		adb.db.Table("character_user_item").Create(&common.CharacterUserItem{
+		adb.Table("user_item").Create(item)
+		adb.Table("character_user_item").Create(&common.CharacterUserItem{
 			CharacterID: int(b.Player.ID),
 			UserItemID:  int(item.ID),
 			Type:        int(b.Type),
 			Index:       i,
 		})
 	} else {
-		adb.db.Table("user_item").Where("id = ?", item.ID).Delete(&common.UserItem{})
-		adb.db.Table("character_user_item").Where("user_item_id = ?", item.ID).Delete(&common.CharacterUserItem{})
+		adb.Table("user_item").Where("id = ?", item.ID).Delete(&common.UserItem{})
+		adb.Table("character_user_item").Where("user_item_id = ?", item.ID).Delete(&common.CharacterUserItem{})
 	}
 
 	b.Items[i] = item
@@ -86,7 +86,7 @@ func (b *Bag) Get(i int) *common.UserItem {
 }
 
 func (b *Bag) UseCount(i int, c uint32) {
-	adb.db.Table("user_item").Where("id = ?", b.Items[i].ID).Update("count", b.Items[i].Count-c)
+	adb.Table("user_item").Where("id = ?", b.Items[i].ID).Update("count", b.Items[i].Count-c)
 	b.Items[i].Count -= c
 }
 
@@ -94,7 +94,7 @@ func (b *Bag) MoveTo(from, to int, tobag *Bag) error {
 
 	item := b.Items[from]
 
-	adb.db.Table("character_user_item").Where("user_item_id = ?", item.ID).Update(AnyMap{
+	adb.Table("character_user_item").Where("user_item_id = ?", item.ID).Update(AnyMap{
 		"type":  tobag.Type,
 		"index": to,
 	})
