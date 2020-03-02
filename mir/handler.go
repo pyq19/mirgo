@@ -324,6 +324,7 @@ func (g *Game) SessionClosed(s cellnet.Session, msg *cellnet.SessionClosed) {
 	if p.GameStage == GAME {
 		p.StopGame(StopGameUserClosedGame)
 		env.DeletePlayer(p)
+		p.SaveData()
 	}
 	pm.Delete(s.ID())
 }
@@ -537,7 +538,6 @@ func updatePlayerInfo(g *Game, p *Player, c *common.Character) {
 	p.AMode = common.AttackModeAll
 	p.PMode = common.PetModeNone
 	p.CallingNPC = nil
-	p.SaveNextTime = time.Now().Add(SavePlayerDataDuration) // 30秒保存一次游戏数据
 }
 
 // StartGame 开始游戏
@@ -582,9 +582,11 @@ func (g *Game) LogOut(s cellnet.Session, msg *client.LogOut) {
 	if !ok {
 		return
 	}
+	p.GameStage = SELECT
 	p.StopGame(StopGameUserReturnedToSelectChar)
 	env.DeletePlayer(p)
 	s.Send(ServerMessage{}.LogOutSuccess(g.getAccountCharacters(p.AccountID)))
+	p.SaveData()
 }
 
 func (g *Game) Turn(p *Player, msg *client.Turn) {
