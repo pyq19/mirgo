@@ -37,7 +37,7 @@ type GameData struct {
 	ExpList            []int
 }
 
-var data = NewGameData()
+var data *GameData
 
 func NewGameData() *GameData {
 	d := &GameData{}
