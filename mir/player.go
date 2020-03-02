@@ -1710,3 +1710,24 @@ func (p *Player) RequestChatItem(id uint64) {
 func (p *Player) EditGuildMember(name string, name2 string, index uint8, changeType uint8) {
 
 }
+
+func (p *Player) CheckMovement(pos common.Point) {
+
+	for _, v := range data.MovementInfos {
+		if v.MapID == p.Map.Info.ID {
+
+			if p.CurrentLocation.EqualXY(v.SourceX, v.SourceY) {
+				m := env.GetMap(v.MapID)
+				p.Teleport(m, common.NewPoint(v.DestinationX, v.DestinationY))
+				break
+			}
+		}
+	}
+}
+
+func (p *Player) OpenDoor(doorIndex byte) {
+	if p.Map.OpenDoor(doorIndex) {
+		p.Enqueue(&server.Opendoor{DoorIndex: doorIndex})
+		p.Broadcast(&server.Opendoor{DoorIndex: doorIndex})
+	}
+}

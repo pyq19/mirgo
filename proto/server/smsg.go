@@ -1224,7 +1224,10 @@ type NPCRequestInput struct{}
 type GameShopInfo struct{}
 type GameShopStock struct{}
 type Rankings struct{}
-type Opendoor struct{}
+type Opendoor struct {
+	DoorIndex byte
+	Close     bool
+}
 type GetRentedItems struct{}
 type ItemRentalRequest struct{}
 type ItemRentalFee struct{}

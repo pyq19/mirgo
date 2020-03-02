@@ -1034,7 +1034,7 @@ func (g *Game) GetRanking(p *Player, msg *client.GetRanking) {
 }
 
 func (g *Game) Opendoor(p *Player, msg *client.Opendoor) {
-
+	p.OpenDoor(msg.DoorIndex)
 }
 
 func (g *Game) GetRentedItems(p *Player, msg *client.GetRentedItems) {
