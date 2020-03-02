@@ -8,7 +8,6 @@ import (
 
 	"github.com/yenkeia/mirgo/common"
 	"github.com/yenkeia/mirgo/mir/script"
-	"github.com/yenkeia/mirgo/proto/server"
 )
 
 func _CHECKPKPOINT(npc *NPC, p *Player, op script.CompareOp, v int) bool {
@@ -39,11 +38,11 @@ func _MOVE(npc *NPC, p *Player, mapname string, x, y int) {
 }
 
 func _TAKEGOLD(npc *NPC, p *Player, gold int) {
-	if gold < 0 || uint64(gold) > p.Gold {
-		log.Warnf("gold error")
+	if gold < 0 {
+		log.Warnf("npc take gold error")
+		return
 	}
-	p.Gold -= uint64(gold)
-	p.Enqueue(&server.LoseGold{Gold: uint32(gold)})
+	p.TakeGold(uint64(gold))
 }
 
 func _INGUILD(npc *NPC, p *Player) bool {
@@ -54,7 +53,7 @@ func _CHECKITEM(npc *NPC, p *Player, itemname string, n int) bool {
 
 	info := data.GetItemInfoByName(itemname)
 
-	for _, item := range p.Inventory {
+	for _, item := range p.Inventory.Items {
 		if item != nil && item.ItemID == info.ID {
 			n -= int(item.Count)
 			if n <= 0 {

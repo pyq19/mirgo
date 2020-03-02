@@ -495,49 +495,16 @@ func updatePlayerInfo(g *Game, p *Player, c *common.Character) {
 	p.NameColor = common.Color{R: 255, G: 255, B: 255}
 	p.CurrentDirection = c.Direction
 	p.CurrentLocation = common.NewPoint(int(c.CurrentLocationX), int(c.CurrentLocationY))
-	userItemIDIndexMap := make(map[int]int)
-	cui := make([]common.CharacterUserItem, 0, 100)
-	adb.db.Table("character_user_item").Where("character_id = ?", c.ID).Find(&cui)
-	is := make([]int, 0, 46)
-	es := make([]int, 0, 14)
-	qs := make([]int, 0, 40)
-	for _, i := range cui {
-		switch common.UserItemType(i.Type) {
-		case common.UserItemTypeInventory:
-			is = append(is, i.UserItemID)
-		case common.UserItemTypeEquipment:
-			es = append(es, i.UserItemID)
-		case common.UserItemTypeQuestInventory:
-			qs = append(qs, i.UserItemID)
-		}
-		userItemIDIndexMap[i.UserItemID] = i.Index
-	}
-	inventory := make([]*common.UserItem, 46)
-	equipment := make([]*common.UserItem, 14)
-	questInventory := make([]*common.UserItem, 40)
-	trade := make([]*common.UserItem, 0)
-	refine := make([]*common.UserItem, 0)
-	uii := make([]*common.UserItem, 0, 46)
-	uie := make([]*common.UserItem, 0, 14)
-	uiq := make([]*common.UserItem, 0, 40)
-	adb.db.Table("user_item").Where("id in (?)", is).Find(&uii)
-	adb.db.Table("user_item").Where("id in (?)", es).Find(&uie)
-	adb.db.Table("user_item").Where("id in (?)", qs).Find(&uiq)
-	for _, v := range uii {
-		inventory[userItemIDIndexMap[int(v.ID)]] = v
-	}
-	for _, v := range uie {
-		equipment[userItemIDIndexMap[int(v.ID)]] = v
-	}
-	for _, v := range uiq {
-		questInventory[userItemIDIndexMap[int(v.ID)]] = v
-	}
 
 	magics := make([]*common.UserMagic, 0)
 	adb.db.Table("user_magic").Where("character_id = ?", c.ID).Find(&magics)
 	for _, v := range magics {
 		v.Info = data.GetMagicInfoByID(v.MagicID)
 	}
+
+	p.Inventory = BagLoadFromDB(p, common.UserItemTypeInventory, 46)
+	p.Equipment = BagLoadFromDB(p, common.UserItemTypeEquipment, 14)
+	p.QuestInventory = BagLoadFromDB(p, common.UserItemTypeQuestInventory, 40)
 
 	healNextTime := time.Now().Add(10 * time.Second)
 	p.HP = c.HP
@@ -550,11 +517,6 @@ func updatePlayerInfo(g *Game, p *Player, c *common.Character) {
 	p.Class = c.Class
 	p.Gender = c.Gender
 	p.Hair = c.Hair
-	p.Inventory = inventory
-	p.Equipment = equipment
-	p.QuestInventory = questInventory
-	p.Trade = trade
-	p.Refine = refine
 	p.SendItemInfo = make([]*common.ItemInfo, 0)
 	p.MaxExperience = 100
 	p.Magics = magics
@@ -1072,7 +1034,7 @@ func (g *Game) GetRanking(p *Player, msg *client.GetRanking) {
 }
 
 func (g *Game) Opendoor(p *Player, msg *client.Opendoor) {
-
+	p.OpenDoor(msg.DoorIndex)
 }
 
 func (g *Game) GetRentedItems(p *Player, msg *client.GetRentedItems) {
