@@ -244,6 +244,11 @@ func (m *Map) InitMonsters() error {
 	return nil
 }
 
+func (m *Map) OpenDoor(doorindex byte) bool {
+	// TODO
+	return true
+}
+
 // GetValidPoint ...
 func (m *Map) GetValidPoint(x int, y int, spread int) (common.Point, error) {
 	if spread == 0 {

@@ -617,8 +617,9 @@ type ReportIssue struct{}
 // TODO
 type GetRanking struct{}
 
-// TODO
-type Opendoor struct{}
+type Opendoor struct {
+	DoorIndex byte
+}
 
 // TODO
 type GetRentedItems struct{}
