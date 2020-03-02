@@ -37,9 +37,9 @@ type GameData struct {
 	ExpList            []int
 }
 
-var data = NewGameData()
+var data *GameData
 
-func NewGameData() *GameData {
+func NewGameData(db *gorm.DB) *GameData {
 	d := &GameData{}
 	d.MapIDInfoMap = map[int]*common.MapInfo{}
 	d.ItemIDInfoMap = map[int]*common.ItemInfo{}
@@ -48,6 +48,9 @@ func NewGameData() *GameData {
 	d.MonsterNameInfoMap = map[string]*common.MonsterInfo{}
 	d.DropInfoMap = map[string][]*common.DropInfo{}
 	d.MagicIDInfoMap = map[int]*common.MagicInfo{}
+
+	d.Load(db)
+
 	return d
 }
 

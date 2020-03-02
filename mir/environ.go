@@ -9,6 +9,13 @@ import (
 	"time"
 
 	"github.com/davyxu/cellnet"
+	"github.com/davyxu/cellnet/peer"
+	_ "github.com/davyxu/cellnet/peer/tcp"
+	"github.com/davyxu/cellnet/proc"
+	"github.com/davyxu/cellnet/timer"
+	"github.com/davyxu/golog"
+	"github.com/jinzhu/gorm"
+	_ "github.com/jinzhu/gorm/dialects/sqlite"
 	_ "github.com/yenkeia/mirgo/codec/mircodec"
 	"github.com/yenkeia/mirgo/common"
 	"github.com/yenkeia/mirgo/mir/script"
@@ -17,9 +24,13 @@ import (
 	"github.com/yenkeia/mirgo/ut"
 )
 
+var env *Environ
+var log = golog.New("server")
+
 // Environ ...
 type Environ struct {
 	Game               *Game
+	Peer               cellnet.GenericPeer
 	SessionIDPlayerMap *sync.Map    // map[int64]*Player
 	Maps               map[int]*Map // mapID: Map
 	ObjectID           uint32
@@ -29,8 +40,6 @@ type Environ struct {
 
 	DefaultNPC *NPC
 }
-
-var env *Environ
 
 func (e *Environ) Loop() {
 	now := time.Now()
@@ -42,32 +51,63 @@ func (e *Environ) Loop() {
 	}
 }
 
-// NewEnviron ...
-func NewEnviron(g *Game) *Environ {
-	env = new(Environ)
-	env.Game = g
-	env.lastFrame = time.Now()
+// ServerStart ...
+func (g *Environ) ServerStart() {
 
-	data.Load(g.DB)
+	// 这里用cellnet 单线程模式。消息处理都在queue线程。无需再另开线程
+	queue := cellnet.NewEventQueue()
+	p := peer.NewGenericPeer("tcp.Acceptor", "server", settings.Addr, queue)
+	proc.BindProcessorHandler(p, "mir.server.tcp", g.Game.HandleEvent)
+
+	timer.NewLoop(queue, time.Second/time.Duration(60), func(*timer.Loop) {
+		env.Loop()
+	}, nil).Start()
+
+	env.Peer = p
+
+	p.Start()         // 开始侦听
+	queue.StartLoop() // 事件队列开始循环
+	queue.Wait()      // 阻塞等待事件队列结束退出( 在另外的goroutine调用queue.StopLoop() )
+}
+
+func newEnv() *Environ {
+	e := new(Environ)
+	env = e
+
+	e.lastFrame = time.Now()
 
 	script.SearchPaths = []string{
 		filepath.Join(settings.EnvirPath, "NPCs"),
 		settings.EnvirPath,
 	}
 
-	env.DefaultNPC = NewNPC(nil, env.NewObjectID(), &common.NpcInfo{
+	e.DefaultNPC = NewNPC(nil, e.NewObjectID(), &common.NpcInfo{
 		Name:     "DefaultNPC",
 		Filename: "00Default",
 	})
 
-	env.InitMaps()
+	e.InitMaps()
 
-	env.ObjectID = 100000
-	env.Players = make([]*Player, 0)
-	env.lock = new(sync.Mutex)
-	env.SessionIDPlayerMap = new(sync.Map)
+	e.ObjectID = 100000
+	e.Players = make([]*Player, 0)
+	e.lock = new(sync.Mutex)
+	e.SessionIDPlayerMap = new(sync.Map)
+	e.Game = &Game{}
 
-	PrintEnviron(env)
+	PrintEnviron(e)
+
+	return e
+}
+
+// NewEnviron ...
+func NewEnviron() *Environ {
+	gameData, _ := gorm.Open("sqlite3", settings.DBPath)
+	data = NewGameData(gameData)
+
+	accountData, _ := gorm.Open("sqlite3", settings.AccountDBPath)
+	adb = NewDB(accountData)
+
+	newEnv()
 
 	return env
 }
@@ -243,7 +283,7 @@ func (e *Environ) GetMap(mapID int) *Map {
 }
 
 func (e *Environ) Broadcast(msg interface{}) {
-	(*e.Game.Peer).(cellnet.SessionAccessor).VisitSession(func(ses cellnet.Session) bool {
+	e.Peer.(cellnet.SessionAccessor).VisitSession(func(ses cellnet.Session) bool {
 		ses.Send(msg)
 		return true
 	})

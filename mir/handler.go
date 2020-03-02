@@ -11,6 +11,9 @@ import (
 	"github.com/yenkeia/mirgo/proto/server"
 )
 
+type Game struct {
+}
+
 func (g *Game) HandleEvent(ev cellnet.Event) {
 	// g.Pool.Submit(NewTask(_HandleEvent, g, ev))
 
@@ -312,7 +315,7 @@ func (g *Game) SessionAccepted(s cellnet.Session, msg *cellnet.SessionAccepted) 
 
 // SessionClosed ...
 func (g *Game) SessionClosed(s cellnet.Session, msg *cellnet.SessionClosed) {
-	pm := g.Env.SessionIDPlayerMap
+	pm := env.SessionIDPlayerMap
 	v, ok := pm.Load(s.ID())
 	if !ok {
 		return
@@ -320,7 +323,7 @@ func (g *Game) SessionClosed(s cellnet.Session, msg *cellnet.SessionClosed) {
 	p := v.(*Player)
 	if p.GameStage == GAME {
 		p.StopGame(StopGameUserClosedGame)
-		g.Env.DeletePlayer(p)
+		env.DeletePlayer(p)
 	}
 	pm.Delete(s.ID())
 }
@@ -331,12 +334,12 @@ func (g *Game) ClientVersion(s cellnet.Session, msg *client.ClientVersion) {
 	p := new(Player)
 	p.GameStage = LOGIN
 	p.Session = &s
-	g.Env.SessionIDPlayerMap.Store(s.ID(), p)
+	env.SessionIDPlayerMap.Store(s.ID(), p)
 	s.Send(&clientVersion)
 }
 
 func (g *Game) GetPlayer(s cellnet.Session, gameStage int) (p *Player, ok bool) {
-	v, ok := g.Env.SessionIDPlayerMap.Load(s.ID())
+	v, ok := env.SessionIDPlayerMap.Load(s.ID())
 	if !ok {
 		return nil, false
 	}
@@ -372,11 +375,11 @@ func (g *Game) NewAccount(s cellnet.Session, msg *client.NewAccount) {
 
 	res := uint8(0)
 	ac := new(common.Account)
-	adb.db.Table("account").Where("username = ?", msg.AccountID).Find(ac)
+	adb.Table("account").Where("username = ?", msg.AccountID).Find(ac)
 	if ac.ID == 0 && ac.Username == "" {
 		ac.Username = msg.AccountID
 		ac.Password = msg.Password
-		adb.db.Table("account").Create(&ac)
+		adb.Table("account").Create(&ac)
 		res = 8
 	}
 	s.Send(&server.NewAccount{Result: res})
@@ -400,10 +403,10 @@ func (g *Game) ChangePassword(s cellnet.Session, msg *client.ChangePassword) {
 
 	res := uint8(5)
 	ac := new(common.Account)
-	adb.db.Table("account").Where("username = ? AND password = ?", msg.AccountID, msg.CurrentPassword).Find(ac)
+	adb.Table("account").Where("username = ? AND password = ?", msg.AccountID, msg.CurrentPassword).Find(ac)
 	if ac.ID != 0 {
 		ac.Password = msg.NewPassword
-		adb.db.Table("account").Model(ac).Updates(common.Account{Password: msg.NewPassword})
+		adb.Table("account").Model(ac).Updates(common.Account{Password: msg.NewPassword})
 		res = 6
 	}
 	s.Send(&server.ChangePassword{Result: res})
@@ -411,13 +414,13 @@ func (g *Game) ChangePassword(s cellnet.Session, msg *client.ChangePassword) {
 
 func (g *Game) getAccountCharacters(AccountID int) []common.SelectInfo {
 	ac := make([]common.AccountCharacter, 3)
-	adb.db.Table("account_character").Where("account_id = ?", AccountID).Limit(3).Find(&ac)
+	adb.Table("account_character").Where("account_id = ?", AccountID).Limit(3).Find(&ac)
 	ids := make([]int, 3)
 	for _, c := range ac {
 		ids = append(ids, c.ID)
 	}
 	cs := make([]common.Character, 3)
-	adb.db.Table("character").Where("id in (?)", ids).Find(&cs)
+	adb.Table("character").Where("id in (?)", ids).Find(&cs)
 	si := make([]common.SelectInfo, len(cs))
 	for i, c := range cs {
 		s := new(common.SelectInfo)
@@ -439,7 +442,7 @@ func (g *Game) Login(s cellnet.Session, msg *client.Login) {
 		return
 	}
 	a := new(common.Account)
-	adb.db.Table("account").Where("username = ? AND password = ?", msg.AccountID, msg.Password).Find(a)
+	adb.Table("account").Where("username = ? AND password = ?", msg.AccountID, msg.Password).Find(a)
 	if a.ID == 0 {
 		s.Send(ServerMessage{}.Login(4))
 		return
@@ -458,7 +461,7 @@ func (g *Game) NewCharacter(s cellnet.Session, msg *client.NewCharacter) {
 		return
 	}
 	acs := make([]common.AccountCharacter, 3)
-	adb.db.Table("account_character").Where("account_id = ?", p.AccountID).Limit(3).Find(&acs)
+	adb.Table("account_character").Where("account_id = ?", p.AccountID).Limit(3).Find(&acs)
 	if len(acs) >= 3 {
 		s.Send(ServerMessage{}.NewCharacter(4))
 		return
@@ -474,15 +477,15 @@ func (g *Game) DeleteCharacter(s cellnet.Session, msg *client.DeleteCharacter) {
 	}
 
 	c := new(common.Character)
-	adb.db.Table("character").Where("id = ?", msg.CharacterIndex).Find(c)
+	adb.Table("character").Where("id = ?", msg.CharacterIndex).Find(c)
 	if c.ID == 0 {
 		res := new(server.DeleteCharacter)
 		res.Result = 4
 		s.Send(res)
 		return
 	}
-	adb.db.Table("character").Delete(c)
-	adb.db.Table("account_character").Where("character_id = ?", c.ID).Delete(common.Character{})
+	adb.Table("character").Delete(c)
+	adb.Table("account_character").Where("character_id = ?", c.ID).Delete(common.Character{})
 	res := new(server.DeleteCharacterSuccess)
 	res.CharacterIndex = msg.CharacterIndex
 	s.Send(res)
@@ -497,7 +500,7 @@ func updatePlayerInfo(g *Game, p *Player, c *common.Character) {
 	p.CurrentLocation = common.NewPoint(int(c.CurrentLocationX), int(c.CurrentLocationY))
 
 	magics := make([]*common.UserMagic, 0)
-	adb.db.Table("user_magic").Where("character_id = ?", c.ID).Find(&magics)
+	adb.Table("user_magic").Where("character_id = ?", c.ID).Find(&magics)
 	for _, v := range magics {
 		v.Info = data.GetMagicInfoByID(v.MagicID)
 	}
@@ -545,12 +548,12 @@ func (g *Game) StartGame(s cellnet.Session, msg *client.StartGame) {
 	}
 
 	c := new(common.Character)
-	adb.db.Table("character").Where("id = ?", msg.CharacterIndex).Find(c)
+	adb.Table("character").Where("id = ?", msg.CharacterIndex).Find(c)
 	if c.ID == 0 {
 		return
 	}
 	ac := new(common.AccountCharacter)
-	adb.db.Table("account_character").Where("account_id = ? and character_id = ?", p.AccountID, c.ID).Find(&ac)
+	adb.Table("account_character").Where("account_id = ? and character_id = ?", p.AccountID, c.ID).Find(&ac)
 	if ac.ID == 0 {
 		s.Send(ServerMessage{}.StartGame(2, 1024))
 		return
@@ -569,8 +572,8 @@ func (g *Game) StartGame(s cellnet.Session, msg *client.StartGame) {
 	}
 
 	log.Debugf("player login, AccountID(%d) Name(%s)\n", p.AccountID, p.Name)
-	p.Map = g.Env.GetMap(int(c.CurrentMapID))
-	g.Env.AddPlayer(p)
+	p.Map = env.GetMap(int(c.CurrentMapID))
+	env.AddPlayer(p)
 	p.StartGame()
 }
 
@@ -580,7 +583,7 @@ func (g *Game) LogOut(s cellnet.Session, msg *client.LogOut) {
 		return
 	}
 	p.StopGame(StopGameUserReturnedToSelectChar)
-	g.Env.DeletePlayer(p)
+	env.DeletePlayer(p)
 	s.Send(ServerMessage{}.LogOutSuccess(g.getAccountCharacters(p.AccountID)))
 }
 
