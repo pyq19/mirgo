@@ -486,8 +486,7 @@ func (p *Player) SummonSkeleton(magic *common.UserMagic) {
 
 // GetAmulet 获取玩家身上装备的护身符
 func (p *Player) GetAmulet(count int) *common.UserItem {
-	for i := range p.Equipment {
-		userItem := p.Equipment[i]
+	for _, userItem := range p.Equipment.Items {
 		if userItem == nil {
 			continue
 		}
@@ -501,8 +500,7 @@ func (p *Player) GetAmulet(count int) *common.UserItem {
 
 // GetPoison 获取玩家身上装备的毒药
 func (p *Player) GetPoison(count int) *common.UserItem {
-	for i := range p.Equipment {
-		userItem := p.Equipment[i]
+	for _, userItem := range p.Equipment.Items {
 		if userItem == nil {
 			continue
 		}

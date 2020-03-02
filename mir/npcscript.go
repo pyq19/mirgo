@@ -53,7 +53,7 @@ func _CHECKITEM(npc *NPC, p *Player, itemname string, n int) bool {
 
 	info := data.GetItemInfoByName(itemname)
 
-	for _, item := range p.Inventory {
+	for _, item := range p.Inventory.Items {
 		if item != nil && item.ItemID == info.ID {
 			n -= int(item.Count)
 			if n <= 0 {
