@@ -87,9 +87,9 @@ func (ServerMessage) UserInformation(p *Player) *server.UserInformation {
 	ui.LevelEffect = common.LevelEffectsNone // TODO
 	ui.Gold = uint32(p.Gold)
 	ui.Credit = 100 // TODO
-	ui.Inventory = p.Inventory
-	ui.Equipment = p.Equipment
-	ui.QuestInventory = p.QuestInventory
+	ui.Inventory = p.Inventory.Items
+	ui.Equipment = p.Equipment.Items
+	ui.QuestInventory = p.QuestInventory.Items
 	ui.HasExpandedStorage = false    // TODO
 	ui.ExpandedStorageExpiryTime = 0 // TODO
 	ui.ClientMagics = p.GetClientMagics()
@@ -149,7 +149,7 @@ func (ServerMessage) PlayerInspect(p *Player) *server.PlayerInspect {
 		Name:      p.Name,
 		GuildName: p.GuildName,
 		GuildRank: p.GuildRankName,
-		Equipment: p.Equipment,
+		Equipment: p.Equipment.Items,
 		Class:     p.Class,
 		Gender:    p.Gender,
 		Hair:      p.Hair,
