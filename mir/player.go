@@ -426,8 +426,9 @@ func (p *Player) Process(dt time.Duration) {
 	}
 }
 
+// SaveData 保存玩家数据
 func (p *Player) SaveData() {
-
+	adb.SyncPosition(p)
 }
 
 func (p *Player) EnqueueItemInfos() {
