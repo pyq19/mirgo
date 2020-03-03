@@ -11,12 +11,12 @@ namespace dotnettools
         [SugarColumn(ColumnName = "id", IsPrimaryKey = true, IsIdentity = true)] //是主键, 还是标识列
         public int Id { get; set; }
 
-        [SugarColumn(ColumnName = "game_shop_item_index")]
-        public int GameShopItemIndex { get; set; }
+        //[SugarColumn(ColumnName = "game_shop_item_index")]
+        //public int GameShopItemIndex { get; set; }
 
         // [SugarColumn(ColumnName = "info")]
         // public ItemInfo Info { get; set; }
-        [SugarColumn(ColumnName = "item_index")]
+        [SugarColumn(ColumnName = "item_id")]
         public int ItemIndex { get; set; }
 
         [SugarColumn(ColumnName = "gold_price")]

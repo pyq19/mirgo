@@ -76,7 +76,7 @@ namespace dotnettools
 
             count = reader.ReadInt32();
             for (int i = 0; i < count; i++)
-                Movements.Add(new MovementInfo(reader, Envir));
+                Movements.Add(new MovementInfo(reader, Envir, MapIndex));
 
             if (Envir.LoadVersion < 14) return;
 
@@ -127,7 +127,7 @@ namespace dotnettools
         {
             var mapInfoModel = new MapInfoModel()
             {
-                MapIndex = MapIndex,
+                Id = MapIndex,
                 FileName = FileName,
                 Title = Title,
                 MiniMap = MiniMap,

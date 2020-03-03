@@ -2,14 +2,14 @@ using SqlSugar;
 
 namespace dotnettools
 {
-    [SugarTable("monster_info")]
+    [SugarTable("monster")]
     public class MonsterInfoModel
     {
         [SugarColumn(ColumnName = "id", IsPrimaryKey = true, IsIdentity = true)] //是主键, 还是标识列
         public int Id { get; set; }
 
-        [SugarColumn(ColumnName = "monster_index")]
-        public int MonsterIndex { get; set; }
+        //[SugarColumn(ColumnName = "monster_index")]
+        //public int MonsterIndex { get; set; }
 
         [SugarColumn(ColumnName = "name")]
         public string Name { get; set; }

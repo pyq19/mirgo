@@ -1873,7 +1873,7 @@ namespace dotnettools
             if (GlobalDropNotify) bools |= 0x20;
             var itemInfoModel = new ItemInfoModel()
             {
-                ItemIndex = ItemIndex,
+                Id = ItemIndex,
                 Name = Name,
                 Type = (byte)Type,
                 Grade = (byte)Grade,
@@ -1990,7 +1990,7 @@ namespace dotnettools
         {
             var gameShopItemModel = new GameShopItemModel()
             {
-                GameShopItemIndex = GameShopItemIndex,
+                Id = GameShopItemIndex,
                 ItemIndex = Info.ItemIndex, // = this.ItemIndex
                 GoldPrice = GoldPrice,
                 CreditPrice = CreditPrice,
