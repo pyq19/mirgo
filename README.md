@@ -1,5 +1,5 @@
 #### 传奇服务端 go 语言实现
-参照[C#传奇](https://github.com/Suprcode/mir2)，使用 Go 语言实现的服务端
+参照[C#传奇](https://github.com/Suprcode/mir2)
 
 #### 感谢贡献者
 @qcdong2016 @firma
