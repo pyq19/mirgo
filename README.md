@@ -1,5 +1,8 @@
 #### 传奇服务端 go 语言实现
-参照 C# Mir2 (https://github.com/Suprcode/mir2)
+参照[C#传奇](https://github.com/Suprcode/mir2)，使用 Go 语言实现的服务端
+
+#### 感谢贡献者
+@qcdong2016 @firma
 
 #### 用到的开源库/工具
 - [Cellnet](https://github.com/davyxu/cellnet)
@@ -58,6 +61,7 @@ QQ 群: 32309474
 ![image](https://github.com/yenkeia/mirgo/blob/master/img/img1.png)
 
 #### 参考资料
+- [LOMCN](https://www.lomcn.org/forum/)
 - [Zinx应用-MMO游戏案例-(2)AOI兴趣点算法](https://www.jianshu.com/p/e5b5db9fa6fe)
 - [Zinx应用-MMO游戏案例-(8)移动位置与AOI广播](https://www.jianshu.com/p/8c8fafdace14)
 - [知乎 - 行为树](https://www.zhihu.com/search?type=content&q=%E8%A1%8C%E4%B8%BA%E6%A0%91)
