@@ -1,29 +1,6 @@
 #### 传奇服务端 go 语言实现
 参照 C# Mir2 (https://github.com/Suprcode/mir2)
 
-#### 开发进度
-- [x] 注册/登陆/创建角色/进游戏
-- [x] 地图/怪物/NPC加载
-- [x] 角色移动
-- [ ] 玩家数据保存
-- [x] 玩家背包/物品掉落/拾取
-- [x] 玩家属性(升级/基础属性/装备属性计算)
-- [ ] 玩家/怪物状态(Buff/Poison)
-- [ ] 技能
-- [ ] NPC 交互
-- [ ] 怪物 AI
-- [ ] 任务
-
-#### BUG
-- 别的玩家装备显示不正确
-
-#### 计划
-- 汉化(客户端/服务端配置) 打算直接用 https://github.com/cjlaaa/mir2
-- WEB 管理后台
-- 刺客/弓箭手
-- 按照[Go项目标准](https://github.com/golang-standards/project-layout)组织目录结构，按照语言规范重构第二版
-- 数据库换成 MongoDB
-
 #### 用到的开源库/工具
 - [Cellnet](https://github.com/davyxu/cellnet)
 - [GORM](https://github.com/jinzhu/gorm)
