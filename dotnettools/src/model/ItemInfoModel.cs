@@ -2,7 +2,7 @@ using SqlSugar;
 
 namespace dotnettools
 {
-    [SugarTable("item_info")]
+    [SugarTable("item")]
     public class ItemInfoModel
     {
         public ItemInfoModel() { }
@@ -10,8 +10,8 @@ namespace dotnettools
         [SugarColumn(ColumnName = "id", IsPrimaryKey = true, IsIdentity = true)] //是主键, 还是标识列
         public int Id { get; set; }
 
-        [SugarColumn(ColumnName = "item_index")]
-        public int ItemIndex { get; set; }
+        //[SugarColumn(ColumnName = "item_index")]
+        //public int ItemIndex { get; set; }
 
         [SugarColumn(ColumnName = "name")]
         public string Name { get; set; }

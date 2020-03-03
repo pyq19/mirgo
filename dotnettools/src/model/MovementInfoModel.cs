@@ -2,14 +2,17 @@ using SqlSugar;
 
 namespace dotnettools
 {
-    [SugarTable("movement_info")]
+    [SugarTable("movement")]
     public class MovementInfoModel
     {
         [SugarColumn(ColumnName = "id", IsPrimaryKey = true, IsIdentity = true)] //是主键, 还是标识列
         public int Id { get; set; }
 
-        [SugarColumn(ColumnName = "map_index")]
-        public int MapIndex { get; set; }
+        [SugarColumn(ColumnName = "source_map")]
+        public int SourceMap { get; set; }
+
+        [SugarColumn(ColumnName = "destination_map")]
+        public int DestinationMap { get; set; }
 
         // Point
         [SugarColumn(ColumnName = "source_x")]

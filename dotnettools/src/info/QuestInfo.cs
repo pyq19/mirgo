@@ -77,7 +77,7 @@ namespace dotnettools
         {
             var questInfoModel = new QuestInfoModel()
             {
-                QuestIndex = QuestIndex,
+                Id = QuestIndex,
                 Name = Name,
                 Group = Group,
                 FileName = FileName,

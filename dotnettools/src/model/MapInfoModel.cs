@@ -2,7 +2,7 @@ using SqlSugar;
 
 namespace dotnettools
 {
-    [SugarTable("map_info")]
+    [SugarTable("map")]
     public class MapInfoModel
     {
         public MapInfoModel() { }
@@ -10,8 +10,8 @@ namespace dotnettools
         [SugarColumn(ColumnName = "id", IsPrimaryKey = true, IsIdentity = true)] //是主键, 还是标识列
         public int Id { get; set; }
 
-        [SugarColumn(ColumnName = "map_index")]
-        public int MapIndex { get; set; }
+        //[SugarColumn(ColumnName = "map_index")]
+        //public int MapIndex { get; set; }
 
         [SugarColumn(ColumnName = "file_name")]
         public string FileName { get; set; }

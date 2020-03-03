@@ -2,7 +2,7 @@ using SqlSugar;
 
 namespace dotnettools
 {
-    [SugarTable("magic_info")]
+    [SugarTable("magic")]
     public class MagicInfoModel
     {
         [SugarColumn(ColumnName = "id", IsPrimaryKey = true, IsIdentity = true)] //是主键, 还是标识列
