@@ -181,6 +181,13 @@ func _LINEMESSAGE(npc *NPC, p *Player, msg string, t string) {
 func _CHANGELEVEL(npc *NPC, p *Player, lv int) {
 }
 
+func _TAKEITEM(npc *NPC, p *Player, itemname string, n int) {
+}
+
+func _CHECKBUFF(npc *NPC, p *Player, bufname string) bool {
+	return false
+}
+
 func init() {
 	script.AddParser(reflect.TypeOf((*Player)(nil)), nil)
 	script.AddParser(reflect.TypeOf((*NPC)(nil)), nil)
@@ -202,7 +209,9 @@ func init() {
 	script.Check("CHECKNAMELIST", _CHECKNAMELIST)
 	script.Check("ISADMIN", _ISADMIN)
 	script.Check("CHECKHUM", _CHECKHUM)
+	script.Check("CHECKBUFF", _CHECKBUFF)
 
+	script.Action("TAKEITEM", _TAKEITEM)
 	script.Action("CHECKITEM", _CHECKITEM, 1) // GM-Manager.txt 32行：可能是配置写错了。
 	script.Action("CHANGELEVEL", _CHANGELEVEL)
 	script.Action("LINEMESSAGE", _LINEMESSAGE)
