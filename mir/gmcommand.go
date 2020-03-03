@@ -102,6 +102,10 @@ func _gmInfo(p *Player) {
 	})
 }
 
+func _gmGold(p *Player, gold int) {
+	p.GainGold(uint64(gold))
+}
+
 var cmd = script.NewContext()
 
 func init() {
@@ -112,4 +116,5 @@ func init() {
 	cmd.Action("INFO", _gmInfo)
 	cmd.Action("MOB", _gmMob)
 	cmd.Action("MOVE", _gmMove)
+	cmd.Action("GOLD", _gmGold)
 }

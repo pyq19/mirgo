@@ -180,10 +180,17 @@ func (e *Environ) InitMaps() {
 		uppercaseNameRealNameMap[strings.ToUpper(filepath.Base(f))] = f
 	}
 
+	// FIXME 开发只加载部分地图
+	allowarr := []int{1, 2, 3, 4, 6, 7, 8, 10, 11, 12, 13, 15, 16, 17, 18, 19, 20, 21, 22, 24, 26, 27, 28, 29, 30, 31, 25, 144, 384}
+	allow := map[int]bool{}
+	for _, v := range allowarr {
+		allow[v] = true
+	}
+
 	e.Maps = map[int]*Map{}
 	for _, mi := range data.MapInfos {
-		// FIXME 开发只加载部分地图
-		if mi.ID != 1 && mi.ID != 384 {
+
+		if _, ok := allow[mi.ID]; !ok {
 			continue
 		}
 

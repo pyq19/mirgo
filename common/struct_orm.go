@@ -260,15 +260,16 @@ type MonsterInfo struct {
 }
 
 type MovementInfo struct {
-	ID            int `gorm:"primary_key"`
-	MapID         int
-	SourceX       int `gorm:"Column:source_x"`
-	SourceY       int `gorm:"Column:source_y"`
-	DestinationX  int `gorm:"Column:destination_x"`
-	DestinationY  int `gorm:"Column:destination_y"`
-	NeedHole      int
-	NeedMove      int
-	ConquestIndex int
+	ID             int `gorm:"primary_key"`
+	SourceMap      int `gorm:"Column:source_map"`
+	SourceX        int `gorm:"Column:source_x"`
+	SourceY        int `gorm:"Column:source_y"`
+	DestinationMap int `gorm:"Column:destination_map"`
+	DestinationX   int `gorm:"Column:destination_x"`
+	DestinationY   int `gorm:"Column:destination_y"`
+	NeedHole       int
+	NeedMove       int
+	ConquestIndex  int
 }
 
 type NpcInfo struct {
