@@ -44,3 +44,10 @@ func (d *DB) SyncLevel(p *Player) {
 func (d *DB) SyncGold(p *Player) {
 	d.setCharacterAttr(p, "gold", p.Gold)
 }
+
+func (d *DB) SyncPosition(p *Player) {
+	d.setCharacterAttr(p, "current_map_id", p.Map.Info.ID)
+	d.setCharacterAttr(p, "direction", p.GetDirection())
+	d.setCharacterAttr(p, "current_location_x", p.GetPoint().X)
+	d.setCharacterAttr(p, "current_location_y", p.GetPoint().Y)
+}
