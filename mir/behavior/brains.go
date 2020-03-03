@@ -38,7 +38,7 @@ func GuardBrain() INode {
 }
 
 // 弓箭守卫
-func ArcherGuardBrain() INode {
+func TownArcherBrain() INode {
 
 	root := Priority(1*time.Second,
 		While(FindPlayerByPKPoints200, WatchAndShoot()),
