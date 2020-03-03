@@ -966,6 +966,11 @@ func (p *Player) Walk(direction common.MirDirection) {
 		return
 	}
 	n := p.Point().NextPoint(direction, 1)
+
+	if p.CheckMovement(n) {
+		return
+	}
+
 	ok := p.Map.UpdateObject(p, n)
 	if !ok {
 		p.Enqueue(ServerMessage{}.UserLocation(p))
@@ -980,6 +985,9 @@ func (p *Player) Walk(direction common.MirDirection) {
 func (p *Player) Run(direction common.MirDirection) {
 	n1 := p.Point().NextPoint(direction, 1)
 	n2 := p.Point().NextPoint(direction, 2)
+
+	// TODO: CheckMovement
+
 	if ok := p.Map.UpdateObject(p, n1, n2); !ok {
 		p.Enqueue(ServerMessage{}.UserLocation(p))
 		return
@@ -1705,18 +1713,23 @@ func (p *Player) EditGuildMember(name string, name2 string, index uint8, changeT
 
 }
 
-func (p *Player) CheckMovement(pos common.Point) {
+func (p *Player) CheckMovement(pos common.Point) bool {
 
+	// TODO: 优化效率
 	for _, v := range data.MovementInfos {
-		if v.MapID == p.Map.Info.ID {
-
+		if v.SourceMap == p.Map.Info.ID {
 			if p.CurrentLocation.EqualXY(v.SourceX, v.SourceY) {
-				m := env.GetMap(v.MapID)
+				m := env.GetMap(v.DestinationMap)
+				if m == nil {
+					log.Infoln("no map id=", v.DestinationMap)
+				}
 				p.Teleport(m, common.NewPoint(v.DestinationX, v.DestinationY))
-				break
+				return true
 			}
 		}
 	}
+
+	return false
 }
 
 func (p *Player) OpenDoor(doorIndex byte) {
