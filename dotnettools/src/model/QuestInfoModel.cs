@@ -2,16 +2,13 @@ using SqlSugar;
 
 namespace dotnettools
 {
-    [SugarTable("quest_info")]
+    [SugarTable("quest")]
     public class QuestInfoModel
     {
         public QuestInfoModel() { }
 
         [SugarColumn(ColumnName = "id", IsPrimaryKey = true, IsIdentity = true)] //是主键, 还是标识列
         public int Id { get; set; }
-
-        [SugarColumn(ColumnName = "quest_index")]
-        public int QuestIndex { get; set; }
 
         [SugarColumn(ColumnName = "name")]
         public string Name { get; set; }

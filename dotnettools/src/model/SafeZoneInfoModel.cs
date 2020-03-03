@@ -2,7 +2,7 @@ using SqlSugar;
 
 namespace dotnettools
 {
-    [SugarTable("safe_zone_info")]
+    [SugarTable("safe_zone")]
     public class SafeZoneInfoModel
     {
         public SafeZoneInfoModel() { }
@@ -10,7 +10,7 @@ namespace dotnettools
         [SugarColumn(ColumnName = "id", IsPrimaryKey = true, IsIdentity = true)] //是主键, 还是标识列
         public int Id { get; set; }
 
-        [SugarColumn(ColumnName = "map_index")]
+        [SugarColumn(ColumnName = "map_id")]
         public int MapIndex { get; set; }
 
         // public Point Location;

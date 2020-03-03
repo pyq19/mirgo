@@ -107,7 +107,7 @@ namespace dotnettools
         {
             var monsterInfoModel = new MonsterInfoModel()
             {
-                MonsterIndex = MonsterIndex,
+                Id = MonsterIndex,
                 Name = Name,
                 Image = (ushort)Image,
                 AI = AI,

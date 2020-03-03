@@ -8,7 +8,7 @@ namespace dotnettools
         [SugarColumn(ColumnName = "id", IsPrimaryKey = true, IsIdentity = true)] //是主键, 还是标识列
         public int Id { get; set; }
 
-        [SugarColumn(ColumnName = "map_index")]
+        [SugarColumn(ColumnName = "map_id")]
         public int MapIndex { get; set; }
 
         [SugarColumn(ColumnName = "mine")]
