@@ -6,6 +6,7 @@ namespace dotnettools
 {
     public class MovementInfo
     {
+        public int SourceMap;
         public int MapIndex;
         public Point Source;
         public Point Destination;
@@ -13,8 +14,10 @@ namespace dotnettools
         public bool NeedMove;
         public int ConquestIndex;
 
-        public MovementInfo(BinaryReader reader, Manager manager)
+        public MovementInfo(BinaryReader reader, Manager manager, int source)
         {
+            SourceMap = source;
+
             Manager Envir = manager;
             MapIndex = reader.ReadInt32();
             Source = new Point(reader.ReadInt32(), reader.ReadInt32());
@@ -34,7 +37,8 @@ namespace dotnettools
         {
             var movementInfoModel = new MovementInfoModel()
             {
-                MapIndex = MapIndex,
+                SourceMap = SourceMap,
+                DestinationMap = MapIndex,
                 SourceX = Source.X,
                 SourceY = Source.Y,
                 DestinationX = Destination.X,

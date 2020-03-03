@@ -2,16 +2,16 @@ using SqlSugar;
 
 namespace dotnettools
 {
-    [SugarTable("respawn_info")]
+    [SugarTable("respawn")]
     public class RespawnInfoModel
     {
         [SugarColumn(ColumnName = "id", IsPrimaryKey = true, IsIdentity = true)] //是主键, 还是标识列
         public int Id { get; set; }
 
-        [SugarColumn(ColumnName = "map_index")]
+        [SugarColumn(ColumnName = "map_id")]
         public int MapIndex { get; set; }
 
-        [SugarColumn(ColumnName = "monster_index")]
+        [SugarColumn(ColumnName = "monster_id")]
         public int MonsterIndex { get; set; }
 
         [SugarColumn(ColumnName = "location_x")]

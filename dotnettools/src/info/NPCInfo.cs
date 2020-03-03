@@ -87,7 +87,7 @@ namespace dotnettools
         {
             var npcInfoModel = new NPCInfoModel()
             {
-                NPCIndex = NPCIndex,
+                Id = NPCIndex,
                 MapIndex = MapIndex,
                 FileName = FileName,
                 Name = Name,
