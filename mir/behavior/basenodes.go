@@ -32,6 +32,8 @@ func (n *Node) Step() {
 	}
 }
 
+func (n *Node) Visit(*BT) {}
+
 // PriorityNode 选择节点
 // 顺序执行子节点，只要有一个子节点 SUCCESS/RUNNING
 // 那么自身状态就是 SUCCESS/RUNNING，否则 FAILED，类似逻辑或

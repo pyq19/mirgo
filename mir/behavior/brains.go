@@ -46,3 +46,7 @@ func TownArcherBrain() INode {
 
 	return root
 }
+
+func TreeBrain() INode {
+	return &Node{}
+}
