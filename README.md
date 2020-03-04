@@ -9,6 +9,9 @@
 - [GORM](https://github.com/jinzhu/gorm)
 
 #### 编译步骤
+Windows: (待补全)
+
+Unix:
 环境设置
 ```bash
 export GO111MODULE=off
