@@ -61,11 +61,12 @@ func (b *Bag) Move(from int, to int) error {
 }
 
 func (b *Bag) Set(i int, item *common.UserItem) {
-	if b.Items[i] != nil {
-		log.Errorln("该位置有物品了")
-	}
 
 	if item != nil {
+		if b.Items[i] != nil {
+			log.Errorln("该位置有物品了")
+		}
+
 		adb.Table("user_item").Create(item)
 		adb.Table("character_user_item").Create(&common.CharacterUserItem{
 			CharacterID: int(b.Player.ID),
@@ -74,8 +75,13 @@ func (b *Bag) Set(i int, item *common.UserItem) {
 			Index:       i,
 		})
 	} else {
-		adb.Table("user_item").Where("id = ?", item.ID).Delete(&common.UserItem{})
-		adb.Table("character_user_item").Where("user_item_id = ?", item.ID).Delete(&common.CharacterUserItem{})
+		item = b.Items[i]
+		if item != nil {
+			adb.Table("user_item").Where("id = ?", item.ID).Delete(&common.UserItem{})
+			adb.Table("character_user_item").Where("user_item_id = ?", item.ID).Delete(&common.CharacterUserItem{})
+		} else {
+			log.Errorln("尝试删除空位置的物品")
+		}
 	}
 
 	b.Items[i] = item
