@@ -73,9 +73,11 @@ func _gmMob(p *Player, monstername string) string {
 	if mi == nil {
 		return fmt.Sprintf("生成怪物失败，找不到怪物 %s", monstername)
 	}
-	p.Map.AddObject(NewMonster(p.Map, c.Point, mi))
+	mo := NewMonster(p.Map, c.Point, mi)
+	mo.Spawn()
+	p.Map.AddObject(mo)
 
-	return ""
+	return "生成怪物成功"
 }
 
 func _gmInfo(p *Player) {

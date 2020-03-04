@@ -50,3 +50,8 @@ func TownArcherBrain() INode {
 func TreeBrain() INode {
 	return &Node{}
 }
+
+// TODO
+func SpittingSpiderBrain() INode {
+	return &Node{}
+}

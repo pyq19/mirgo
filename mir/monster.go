@@ -203,10 +203,8 @@ func (m *Monster) Broadcast(msg interface{}) {
 }
 
 // Spawn 怪物生成
-func (m *Monster) Spawn(mp *Map, p common.Point) {
-	m.Map = mp
-	m.CurrentLocation = p
-	msg, ok := mp.AddObject(m)
+func (m *Monster) Spawn() {
+	msg, ok := m.Map.AddObject(m)
 	if !ok {
 		log.Warnln(msg)
 		return

@@ -419,12 +419,10 @@ func (m *Map) CompleteMagic(args ...interface{}) {
 		}
 		cell := m.GetCell(front)
 		if cell.IsValid() {
-			monster.Spawn(m, front)
-		} else {
-			monster.Spawn(m, player.GetPoint())
+			monster.Master = player
+			player.Pets = append(player.Pets, monster)
+			monster.Spawn()
 		}
-		pets := monster.Master.Pets
-		pets = append(pets, monster)
 	case common.SpellMassHealing:
 		value := args[1].(int)
 		location := args[2].(common.Point)
