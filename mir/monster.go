@@ -642,6 +642,7 @@ func (m *Monster) Attack() {
 		m.Target = nil
 		return
 	}
+	log.Debugf("Monster[%s]AI[%d] Attack\n", m.Name, m.AI)
 	m.CurrentDirection = DirectionFromPoint(m.CurrentLocation, m.Target.GetPoint())
 	m.Broadcast(ServerMessage{}.ObjectAttack(m, common.SpellNone, 0, 0))
 	now := time.Now()

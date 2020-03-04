@@ -89,7 +89,7 @@ func _gmInfo(p *Player) {
 		if o.GetRace() == common.ObjectTypeMonster {
 			mo := o.(*Monster)
 			p.ReceiveChat("--Monster Info--", common.ChatTypeSystem2)
-			p.ReceiveChat(fmt.Sprintf("ID: %d, Name: %s", mo.ID, mo.Name), common.ChatTypeSystem2)
+			p.ReceiveChat(fmt.Sprintf("ID: %d, Name: %s, AI: %d", mo.ID, mo.Name, mo.AI), common.ChatTypeSystem2)
 			p.ReceiveChat(fmt.Sprintf("Level: %d, Pos: %s", mo.Level, mo.GetPoint()), common.ChatTypeSystem2)
 			p.ReceiveChat(fmt.Sprintf("HP: %d, MinDC: %d, MaxDC: %d", mo.HP, mo.MinDC, mo.MaxDC), common.ChatTypeSystem2)
 		}
