@@ -100,6 +100,9 @@ type Player struct {
 	PMode              common.PetMode
 	CallingNPC         *NPC
 	CallingNPCPage     string
+	Slaying            bool // TODO
+	FlamingSword       bool // TODO
+	TwinDrakeBlade     bool // TODO
 }
 
 type Health struct {
@@ -1438,6 +1441,51 @@ func (p *Player) Attack(direction common.MirDirection, spell common.Spell) {
 		p.Enqueue(ServerMessage{}.UserLocation(p))
 		return
 	}
+	level := 0
+	switch spell {
+	case common.SpellSlaying:
+		if !p.Slaying {
+			spell = common.SpellNone
+		} else {
+			magic := p.GetMagic(common.SpellSlaying)
+			level = magic.Level
+		}
+		p.Slaying = false
+	case common.SpellDoubleSlash:
+		magic := p.GetMagic(spell)
+		if magic == nil || magic.Info.BaseCost+(magic.Level*magic.Info.LevelCost) > int(p.MP) {
+			spell = common.SpellNone
+			break
+		}
+		level = magic.Level
+		p.ChangeMP(-(magic.Info.BaseCost + magic.Level*magic.Info.LevelCost))
+	case common.SpellThrusting, common.SpellFlamingSword:
+		magic := p.GetMagic(spell)
+		if (magic == nil) || (!p.FlamingSword && (spell == common.SpellFlamingSword)) {
+			spell = common.SpellNone
+			break
+		}
+		level = magic.Level
+	case common.SpellHalfMoon, common.SpellCrossHalfMoon:
+		magic := p.GetMagic(spell)
+		if magic == nil || magic.Info.BaseCost+(magic.Level*magic.Info.LevelCost) > int(p.MP) {
+			spell = common.SpellNone
+			break
+		}
+		level = magic.Level
+		p.ChangeMP(-(magic.Info.BaseCost + magic.Level*magic.Info.LevelCost))
+	case common.SpellTwinDrakeBlade:
+		magic := p.GetMagic(spell)
+		if !p.TwinDrakeBlade || magic == nil || magic.Info.BaseCost+magic.Level*magic.Info.LevelCost > int(p.MP) {
+			spell = common.SpellNone
+			break
+		}
+		level = magic.Level
+		p.ChangeMP(-(magic.Info.BaseCost + magic.Level*magic.Info.LevelCost))
+	default:
+		spell = common.SpellNone
+	}
+	_ = level // TODO
 	p.CurrentDirection = direction
 	p.Enqueue(ServerMessage{}.UserLocation(p))
 	p.Broadcast(ServerMessage{}.ObjectAttack(p, common.SpellNone, 0, 0))
