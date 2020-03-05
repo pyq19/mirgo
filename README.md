@@ -1,8 +1,8 @@
 #### 传奇服务端 go 语言实现
 参照[C#传奇](https://github.com/Suprcode/mir2)
 
-#### 感谢贡献者
-@qcdong2016 @firma
+#### 截图
+![image](https://github.com/yenkeia/mirgo/blob/master/img/img1.jpg)
 
 #### 用到的开源库/工具
 - [Cellnet](https://github.com/davyxu/cellnet)
@@ -60,8 +60,8 @@ QQ 群: 32309474
 链接: https://pan.baidu.com/s/1ELI8pO278v9JRyt6lS-A8Q
 提取码: 0nc3
 
-#### 截图
-![image](https://github.com/yenkeia/mirgo/blob/master/img/img1.png)
+#### 感谢贡献者
+@qcdong2016 @firma
 
 #### 参考资料
 - [LOMCN](https://www.lomcn.org/forum/)
