@@ -174,44 +174,33 @@ func (m *Map) DeleteObject(obj IMapObject) {
 }
 
 // UpdateObject 更新对象在 Cells, AOI 中的数据, 如果更新成功返回 true
-func (m *Map) UpdateObject(obj IMapObject, points ...common.Point) bool {
-	for i := range points {
-		c := m.GetCell(points[i])
-		if c == nil || !c.CanWalk() {
-			return false
-		}
+func (m *Map) UpdateObject(obj IMapObject, point common.Point) bool {
+	destcell := m.GetCell(point)
+	if destcell == nil || !destcell.CanWalk() {
+		return false
+	}
 
-		blocking := false
-		c.Objects.Range(func(k, v interface{}) bool {
-			if v.(IMapObject).IsBlocking() {
-				blocking = true
-				return false
-			}
-			return true
-		})
-
-		if blocking {
+	for _, o := range destcell.objects {
+		if o.IsBlocking() {
 			return false
 		}
 	}
-	c1 := obj.GetCell()
-	c1.DeleteObject(obj)
-	c2 := m.GetCell(points[len(points)-1])
-	c2.AddObject(obj)
-	m.changeAOI(obj, c1, c2)
-	return true
-}
 
-func (m *Map) changeAOI(obj IMapObject, c1 *Cell, c2 *Cell) {
+	sourcecell := obj.GetCell()
+	sourcecell.DeleteObject(obj)
+	destcell.AddObject(obj)
+
 	switch obj.GetRace() {
 	case common.ObjectTypePlayer:
 		p := obj.(*Player)
 		p.Broadcast(ServerMessage{}.ObjectPlayer(p))
-		p.EnqueueAreaObjects(c1, c2)
+		p.EnqueueAreaObjects(sourcecell, destcell)
 	case common.ObjectTypeMonster:
 		m := obj.(*Monster)
 		m.Broadcast(ServerMessage{}.ObjectMonster(m))
 	}
+
+	return true
 }
 
 // InitNPCs 初始化地图上的 NPC
@@ -245,6 +234,11 @@ func (m *Map) InitMonsters() error {
 }
 
 func (m *Map) OpenDoor(doorindex byte) bool {
+	// TODO
+	return true
+}
+
+func (m *Map) CheckDoorOpen(loc common.Point) bool {
 	// TODO
 	return true
 }
@@ -330,11 +324,13 @@ func (m *Map) RangeCell(p common.Point, depth int, fun func(c *Cell, x, y int) b
 func (m *Map) RangeObject(p common.Point, depth int, fun func(IMapObject) bool) {
 	var ret = true
 	m.RangeCell(p, depth, func(c *Cell, _, _ int) bool {
-		if c != nil && c.Objects != nil {
-			c.Objects.Range(func(k, v interface{}) bool {
-				ret = fun(v.(IMapObject))
-				return ret
-			})
+		if c != nil && c.objects != nil {
+			for _, o := range c.objects {
+				ret = fun(o)
+				if ret == false {
+					return false
+				}
+			}
 		}
 
 		return ret

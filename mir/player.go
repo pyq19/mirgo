@@ -574,10 +574,9 @@ func (p *Player) RefreshBagWeight() {
 }
 
 func (p *Player) RefreshEquipmentStats() {
-	gdb := data
 	for _, v := range p.Equipment.Items {
 		if v != nil {
-			e := gdb.GetItemInfoByID(int(v.ItemID))
+			e := data.GetItemInfoByID(int(v.ItemID))
 			if e == nil {
 				continue
 			}
@@ -907,17 +906,15 @@ func (p *Player) EnqueueAreaObjects(oldCell, newCell *Cell) {
 	cells := p.Map.CalcDiff(oldCell.Point, newCell.Point, DataRange)
 	for c, isadd := range cells.M {
 		if isadd {
-			c.Objects.Range(func(k, v interface{}) bool {
-				v.(IMapObject).AddPlayerCount(1)
-				p.Enqueue(ServerMessage{}.Object(v.(IMapObject)))
-				return true
-			})
+			for _, o := range c.objects {
+				o.AddPlayerCount(1)
+				p.Enqueue(ServerMessage{}.Object(o))
+			}
 		} else {
-			c.Objects.Range(func(k, v interface{}) bool {
-				v.(IMapObject).AddPlayerCount(-1)
-				p.Enqueue(ServerMessage{}.ObjectRemove(v.(IMapObject)))
-				return true
-			})
+			for _, o := range c.objects {
+				o.AddPlayerCount(-1)
+				p.Enqueue(ServerMessage{}.ObjectRemove(o))
+			}
 		}
 
 	}
@@ -983,17 +980,47 @@ func (p *Player) Walk(direction common.MirDirection) {
 }
 
 func (p *Player) Run(direction common.MirDirection) {
-	n1 := p.Point().NextPoint(direction, 1)
-	n2 := p.Point().NextPoint(direction, 2)
+	steps := 2
 
-	// TODO: CheckMovement
+	var loc common.Point
+	for i := 1; i <= steps; i++ {
+		loc = p.CurrentLocation.NextPoint(direction, uint32(i))
+		if !p.Map.ValidPoint(loc) {
+			p.Enqueue(ServerMessage{}.UserLocation(p))
+			return
+		}
+		if !p.Map.CheckDoorOpen(loc) {
+			p.Enqueue(ServerMessage{}.UserLocation(p))
+			return
+		}
 
-	if ok := p.Map.UpdateObject(p, n1, n2); !ok {
+		cell := p.Map.GetCell(loc)
+		if cell.objects != nil {
+			for _, o := range cell.objects {
+				switch o.(type) {
+				case *NPC:
+					// if (!NPC.Visible || !NPC.VisibleLog[Info.Index]) continue
+				default:
+					if !o.IsBlocking() {
+						continue
+					}
+				}
+				p.Enqueue(ServerMessage{}.UserLocation(p))
+				return
+			}
+		}
+
+		if p.CheckMovement(loc) {
+			return
+		}
+	}
+
+	if ok := p.Map.UpdateObject(p, loc); !ok {
 		p.Enqueue(ServerMessage{}.UserLocation(p))
 		return
 	}
 	p.CurrentDirection = direction
-	p.CurrentLocation = n2
+	p.CurrentLocation = loc
 	p.Enqueue(ServerMessage{}.UserLocation(p))
 	p.Broadcast(ServerMessage{}.ObjectRun(p))
 }
@@ -1364,19 +1391,18 @@ func (p *Player) PickUp() {
 		return
 	}
 	items := make([]*Item, 0)
-	c.Objects.Range(func(k, v interface{}) bool {
-		if o, ok := v.(*Item); ok {
-			if o.UserItem == nil {
-				p.GainGold(o.Gold)
-				items = append(items, o)
+	for _, o := range c.objects {
+		if item, ok := o.(*Item); ok {
+			if item.UserItem == nil {
+				p.GainGold(item.Gold)
+				items = append(items, item)
 			} else {
-				if p.GainItem(o.UserItem) {
-					items = append(items, o)
+				if p.GainItem(item.UserItem) {
+					items = append(items, item)
 				}
 			}
 		}
-		return true
-	})
+	}
 	for i := range items {
 		o := items[i]
 		p.Map.DeleteObject(o)
@@ -1422,10 +1448,9 @@ func (p *Player) Attack(direction common.MirDirection, spell common.Spell) {
 	if !cell.CanWalk() {
 		return
 	}
-	cell.Objects.Range(func(k, v interface{}) bool {
-		o := v.(IMapObject)
+	for _, o := range cell.objects {
 		if !o.IsAttackTarget(p) {
-			return true
+			continue
 		}
 		switch o.GetRace() {
 		case common.ObjectTypePlayer:
@@ -1433,8 +1458,7 @@ func (p *Player) Attack(direction common.MirDirection, spell common.Spell) {
 		case common.ObjectTypeMonster:
 			o.(*Monster).Attacked(p, damageFinal, common.DefenceTypeAgility)
 		}
-		return true
-	})
+	}
 }
 
 func (p *Player) RangeAttack(direction common.MirDirection, location common.Point, id uint32) {
