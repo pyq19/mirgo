@@ -10,10 +10,13 @@ import (
 
 // Map ...
 type Map struct {
-	Width  int
-	Height int
-	Info   *common.MapInfo
-	cells  []*Cell
+	Width    int
+	Height   int
+	Version  int
+	Info     *common.MapInfo
+	cells    []*Cell
+	doors    map[byte]*Door
+	doorsMap *Grid
 
 	players        map[uint32]*Player
 	monsters       map[uint32]*Monster
@@ -23,11 +26,14 @@ type Map struct {
 	ActionList *ActionList
 }
 
-func NewMap(w, h int) *Map {
+func NewMap(w, h, version int) *Map {
 	m := &Map{
 		Width:          w,
 		Height:         h,
+		Version:        version,
 		cells:          make([]*Cell, w*h),
+		doorsMap:       NewGrid(uint32(w), uint32(h)),
+		doors:          map[byte]*Door{},
 		players:        map[uint32]*Player{},
 		monsters:       map[uint32]*Monster{},
 		npcs:           map[uint32]*NPC{},
@@ -49,6 +55,11 @@ func (m *Map) DelActiveObj(o interface{}) {
 func (m *Map) Frame(dt time.Duration) {
 
 	m.ActionList.Execute()
+
+	now := time.Now()
+	for _, d := range m.doors {
+		d.Tick(now)
+	}
 
 	for _, p := range m.players {
 		p.Process(dt)
@@ -233,14 +244,46 @@ func (m *Map) InitMonsters() error {
 	return nil
 }
 
+func (m *Map) AddDoor(doorindex byte, loc common.Point) *Door {
+	for _, d := range m.doors {
+		if d.Index == doorindex {
+			return d
+		}
+	}
+
+	door := &Door{
+		Map:      m,
+		Index:    doorindex,
+		Location: loc,
+	}
+
+	m.doors[doorindex] = door
+	m.doorsMap.Set(loc, door)
+
+	return door
+}
+
 func (m *Map) OpenDoor(doorindex byte) bool {
-	// TODO
+
+	door, has := m.doors[doorindex]
+	if !has {
+		log.Errorln("no door", doorindex)
+		return false
+	}
+
+	door.SetOpen(true)
+
 	return true
 }
 
 func (m *Map) CheckDoorOpen(loc common.Point) bool {
-	// TODO
-	return true
+
+	door := m.doorsMap.Get(loc)
+	if door == nil {
+		return true
+	}
+
+	return door.IsOpen()
 }
 
 // GetValidPoint ...

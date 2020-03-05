@@ -55,7 +55,7 @@ func _gmMake(p *Player, itemname string, n int) string {
 }
 
 func _gmMap(p *Player) string {
-	return fmt.Sprintf("当前地图: %s, ID: %d", p.Map.Info.Title, p.Map.Info.ID)
+	return fmt.Sprintf("当前地图: %s, ID: %d version:%d", p.Map.Info.Title, p.Map.Info.ID, p.Map.Version)
 }
 
 func _gmMove(p *Player, x, y int) {

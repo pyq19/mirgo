@@ -63,9 +63,8 @@ func DetectMapVersion(input []byte) byte {
 		H := int(input[2] + (input[3] << 8))
 		if len(input) > (52 + (W * H * 14)) {
 			return 3
-		} else {
-			return 2
 		}
+		return 2
 	}
 
 	//3/4 heroes map format (myth/lifcos i guess)
@@ -76,6 +75,11 @@ func DetectMapVersion(input []byte) byte {
 	return 0
 }
 
+var (
+	LowWallCell  = NewCell(common.CellAttributeLowWall)
+	HighWallCell = NewCell(common.CellAttributeHighWall)
+)
+
 func GetMapV0(bytes []byte) *Map {
 	offset := 0
 	w := common.BytesToUint16(bytes[offset:])
@@ -84,67 +88,108 @@ func GetMapV0(bytes []byte) *Map {
 	width := int(w)
 	height := int(h)
 
-	m := NewMap(width, height)
+	m := NewMap(width, height, 0)
+
+	var cell *Cell
 
 	offset = 52
-	for i := 0; i < width; i++ {
-		for j := 0; j < height; j++ {
-			p := common.Point{X: uint32(i), Y: uint32(j)}
-			c := NewCell()
-			c.Point = p
+	for x := 0; x < width; x++ {
+		for y := 0; y < height; y++ {
+
+			cell = nil
+
 			if (common.BytesToUint16(bytes[offset:]) & 0x8000) != 0 {
-				c.Attribute = common.CellAttributeHighWall
+				cell = HighWallCell //Can Fire Over.
 			}
 
 			offset += 2
 			if (common.BytesToUint16(bytes[offset:]) & 0x8000) != 0 {
-				c.Attribute = common.CellAttributeLowWall
+				cell = LowWallCell //Can't Fire Over.
 			}
 
-			if c.Attribute == common.CellAttributeWalk {
-				m.SetCell(p, c)
+			offset += 2
+			if (common.BytesToUint16(bytes[offset:]) & 0x8000) != 0 {
+				cell = HighWallCell //No Floor Tile.
 			}
 
-			offset += 9
+			if cell == nil {
+				cell = NewCell(common.CellAttributeWalk)
+			}
+
+			point := common.NewPoint(x, y)
+			if cell.Attribute == common.CellAttributeWalk {
+				cell.Point = point
+				m.SetCell(point, cell)
+			}
+
+			offset += 4
+			if bytes[offset] > 0 {
+				m.AddDoor(bytes[offset], point)
+			}
+
+			offset += 3 + 1
+
+			// byte light = fileBytes[offSet++];
+
+			// if (light >= 100 && light <= 119)
+			// 	Cells[x, y].FishingAttribute = (sbyte)(light - 100);
 		}
 	}
-	m.Width = width
-	m.Height = height
 	return m
 }
 
 func GetMapV1(bytes []byte) *Map {
 	offset := 21
-	w := common.BytesToUint16(bytes[offset : offset+2])
+	w := common.BytesToUint16(bytes[offset:])
 	offset += 2
-	xor := common.BytesToUint16(bytes[offset : offset+2])
+	xor := common.BytesToUint16(bytes[offset:])
 	offset += 2
-	h := common.BytesToUint16(bytes[offset : offset+2])
+	h := common.BytesToUint16(bytes[offset:])
 	width := int(w ^ xor)
 	height := int(h ^ xor)
 
-	m := NewMap(width, height)
+	m := NewMap(width, height, 1)
+
+	var cell *Cell
 
 	offset = 54
-	for i := 0; i < width; i++ {
-		for j := 0; j < height; j++ {
-			p := common.Point{X: uint32(i), Y: uint32(j)}
-			c := NewCell()
-			c.Point = p
-			if (common.BytesToUint32(bytes[offset:offset+4])^0xAA38AA38)&0x20000000 != 0 {
-				c.Attribute = common.CellAttributeHighWall
+	for x := 0; x < width; x++ {
+		for y := 0; y < height; y++ {
+
+			cell = nil
+
+			if (common.BytesToUint32(bytes[offset:])^0xAA38AA38)&0x20000000 != 0 {
+				cell = HighWallCell
 			}
-			if ((common.BytesToUint16(bytes[offset+6:offset+8]) ^ xor) & 0x8000) != 0 {
-				c.Attribute = common.CellAttributeLowWall
+
+			offset += 6
+			if ((common.BytesToUint16(bytes[offset:]) ^ xor) & 0x8000) != 0 {
+				cell = LowWallCell
 			}
-			if c.Attribute == common.CellAttributeWalk {
-				m.SetCell(p, c)
+
+			if cell == nil {
+				cell = NewCell(common.CellAttributeWalk)
 			}
-			offset += 15
+
+			point := common.NewPoint(x, y)
+			if cell.Attribute == common.CellAttributeWalk {
+				cell.Point = point
+				m.SetCell(point, cell)
+			}
+
+			offset += 2
+			if bytes[offset] > 0 {
+				m.AddDoor(bytes[offset], point)
+			}
+
+			offset += 5
+
+			// byte light = fileBytes[offSet++];
+			// if (light >= 100 && light <= 119)
+			// 	Cells[x, y].FishingAttribute = (sbyte)(light - 100);
+			offset += 1 + 1
 		}
 	}
-	m.Width = width
-	m.Height = height
 	return m
 }
 
@@ -156,33 +201,53 @@ func GetMapV3(bytes []byte) *Map {
 	width := int(w)
 	height := int(h)
 
-	m := NewMap(width, height)
+	m := NewMap(width, height, 3)
+	var cell *Cell
 
 	offset = 52
-	for i := 0; i < width; i++ {
-		for j := 0; j < height; j++ {
-			p := common.Point{X: uint32(i), Y: uint32(j)}
-			c := NewCell()
-			c.Point = p
+	for x := 0; x < width; x++ {
+		for y := 0; y < height; y++ {
+
+			cell = nil
+
 			if (common.BytesToUint16(bytes[offset:]) & 0x8000) != 0 {
-				c.Attribute = common.CellAttributeHighWall
+				cell = HighWallCell
 			}
 
 			offset += 2
 			if (common.BytesToUint16(bytes[offset:]) & 0x8000) != 0 {
-				c.Attribute = common.CellAttributeLowWall
+				cell = LowWallCell
 			}
 
-			if c.Attribute == common.CellAttributeWalk {
-				m.SetCell(p, c)
+			offset += 2
+			if (common.BytesToUint16(bytes[offset:]) & 0x8000) != 0 {
+				cell = HighWallCell
 			}
 
-			offset += 16
-			offset += 17
+			if cell == nil {
+				cell = NewCell(common.CellAttributeWalk)
+			}
+
+			point := common.NewPoint(x, y)
+			if cell.Attribute == common.CellAttributeWalk {
+				cell.Point = point
+				m.SetCell(point, cell)
+			}
+
+			offset += 2
+			if bytes[offset] > 0 {
+				m.AddDoor(bytes[offset], point)
+			}
+			offset += 12
+
+			// byte light = fileBytes[offSet++];
+
+			// if (light >= 100 && light <= 119)
+			// 	Cells[x, y].FishingAttribute = (sbyte)(light - 100);
+
+			offset += 17 + 1
 		}
 	}
-	m.Width = width
-	m.Height = height
 	return m
 }
 
@@ -194,28 +259,35 @@ func GetMapV5(bytes []byte) *Map {
 	width := int(w)
 	height := int(h)
 
-	m := NewMap(width, height)
+	m := NewMap(width, height, 5)
+	var cell *Cell
 
 	offset = 28 + (3 * ((width / 2) + (width % 2)) * (height / 2))
 
-	for i := 0; i < width; i++ {
-		for j := 0; j < height; j++ {
-			p := common.Point{X: uint32(i), Y: uint32(j)}
-			c := NewCell()
-			c.Point = p
+	for x := 0; x < width; x++ {
+		for y := 0; y < height; y++ {
+
+			cell = nil
+
 			if (bytes[offset] & 0x01) != 1 {
-				c.Attribute = common.CellAttributeHighWall
+				cell = HighWallCell
 			} else if (bytes[offset] & 0x02) != 2 {
-				c.Attribute = common.CellAttributeLowWall
+				cell = LowWallCell
+			} else {
+				cell = NewCell(common.CellAttributeWalk)
 			}
 			offset += 13
 
-			if c.Attribute == common.CellAttributeWalk {
-				m.SetCell(p, c)
-			}
+			// byte light = fileBytes[offSet++];
+
+			// if (light >= 100 && light <= 119)
+			// 	Cells[x, y].FishingAttribute = (sbyte)(light - 100);
+
+			offset += 1
+
+			cell.Point = common.NewPoint(x, y)
+			m.SetCell(cell.Point, cell)
 		}
 	}
-	m.Width = width
-	m.Height = height
 	return m
 }

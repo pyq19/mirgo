@@ -11,12 +11,12 @@ type Cell struct {
 	Point     common.Point
 	Attribute common.CellAttribute
 	objects   map[uint32]IMapObject
-	// Objects   *sync.Map // map[IMapObject.ID]IMapObject
 }
 
-func NewCell() *Cell {
+func NewCell(attr common.CellAttribute) *Cell {
 	return &Cell{
-		objects: map[uint32]IMapObject{},
+		Attribute: attr,
+		objects:   map[uint32]IMapObject{},
 	}
 }
 
