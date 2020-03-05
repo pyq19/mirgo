@@ -182,13 +182,12 @@ func (m *Map) UpdateObject(obj IMapObject, points ...common.Point) bool {
 		}
 
 		blocking := false
-		c.Objects.Range(func(k, v interface{}) bool {
-			if v.(IMapObject).IsBlocking() {
+		for _, o := range c.objects {
+			if o.IsBlocking() {
 				blocking = true
-				return false
+				break
 			}
-			return true
-		})
+		}
 
 		if blocking {
 			return false
@@ -330,11 +329,13 @@ func (m *Map) RangeCell(p common.Point, depth int, fun func(c *Cell, x, y int) b
 func (m *Map) RangeObject(p common.Point, depth int, fun func(IMapObject) bool) {
 	var ret = true
 	m.RangeCell(p, depth, func(c *Cell, _, _ int) bool {
-		if c != nil && c.Objects != nil {
-			c.Objects.Range(func(k, v interface{}) bool {
-				ret = fun(v.(IMapObject))
-				return ret
-			})
+		if c != nil && c.objects != nil {
+			for _, o := range c.objects {
+				ret = fun(o)
+				if ret == false {
+					return false
+				}
+			}
 		}
 
 		return ret
