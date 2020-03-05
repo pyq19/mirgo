@@ -63,7 +63,7 @@ func TestMap_GetNextCell(t *testing.T) {
 	c := &Cell{
 		Point:     common.Point{100, 200},
 		Attribute: 0,
-		Objects:   nil,
+		// Objects:   nil,
 	}
 	t.Log(c.Point)
 	for i := 0; i < 8; i++ {
