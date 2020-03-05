@@ -4,6 +4,8 @@ import (
 	"github.com/yenkeia/mirgo/setting"
 )
 
+var settings = setting.DefaultSettings()
+
 const DataRange = 20
 
 const (
@@ -71,4 +73,103 @@ const (
 	BuyUsedKey        = "[@BUYUSED]"
 )
 
-var settings = setting.DefaultSettings()
+const (
+	AIDeer1                     = 1
+	AIDeer2                     = 2
+	AITree                      = 3
+	AISpittingSpider            = 4
+	AICannibalPlant             = 5
+	AIGuard1                    = 6
+	AICaveMaggot                = 7
+	AIAxeSkeleton               = 8
+	AIHarvestMonster            = 9
+	AIFlamingWooma              = 10
+	AIWoomaTaurus               = 11
+	AIBugBagMaggot              = 12
+	AIRedMoonEvil               = 13
+	AIEvilCentipede             = 14
+	AIZumaMonster               = 15
+	AIRedThunderZuma            = 16
+	AIZumaTaurus                = 17
+	AIShinsu                    = 18
+	AIKingScorpion              = 19
+	AIDarkDevil                 = 20
+	AIIncarnatedGhoul           = 21
+	AIIncarnatedZT              = 22
+	AIBoneFamiliar              = 23
+	AIDigOutZombie              = 24
+	AIRevivingZombie            = 25
+	AIShamanZombie              = 26
+	AIKhazard                   = 27
+	AIToxicGhoul                = 28
+	AIBoneSpearman              = 29
+	AIBoneLord                  = 30
+	AIRightGuard                = 31
+	AILeftGuard                 = 32
+	AIMinotaurKing              = 33
+	AIFrostTiger                = 34
+	AISandWorm                  = 35
+	AIYimoogi                   = 36
+	AICrystalSpider             = 37
+	AIHolyDeva                  = 38
+	AIRootSpider                = 39
+	AIBombSpider                = 40
+	AIYinDevilNode              = 41
+	AIOmaKing                   = 43
+	AIBlackFoxman               = 44
+	AIRedFoxman                 = 45
+	AIWhiteFoxman               = 46
+	AITrapRock                  = 47
+	AIGuardianRock              = 48
+	AIThunderElement            = 49
+	AIGreatFoxSpirit            = 50
+	AIHedgeKekTal               = 51
+	AIEvilMir                   = 52
+	AIEvilMirBody               = 53
+	AIDragonStatue              = 54
+	AIHumanWizard               = 55
+	AITrainer                   = 56
+	AITownArcher                = 57
+	AIGuard2                    = 58
+	AIHumanAssassin             = 59
+	AIVampireSpider             = 60
+	AISpittingToad              = 61
+	AISnakeTotem                = 62
+	AICharmedSnake              = 63
+	AIIntelligentCreatureObject = 64
+	AIMutatedManworm            = 65
+	AICrazyManworm              = 66
+	AIDarkDevourer              = 67
+	AIFootball                  = 68
+	AIPoisonHugger              = 69
+	AIHugger                    = 70
+	AIBehemoth                  = 71
+	AIFinialTurtle              = 72
+	AITurtleKing                = 73
+	AILightTurtle               = 74
+	AIWitchDoctor               = 75
+	AIHellSlasher               = 76
+	AIHellPirate                = 77
+	AIHellCannibal              = 78
+	AIHellKeeper                = 79
+	AIConquestArcher            = 80
+	AIGate                      = 81
+	AIWall                      = 82
+	AITornado                   = 83
+	AIWingedTigerLord           = 84
+	AIManectricClaw             = 86
+	AIManectricBlest            = 87
+	AIManectricKing             = 88
+	AIIcePillar                 = 89
+	AITrollBomber               = 90
+	AITrollKing                 = 91
+	AIFlameSpear                = 92
+	AIFlameMage                 = 93
+	AIFlameScythe               = 94
+	AIFlameAssassin             = 95
+	AIFlameQueen                = 96
+	AIHellKnight                = 97
+	AIHellLord                  = 98
+	AIHellBomb                  = 99
+	AIVenomSpider               = 100
+)
