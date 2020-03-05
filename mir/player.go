@@ -574,10 +574,9 @@ func (p *Player) RefreshBagWeight() {
 }
 
 func (p *Player) RefreshEquipmentStats() {
-	gdb := data
 	for _, v := range p.Equipment.Items {
 		if v != nil {
-			e := gdb.GetItemInfoByID(int(v.ItemID))
+			e := data.GetItemInfoByID(int(v.ItemID))
 			if e == nil {
 				continue
 			}
@@ -907,17 +906,15 @@ func (p *Player) EnqueueAreaObjects(oldCell, newCell *Cell) {
 	cells := p.Map.CalcDiff(oldCell.Point, newCell.Point, DataRange)
 	for c, isadd := range cells.M {
 		if isadd {
-			c.Objects.Range(func(k, v interface{}) bool {
-				v.(IMapObject).AddPlayerCount(1)
-				p.Enqueue(ServerMessage{}.Object(v.(IMapObject)))
-				return true
-			})
+			for _, o := range c.objects {
+				o.AddPlayerCount(1)
+				p.Enqueue(ServerMessage{}.Object(o))
+			}
 		} else {
-			c.Objects.Range(func(k, v interface{}) bool {
-				v.(IMapObject).AddPlayerCount(-1)
-				p.Enqueue(ServerMessage{}.ObjectRemove(v.(IMapObject)))
-				return true
-			})
+			for _, o := range c.objects {
+				o.AddPlayerCount(-1)
+				p.Enqueue(ServerMessage{}.ObjectRemove(o))
+			}
 		}
 
 	}
@@ -1364,19 +1361,18 @@ func (p *Player) PickUp() {
 		return
 	}
 	items := make([]*Item, 0)
-	c.Objects.Range(func(k, v interface{}) bool {
-		if o, ok := v.(*Item); ok {
-			if o.UserItem == nil {
-				p.GainGold(o.Gold)
-				items = append(items, o)
+	for _, o := range c.objects {
+		if item, ok := o.(*Item); ok {
+			if item.UserItem == nil {
+				p.GainGold(item.Gold)
+				items = append(items, item)
 			} else {
-				if p.GainItem(o.UserItem) {
-					items = append(items, o)
+				if p.GainItem(item.UserItem) {
+					items = append(items, item)
 				}
 			}
 		}
-		return true
-	})
+	}
 	for i := range items {
 		o := items[i]
 		p.Map.DeleteObject(o)
@@ -1422,10 +1418,9 @@ func (p *Player) Attack(direction common.MirDirection, spell common.Spell) {
 	if !cell.CanWalk() {
 		return
 	}
-	cell.Objects.Range(func(k, v interface{}) bool {
-		o := v.(IMapObject)
+	for _, o := range cell.objects {
 		if !o.IsAttackTarget(p) {
-			return true
+			continue
 		}
 		switch o.GetRace() {
 		case common.ObjectTypePlayer:
@@ -1433,8 +1428,7 @@ func (p *Player) Attack(direction common.MirDirection, spell common.Spell) {
 		case common.ObjectTypeMonster:
 			o.(*Monster).Attacked(p, damageFinal, common.DefenceTypeAgility)
 		}
-		return true
-	})
+	}
 }
 
 func (p *Player) RangeAttack(direction common.MirDirection, location common.Point, id uint32) {

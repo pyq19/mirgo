@@ -23,12 +23,11 @@ func _gmKill(p *Player, playername string) {
 	if c == nil {
 		return
 	}
-	c.Objects.Range(func(k, v interface{}) bool {
-		if o, ok := v.(*Monster); ok {
-			o.Die()
+	for _, o := range c.objects {
+		if m, ok := o.(*Monster); ok {
+			m.Die()
 		}
-		return true
-	})
+	}
 }
 
 func _gmMake(p *Player, itemname string, n int) string {
@@ -83,11 +82,10 @@ func _gmMob(p *Player, monstername string) string {
 func _gmInfo(p *Player) {
 
 	c := p.Map.GetNextCell(p.GetCell(), p.GetDirection(), 1)
-	if c == nil {
+	if c == nil || c.objects == nil {
 		return
 	}
-	c.Objects.Range(func(k, v interface{}) bool {
-		o := v.(IMapObject)
+	for _, o := range c.objects {
 		if o.GetRace() == common.ObjectTypeMonster {
 			mo := o.(*Monster)
 			p.ReceiveChat("--Monster Info--", common.ChatTypeSystem2)
@@ -100,8 +98,7 @@ func _gmInfo(p *Player) {
 			p.ReceiveChat("--Player Info--", common.ChatTypeSystem2)
 			p.ReceiveChat(fmt.Sprintf("Name: %s, Level: %d, Pos: %s", po.Name, po.Level, po.GetPoint()), common.ChatTypeSystem2)
 		}
-		return true
-	})
+	}
 }
 
 func _gmGold(p *Player, gold int) {

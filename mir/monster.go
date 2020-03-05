@@ -497,18 +497,11 @@ func (m *Monster) Walk(dir common.MirDirection) bool {
 	dest := m.CurrentLocation.NextPoint(dir, 1)
 	destcell := m.Map.GetCell(dest)
 
-	if destcell != nil && destcell.Objects != nil {
-		blocking := false
-		destcell.Objects.Range(func(_, v interface{}) bool {
-			o := v.(IMapObject)
+	if destcell != nil && destcell.objects != nil {
+		for _, o := range destcell.objects {
 			if o.IsBlocking() || m.GetRace() == common.ObjectTypeCreature {
-				blocking = true
 				return false
 			}
-			return true
-		})
-		if blocking {
-			return false
 		}
 	} else {
 		return false
@@ -539,24 +532,21 @@ func (m *Monster) WalkNotify(from, to common.Point) {
 	cells := m.Map.CalcDiff(from, to, DataRange)
 	for c, isadd := range cells.M {
 		if isadd {
-			c.Objects.Range(func(k, v interface{}) bool {
-				switch v.(type) {
+			for _, o := range c.objects {
+				switch o.(type) {
 				case *Player:
 					m.AddPlayerCount(1)
-					v.(*Player).Enqueue(ServerMessage{}.Object(m))
+					o.(*Player).Enqueue(ServerMessage{}.Object(m))
 				}
-
-				return true
-			})
+			}
 		} else {
-			c.Objects.Range(func(k, v interface{}) bool {
-				switch v.(type) {
+			for _, o := range c.objects {
+				switch o.(type) {
 				case *Player:
 					m.AddPlayerCount(-1)
-					v.(*Player).Enqueue(ServerMessage{}.ObjectRemove(m))
+					o.(*Player).Enqueue(ServerMessage{}.ObjectRemove(m))
 				}
-				return true
-			})
+			}
 		}
 
 	}
@@ -663,17 +653,10 @@ func (m *Monster) MoveTo(location common.Point) {
 		if cell == nil || !cell.IsValid() {
 			return
 		}
-		ret := false
-		cell.Objects.Range(func(f, v interface{}) bool {
-			o := v.(IMapObject)
-			if !o.IsBlocking() {
-				return true
+		for _, o := range cell.objects {
+			if o.IsBlocking() {
+				return
 			}
-			ret = true
-			return false
-		})
-		if ret {
-			return
 		}
 	}
 	dir := DirectionFromPoint(m.CurrentLocation, location)
@@ -734,15 +717,13 @@ func (m *Monster) FindTarget() {
 
 func (m *Monster) CheckStacked() bool {
 	cell := m.Map.GetCell(m.CurrentLocation)
-	if cell != nil && cell.Objects != nil {
-		ret := false
-		cell.Objects.Range(func(k, v interface{}) bool {
-			ob := v.(IMapObject)
-			if ob == m || ob.IsBlocking() {
-				ret = true
+	if cell != nil && cell.objects != nil {
+		for _, o := range cell.objects {
+			if o == m || o.IsBlocking() {
+				continue
 			}
-			return ret
-		})
+			break
+		}
 	}
 
 	return false

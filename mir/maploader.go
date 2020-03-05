@@ -3,7 +3,6 @@ package mir
 import (
 	"fmt"
 	"io/ioutil"
-	"sync"
 
 	"github.com/yenkeia/mirgo/common"
 )
@@ -91,9 +90,8 @@ func GetMapV0(bytes []byte) *Map {
 	for i := 0; i < width; i++ {
 		for j := 0; j < height; j++ {
 			p := common.Point{X: uint32(i), Y: uint32(j)}
-			c := new(Cell)
+			c := NewCell()
 			c.Point = p
-			c.Objects = new(sync.Map)
 			if (common.BytesToUint16(bytes[offset:]) & 0x8000) != 0 {
 				c.Attribute = common.CellAttributeHighWall
 			}
@@ -131,9 +129,8 @@ func GetMapV1(bytes []byte) *Map {
 	for i := 0; i < width; i++ {
 		for j := 0; j < height; j++ {
 			p := common.Point{X: uint32(i), Y: uint32(j)}
-			c := new(Cell)
+			c := NewCell()
 			c.Point = p
-			c.Objects = new(sync.Map)
 			if (common.BytesToUint32(bytes[offset:offset+4])^0xAA38AA38)&0x20000000 != 0 {
 				c.Attribute = common.CellAttributeHighWall
 			}
@@ -165,9 +162,8 @@ func GetMapV3(bytes []byte) *Map {
 	for i := 0; i < width; i++ {
 		for j := 0; j < height; j++ {
 			p := common.Point{X: uint32(i), Y: uint32(j)}
-			c := new(Cell)
+			c := NewCell()
 			c.Point = p
-			c.Objects = new(sync.Map)
 			if (common.BytesToUint16(bytes[offset:]) & 0x8000) != 0 {
 				c.Attribute = common.CellAttributeHighWall
 			}
@@ -205,9 +201,8 @@ func GetMapV5(bytes []byte) *Map {
 	for i := 0; i < width; i++ {
 		for j := 0; j < height; j++ {
 			p := common.Point{X: uint32(i), Y: uint32(j)}
-			c := new(Cell)
+			c := NewCell()
 			c.Point = p
-			c.Objects = new(sync.Map)
 			if (bytes[offset] & 0x01) != 1 {
 				c.Attribute = common.CellAttributeHighWall
 			} else if (bytes[offset] & 0x02) != 2 {
