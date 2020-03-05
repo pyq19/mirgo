@@ -980,17 +980,47 @@ func (p *Player) Walk(direction common.MirDirection) {
 }
 
 func (p *Player) Run(direction common.MirDirection) {
-	n1 := p.Point().NextPoint(direction, 1)
-	n2 := p.Point().NextPoint(direction, 2)
+	steps := 2
 
-	// TODO: CheckMovement
+	var loc common.Point
+	for i := 1; i <= steps; i++ {
+		loc = p.CurrentLocation.NextPoint(direction, uint32(i))
+		if !p.Map.ValidPoint(loc) {
+			p.Enqueue(ServerMessage{}.UserLocation(p))
+			return
+		}
+		if !p.Map.CheckDoorOpen(loc) {
+			p.Enqueue(ServerMessage{}.UserLocation(p))
+			return
+		}
 
-	if ok := p.Map.UpdateObject(p, n1, n2); !ok {
+		cell := p.Map.GetCell(loc)
+		if cell.objects != nil {
+			for _, o := range cell.objects {
+				switch o.(type) {
+				case *NPC:
+					// if (!NPC.Visible || !NPC.VisibleLog[Info.Index]) continue
+				default:
+					if !o.IsBlocking() {
+						continue
+					}
+				}
+				p.Enqueue(ServerMessage{}.UserLocation(p))
+				return
+			}
+		}
+
+		if p.CheckMovement(loc) {
+			return
+		}
+	}
+
+	if ok := p.Map.UpdateObject(p, loc); !ok {
 		p.Enqueue(ServerMessage{}.UserLocation(p))
 		return
 	}
 	p.CurrentDirection = direction
-	p.CurrentLocation = n2
+	p.CurrentLocation = loc
 	p.Enqueue(ServerMessage{}.UserLocation(p))
 	p.Broadcast(ServerMessage{}.ObjectRun(p))
 }
