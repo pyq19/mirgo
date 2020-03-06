@@ -22,15 +22,13 @@ func BagLoadFromDB(p *Player, typ common.UserItemType, n int) *Bag {
 	b.Items = make([]*common.UserItem, n)
 
 	cui := []*common.CharacterUserItem{}
-	adb.Table("character_user_item").Where("character_id = ?", p.ID).Find(&cui)
+	adb.Table("character_user_item").Where("character_id = ? AND type = ?", p.ID, typ).Find(&cui)
 	ids := make([]int, n)
 
 	userItemIDIndexMap := make(map[int]int)
 
 	for i, item := range cui {
-		if common.UserItemType(item.Type) == typ {
-			ids[i] = item.UserItemID
-		}
+		ids[i] = item.UserItemID
 		userItemIDIndexMap[item.UserItemID] = item.Index
 	}
 
