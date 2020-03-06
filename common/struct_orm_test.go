@@ -1,10 +1,11 @@
 package common
 
 import (
-	"github.com/jinzhu/gorm"
-	_ "github.com/jinzhu/gorm/dialects/sqlite"
 	"os"
 	"testing"
+
+	"github.com/jinzhu/gorm"
+	_ "github.com/jinzhu/gorm/dialects/sqlite"
 )
 
 func TestDB(t *testing.T) {
@@ -40,7 +41,7 @@ func TestDB(t *testing.T) {
 
 	var movementInfo MovementInfo
 	db.Table("movement").Where("map_id = ?", 2).First(&movementInfo)
-	t.Log(movementInfo.MapID, movementInfo.ConquestIndex, movementInfo.DestinationX, movementInfo.DestinationY)
+	// t.Log(movementInfo.MapID, movementInfo.ConquestIndex, movementInfo.DestinationX, movementInfo.DestinationY)
 
 	var npcInfo NpcInfo
 	db.Table("npc").Where("id = ?", 1).Find(&npcInfo)

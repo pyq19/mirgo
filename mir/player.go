@@ -1544,21 +1544,63 @@ func (p *Player) Attack(direction common.MirDirection, spell common.Spell) {
 	p.Broadcast(ServerMessage{}.ObjectAttack(p, common.SpellNone, 0, 0))
 	target := p.GetPoint().NextPoint(p.GetDirection(), 1)
 	damageBase := p.GetAttackPower(int(p.MinDC), int(p.MaxDC)) // = the original damage from your gear (+ bonus from moonlight and darkbody)
-	damageFinal := damageBase                                  // = the damage you're gonna do with skills added
 	cell := p.Map.GetCell(target)
 	if !cell.CanWalk() {
 		return
 	}
 	for _, o := range cell.objects {
+		if o.GetRace() != common.ObjectTypePlayer || o.GetRace() != common.ObjectTypeMonster {
+			continue
+		}
 		if !o.IsAttackTarget(p) {
 			continue
 		}
-		switch o.GetRace() {
-		case common.ObjectTypePlayer:
-			o.(*Player).Attacked(p, damageFinal, common.DefenceTypeAgility)
-		case common.ObjectTypeMonster:
-			o.(*Monster).Attacked(p, damageFinal, common.DefenceTypeAgility)
+		// if (ob.Undead)
+		// {
+		// 	damageBase = Math.Min(int.MaxValue, damageBase + Holy);
+		// 	damageFinal = damageBase;//incase we're not using skills
+		// }
+		// #region FatalSword	// TODO
+		// #region MPEater		// TODO
+		// #region Hemorrhage	// TODO
+		defence := common.DefenceTypeACAgility
+		damageFinal := damageBase
+		switch spell {
+		case common.SpellSlaying: // 攻杀剑术
+			magic := p.GetMagic(common.SpellSlaying)
+			damageFinal = magic.GetDamage(damageBase)
+			p.LevelMagic(magic)
+		// case common.SpellDoubleSlash:
+		case common.SpellThrusting: // 刺杀剑术
+			magic := p.GetMagic(common.SpellThrusting)
+			p.LevelMagic(magic)
+		case common.SpellHalfMoon: // 半月弯刀
+			magic := p.GetMagic(common.SpellHalfMoon)
+			p.LevelMagic(magic)
+		case common.SpellCrossHalfMoon: // 圆月弯刀
+			magic := p.GetMagic(common.SpellCrossHalfMoon)
+			p.LevelMagic(magic)
+		case common.SpellTwinDrakeBlade: // 双龙斩
+			magic := p.GetMagic(common.SpellTwinDrakeBlade)
+			damageFinal = magic.GetDamage(damageBase)
+			p.TwinDrakeBlade = false
+			//   action = new DelayedAction(DelayedType.Damage, Envir.Time + 400, ob, damageFinal, DefenceType.Agility, false);
+			p.ActionList.PushDelayAction(DelayedTypeDamage, 400, func() { p.CompleteAttack(o, damageFinal, common.DefenceTypeAgility, false) })
+			p.LevelMagic(magic)
+			// TODO
+			//   if ((((ob.Race != ObjectType.Player) || Settings.PvpCanResistPoison) && (Envir.Random.Next(Settings.PoisonAttackWeight) >= ob.PoisonResist)) && (ob.Level < Level + 10 && Envir.Random.Next(ob.Race == ObjectType.Player ? 40 : 20) <= magic.Level + 1))
+			//   {
+			//       ob.ApplyPoison(new Poison { PType = PoisonType.Stun, Duration = ob.Race == ObjectType.Player ? 2 : 2 + magic.Level, TickSpeed = 1000 }, this);
+			//       ob.Broadcast(new S.ObjectEffect { ObjectID = ob.ObjectID, Effect = SpellEffect.TwinDrakeBlade });
+			//   }
+		case common.SpellFlamingSword: // 烈火剑法
+			magic := p.GetMagic(common.SpellFlamingSword)
+			damageFinal = magic.GetDamage(damageBase)
+			p.FlamingSword = false
+			defence = common.DefenceTypeAC
+			p.LevelMagic(magic)
 		}
+		p.ActionList.PushDelayAction(DelayedTypeDamage, 300, func() { p.CompleteAttack(o, damageFinal, defence, true) })
 	}
 }
 
