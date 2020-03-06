@@ -577,20 +577,61 @@ func (p *Player) RefreshBagWeight() {
 }
 
 func (p *Player) RefreshEquipmentStats() {
-	for _, v := range p.Equipment.Items {
-		if v != nil {
-			e := data.GetItemInfoByID(int(v.ItemID))
-			if e == nil {
-				continue
-			}
-			switch e.Type {
-			case common.ItemTypeArmour:
-				p.LooksArmour = int(e.Shape)
-				p.LooksWings = int(e.Effect)
-			case common.ItemTypeWeapon:
-				p.LooksWeapon = int(e.Shape)
-				p.LooksWeaponEffect = int(e.Effect)
-			}
+	for _, temp := range p.Equipment.Items {
+		if temp == nil {
+			continue
+		}
+
+		RealItem := temp.Info
+
+		p.MinAC = ut.Uint16(int(p.MinAC) + int(RealItem.MinAC))
+		p.MaxAC = ut.Uint16(int(p.MaxAC) + int(RealItem.MaxAC) + int(temp.AC))
+		p.MinMAC = ut.Uint16(int(p.MinMAC) + int(RealItem.MinMAC))
+		p.MaxMAC = ut.Uint16(int(p.MaxMAC) + int(RealItem.MaxMAC) + int(temp.MAC))
+		p.MinDC = ut.Uint16(int(p.MinDC) + int(RealItem.MinDC))
+		p.MaxDC = ut.Uint16(int(p.MaxDC) + int(RealItem.MaxDC) + int(temp.DC))
+		p.MinMC = ut.Uint16(int(p.MinMC) + int(RealItem.MinMC))
+		p.MaxMC = ut.Uint16(int(p.MaxMC) + int(RealItem.MaxMC) + int(temp.MC))
+		p.MinSC = ut.Uint16(int(p.MinSC) + int(RealItem.MinSC))
+		p.MaxSC = ut.Uint16(int(p.MaxSC) + int(RealItem.MaxSC) + int(temp.SC))
+		p.MaxHP = ut.Uint16(int(p.MaxHP) + int(RealItem.HP) + int(temp.HP))
+		p.MaxMP = ut.Uint16(int(p.MaxMP) + int(RealItem.MP) + int(temp.MP))
+
+		p.MaxBagWeight = ut.Uint16(int(p.MaxBagWeight) + int(RealItem.BagWeight))
+		p.MaxWearWeight = ut.Uint16(int(p.MaxWearWeight) + int(RealItem.WearWeight))
+		p.MaxHandWeight = ut.Uint16(int(p.MaxHandWeight) + int(RealItem.HandWeight))
+
+		p.ASpeed = ut.Int8(int(p.ASpeed) + int(temp.AttackSpeed) + int(RealItem.AttackSpeed))
+		p.Luck = ut.Int8(int(p.Luck) + int(temp.Luck) + int(RealItem.Luck))
+
+		p.Accuracy = ut.Uint8(int(p.Accuracy) + int(RealItem.Accuracy) + int(temp.Accuracy))
+		p.Agility = ut.Uint8(int(p.Agility) + int(RealItem.Agility) + int(temp.Agility))
+
+		// p.HPrate = ut.Int8(HPrate + RealItem.HPrate)
+		// p.MPrate = ut.Int8(MPrate + RealItem.MPrate)
+		// p.Acrate = ut.Int8(Acrate + RealItem.MaxAcRate)
+		// p.Macrate = ut.Int8(Macrate + RealItem.MaxMacRate)
+
+		p.MagicResist = ut.Uint8(int(p.MagicResist) + int(temp.MagicResist) + int(RealItem.MagicResist))
+		p.PoisonResist = ut.Uint8(int(p.PoisonResist) + int(temp.PoisonResist) + int(RealItem.PoisonResist))
+		p.HealthRecovery = ut.Uint8(int(p.HealthRecovery) + int(temp.HealthRecovery) + int(RealItem.HealthRecovery))
+		p.SpellRecovery = ut.Uint8(int(p.SpellRecovery) + int(temp.ManaRecovery) + int(RealItem.SpellRecovery))
+		p.PoisonRecovery = ut.Uint8(int(p.PoisonRecovery) + int(temp.PoisonRecovery) + int(RealItem.PoisonRecovery))
+		p.CriticalRate = ut.Uint8(int(p.CriticalRate) + int(temp.CriticalRate) + int(RealItem.CriticalRate))
+		p.CriticalDamage = ut.Uint8(int(p.CriticalDamage) + int(temp.CriticalDamage) + int(RealItem.CriticalDamage))
+		p.Holy = ut.Uint8(int(p.Holy) + int(RealItem.Holy))
+		p.Freezing = ut.Uint8(int(p.Freezing) + int(temp.Freezing) + int(RealItem.Freezing))
+		p.PoisonAttack = ut.Uint8(int(p.PoisonAttack) + int(temp.PoisonAttack) + int(RealItem.PoisonAttack))
+		p.Reflect = ut.Uint8(int(p.Reflect) + int(RealItem.Reflect))
+		p.HpDrainRate = ut.Uint8(int(p.HpDrainRate) + int(RealItem.HpDrainRate))
+
+		switch RealItem.Type {
+		case common.ItemTypeArmour:
+			p.LooksArmour = int(RealItem.Shape)
+			p.LooksWings = int(RealItem.Effect)
+		case common.ItemTypeWeapon:
+			p.LooksWeapon = int(RealItem.Shape)
+			p.LooksWeaponEffect = int(RealItem.Effect)
 		}
 	}
 }
@@ -1657,7 +1698,7 @@ func (p *Player) SellItem(id uint64, count uint32) {
 	if temp.Info.StackSize > 1 && count != temp.Count {
 		item := env.NewUserItem(temp.Info)
 		item.Count = count
-		if item.Price()/2+p.Gold > uint64(ut.UintMax) {
+		if item.Price()/2+p.Gold > uint64(math.MaxUint64) {
 			p.Enqueue(msg)
 			return
 		}

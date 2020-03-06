@@ -38,6 +38,7 @@ func BagLoadFromDB(p *Player, typ common.UserItemType, n int) *Bag {
 	adb.Table("user_item").Where("id in (?)", ids).Find(&items)
 
 	for _, item := range items {
+		item.Info = data.GetItemInfoByID(int(item.ItemID))
 		b.Items[userItemIDIndexMap[int(item.ID)]] = item
 	}
 

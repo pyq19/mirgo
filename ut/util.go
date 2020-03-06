@@ -3,6 +3,7 @@ package ut
 import (
 	"bufio"
 	"io"
+	"math"
 	"math/rand"
 	"os"
 	"path"
@@ -11,8 +12,27 @@ import (
 	"unicode"
 )
 
-const UintMax = ^uint(0)
-const IntMax = int(^uint(0) >> 1)
+func Uint16(v int) uint16 {
+	return uint16(Clamp(v, 0, math.MaxUint16))
+}
+
+func Int8(v int) int8 {
+	return int8(Clamp(v, math.MinInt8, math.MaxInt8))
+}
+
+func Uint8(v int) uint8 {
+	return uint8(Clamp(v, 0, math.MaxUint8))
+}
+
+func Clamp(value, min, max int) int {
+	if value < min {
+		return min
+	} else if value > max {
+		return max
+	} else {
+		return value
+	}
+}
 
 func HasFlagUint16(a, b uint16) bool {
 	return a&b != 0
@@ -32,6 +52,14 @@ func AbsInt(i int) int {
 		return -i
 	}
 	return i
+}
+
+func MinInt(a, b int) int {
+	if a > b {
+		return b
+	} else {
+		return a
+	}
 }
 
 func MaxInt(a, b int) int {
