@@ -1,12 +1,10 @@
 package mircodec
 
 import (
-	"os"
 	"reflect"
 	"testing"
 
 	"github.com/davyxu/cellnet"
-	"github.com/jinzhu/gorm"
 	"github.com/yenkeia/mirgo/common"
 	"github.com/yenkeia/mirgo/proto/client"
 	"github.com/yenkeia/mirgo/proto/server"
@@ -413,37 +411,6 @@ func TestUserInformation(t *testing.T) {
 	t.Log(obj)
 }
 
-func saveToDB(msg *server.UserInformation) {
-	gopath := os.Getenv("GOPATH")
-	db, err := gorm.Open("sqlite3", gopath+mirDB)
-	if err != nil {
-		panic("failed to connect database")
-	}
-	//defer db.Close()
-
-	i := msg.Inventory
-	for _, v := range i {
-		if v.ID == 0 {
-			continue
-		}
-		db.Table("user_item").Create(v)
-	}
-	e := msg.Equipment
-	for _, v := range e {
-		if v.ID == 0 {
-			continue
-		}
-		db.Table("user_item").Create(v)
-	}
-	q := msg.QuestInventory
-	for _, v := range q {
-		if v.ID == 0 {
-			continue
-		}
-		db.Table("user_item").Create(v)
-	}
-}
-
 func TestEmptySlice(t *testing.T) {
 	slice := make([]*common.UserItem, 5)
 	slice[0].ItemID = 1
@@ -668,26 +635,6 @@ func TestDecodeEncodeObjectNPC_3(t *testing.T) {
 	t.Log(msg)
 	//ObjectNPC: ID(101920) Name(Merchant_Ruben) NameColor(-1) Image(1) Color(-1) Location(291,610) Direction(4) QuestIDs([])
 	obj, err := codec.Encode(msg, *new(cellnet.ContextSet))
-	if err != nil {
-		t.Error(err)
-	}
-	t.Log(obj.([]byte))
-}
-
-func TestEncodeCharacter(t *testing.T) {
-	path := os.Getenv("GOPATH") + "/src/github.com/yenkeia/mirgo/dotnettools/mir.sqlite"
-	db, err := gorm.Open("sqlite3", path)
-	if err != nil {
-		panic("failed to connect database")
-	}
-	defer db.Close()
-
-	c := new(common.Character)
-	db.Table("character").Where("id = ?", 1).Find(&c)
-	t.Log(c)
-
-	codec := new(MirCodec)
-	obj, err := codec.Encode(c, *new(cellnet.ContextSet))
 	if err != nil {
 		t.Error(err)
 	}
