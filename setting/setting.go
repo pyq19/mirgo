@@ -91,24 +91,25 @@ type Settings struct {
 	DBPath        string
 	AccountDBPath string
 	MapDirPath    string
-	ScriptDirPath string
 	DropDirPath   string
 	EnvirPath     string
 	ConfigsPath   string
 }
 
 func DefaultSettings() *Settings {
-	gopath := os.Getenv("GOPATH")
+	dir := os.Getenv("MIR")
+	if dir == "" {
+		dir = os.Getenv("GOPATH") + "/src/github.com/yenkeia/mirgo/dotnettools"
+	}
 
 	return &Settings{
 		Addr:          "0.0.0.0:7000",
-		DBPath:        gopath + "/src/github.com/yenkeia/mirgo/dotnettools/mir.sqlite",
-		AccountDBPath: gopath + "/src/github.com/yenkeia/mirgo/dotnettools/account.sqlite",
-		MapDirPath:    gopath + "/src/github.com/yenkeia/mirgo/dotnettools/database/Maps/",
-		ScriptDirPath: gopath + "/src/github.com/yenkeia/mirgo/script/",
-		DropDirPath:   gopath + "/src/github.com/yenkeia/mirgo/dotnettools/database/Envir/Drops/",
-		EnvirPath:     gopath + "/src/github.com/yenkeia/mirgo/dotnettools/database/Envir/",
-		ConfigsPath:   gopath + "/src/github.com/yenkeia/mirgo/dotnettools/database/Configs/",
+		DBPath:        dir + "/mir.sqlite",
+		AccountDBPath: dir + "/account.sqlite",
+		MapDirPath:    dir + "/database/Maps/",
+		DropDirPath:   dir + "/database/Envir/Drops/",
+		EnvirPath:     dir + "/database/Envir/",
+		ConfigsPath:   dir + "/database/Configs/",
 	}
 }
 

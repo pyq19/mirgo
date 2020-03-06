@@ -14,6 +14,7 @@
 
 编译运行
 --------------------
+  * 设置环境变量 MIR 指向 dotnettools 文件夹, export MIR=/Users/xxxx/mirgo/dotnettools
   * 进入目录 mirgo/server，依次执行命令：
   * go mod vendor 
   * go build 
