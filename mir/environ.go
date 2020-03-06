@@ -1,6 +1,7 @@
 package mir
 
 import (
+	"fmt"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -95,7 +96,6 @@ func newEnv() *Environ {
 	e.Game = &Game{}
 
 	PrintEnviron(e)
-
 	return e
 }
 
@@ -113,6 +113,13 @@ func NewEnviron() *Environ {
 }
 
 func PrintEnviron(env *Environ) {
+	banner := `
+• ▌ ▄ ·. ▪  ▄▄▄   ▄▄ •       
+·██ ▐███▪██ ▀▄ █·▐█ ▀ ▪▪     
+▐█ ▌▐▌▐█·▐█·▐▀▀▄ ▄█ ▀█▄ ▄█▀▄ 
+██ ██▌▐█▌▐█▌▐█•█▌▐█▄▪▐█▐█▌.▐▌
+▀▀  █▪▀▀▀▀▀▀.▀  ▀·▀▀▀▀  ▀█▄▀▪
+`
 	mapCount := 0
 	monsterCount := 0
 	npcCount := 0
@@ -121,6 +128,7 @@ func PrintEnviron(env *Environ) {
 		monsterCount += len(m.monsters)
 		npcCount += len(m.npcs)
 	}
+	fmt.Println(banner)
 	log.Debugf("共加载了 %d 张地图，%d 怪物，%d NPC\n", mapCount, monsterCount, npcCount)
 }
 
