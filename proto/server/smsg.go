@@ -959,7 +959,7 @@ type ObjectName struct {
 }
 
 type UserStorage struct {
-	Storage []common.UserItem
+	Storage []*common.UserItem
 }
 
 type SwitchGroup struct {

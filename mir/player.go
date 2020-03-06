@@ -1600,17 +1600,37 @@ func (p *Player) CallNPC1(npc *NPC, key string) {
 	p.Enqueue(ServerMessage{}.NPCResponse(replaceTemplates(npc, p, say)))
 
 	// ProcessSpecial
-	switch strings.ToUpper(key) {
-	case "[@BUY]":
+	key = strings.ToUpper(key)[2 : len(key)-1]
+	fmt.Println("call npc", npc.Name, key)
+
+	switch key {
+	case "BUY":
 		sendBuyKey(p, npc)
-	case "[@SELL]":
+	case "SELL":
 		p.Enqueue(&server.NPCSell{})
-	case "[@BUYSELL]":
+	case "BUYSELL":
 		sendBuyKey(p, npc)
 		p.Enqueue(&server.NPCSell{})
+	case "STORAGE":
+		sendStorage(p, npc)
+		p.Enqueue(&server.NPCStorage{})
+
 	default:
 		// TODO
 	}
+}
+
+func sendStorage(p *Player, npc *NPC) {
+	// if (Connection.StorageSent) return;
+	// Connection.StorageSent = true;
+
+	for _, item := range p.Storage.Items {
+		if item != nil {
+			p.EnqueueItemInfo(item.ItemID)
+		}
+	}
+
+	p.Enqueue(&server.UserStorage{Storage: p.Storage.Items})
 }
 
 func sendBuyKey(p *Player, npc *NPC) {

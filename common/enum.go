@@ -393,6 +393,7 @@ const (
 	UserItemTypeInventory      UserItemType = 0
 	UserItemTypeEquipment                   = 1
 	UserItemTypeQuestInventory              = 2
+	UserItemTypeStorage                     = 3
 )
 
 type PoisonType uint16

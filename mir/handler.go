@@ -509,6 +509,7 @@ func updatePlayerInfo(g *Game, p *Player, c *common.Character) {
 	p.Inventory = BagLoadFromDB(p, common.UserItemTypeInventory, 46)
 	p.Equipment = BagLoadFromDB(p, common.UserItemTypeEquipment, 14)
 	p.QuestInventory = BagLoadFromDB(p, common.UserItemTypeQuestInventory, 40)
+	p.Storage = BagLoadFromDB(p, common.UserItemTypeStorage, 80)
 
 	healNextTime := time.Now().Add(10 * time.Second)
 	p.HP = c.HP
