@@ -604,7 +604,19 @@ func (p *Player) RefreshMirSetStats() {
 }
 
 func (p *Player) RefreshSkills() {
-
+	// 这些技能只是用来加属性
+	for _, magic := range p.Magics {
+		switch magic.Spell {
+		case common.SpellFencing: // 基本剑术
+			// Accuracy = (byte)Math.Min(byte.MaxValue, Accuracy + magic.Level * 3);
+			// MaxAC = (ushort)Math.Min(ushort.MaxValue, MaxAC + (magic.Level + 1) * 3);
+		case common.SpellFatalSword: // 刺客的技能 忽略
+			// Accuracy = (byte)Math.Min(byte.MaxValue, Accuracy + magic.Level);
+		case common.SpellSpiritSword: // 精神力战法
+			// Accuracy = (byte)Math.Min(byte.MaxValue, Accuracy + magic.Level);
+			// MaxDC = (ushort)Math.Min(ushort.MaxValue, MaxDC + MaxSC * (magic.Level + 1) * 0.1F);
+		}
+	}
 }
 
 func (p *Player) RefreshBuffs() {
