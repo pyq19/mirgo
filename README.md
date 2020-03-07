@@ -14,7 +14,6 @@
 
 编译运行
 --------------------
-  * 设置环境变量 MIR 指向 dotnettools 文件夹, export MIR=/Users/xxxx/mirgo/dotnettools
   * 进入目录 mirgo/server，依次执行命令：
   * go mod vendor 
   * go build 
@@ -26,7 +25,7 @@
 
 客户端
 --------------------
-  * 代码: https://github.com/yenkeia/mir2
+  * 客户端代码： https://github.com/yenkeia/mir2
   * 客户端资源： 链接: https://pan.baidu.com/s/1ELI8pO278v9JRyt6lS-A8Q 提取码: 0nc3
 
 感谢贡献者
