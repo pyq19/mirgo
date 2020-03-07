@@ -1791,7 +1791,7 @@ func (p *Player) Attack(direction common.MirDirection, spell common.Spell) {
 	_ = level // TODO
 	p.CurrentDirection = direction
 	p.Enqueue(ServerMessage{}.UserLocation(p))
-	p.Broadcast(ServerMessage{}.ObjectAttack(p, common.SpellNone, 0, 0))
+	p.Broadcast(ServerMessage{}.ObjectAttack(p, spell, 0, 0))
 	target := p.GetPoint().NextPoint(p.GetDirection(), 1)
 	damageBase := p.GetAttackPower(int(p.MinDC), int(p.MaxDC)) // = the original damage from your gear (+ bonus from moonlight and darkbody)
 	cell := p.Map.GetCell(target)
