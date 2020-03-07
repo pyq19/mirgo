@@ -90,9 +90,13 @@ func (b *Bag) Get(i int) *common.UserItem {
 	return b.Items[i]
 }
 
+func (b *Bag) SetCount(i int, c uint32) {
+	adb.Table("user_item").Where("id = ?", b.Items[i].ID).Update("count", c)
+	b.Items[i].Count = c
+}
+
 func (b *Bag) UseCount(i int, c uint32) {
-	adb.Table("user_item").Where("id = ?", b.Items[i].ID).Update("count", b.Items[i].Count-c)
-	b.Items[i].Count -= c
+	b.SetCount(i, b.Items[i].Count-c)
 }
 
 func (b *Bag) MoveTo(from, to int, tobag *Bag) error {

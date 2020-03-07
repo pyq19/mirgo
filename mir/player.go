@@ -703,19 +703,33 @@ func (p *Player) ConsumeItem(userItem *common.UserItem, count int) {
 }
 
 // GainItem 为玩家增加物品，增加成功返回 true
-func (p *Player) GainItem(ui *common.UserItem) bool {
-	item := data.GetItemInfoByID(int(ui.ItemID))
-	if item == nil {
-		return false
+func (p *Player) GainItem(item *common.UserItem) bool {
+
+	info := item.Info
+
+	if info.StackSize > 1 {
+		for i, v := range p.Inventory.Items {
+			if v == nil || info != v.Info || v.Count > info.StackSize {
+				continue
+			}
+			if item.Count+v.Count <= info.StackSize {
+				p.Inventory.SetCount(i, v.Count+item.Count)
+				return true
+			}
+
+			p.Inventory.SetCount(i, v.Count+item.Count)
+			item.Count -= info.StackSize - v.Count
+		}
 	}
+
 	i, j := 6, 46
-	if item.Type == common.ItemTypePotion ||
-		item.Type == common.ItemTypeScroll ||
-		item.Type == common.ItemTypeScript ||
-		item.Type == common.ItemTypeAmulet {
+	if info.Type == common.ItemTypePotion ||
+		info.Type == common.ItemTypeScroll ||
+		info.Type == common.ItemTypeScript ||
+		info.Type == common.ItemTypeAmulet {
 		i = 0
 		j = 4
-	} else if item.Type == common.ItemTypeAmulet {
+	} else if info.Type == common.ItemTypeAmulet {
 		i = 4
 		j = 6
 	} else {
@@ -726,14 +740,14 @@ func (p *Player) GainItem(ui *common.UserItem) bool {
 			i++
 			continue
 		}
-		p.Inventory.Set(i, ui)
+		p.Inventory.Set(i, item)
 		// p.Inventory.Items[i] = ui
 		break
 	}
 
-	p.EnqueueItemInfo(ui.ItemID)
-	ui.SoulBoundId = p.GetID()
-	p.Enqueue(ServerMessage{}.GainedItem(ui))
+	p.EnqueueItemInfo(item.ItemID)
+	item.SoulBoundId = p.GetID()
+	p.Enqueue(ServerMessage{}.GainedItem(item))
 	p.RefreshBagWeight()
 	return true
 }
@@ -1419,6 +1433,144 @@ func (p *Player) SplitItem(grid common.MirGridType, id uint64, count uint32) {
 	}
 }
 
+func (p *Player) UseItemScroll(item *common.UserItem) bool {
+	switch item.Info.Shape {
+	case 0: //DE
+		// if (!p.TeleportEscape(20)) {
+		// 	return false
+		// }
+	case 1: //TT
+		// if (!p.Teleport(env.GetMap(BindMapIndex), BindLocation)) {
+		// 	return false
+		// }
+	case 2: //RT
+		// if (!TeleportRandom(200, item.Info.Durability)) {
+		// 	Enqueue(p);
+		// }
+	case 3: //BenedictionOil
+		// if (!TryLuckWeapon()) {
+		// 	Enqueue(p);
+		// }
+		/*
+			case 4: //RepairOil
+				temp = Info.Equipment[(int)EquipmentSlot.Weapon];
+				if (temp == null || temp.MaxDura == temp.CurrentDura) {
+					Enqueue(p);
+					return;
+				}
+				if (temp.Info.Bind.HasFlag(BindMode.DontRepair)) {
+					Enqueue(p);
+					return;
+				}
+				temp.MaxDura = (ushort)Math.Max(0, temp.MaxDura - Math.Min(5000, temp.MaxDura - temp.CurrentDura) / 30);
+
+				temp.CurrentDura = (ushort)Math.Min(temp.MaxDura, temp.CurrentDura + 5000);
+				temp.DuraChanged = false;
+
+				ReceiveChat("Your weapon has been partially repaired", ChatType.Hint);
+				Enqueue(new S.ItemRepaired { UniqueID = temp.UniqueID, MaxDura = temp.MaxDura, CurrentDura = temp.CurrentDura });
+			case 5: //WarGodOil
+				temp = Info.Equipment[(int)EquipmentSlot.Weapon];
+				if (temp == null || temp.MaxDura == temp.CurrentDura) {
+					Enqueue(p);
+					return;
+				}
+				if (temp.Info.Bind.HasFlag(BindMode.DontRepair) || (temp.Info.Bind.HasFlag(BindMode.NoSRepair))) {
+					Enqueue(p);
+					return;
+				}
+				temp.CurrentDura = temp.MaxDura;
+				temp.DuraChanged = false;
+
+				ReceiveChat("Your weapon has been completely repaired", ChatType.Hint);
+				Enqueue(new S.ItemRepaired { UniqueID = temp.UniqueID, MaxDura = temp.MaxDura, CurrentDura = temp.CurrentDura });
+			case 6: //ResurrectionScroll
+				if (CurrentMap.Info.NoReincarnation) {
+					ReceiveChat(string.Format("Cannot use on this map"), ChatType.System);
+					Enqueue(p);
+					return;
+				}
+				if (Dead) {
+					MP = MaxMP;
+					Revive(MaxHealth, true);
+				}
+			case 7: //CreditScroll
+				if (item.Info.Price > 0)
+				{
+					GainCredit(item.Info.Price);
+					ReceiveChat(String.Format("{0} Credits have been added to your Account", item.Info.Price), ChatType.Hint);
+				}
+			case 8: //MapShoutScroll
+				HasMapShout = true;
+				ReceiveChat("You have been given one free shout across your current map", ChatType.Hint);
+			case 9://ServerShoutScroll
+				HasServerShout = true;
+				ReceiveChat("You have been given one free shout across the server", ChatType.Hint);
+			case 10://GuildSkillScroll
+				MyGuild.NewBuff(item.Info.Effect, false);
+			case 11://HomeTeleport
+				if (MyGuild != null && MyGuild.Conquest != null && !MyGuild.Conquest.WarIsOn && MyGuild.Conquest.PalaceMap != null && !TeleportRandom(200, 0, MyGuild.Conquest.PalaceMap)) {
+					Enqueue(p);
+					return;
+				}
+			case 12://LotteryTicket
+				if (Envir.Random.Next(item.Info.Effect * 32) == 1){ // 1st prize : 1,000,000
+					ReceiveChat("You won 1st Prize! Received 1,000,000 gold", ChatType.Hint);
+					GainGold(1000000);
+				} else if (Envir.Random.Next(item.Info.Effect * 16) == 1) { // 2nd prize : 200,000
+					ReceiveChat("You won 2nd Prize! Received 200,000 gold", ChatType.Hint);
+					GainGold(200000);
+				} else if (Envir.Random.Next(item.Info.Effect * 8) == 1)  {// 3rd prize : 100,000
+					ReceiveChat("You won 3rd Prize! Received 100,000 gold", ChatType.Hint);
+					GainGold(100000);
+				} else if (Envir.Random.Next(item.Info.Effect * 4) == 1) {// 4th prize : 10,000
+					ReceiveChat("You won 4th Prize! Received 10,000 gold", ChatType.Hint);
+					GainGold(10000);
+				} else if (Envir.Random.Next(item.Info.Effect * 2) == 1) { // 5th prize : 1,000
+					ReceiveChat("You won 5th Prize! Received 1,000 gold", ChatType.Hint);
+					GainGold(1000);
+				} else if (Envir.Random.Next(item.Info.Effect) == 1)  {// 6th prize 500
+					ReceiveChat("You won 6th Prize! Received 500 gold", ChatType.Hint);
+					GainGold(500);
+				} else {
+					ReceiveChat("You haven't won anything.", ChatType.Hint);
+				}
+		*/
+	}
+
+	return true
+}
+
+func (p *Player) UserItemPotion(item *common.UserItem) bool {
+	info := item.Info
+	switch info.Shape {
+	case 0: // NormalPotion 一般药水
+		ph := &p.Health
+		if info.HP > 0 {
+			ph.HPPotValue = int(info.HP)                         // 回复总值
+			ph.HPPotPerValue = int(info.HP / 3)                  // 一次回复多少
+			*ph.HPPotNextTime = time.Now().Add(ph.HPPotDuration) // 下次生效时间
+			ph.HPPotTickNum = 3                                  // 总共跳几次
+			ph.HPPotTickTime = 0                                 // 当前第几跳
+		}
+		if info.MP > 0 {
+			ph.MPPotValue = int(info.MP)
+			ph.MPPotPerValue = int(info.MP / 3)
+			*ph.MPPotNextTime = time.Now().Add(ph.MPPotDuration)
+			ph.MPPotTickNum = 3
+			ph.MPPotTickTime = 0
+		}
+	case 1: // SunPotion 太阳水
+		p.ChangeHP(int(info.HP))
+		p.ChangeMP(int(info.MP))
+	case 2: // TODO MysteryWater
+	case 3: // TODO Buff
+	case 4: // TODO Exp 经验
+	}
+
+	return true
+}
+
 func (p *Player) UseItem(id uint64) {
 	msg := &server.UseItem{UniqueID: id, Success: false}
 	if p.IsDead() {
@@ -1431,65 +1583,43 @@ func (p *Player) UseItem(id uint64) {
 		p.Enqueue(msg)
 		return
 	}
-	ph := &p.Health
-	info := data.GetItemInfoByID(int(item.ItemID))
+	info := item.Info
+
 	switch info.Type {
 	case common.ItemTypePotion:
-		switch info.Shape {
-		case 0: // NormalPotion 一般药水
-			if info.HP > 0 {
-				ph.HPPotValue = int(info.HP)                         // 回复总值
-				ph.HPPotPerValue = int(info.HP / 3)                  // 一次回复多少
-				*ph.HPPotNextTime = time.Now().Add(ph.HPPotDuration) // 下次生效时间
-				ph.HPPotTickNum = 3                                  // 总共跳几次
-				ph.HPPotTickTime = 0                                 // 当前第几跳
-			}
-			if info.MP > 0 {
-				ph.MPPotValue = int(info.MP)
-				ph.MPPotPerValue = int(info.MP / 3)
-				*ph.MPPotNextTime = time.Now().Add(ph.MPPotDuration)
-				ph.MPPotTickNum = 3
-				ph.MPPotTickTime = 0
-			}
-		case 1: // SunPotion 太阳水
-			p.ChangeHP(int(info.HP))
-			p.ChangeMP(int(info.MP))
-		case 2: // TODO MysteryWater
-		case 3: // TODO Buff
-		case 4: // TODO Exp 经验
-		}
+		msg.Success = p.UserItemPotion(item)
 	case common.ItemTypeScroll:
+		msg.Success = p.UseItemScroll(item)
 	case common.ItemTypeBook:
 		magic := &common.UserMagic{}
 		magic.Spell = common.Spell(info.Shape)
 		magic.Info = data.GetMagicInfoBySpell(magic.Spell)
 
-		if magic.Info == nil {
-			p.Enqueue(msg)
-			return
+		if magic.Info != nil {
+			p.Magics = append(p.Magics, magic)
+			p.Enqueue(magic.Info)
+			p.RefreshStats()
+			msg.Success = true
 		}
-
-		p.Magics = append(p.Magics, magic)
-		p.Enqueue(magic.Info)
-		p.RefreshStats()
 
 	case common.ItemTypeScript:
 		p.CallDefaultNPC(DefaultNPCTypeUseItem, info.Shape)
+		msg.Success = true
 	case common.ItemTypeFood:
 	case common.ItemTypePets:
 	case common.ItemTypeTransform: //Transforms
-	default:
-		p.Enqueue(msg)
-		return
 	}
-	if item.Count > 1 {
-		item.Count--
-	} else {
-		p.Inventory.Set(index, nil)
-		// p.Inventory[index] = nil
+
+	if msg.Success {
+		if item.Count > 1 {
+			item.Count--
+		} else {
+			p.Inventory.Set(index, nil)
+		}
+
+		p.RefreshBagWeight()
 	}
-	p.RefreshBagWeight()
-	msg.Success = true
+
 	p.Enqueue(msg)
 }
 
