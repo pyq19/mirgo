@@ -1,9 +1,13 @@
 package setting
 
 import (
-	"os"
+	"errors"
+	"io/ioutil"
+	"path/filepath"
 
+	"github.com/pelletier/go-toml"
 	"github.com/yenkeia/mirgo/common"
+	"github.com/yenkeia/mirgo/ut"
 )
 
 var (
@@ -86,6 +90,10 @@ func init() {
 	}
 }
 
+type Conf struct {
+	DataPath string
+}
+
 type Settings struct {
 	Addr          string
 	DBPath        string
@@ -96,21 +104,45 @@ type Settings struct {
 	ConfigsPath   string
 }
 
-func DefaultSettings() *Settings {
-	dir := os.Getenv("MIR")
-	if dir == "" {
-		dir = os.Getenv("GOPATH") + "/src/github.com/yenkeia/mirgo/dotnettools"
+func Must() *Settings {
+	s, err := New()
+	if err != nil {
+		panic("配置初始化失败:" + err.Error())
+	}
+	return s
+}
+
+func New() (*Settings, error) {
+	file := "./config.toml"
+
+	conf := Conf{}
+
+	data, err := ioutil.ReadFile(file)
+	if err != nil {
+		checkdir, err := filepath.Abs("../dotnettools")
+		if err != nil {
+			return nil, errors.New("没有配置")
+		}
+
+		if ut.IsDir(checkdir) {
+			conf.DataPath = checkdir
+		}
+	}
+
+	err = toml.Unmarshal(data, &conf)
+	if err != nil {
+		return nil, err
 	}
 
 	return &Settings{
 		Addr:          "0.0.0.0:7000",
-		DBPath:        dir + "/mir.sqlite",
-		AccountDBPath: dir + "/account.sqlite",
-		MapDirPath:    dir + "/database/Maps/",
-		DropDirPath:   dir + "/database/Envir/Drops/",
-		EnvirPath:     dir + "/database/Envir/",
-		ConfigsPath:   dir + "/database/Configs/",
-	}
+		DBPath:        filepath.Join(conf.DataPath, "/mir.sqlite"),
+		AccountDBPath: filepath.Join(conf.DataPath, "/account.sqlite"),
+		MapDirPath:    filepath.Join(conf.DataPath, "/database/Maps/"),
+		DropDirPath:   filepath.Join(conf.DataPath, "/database/Envir/Drops/"),
+		EnvirPath:     filepath.Join(conf.DataPath, "/database/Envir/"),
+		ConfigsPath:   filepath.Join(conf.DataPath, "/database/Configs/"),
+	}, nil
 }
 
 type baseStats struct {

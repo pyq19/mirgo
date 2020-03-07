@@ -22,6 +22,7 @@ import (
 	"github.com/yenkeia/mirgo/mir/script"
 	_ "github.com/yenkeia/mirgo/proc/mirtcp"
 	"github.com/yenkeia/mirgo/proto/server"
+	"github.com/yenkeia/mirgo/setting"
 	"github.com/yenkeia/mirgo/ut"
 )
 
@@ -101,6 +102,8 @@ func newEnv() *Environ {
 
 // NewEnviron ...
 func NewEnviron() *Environ {
+	settings = setting.Must()
+
 	gameData, _ := gorm.Open("sqlite3", settings.DBPath)
 	data = NewGameData(gameData)
 

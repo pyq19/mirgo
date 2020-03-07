@@ -4,7 +4,7 @@ import (
 	"github.com/yenkeia/mirgo/setting"
 )
 
-var settings = setting.DefaultSettings()
+var settings *setting.Settings
 
 const DataRange = 20
 
