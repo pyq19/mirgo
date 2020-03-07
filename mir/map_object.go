@@ -8,7 +8,7 @@ import (
 
 type Poison struct {
 	Owner     IMapObject
-	Ptype     common.PoisonType
+	PType     common.PoisonType
 	Value     int           // 效果总数
 	Duration  time.Duration // 持续多久（秒）
 	TickSpeed time.Duration
@@ -22,7 +22,7 @@ func NewPoison(duration int, owner IMapObject, ptype common.PoisonType, tickSpee
 	tickNum := int(d / t)                            // 总共跳几次
 	return &Poison{
 		Owner:     owner,
-		Ptype:     ptype,
+		PType:     ptype,
 		Value:     value,
 		Duration:  d,
 		TickSpeed: t,
