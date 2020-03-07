@@ -704,6 +704,7 @@ func (p *Player) ConsumeItem(userItem *common.UserItem, count int) {
 
 // GainItem 为玩家增加物品，增加成功返回 true
 func (p *Player) GainItem(item *common.UserItem) bool {
+	item.SoulBoundId = p.GetID()
 
 	info := item.Info
 
@@ -746,7 +747,6 @@ func (p *Player) GainItem(item *common.UserItem) bool {
 	}
 
 	p.EnqueueItemInfo(item.ItemID)
-	item.SoulBoundId = p.GetID()
 	p.Enqueue(ServerMessage{}.GainedItem(item))
 	p.RefreshBagWeight()
 	return true
