@@ -1619,6 +1619,13 @@ func (p *Player) Attack(direction common.MirDirection, spell common.Spell) {
 	default:
 		spell = common.SpellNone
 	}
+	if !p.Slaying {
+		magic := p.GetMagic(common.SpellSlaying)
+		if ut.RandomNext(12) <= magic.Level {
+			p.Slaying = true
+			p.Enqueue(&server.SpellToggle{Spell: common.SpellSlaying, CanUse: p.Slaying})
+		}
+	}
 	_ = level // TODO
 	p.CurrentDirection = direction
 	p.Enqueue(ServerMessage{}.UserLocation(p))
