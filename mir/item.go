@@ -36,7 +36,8 @@ func (m *Item) AddPlayerCount(n int) {
 	}
 }
 
-func (m *Item) Attacked(attacker IMapObject, damage int, dtype common.DefenceType) {
+func (m *Item) Attacked(attacker IMapObject, damage int, dtype common.DefenceType, damageWeapon bool) int {
+	return 0
 }
 
 func (m *Item) GetPlayerCount() int {

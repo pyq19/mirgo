@@ -92,7 +92,7 @@ type IMapObject interface {
 	ApplyPoison(*Poison, IMapObject)
 	AddPlayerCount(n int)
 	GetPlayerCount() int
-	Attacked(attacker IMapObject, damage int, dtype common.DefenceType)
+	Attacked(attacker IMapObject, damage int, dtype common.DefenceType, damageWeapon bool) int
 }
 
 type MapObject struct {

@@ -46,7 +46,7 @@ func (m *Monster) GuardAttack() {
 		return
 	}
 
-	m.Target.Attacked(m, damage, common.DefenceTypeAgility)
+	m.Target.Attacked(m, damage, common.DefenceTypeAgility, false)
 }
 
 func (m *Monster) SpittingSpiderAttack() {

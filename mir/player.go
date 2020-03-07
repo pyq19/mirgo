@@ -776,8 +776,8 @@ func (p *Player) GetAttackPower(min, max int) int {
 }
 
 // TODO
-func (p *Player) Attacked(attacker IMapObject, damageFinal int, defenceType common.DefenceType) {
-
+func (p *Player) Attacked(attacker IMapObject, damageFinal int, defenceType common.DefenceType, damageWeapon bool) int {
+	return 0
 }
 
 // GainExp 为玩家增加经验
@@ -978,7 +978,30 @@ func (p *Player) EnqueueAreaObjects(oldCell, newCell *Cell) {
 	}
 }
 
-func (p *Player) CompleteAttack(args ...interface{})          {}
+func (p *Player) CompleteAttack(args ...interface{}) {
+	target := args[0].(IMapObject)
+	damage := args[1].(int)
+	defence := args[2].(common.DefenceType)
+	damageWeapon := args[3].(bool)
+
+	if target == nil || !target.IsAttackTarget(p) { // || target.CurrentMap != CurrentMap || target.Node == nil) {
+		return
+	}
+
+	if target.Attacked(p, damage, defence, damageWeapon) <= 0 {
+		return
+	}
+
+	//Level Fencing / SpiritSword
+	for _, magic := range p.Magics {
+		switch magic.Spell {
+		case common.SpellFencing, common.SpellSpiritSword:
+			p.LevelMagic(magic)
+			break
+		}
+	}
+}
+
 func (p *Player) CompleteMapMovement(args ...interface{})     {}
 func (p *Player) CompleteMine(args ...interface{})            {}
 func (p *Player) CompleteNPC(args ...interface{})             {}

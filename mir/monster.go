@@ -403,7 +403,7 @@ func (m *Monster) ChangeHP(amount int) {
 }
 
 // Attacked 被攻击
-func (m *Monster) Attacked(attacker IMapObject, damage int, defenceType common.DefenceType) {
+func (m *Monster) Attacked(attacker IMapObject, damage int, defenceType common.DefenceType, damageWeapon bool) int {
 	if m.Target == nil && attacker.IsAttackTarget(m) {
 		m.Target = attacker
 	}
@@ -412,7 +412,7 @@ func (m *Monster) Attacked(attacker IMapObject, damage int, defenceType common.D
 	case common.DefenceTypeACAgility:
 		if ut.RandomInt(0, int(m.Agility)) > int(attacker.GetBaseStats().Accuracy) {
 			m.BroadcastDamageIndicator(common.DamageTypeMiss, 0)
-			return
+			return 0
 		}
 		armor = m.GetDefencePower(int(m.MinAC), int(m.MaxAC))
 	case common.DefenceTypeAC:
@@ -420,7 +420,7 @@ func (m *Monster) Attacked(attacker IMapObject, damage int, defenceType common.D
 	case common.DefenceTypeMACAgility:
 		if ut.RandomInt(0, int(m.Agility)) > int(attacker.GetBaseStats().Accuracy) {
 			m.BroadcastDamageIndicator(common.DamageTypeMiss, 0)
-			return
+			return 0
 		}
 		armor = m.GetDefencePower(int(m.MinMAC), int(m.MaxMAC))
 	case common.DefenceTypeMAC:
@@ -428,7 +428,7 @@ func (m *Monster) Attacked(attacker IMapObject, damage int, defenceType common.D
 	case common.DefenceTypeAgility:
 		if ut.RandomInt(0, int(m.Agility)) > int(attacker.GetBaseStats().Accuracy) {
 			m.BroadcastDamageIndicator(common.DamageTypeMiss, 0)
-			return
+			return 0
 		}
 	}
 	armor = int(float32(armor) * m.ArmourRate)
@@ -437,7 +437,7 @@ func (m *Monster) Attacked(attacker IMapObject, damage int, defenceType common.D
 	log.Debugf("attacker damage: %d, monster armor: %d\n", damage, armor)
 	if value <= 0 {
 		m.BroadcastDamageIndicator(common.DamageTypeMiss, 0)
-		return
+		return 0
 	}
 	// TODO 还有很多没做
 	m.Broadcast(ServerMessage{}.ObjectStruck(m, attacker.GetID()))
@@ -445,6 +445,8 @@ func (m *Monster) Attacked(attacker IMapObject, damage int, defenceType common.D
 	m.ChangeHP(-value)
 	// log.Debugln("monster->", m)
 	// log.Debugln("attacker->", attacker.(*Monster))
+
+	return 0
 }
 
 // Drop 怪物掉落物品
@@ -598,7 +600,7 @@ func (m *Monster) Attack() {
 	if damage <= 0 {
 		return
 	}
-	m.Target.Attacked(m, damage, common.DefenceTypeAgility)
+	m.Target.Attacked(m, damage, common.DefenceTypeAgility, false)
 }
 
 func (m *Monster) MoveTo(location common.Point) {
@@ -697,5 +699,5 @@ func (m *Monster) CompleteAttack(target IMapObject, damage int, def common.Defen
 		return
 	}
 
-	target.Attacked(m, damage, def)
+	target.Attacked(m, damage, def, false)
 }

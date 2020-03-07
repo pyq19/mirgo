@@ -229,9 +229,9 @@ func (p *Player) CompleteMagic(args ...interface{}) {
 			return
 		}
 		if target.GetRace() == common.ObjectTypePlayer {
-			target.(*Player).Attacked(p, value, common.DefenceTypeMAC)
+			target.(*Player).Attacked(p, value, common.DefenceTypeMAC, false)
 		} else if target.GetRace() == common.ObjectTypeMonster {
-			target.(*Monster).Attacked(p, value, common.DefenceTypeMAC)
+			target.(*Monster).Attacked(p, value, common.DefenceTypeMAC, false)
 		}
 		return
 	case common.SpellFrostCrunch:

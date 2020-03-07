@@ -142,8 +142,8 @@ func (n *NPC) GetDirection() common.MirDirection {
 	return n.CurrentDirection
 }
 
-func (p *NPC) Attacked(attacker IMapObject, damageFinal int, defenceType common.DefenceType) {
-
+func (p *NPC) Attacked(attacker IMapObject, damageFinal int, defenceType common.DefenceType, damageWeapon bool) int {
+	return 0
 }
 
 func (n *NPC) GetInfo() interface{} {
