@@ -1,11 +1,43 @@
 package mircodec
 
 import (
+	"bytes"
 	"errors"
 	"reflect"
 
 	"github.com/yenkeia/mirgo/common"
 )
+
+// 在指针数组元素前加一个bool值，标示该元素是否为nil
+func encodeEmptyFlagArray(v reflect.Value) ([]byte, error) {
+	vvv := reflect.ValueOf(v.Interface())
+	l := vvv.Len()
+	slice := vvv.Slice(0, l)
+
+	buffer := bytes.Buffer{}
+	if slice.IsNil() {
+		buffer.WriteByte(0)
+	} else {
+		buffer.WriteByte(1)
+	}
+
+	buffer.Write(common.Uint32ToBytes(uint32(l)))
+
+	for i := 0; i < l; i++ {
+		if slice.Index(i).IsNil() {
+			buffer.WriteByte(0)
+			continue
+		} else {
+			buffer.WriteByte(1)
+			b, err := encode(slice.Index(i).Interface())
+			if err != nil {
+				panic(err)
+			}
+			buffer.Write(b)
+		}
+	}
+	return buffer.Bytes(), nil
+}
 
 func encode(obj interface{}) (bytes []byte, err error) {
 	v := reflect.ValueOf(obj)
@@ -17,11 +49,19 @@ func encode(obj interface{}) (bytes []byte, err error) {
 		if tag == "-" {
 			continue
 		}
-		encodeBytes, err := encodeValue(v.Field(i))
-		if err != nil {
-			return bytes, err
+		if tag == "emptyflag" {
+			encodeBytes, err := encodeEmptyFlagArray(v.Field(i))
+			if err != nil {
+				return bytes, err
+			}
+			bytes = append(bytes, encodeBytes...)
+		} else {
+			encodeBytes, err := encodeValue(v.Field(i))
+			if err != nil {
+				return bytes, err
+			}
+			bytes = append(bytes, encodeBytes...)
 		}
-		bytes = append(bytes, encodeBytes...)
 	}
 	return
 }

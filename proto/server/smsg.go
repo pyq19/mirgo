@@ -959,7 +959,7 @@ type ObjectName struct {
 }
 
 type UserStorage struct {
-	Storage []*common.UserItem
+	Storage []*common.UserItem `codec:"emptyflag"`
 }
 
 type SwitchGroup struct {

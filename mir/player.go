@@ -684,6 +684,8 @@ func (p *Player) GetUserItemByID(mirGridType common.MirGridType, id uint64) (ind
 		arr = p.Inventory.Items
 	case common.MirGridTypeEquipment:
 		arr = p.Equipment.Items
+	case common.MirGridTypeStorage:
+		arr = p.Storage.Items
 	default:
 		panic("error mirGridType")
 	}
@@ -1136,12 +1138,72 @@ func (p *Player) MoveItem(mirGridType common.MirGridType, from int32, to int32) 
 	p.Enqueue(msg)
 }
 
+func (p *Player) TakeBackItem(from int32, to int32) {
+	msg := &server.TakeBackItem{From: from, To: to, Success: false}
+
+	if p.CallingNPC == nil || !ut.StringEqualFold(p.CallingNPCPage, StorageKey) || !InRange(p.CurrentLocation, p.CallingNPC.GetPoint(), DataRange) {
+		p.Enqueue(msg)
+		return
+	}
+
+	if int(from) > len(p.Storage.Items) || int(to) > len(p.Inventory.Items) {
+		p.Enqueue(msg)
+		return
+	}
+
+	// item := p.Inventory.Get(int(from))
+	// if item.Info.Weight+p.CurrentBagWeight > MaxBagWeight {
+	// 	p.ReceiveChat("Too heavy to get back.", common.ChatTypeSystem)
+	// 	p.Enqueue(p)
+	// }
+	err := p.Storage.MoveTo(int(from), int(to), p.Inventory)
+	if err != nil {
+		log.Infoln(err)
+		p.Enqueue(msg)
+		return
+	}
+
+	msg.Success = true
+	p.Enqueue(msg)
+}
+
 func (p *Player) StoreItem(from int32, to int32) {
 	msg := &server.StoreItem{
 		From:    from,
 		To:      to,
 		Success: false,
 	}
+
+	if p.CallingNPC == nil || !ut.StringEqualFold(p.CallingNPCPage, StorageKey) || !InRange(p.CurrentLocation, p.CallingNPC.GetPoint(), DataRange) {
+		p.Enqueue(msg)
+		return
+	}
+
+	if int(from) > len(p.Inventory.Items) || int(to) > len(p.Storage.Items) {
+		p.Enqueue(msg)
+		return
+	}
+
+	item := p.Inventory.Get(int(from))
+	if ut.HasFlagUint16(item.Info.Bind, common.BindModeDontStore) {
+		p.Enqueue(msg)
+		return
+	}
+
+	// if (temp.RentalInformation != null && temp.RentalInformation.BindingFlags.HasFlag(BindMode.DontStore))
+	//         {
+	//             Enqueue(p);
+	//             return;
+	//         }
+
+	err := p.Inventory.MoveTo(int(from), int(to), p.Storage)
+	if err != nil {
+		log.Infoln(err)
+		p.Enqueue(msg)
+		return
+	}
+
+	msg.Success = true
 	p.Enqueue(msg)
 }
 
@@ -1174,10 +1236,6 @@ func (p *Player) DepositTradeItem(from int32, to int32) {
 }
 
 func (p *Player) RetrieveTradeItem(from int32, to int32) {
-
-}
-
-func (p *Player) TakeBackItem(from int32, to int32) {
 
 }
 
