@@ -1621,7 +1621,7 @@ func (p *Player) Attack(direction common.MirDirection, spell common.Spell) {
 	}
 	if !p.Slaying {
 		magic := p.GetMagic(common.SpellSlaying)
-		if ut.RandomNext(12) <= magic.Level {
+		if magic != nil && ut.RandomNext(12) <= magic.Level {
 			p.Slaying = true
 			p.Enqueue(&server.SpellToggle{Spell: common.SpellSlaying, CanUse: p.Slaying})
 		}
