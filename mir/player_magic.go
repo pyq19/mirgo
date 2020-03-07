@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/yenkeia/mirgo/common"
+	"github.com/yenkeia/mirgo/ut"
 )
 
 // GetMagic ...
@@ -220,8 +221,8 @@ func (p *Player) UseMagic(spell common.Spell, magic *common.UserMagic, target IM
 
 // CompleteMagic ...
 func (p *Player) CompleteMagic(args ...interface{}) {
-	userMagic := args[0].(*common.UserMagic)
-	switch userMagic.Spell {
+	magic := args[0].(*common.UserMagic)
+	switch magic.Spell {
 	case common.SpellFireBall, common.SpellGreatFireBall, common.SpellThunderBolt, common.SpellSoulFireBall, common.SpellFlameDisruptor, common.SpellStraightShot, common.SpellDoubleShot:
 		value := args[1].(int)
 		target := args[2].(IMapObject)
@@ -267,7 +268,7 @@ func (p *Player) CompleteMagic(args ...interface{}) {
 			}
 			obj.HP += uint32(value)
 		}
-		p.LevelMagic(userMagic)
+		p.LevelMagic(magic)
 	case common.SpellElectricShock:
 	case common.SpellPoisoning:
 		value := args[1].(int)
@@ -280,15 +281,15 @@ func (p *Player) CompleteMagic(args ...interface{}) {
 		if target == nil || target.IsAttackTarget(p) {
 			return
 		}
-		duration := time.Duration(2000) * time.Millisecond
-		tickNum := (userMagic.Level + 1) * 7
+		duration := (value * 2) + ((magic.Level + 1) * 7)
+		value = value/15 + magic.Level + 1 + ut.RandomNext(int(p.PoisonAttack))
 		switch itemInfo.Shape {
 		case 1:
-			target.ApplyPoison(NewPoison(p.NewObjectID(), p, value, common.PoisonTypeGreen, duration, tickNum), p)
+			target.ApplyPoison(NewPoison(duration, p, common.PoisonTypeGreen, 2000, value), p)
 		case 2:
-			target.ApplyPoison(NewPoison(p.NewObjectID(), p, value, common.PoisonTypeRed, duration, tickNum), p)
+			target.ApplyPoison(NewPoison(duration, p, common.PoisonTypeRed, 2000, 0), p)
 		}
-		p.LevelMagic(userMagic)
+		p.LevelMagic(magic)
 	case common.SpellStormEscape:
 	case common.SpellTeleport:
 	case common.SpellBlink:
@@ -302,15 +303,15 @@ func (p *Player) CompleteMagic(args ...interface{}) {
 		expireTime := time.Now().Add(time.Duration(value*1000) * time.Millisecond)
 		buff := NewBuff(p.NewObjectID(), common.BuffTypeHiding, 0, expireTime)
 		p.AddBuff(buff)
-		p.LevelMagic(userMagic)
+		p.LevelMagic(magic)
 	case common.SpellHaste:
 	case common.SpellFury:
 		// p.AddBuff(new Buff { Type = BuffType.Fury, Caster = this, ExpireTime = Envir.Time + 60000 + magic.Level * 10000, Values = new int[] { 4 }, Visible = true });
-		expireTime := time.Now().Add(time.Duration(60000 + userMagic.Level*10000))
+		expireTime := time.Now().Add(time.Duration(60000 + magic.Level*10000))
 		buff := NewBuff(p.NewObjectID(), common.BuffTypeFury, 4, expireTime)
 		buff.Visible = true
 		p.AddBuff(buff)
-		p.LevelMagic(userMagic)
+		p.LevelMagic(magic)
 	case common.SpellImmortalSkin:
 	case common.SpellLightBody:
 	case common.SpellMagicShield:
@@ -322,12 +323,12 @@ func (p *Player) CompleteMagic(args ...interface{}) {
 		// 	   Values = new int[] { value, 6 + magic.Level }
 		// 	    Visible = true });
 		value := args[1].(int)
-		values := value + 6 + int(userMagic.Level)
+		values := value + 6 + int(magic.Level)
 		expireTime := time.Now().Add(time.Duration(60000) * time.Millisecond)
 		buff := NewBuff(p.NewObjectID(), common.BuffTypeMagicBooster, values, expireTime)
 		buff.Visible = true
 		p.AddBuff(buff)
-		p.LevelMagic(userMagic)
+		p.LevelMagic(magic)
 	case common.SpellPurification:
 		target := args[1].(IMapObject)
 		if target == nil || !target.IsFriendlyTarget(p) { // || target.CurrentMap != CurrentMap || target.Node == null) return;
@@ -367,7 +368,7 @@ func (p *Player) CompleteMagic(args ...interface{}) {
 		// target.RevTime = Envir.Time + value * 1000;
 		// target.OperateTime = 0;
 		// target.BroadcastHealthChange()
-		p.LevelMagic(userMagic)
+		p.LevelMagic(magic)
 	case common.SpellReincarnation:
 	case common.SpellEntrapment:
 	case common.SpellHallucination:

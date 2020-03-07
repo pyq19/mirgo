@@ -7,27 +7,27 @@ import (
 )
 
 type Poison struct {
-	ObjectID   uint32
-	Owner      IMapObject
-	PoisonType common.PoisonType
-	Value      int           // 效果总数
-	NextTime   time.Time     // 下次生效时间
-	Duration   time.Duration // 两次生效时间间隔
-	TickNum    int           // 总共跳几次
-	TickTime   int           // 当前第几跳
+	Owner     IMapObject
+	Ptype     common.PoisonType
+	Value     int           // 效果总数
+	Duration  time.Duration // 持续多久（秒）
+	TickSpeed time.Duration
+	TickNum   int // 总共跳几次
+	TickTime  int // 当前第几跳
 }
 
-// NewPoison caster 释放者, value 总伤害, typ 毒类型, duration 两次间隔, tickNum 总共跳几次
-func NewPoison(id uint32, caster IMapObject, value int, typ common.PoisonType, duration time.Duration, tickNum int) *Poison {
+func NewPoison(duration int, owner IMapObject, ptype common.PoisonType, tickSpeed int, value int) *Poison {
+	d := time.Duration(duration) * time.Second       // 持续多少秒
+	t := time.Duration(tickSpeed) * time.Millisecond // 两次间隔多少毫秒
+	tickNum := int(d / t)                            // 总共跳几次
 	return &Poison{
-		ObjectID:   id,
-		Owner:      caster,
-		PoisonType: typ,
-		Value:      value,
-		NextTime:   time.Now().Add(duration),
-		Duration:   duration,
-		TickNum:    tickNum,
-		TickTime:   0,
+		Owner:     owner,
+		Ptype:     ptype,
+		Value:     value,
+		Duration:  d,
+		TickSpeed: t,
+		TickNum:   tickNum,
+		TickTime:  0,
 	}
 }
 
