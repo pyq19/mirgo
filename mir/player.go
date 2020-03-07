@@ -1799,7 +1799,7 @@ func (p *Player) Attack(direction common.MirDirection, spell common.Spell) {
 		return
 	}
 	for _, o := range cell.objects {
-		if o.GetRace() != common.ObjectTypePlayer || o.GetRace() != common.ObjectTypeMonster {
+		if o.GetRace() != common.ObjectTypePlayer && o.GetRace() != common.ObjectTypeMonster {
 			continue
 		}
 		if !o.IsAttackTarget(p) {
