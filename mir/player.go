@@ -1190,6 +1190,38 @@ func (p *Player) TakeBackItem(from int32, to int32) {
 	p.Enqueue(msg)
 }
 
+func (p *Player) TakeItem(itemname string, n int) {
+	info := data.GetItemInfoByName(itemname)
+	if info == nil {
+		return
+	}
+
+	for i, item := range p.Inventory.Items {
+		if item == nil {
+			continue
+		}
+		if item.Info != info {
+			continue
+		}
+		if n > int(item.Count) {
+			p.Enqueue(&server.DeleteItem{UniqueID: item.ID, Count: item.Count})
+			p.Inventory.Set(i, nil)
+			n -= int(item.Count)
+			continue
+		}
+
+		p.Enqueue(&server.DeleteItem{UniqueID: item.ID, Count: uint32(n)})
+		if n == int(item.Count) {
+			p.Inventory.Set(i, nil)
+		} else {
+			p.Inventory.UseCount(i, uint32(n))
+		}
+		break
+	}
+
+	p.RefreshStats()
+}
+
 func (p *Player) StoreItem(from int32, to int32) {
 	msg := &server.StoreItem{
 		From:    from,

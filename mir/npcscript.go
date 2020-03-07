@@ -45,10 +45,6 @@ func _TAKEGOLD(npc *NPC, p *Player, gold int) {
 	p.TakeGold(uint64(gold))
 }
 
-func _INGUILD(npc *NPC, p *Player) bool {
-	return true
-}
-
 func _CHECKITEM(npc *NPC, p *Player, itemname string, n int) bool {
 
 	info := data.GetItemInfoByName(itemname)
@@ -63,28 +59,6 @@ func _CHECKITEM(npc *NPC, p *Player, itemname string, n int) bool {
 	}
 
 	return false
-}
-
-func _CHECKQUEST(npc *NPC, p *Player, quest int, stat QuestStatus) bool {
-	return true
-}
-
-func _LOCALMESSAGE(npc *NPC, p *Player, message string, typ string) {
-
-}
-
-func _SET(npc *NPC, p *Player, flag Flag, v int) {
-}
-
-func _CHECK(npc *NPC, p *Player, flag Flag, v int) bool {
-	return false
-}
-
-func _ADDTOGUILD(npc *NPC, p *Player, message string) {
-
-}
-func _ADDNAMELIST(npc *NPC, p *Player, message string) {
-
 }
 
 func _GIVEITEM(npc *NPC, p *Player, itemname string, n int) {
@@ -105,6 +79,43 @@ func _GIVEITEM(npc *NPC, p *Player, itemname string, n int) {
 		count -= info.StackSize
 		p.GainItem(userItem)
 	}
+}
+
+func _LINEMESSAGE(npc *NPC, p *Player, msg string, t string) {
+	p.ReceiveChat(msg, common.ChatTypeHint)
+}
+func _LOCALMESSAGE(npc *NPC, p *Player, msg string, typ string) {
+	p.ReceiveChat(msg, common.ChatTypeHint)
+}
+
+func _GIVEGOLD(npc *NPC, p *Player, v int) {
+	p.GainGold(uint64(v))
+}
+
+func _TAKEITEM(npc *NPC, p *Player, itemname string, n int) {
+	p.TakeItem(itemname, n)
+}
+
+func _CHECKQUEST(npc *NPC, p *Player, quest int, stat QuestStatus) bool {
+	return true
+}
+
+func _SET(npc *NPC, p *Player, flag Flag, v int) {
+}
+
+func _CHECK(npc *NPC, p *Player, flag Flag, v int) bool {
+	return false
+}
+
+func _ADDTOGUILD(npc *NPC, p *Player, message string) {
+
+}
+func _ADDNAMELIST(npc *NPC, p *Player, message string) {
+
+}
+
+func _INGUILD(npc *NPC, p *Player) bool {
+	return true
 }
 
 func _CLOSE(npc *NPC, p *Player) {
@@ -172,16 +183,7 @@ func _MONGEN(npc *NPC, p *Player, g1 string, n int) {
 func _GIVESKILL(npc *NPC, p *Player, name string, v int) {
 }
 
-func _GIVEGOLD(npc *NPC, p *Player, v int) {
-}
-
-func _LINEMESSAGE(npc *NPC, p *Player, msg string, t string) {
-}
-
 func _CHANGELEVEL(npc *NPC, p *Player, lv int) {
-}
-
-func _TAKEITEM(npc *NPC, p *Player, itemname string, n int) {
 }
 
 func _CHECKBUFF(npc *NPC, p *Player, bufname string) bool {
