@@ -1612,7 +1612,7 @@ func (p *Player) UseItem(id uint64) {
 
 	if msg.Success {
 		if item.Count > 1 {
-			item.Count--
+			p.Inventory.UseCount(index, 1)
 		} else {
 			p.Inventory.Set(index, nil)
 		}

@@ -73,6 +73,7 @@ func (b *Bag) Set(i int, item *common.UserItem) {
 			Type:        int(b.Type),
 			Index:       i,
 		})
+		b.Items[i] = item
 	} else {
 		item = b.Items[i]
 		if item != nil {
@@ -81,9 +82,8 @@ func (b *Bag) Set(i int, item *common.UserItem) {
 		} else {
 			log.Errorln("尝试删除空位置的物品")
 		}
+		b.Items[i] = nil
 	}
-
-	b.Items[i] = item
 }
 
 func (b *Bag) Get(i int) *common.UserItem {
@@ -91,8 +91,12 @@ func (b *Bag) Get(i int) *common.UserItem {
 }
 
 func (b *Bag) SetCount(i int, c uint32) {
-	adb.Table("user_item").Where("id = ?", b.Items[i].ID).Update("count", c)
-	b.Items[i].Count = c
+	if c == 0 {
+		b.Set(i, nil)
+	} else {
+		adb.Table("user_item").Where("id = ?", b.Items[i].ID).Update("count", c)
+		b.Items[i].Count = c
+	}
 }
 
 func (b *Bag) UseCount(i int, c uint32) {
