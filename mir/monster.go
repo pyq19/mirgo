@@ -461,13 +461,7 @@ func (m *Monster) Drop() {
 			continue
 		}
 		if drop.ItemName == "Gold" {
-			mapItems = append(mapItems, &Item{
-				MapObject: MapObject{
-					ID:  env.NewObjectID(),
-					Map: m.Map,
-				},
-				Gold: uint64(drop.Count),
-			})
+			mapItems = append(mapItems, NewGold(m, uint64(drop.Count)))
 			continue
 		}
 		info := data.GetItemInfoByName(drop.ItemName)

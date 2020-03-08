@@ -14,6 +14,15 @@ type Item struct {
 	UserItem *common.UserItem
 }
 
+func NewGold(dropper IMapObject, gold uint64) *Item {
+	item := &Item{}
+	item.ID = env.NewObjectID()
+	item.Map = dropper.GetMap()
+	item.Gold = gold
+
+	return item
+}
+
 func NewItem(dropper IMapObject, ui *common.UserItem) *Item {
 	item := &Item{UserItem: ui}
 	item.Name = ui.Info.Name

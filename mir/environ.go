@@ -135,17 +135,6 @@ func PrintEnviron(env *Environ) {
 	log.Debugf("共加载了 %d 张地图，%d 怪物，%d NPC\n", mapCount, monsterCount, npcCount)
 }
 
-func (e *Environ) CreateDropItem(m *Map, userItem *common.UserItem, gold uint64) *Item {
-	return &Item{
-		MapObject: MapObject{
-			ID:  e.NewObjectID(),
-			Map: m,
-		},
-		Gold:     gold,
-		UserItem: userItem,
-	}
-}
-
 func (e *Environ) NewUserItem(i *common.ItemInfo) *common.UserItem {
 	res := &common.UserItem{
 		ID:             uint64(e.NewObjectID()),

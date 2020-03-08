@@ -1655,7 +1655,7 @@ func (p *Player) DropItem(id uint64, count uint32) {
 		p.Enqueue(msg)
 		return
 	}
-	obj := env.CreateDropItem(p.Map, userItem, 0)
+	obj := NewItem(p, userItem)
 	if dropMsg, ok := obj.Drop(p.GetPoint(), 1); !ok {
 		p.ReceiveChat(dropMsg, common.ChatTypeSystem)
 		return
@@ -1676,7 +1676,7 @@ func (p *Player) DropGold(gold uint64) {
 	if p.Gold < gold {
 		return
 	}
-	obj := env.CreateDropItem(p.Map, nil, gold)
+	obj := NewGold(p, gold)
 	if dropMsg, ok := obj.Drop(p.GetPoint(), 3); !ok {
 		p.ReceiveChat(dropMsg, common.ChatTypeSystem)
 		return
