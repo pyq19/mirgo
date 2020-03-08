@@ -278,7 +278,7 @@ func (p *Player) CompleteMagic(args ...interface{}) {
 		if itemInfo == nil {
 			return
 		}
-		if target == nil || target.IsAttackTarget(p) {
+		if target == nil || !target.IsAttackTarget(p) {
 			return
 		}
 		duration := (value * 2) + ((magic.Level + 1) * 7)
@@ -406,7 +406,7 @@ func (p *Player) Repulsion(magic *common.UserMagic) {
 
 // Poisoning 施毒术
 func (p *Player) Poisoning(target IMapObject, magic *common.UserMagic) bool {
-	if target == nil || target.IsAttackTarget(p) {
+	if target == nil || !target.IsAttackTarget(p) {
 		return false
 	}
 	item := p.GetPoison(1)

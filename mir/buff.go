@@ -36,7 +36,3 @@ func NewBuffList() *BuffList {
 	ret.List = list.New()
 	return ret
 }
-
-func (ls *BuffList) Execute() {
-
-}

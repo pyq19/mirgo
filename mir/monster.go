@@ -1,6 +1,7 @@
 package mir
 
 import (
+	"container/list"
 	"fmt"
 	"time"
 
@@ -24,42 +25,44 @@ func SetMonsterBehaviorFactory(fac BehaviroFactory) {
 // Monster ...
 type Monster struct {
 	MapObject
-	Image       common.Monster
-	AI          int
-	Behavior    IBehavior
-	Effect      int
-	Poison      common.PoisonType
-	Light       uint8
-	Target      IMapObject
-	Level       uint16
-	PetLevel    uint16
-	Experience  uint16
-	HP          uint32
-	MaxHP       uint32
-	MinAC       uint16
-	MaxAC       uint16
-	MinMAC      uint16
-	MaxMAC      uint16
-	MinDC       uint16
-	MaxDC       uint16
-	MinMC       uint16
-	MaxMC       uint16
-	MinSC       uint16
-	MaxSC       uint16
-	Accuracy    uint8
-	Agility     uint8
-	MoveSpeed   uint16
-	AttackSpeed int32
-	ArmourRate  float32
-	DamageRate  float32
-	ViewRange   int
-	Master      *Player
-	EXPOwner    *Player
-	ActionList  *ActionList
-	ActionTime  time.Time
-	AttackTime  time.Time
-	DeadTime    time.Time
-	MoveTime    time.Time
+	Image         common.Monster
+	AI            int
+	Behavior      IBehavior
+	Effect        int
+	Poison        common.PoisonType
+	Light         uint8
+	Target        IMapObject
+	Level         uint16
+	PetLevel      uint16
+	Experience    uint16
+	HP            uint32
+	MaxHP         uint32
+	MinAC         uint16
+	MaxAC         uint16
+	MinMAC        uint16
+	MaxMAC        uint16
+	MinDC         uint16
+	MaxDC         uint16
+	MinMC         uint16
+	MaxMC         uint16
+	MinSC         uint16
+	MaxSC         uint16
+	Accuracy      uint8
+	Agility       uint8
+	MoveSpeed     uint16
+	AttackSpeed   int32
+	ArmourRate    float32
+	DamageRate    float32
+	ViewRange     int
+	Master        *Player
+	EXPOwner      *Player
+	ActionList    *ActionList
+	ActionTime    time.Time
+	AttackTime    time.Time
+	DeadTime      time.Time
+	MoveTime      time.Time
+	PoisonList    *PoisonList
+	CurrentPoison common.PoisonType
 }
 
 func (m *Monster) String() string {
@@ -109,6 +112,8 @@ func NewMonster(mp *Map, p common.Point, mi *common.MonsterInfo) (m *Monster) {
 	m.MoveTime = now
 	m.ViewRange = mi.ViewRange
 	m.Behavior = behaviorFactory(m.AI, m)
+	m.PoisonList = NewPoisonList()
+	m.CurrentPoison = common.PoisonTypeNone
 	return m
 }
 
@@ -196,7 +201,58 @@ func (m *Monster) GetBaseStats() BaseStats {
 
 func (m *Monster) AddBuff(buff *Buff) {}
 
-func (m *Monster) ApplyPoison(poison *Poison, caster IMapObject) {}
+func (m *Monster) ApplyPoison(p *Poison, caster IMapObject) {
+
+	ignoreDefence := false
+
+	if p.Owner != nil && p.Owner.IsAttackTarget(m) {
+		m.Target = p.Owner
+	}
+	// TODO
+	/*
+	  if (Master != null && p.Owner != null && p.Owner.Race == ObjectType.Player && p.Owner != Master)
+	  {
+	      if (Envir.Time > Master.BrownTime && Master.PKPoints < 200)
+	          p.Owner.BrownTime = Envir.Time + Settings.Minute;
+	  }
+
+	*/
+
+	if !ignoreDefence && (p.PType == common.PoisonTypeGreen) {
+		armour := m.GetDefencePower(int(m.MinMAC), int(m.MaxMAC))
+
+		if p.Value < armour {
+
+			p.PType = common.PoisonTypeNone
+		} else {
+			p.Value -= armour
+		}
+	}
+
+	if p.PType == common.PoisonTypeNone {
+		return
+	}
+	// TODO
+	/*
+	  for (int i = 0; i < PoisonList.Count; i++)
+	  {
+	      if (PoisonList[i].PType != p.PType) continue;
+	      if ((PoisonList[i].PType == PoisonType.Green) && (PoisonList[i].Value > p.Value)) return;//cant cast weak poison to cancel out strong poison
+	      if ((PoisonList[i].PType != PoisonType.Green) && ((PoisonList[i].Duration - PoisonList[i].Time) > p.Duration)) return;//cant cast 1 second poison to make a 1minute poison go away!
+	      if (p.PType == PoisonType.DelayedExplosion) return;
+	      if ((PoisonList[i].PType == PoisonType.Frozen) || (PoisonList[i].PType == PoisonType.Slow) || (PoisonList[i].PType == PoisonType.Paralysis) || (PoisonList[i].PType == PoisonType.LRParalysis)) return;//prevents mobs from being perma frozen/slowed
+	      PoisonList[i] = p;
+	      return;
+	  }
+
+	  if (p.PType == PoisonType.DelayedExplosion)
+	  {
+	      ExplosionInflictedTime = Envir.Time + 4000;
+	      Broadcast(new S.ObjectEffect { ObjectID = ObjectID, Effect = SpellEffect.DelayedExplosion });
+	  }
+	*/
+	m.PoisonList.List.PushBack(p)
+}
 
 func (m *Monster) Broadcast(msg interface{}) {
 	m.Map.BroadcastP(m.CurrentLocation, msg, nil)
@@ -259,12 +315,54 @@ func (m *Monster) IsAttackTargetMonster(attacker *Monster) bool {
 	return false
 }
 
+func (m *Monster) IsAttackTargetPlayer(attacker *Player) bool {
+	if m.IsDead() {
+		return false
+	}
+	if m.Master == nil {
+		return true
+	}
+	if attacker.AMode == common.AttackModePeace {
+		return false
+	}
+	if m.Master == attacker {
+		return attacker.AMode == common.AttackModeAll
+	}
+	if m.Master.GetRace() == common.ObjectTypePlayer { // TODO && (attacker.InSafeZone || InSafeZone) {
+		return false
+	}
+	/*
+		switch attacker.AMode {
+			case common.AttackModeGroup:
+				return Master.GroupMembers == null || !Master.GroupMembers.Contains(attacker);
+			case common.AttackModeGuild:
+				{
+					if (!(Master is PlayerObject)) return false;
+					PlayerObject master = (PlayerObject)Master;
+					return master.MyGuild == null || master.MyGuild != attacker.MyGuild;
+				}
+			case common.AttackModeEnemyGuild:
+				{
+					if (!(Master is PlayerObject)) return false;
+					PlayerObject master = (PlayerObject)Master;
+					return (master.MyGuild != null && attacker.MyGuild != null) && master.MyGuild.IsEnemy(attacker.MyGuild);
+				}
+			case common.AttackModeRedBrown:
+				return Master.PKPoints >= 200 || Envir.Time < Master.BrownTime;
+			default:
+				return true;
+		}
+	*/
+	return true
+}
+
 func (m *Monster) IsAttackTarget(attacker IMapObject) bool {
 
 	switch attacker.(type) {
 	case *Monster:
 		return m.IsAttackTargetMonster(attacker.(*Monster))
 	case *Player:
+		return m.IsAttackTargetPlayer(attacker.(*Player))
 	}
 	return true
 }
@@ -333,7 +431,73 @@ func (m *Monster) ProcessRegan() {
 
 // ProcessPoison 处理怪物中毒效果
 func (m *Monster) ProcessPoison() {
+	if m.IsDead() {
+		return
+	}
+	ptype := common.PoisonTypeNone
+	l := m.PoisonList.List
+	var next *list.Element
+	for e := l.Front(); e != nil; e = next {
+		next = e.Next()
+		poison := e.Value.(*Poison)
+		if poison.Owner == nil || poison.TickCnt > poison.TickNum {
+			l.Remove(e)
+			continue
+		}
+		// log.Debugln("----")
+		// log.Debugln(time.Now())
+		// log.Debugln(poison.TickTime)
+		// log.Debugln("----")
+		if time.Now().After(poison.TickTime) {
+			poison.TickTime = poison.TickTime.Add(poison.TickSpeed)
+			poison.TickCnt++
 
+			if poison.PType == common.PoisonTypeGreen || poison.PType == common.PoisonTypeBleeding {
+
+				// TODO
+				// if (m.EXPOwner == nil || m.EXPOwner.Dead) {
+				// 	EXPOwner = poison.Owner;
+				// 	EXPOwnerTime = Envir.Time + EXPOwnerDelay;
+				// } else if (m.EXPOwner == poison.Owner) {
+				// 	EXPOwnerTime = Envir.Time + EXPOwnerDelay;
+				// }
+
+				if poison.PType == common.PoisonTypeBleeding {
+					m.Broadcast(&server.ObjectEffect{ObjectID: m.GetID(), Effect: common.SpellEffectBleeding, EffectType: 0})
+				}
+
+				m.ChangeHP(-poison.Value)
+				// if (PoisonStopRegen) {	// 停止回血
+				// 	RegenTime = Envir.Time + RegenDelay;
+				// }
+			}
+
+			// TODO
+			// if (poison.PType == PoisonType.DelayedExplosion)
+		}
+
+		switch poison.PType {
+		case common.PoisonTypeRed:
+			m.ArmourRate -= 0.5
+		case common.PoisonTypeStun:
+			m.DamageRate += 0.5
+		case common.PoisonTypeSlow:
+			m.MoveSpeed += 100
+			m.AttackSpeed += 100
+			/*
+				if poison.Time >= poison.Duration {
+					m.MoveSpeed = Info.MoveSpeed
+					m.AttackSpeed = Info.AttackSpeed
+				}
+			*/
+		}
+		ptype |= poison.PType
+	}
+	if ptype == m.CurrentPoison {
+		return
+	}
+	m.CurrentPoison = ptype
+	m.Broadcast(&server.ObjectPoisoned{ObjectID: m.GetID(), Poison: ptype})
 }
 
 // GetDefencePower 获取防御值
