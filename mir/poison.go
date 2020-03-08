@@ -41,7 +41,3 @@ func NewPoisonList() *PoisonList {
 	ret.List = list.New()
 	return ret
 }
-
-func (ls *PoisonList) Execute() {
-
-}

@@ -127,8 +127,8 @@ type Health struct {
 	HealDuration time.Duration
 }
 
-func (i *Player) GetMap() *Map {
-	return i.Map
+func (p *Player) GetMap() *Map {
+	return p.Map
 }
 
 func (p *Player) GetID() uint32 {
@@ -404,8 +404,9 @@ func (p *Player) Process(dt time.Duration) {
 	now := time.Now()
 
 	p.ActionList.Execute()
-	p.PoisonList.Execute()
-	p.BuffList.Execute()
+
+	p.ProcessBuffs()
+	p.ProcessPoison()
 
 	ch := &p.Health
 	if ch.HPPotValue != 0 && ch.HPPotNextTime.Before(now) {
@@ -431,6 +432,16 @@ func (p *Player) Process(dt time.Duration) {
 		p.ChangeHP(int(float32(p.MaxHP)*0.03) + 1)
 		p.ChangeMP(int(float32(p.MaxMP)*0.03) + 1)
 	}
+}
+
+// ProcessBuffs 增益效果
+func (p *Player) ProcessBuffs() {
+
+}
+
+// ProcessPoison 中毒效果
+func (p *Player) ProcessPoison() {
+
 }
 
 // SaveData 保存玩家数据
