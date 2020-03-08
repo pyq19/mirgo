@@ -93,6 +93,7 @@ type Player struct {
 	AttackBonus        uint8
 	Magics             []*common.UserMagic
 	ActionList         *ActionList
+	PoisonList         *PoisonList
 	Health             Health // 状态恢复
 	Pets               []IMapObject
 	PKPoints           int
@@ -402,6 +403,8 @@ func (p *Player) Process(dt time.Duration) {
 	now := time.Now()
 
 	p.ActionList.Execute()
+
+	p.PoisonList.Execute()
 
 	ch := &p.Health
 	if ch.HPPotValue != 0 && ch.HPPotNextTime.Before(now) {
