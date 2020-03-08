@@ -14,6 +14,35 @@ type Item struct {
 	UserItem *common.UserItem
 }
 
+func NewItem(dropper IMapObject, ui *common.UserItem) *Item {
+	item := &Item{UserItem: ui}
+	item.Name = ui.Info.Name
+	item.ID = env.NewObjectID()
+	item.Map = dropper.GetMap()
+
+	// if ui.IsAdded {
+	// 	item.NameColor = Color.Cyan
+	// } else {
+	if ui.Info.Grade == common.ItemGradeNone {
+		item.NameColor = common.ColorWhite
+	}
+	if ui.Info.Grade == common.ItemGradeCommon {
+		item.NameColor = common.ColorWhite
+	}
+	if ui.Info.Grade == common.ItemGradeRare {
+		item.NameColor = common.ColorDeepSkyBlue
+	}
+	if ui.Info.Grade == common.ItemGradeLegendary {
+		item.NameColor = common.ColorDarkOrange
+	}
+	if ui.Info.Grade == common.ItemGradeMythical {
+		item.NameColor = common.ColorPlum
+	}
+	// }
+
+	return item
+}
+
 func (i *Item) GetMap() *Map {
 	return i.Map
 }
