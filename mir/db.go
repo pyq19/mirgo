@@ -51,3 +51,19 @@ func (d *DB) SyncPosition(p *Player) {
 	d.setCharacterAttr(p, "current_location_x", p.GetPoint().X)
 	d.setCharacterAttr(p, "current_location_y", p.GetPoint().Y)
 }
+
+func (d *DB) SyncMagicKey(p *Player, spell common.Spell, key uint8) {
+	table := d.db.Table("user_magic")
+	var userMagics []*common.UserMagic
+	var found *common.UserMagic
+	table.Where("character_id = ?", p.GetID()).Find(&userMagics)
+	for _, magic := range userMagics {
+		if magic.Key == int(key) {
+			table.Model(&magic).Update("magic_key", 0)
+		}
+		if magic.Spell == spell {
+			found = magic
+		}
+	}
+	table.Model(&found).Update("magic_key", key)
+}

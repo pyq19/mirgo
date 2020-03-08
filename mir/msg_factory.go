@@ -332,30 +332,3 @@ func (ServerMessage) LevelChanged(level uint16, experience, maxExperience int64)
 func (ServerMessage) ObjectLeveled(id uint32) *server.ObjectLeveled {
 	return &server.ObjectLeveled{ObjectID: id}
 }
-
-func (ServerMessage) Magic(spell common.Spell, targetID uint32, targetLocation common.Point, cast bool, level int) *server.Magic {
-	return &server.Magic{
-		Spell:    spell,
-		TargetID: targetID,
-		TargetX:  int32(targetLocation.X),
-		TargetY:  int32(targetLocation.Y),
-		Cast:     cast,
-		Level:    uint8(level),
-	}
-}
-
-func (ServerMessage) ObjectMagic(obj IMapObject, spell common.Spell, targetID uint32, targetLocation common.Point, cast bool, level int) *server.ObjectMagic {
-	return &server.ObjectMagic{
-		ObjectID:      obj.GetID(),
-		LocationX:     int32(obj.GetPoint().X),
-		LocationY:     int32(obj.GetPoint().Y),
-		Direction:     obj.GetDirection(),
-		Spell:         spell,
-		TargetID:      targetID,
-		TargetX:       int32(targetLocation.X),
-		TargetY:       int32(targetLocation.Y),
-		Cast:          cast,
-		Level:         uint8(level),
-		SelfBroadcast: false,
-	}
-}

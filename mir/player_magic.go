@@ -38,6 +38,9 @@ func (p *Player) LevelMagic(userMagic *common.UserMagic) {
 // UseMagic ...
 func (p *Player) UseMagic(spell common.Spell, magic *common.UserMagic, target IMapObject) (cast bool, targetID uint32) {
 	cast = true
+	if target != nil {
+		targetID = target.GetID()
+	}
 	switch spell {
 	case common.SpellFireBall, common.SpellGreatFireBall, common.SpellFrostCrunch:
 		if ok := p.Fireball(target, magic); !ok {
