@@ -17,6 +17,7 @@ type Map struct {
 	cells    []*Cell
 	doors    map[byte]*Door
 	doorsMap *Grid
+	Respawns []*Respawn
 
 	players        map[uint32]*Player
 	monsters       map[uint32]*Monster
@@ -69,6 +70,10 @@ func (m *Map) Frame(dt time.Duration) {
 		o.Process(dt)
 	}
 
+	for _, r := range m.Respawns {
+		r.Process(dt)
+	}
+
 	// for _, monster := range m.monsters {
 	// 	if monster.GetPlayerCount() > 0 {
 	// 		monster.Process(dt)
@@ -96,6 +101,10 @@ func (m *Map) InMap(x, y int) bool {
 	return x >= 0 && x < m.Width && y >= 0 && y < m.Height
 }
 
+func (m *Map) ValidPointXY(x, y int) bool {
+	c := m.GetCellXY(x, y)
+	return c != nil && c.IsValid()
+}
 func (m *Map) ValidPoint(p common.Point) bool {
 	c := m.GetCell(p)
 	return c != nil && c.IsValid()
@@ -228,19 +237,21 @@ func (m *Map) InitNPCs() error {
 
 // InitMonsters 初始化地图上的怪物
 func (m *Map) InitMonsters() error {
+	m.Respawns = []*Respawn{}
 	for _, ri := range data.RespawnInfos {
-		ri := ri
 		if ri.MapID == m.Info.ID {
-			cnt := ri.Count
-			for i := 0; i < cnt; i++ {
-				p, err := m.GetValidPoint(ri.LocationX, ri.LocationY, ri.Spread)
-				if err != nil {
-					continue
-				}
-				m.AddObject(NewMonster(m, p, data.GetMonsterInfoByID(ri.MonsterID)))
+			respawn, err := NewRespawn(m, ri)
+			if err != nil {
+				return err
 			}
+			m.Respawns = append(m.Respawns, respawn)
 		}
 	}
+
+	for _, r := range m.Respawns {
+		r.Spawn()
+	}
+
 	return nil
 }
 

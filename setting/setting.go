@@ -102,6 +102,7 @@ type Settings struct {
 	DropDirPath   string
 	EnvirPath     string
 	ConfigsPath   string
+	RoutePath     string
 }
 
 func Must() *Settings {
@@ -142,6 +143,7 @@ func New() (*Settings, error) {
 		DropDirPath:   filepath.Join(conf.DataPath, "/database/Envir/Drops/"),
 		EnvirPath:     filepath.Join(conf.DataPath, "/database/Envir/"),
 		ConfigsPath:   filepath.Join(conf.DataPath, "/database/Configs/"),
+		RoutePath:     filepath.Join(conf.DataPath, "/database/Envir/Routes/"),
 	}, nil
 }
 
