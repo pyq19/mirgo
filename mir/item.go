@@ -210,37 +210,25 @@ func (i *Item) GetImage() uint16 {
 
 // Drop 物品加入到地图上，传入中心点 center，范围 distance
 func (i *Item) Drop(center common.Point, distance int) (string, bool) {
-	// 以 center 为中心，向外获取点，放入集合
-	x := int(center.X)
-	y := int(center.Y)
-	points := make([]common.Point, 0)
-	if distance == 0 {
-		points = append(points, center)
-	} else {
-		for k := 1; k <= distance; k++ {
-			minX := x - k
-			maxX := x + k
-			minY := y - k
-			maxY := y + k
-			for n := minY; maxY >= n; n++ {
-				for m := minX; maxX >= m; m++ {
-					if m == minX || m == maxX || n == minY || n == maxY {
-						points = append(points, common.Point{X: uint32(m), Y: uint32(n)})
-					}
-				}
-			}
-		}
-	}
-	for j := range points {
-		p := points[j]
-		c := i.Map.GetCell(p)
+
+	ok := false
+
+	i.Map.RangeCell(center, distance, func(c *Cell, x, y int) bool {
 		if c == nil || c.HasItem() {
-			continue
+			return true
 		}
-		i.CurrentLocation = p
+
+		ok = true
+		i.CurrentLocation = common.NewPoint(x, y)
 		i.Map.AddObject(i)
 		i.Broadcast(i.GetInfo())
-		return "", true
+
+		return false
+	})
+
+	if !ok {
+		return fmt.Sprintf("坐标(%s)附近没有合适的点放置物品", center), false
 	}
-	return fmt.Sprintf("坐标(%s)附近没有合适的点放置物品", center), false
+
+	return "", true
 }
