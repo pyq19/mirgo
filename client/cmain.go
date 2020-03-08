@@ -2,6 +2,11 @@ package main
 
 import (
 	"bufio"
+	"fmt"
+	"os"
+	"strconv"
+	"strings"
+
 	"github.com/davyxu/cellnet"
 	"github.com/davyxu/cellnet/peer"
 	_ "github.com/davyxu/cellnet/peer/tcp"
@@ -12,9 +17,6 @@ import (
 	_ "github.com/yenkeia/mirgo/proc/mirtcp"
 	"github.com/yenkeia/mirgo/proto/client"
 	"github.com/yenkeia/mirgo/proto/server"
-	"os"
-	"strconv"
-	"strings"
 )
 
 var log = golog.New("client")
@@ -157,7 +159,7 @@ func directionIcon(d common.MirDirection) string {
 	case common.MirDirectionUpLeft:
 		return "↖↖↖"
 	}
-	panic("error direction")
+	return fmt.Sprintf("!!! error direction: %d", d)
 }
 
 func main() {
