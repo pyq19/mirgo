@@ -315,12 +315,54 @@ func (m *Monster) IsAttackTargetMonster(attacker *Monster) bool {
 	return false
 }
 
+func (m *Monster) IsAttackTargetPlayer(attacker *Player) bool {
+	if m.IsDead() {
+		return false
+	}
+	if m.Master == nil {
+		return true
+	}
+	if attacker.AMode == common.AttackModePeace {
+		return false
+	}
+	if m.Master == attacker {
+		return attacker.AMode == common.AttackModeAll
+	}
+	if m.Master.GetRace() == common.ObjectTypePlayer { // TODO && (attacker.InSafeZone || InSafeZone) {
+		return false
+	}
+	/*
+		switch attacker.AMode {
+			case common.AttackModeGroup:
+				return Master.GroupMembers == null || !Master.GroupMembers.Contains(attacker);
+			case common.AttackModeGuild:
+				{
+					if (!(Master is PlayerObject)) return false;
+					PlayerObject master = (PlayerObject)Master;
+					return master.MyGuild == null || master.MyGuild != attacker.MyGuild;
+				}
+			case common.AttackModeEnemyGuild:
+				{
+					if (!(Master is PlayerObject)) return false;
+					PlayerObject master = (PlayerObject)Master;
+					return (master.MyGuild != null && attacker.MyGuild != null) && master.MyGuild.IsEnemy(attacker.MyGuild);
+				}
+			case common.AttackModeRedBrown:
+				return Master.PKPoints >= 200 || Envir.Time < Master.BrownTime;
+			default:
+				return true;
+		}
+	*/
+	return true
+}
+
 func (m *Monster) IsAttackTarget(attacker IMapObject) bool {
 
 	switch attacker.(type) {
 	case *Monster:
 		return m.IsAttackTargetMonster(attacker.(*Monster))
 	case *Player:
+		return m.IsAttackTargetPlayer(attacker.(*Player))
 	}
 	return true
 }
@@ -402,6 +444,10 @@ func (m *Monster) ProcessPoison() {
 			l.Remove(e)
 			continue
 		}
+		// log.Debugln("----")
+		// log.Debugln(time.Now())
+		// log.Debugln(poison.TickTime)
+		// log.Debugln("----")
 		if time.Now().After(poison.TickTime) {
 			poison.TickTime = poison.TickTime.Add(poison.TickSpeed)
 			poison.TickCnt++
