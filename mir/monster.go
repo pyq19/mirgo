@@ -25,43 +25,44 @@ func SetMonsterBehaviorFactory(fac BehaviroFactory) {
 // Monster ...
 type Monster struct {
 	MapObject
-	Image       common.Monster
-	AI          int
-	Behavior    IBehavior
-	Effect      int
-	Poison      common.PoisonType
-	Light       uint8
-	Target      IMapObject
-	Level       uint16
-	PetLevel    uint16
-	Experience  uint16
-	HP          uint32
-	MaxHP       uint32
-	MinAC       uint16
-	MaxAC       uint16
-	MinMAC      uint16
-	MaxMAC      uint16
-	MinDC       uint16
-	MaxDC       uint16
-	MinMC       uint16
-	MaxMC       uint16
-	MinSC       uint16
-	MaxSC       uint16
-	Accuracy    uint8
-	Agility     uint8
-	MoveSpeed   uint16
-	AttackSpeed int32
-	ArmourRate  float32
-	DamageRate  float32
-	ViewRange   int
-	Master      *Player
-	EXPOwner    *Player
-	ActionList  *ActionList
-	ActionTime  time.Time
-	AttackTime  time.Time
-	DeadTime    time.Time
-	MoveTime    time.Time
-	PoisonList  *PoisonList
+	Image         common.Monster
+	AI            int
+	Behavior      IBehavior
+	Effect        int
+	Poison        common.PoisonType
+	Light         uint8
+	Target        IMapObject
+	Level         uint16
+	PetLevel      uint16
+	Experience    uint16
+	HP            uint32
+	MaxHP         uint32
+	MinAC         uint16
+	MaxAC         uint16
+	MinMAC        uint16
+	MaxMAC        uint16
+	MinDC         uint16
+	MaxDC         uint16
+	MinMC         uint16
+	MaxMC         uint16
+	MinSC         uint16
+	MaxSC         uint16
+	Accuracy      uint8
+	Agility       uint8
+	MoveSpeed     uint16
+	AttackSpeed   int32
+	ArmourRate    float32
+	DamageRate    float32
+	ViewRange     int
+	Master        *Player
+	EXPOwner      *Player
+	ActionList    *ActionList
+	ActionTime    time.Time
+	AttackTime    time.Time
+	DeadTime      time.Time
+	MoveTime      time.Time
+	PoisonList    *PoisonList
+	CurrentPoison common.PoisonType
 }
 
 func (m *Monster) String() string {
@@ -112,6 +113,7 @@ func NewMonster(mp *Map, p common.Point, mi *common.MonsterInfo) (m *Monster) {
 	m.ViewRange = mi.ViewRange
 	m.Behavior = behaviorFactory(m.AI, m)
 	m.PoisonList = NewPoisonList()
+	m.CurrentPoison = common.PoisonTypeNone
 	return m
 }
 
@@ -390,6 +392,7 @@ func (m *Monster) ProcessPoison() {
 	if m.IsDead() {
 		return
 	}
+	ptype := common.PoisonTypeNone
 	l := m.PoisonList.List
 	var next *list.Element
 	for e := l.Front(); e != nil; e = next {
@@ -426,8 +429,29 @@ func (m *Monster) ProcessPoison() {
 			// TODO
 			// if (poison.PType == PoisonType.DelayedExplosion)
 		}
-	}
 
+		switch poison.PType {
+		case common.PoisonTypeRed:
+			m.ArmourRate -= 0.5
+		case common.PoisonTypeStun:
+			m.DamageRate += 0.5
+		case common.PoisonTypeSlow:
+			m.MoveSpeed += 100
+			m.AttackSpeed += 100
+			/*
+				if poison.Time >= poison.Duration {
+					m.MoveSpeed = Info.MoveSpeed
+					m.AttackSpeed = Info.AttackSpeed
+				}
+			*/
+		}
+		ptype |= poison.PType
+	}
+	if ptype == m.CurrentPoison {
+		return
+	}
+	m.CurrentPoison = ptype
+	m.Broadcast(&server.ObjectPoisoned{ObjectID: m.GetID(), Poison: ptype})
 }
 
 // GetDefencePower 获取防御值
