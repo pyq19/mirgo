@@ -6,51 +6,6 @@ import (
 	"github.com/yenkeia/mirgo/common"
 )
 
-type Poison struct {
-	Owner     IMapObject
-	PType     common.PoisonType
-	Value     int           // 效果总数
-	Duration  time.Duration // 持续多久（秒）
-	TickSpeed time.Duration
-	TickNum   int // 总共跳几次
-	TickTime  int // 当前第几跳
-}
-
-func NewPoison(duration int, owner IMapObject, ptype common.PoisonType, tickSpeed int, value int) *Poison {
-	d := time.Duration(duration) * time.Second       // 持续多少秒
-	t := time.Duration(tickSpeed) * time.Millisecond // 两次间隔多少毫秒
-	tickNum := int(d / t)                            // 总共跳几次
-	return &Poison{
-		Owner:     owner,
-		PType:     ptype,
-		Value:     value,
-		Duration:  d,
-		TickSpeed: t,
-		TickNum:   tickNum,
-		TickTime:  0,
-	}
-}
-
-type Buff struct {
-	ObjectID   uint32
-	BuffType   common.BuffType
-	Visible    bool      // 是否可见
-	Infinite   bool      // 是否永久
-	Values     int       // public int[] Values
-	ExpireTime time.Time // 过期时间️
-}
-
-func NewBuff(id uint32, typ common.BuffType, value int, expire time.Time) *Buff {
-	return &Buff{
-		ObjectID:   id,
-		BuffType:   typ,
-		Visible:    false,
-		Infinite:   false,
-		Values:     value,
-		ExpireTime: expire,
-	}
-}
-
 type BaseStats struct {
 	MinAC    uint16
 	MaxAC    uint16

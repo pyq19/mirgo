@@ -526,6 +526,8 @@ func updatePlayerInfo(g *Game, p *Player, c *common.Character) {
 	p.MaxExperience = 100
 	p.Magics = magics
 	p.ActionList = NewActionList()
+	p.PoisonList = NewPoisonList()
+	p.BuffList = NewBuffList()
 	p.Health = Health{
 		HPPotNextTime: new(time.Time),
 		HPPotDuration: 3 * time.Second,
