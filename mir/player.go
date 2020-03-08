@@ -2073,13 +2073,13 @@ func (p *Player) Magic(spell common.Spell, direction common.MirDirection, target
 		p.Enqueue(ServerMessage{}.UserLocation(p))
 		return
 	}
-	userMagic := p.GetMagic(spell)
-	if userMagic == nil {
+	magic := p.GetMagic(spell)
+	if magic == nil {
 		p.Enqueue(ServerMessage{}.UserLocation(p))
 		return
 	}
-	info := data.GetMagicInfoByID(userMagic.MagicID)
-	cost := info.BaseCost + info.LevelCost*userMagic.Level
+	info := data.GetMagicInfoByID(magic.MagicID)
+	cost := info.BaseCost + info.LevelCost*magic.Level
 	if uint16(cost) > p.MP {
 		p.Enqueue(ServerMessage{}.UserLocation(p))
 		return
@@ -2087,10 +2087,29 @@ func (p *Player) Magic(spell common.Spell, direction common.MirDirection, target
 	p.CurrentDirection = direction
 	p.ChangeMP(-cost)
 	target := p.Map.GetObjectInAreaByID(targetID, targetLocation)
-	cast, targetID := p.UseMagic(spell, userMagic, target)
+	cast, targetID := p.UseMagic(spell, magic, target)
 	p.Enqueue(ServerMessage{}.UserLocation(p))
-	p.Enqueue(ServerMessage{}.Magic(spell, targetID, targetLocation, cast, userMagic.Level))
-	p.Broadcast(ServerMessage{}.ObjectMagic(p, spell, targetID, targetLocation, cast, userMagic.Level))
+	p.Enqueue(&server.Magic{
+		Spell:    spell,
+		TargetID: targetID,
+		TargetX:  int32(targetLocation.X),
+		TargetY:  int32(targetLocation.Y),
+		Cast:     cast,
+		Level:    uint8(magic.Level),
+	})
+	p.Broadcast(&server.ObjectMagic{
+		ObjectID:      p.GetID(),
+		LocationX:     int32(p.GetPoint().X),
+		LocationY:     int32(p.GetPoint().Y),
+		Direction:     p.GetDirection(),
+		Spell:         spell,
+		TargetID:      targetID,
+		TargetX:       int32(targetLocation.X),
+		TargetY:       int32(targetLocation.Y),
+		Cast:          cast,
+		Level:         uint8(magic.Level),
+		SelfBroadcast: false,
+	})
 }
 
 func (p *Player) MagicKey(spell common.Spell, key uint8) {
@@ -2099,6 +2118,7 @@ func (p *Player) MagicKey(spell common.Spell, key uint8) {
 		// log.Debugln(cm)
 		if cm.Spell == spell {
 			cm.Key = key
+			adb.SyncMagicKey(p, spell, key)
 			// log.Debugln("found: ", cm.Spell)
 			return
 		}
