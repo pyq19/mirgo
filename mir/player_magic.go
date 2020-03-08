@@ -229,12 +229,9 @@ func (p *Player) CompleteMagic(args ...interface{}) {
 		if target == nil || !target.IsAttackTarget(p) {
 			return
 		}
-		if target.GetRace() == common.ObjectTypePlayer {
-			target.(*Player).Attacked(p, value, common.DefenceTypeMAC, false)
-		} else if target.GetRace() == common.ObjectTypeMonster {
-			target.(*Monster).Attacked(p, value, common.DefenceTypeMAC, false)
+		if target.Attacked(p, value, common.DefenceTypeMAC, false) > 0 {
+			p.LevelMagic(magic)
 		}
-		return
 	case common.SpellFrostCrunch:
 	case common.SpellVampirism:
 		// value = args[1].(int)
