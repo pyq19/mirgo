@@ -60,6 +60,7 @@ type Monster struct {
 	AttackTime  time.Time
 	DeadTime    time.Time
 	MoveTime    time.Time
+	PoisonList  *PoisonList
 }
 
 func (m *Monster) String() string {
@@ -109,6 +110,7 @@ func NewMonster(mp *Map, p common.Point, mi *common.MonsterInfo) (m *Monster) {
 	m.MoveTime = now
 	m.ViewRange = mi.ViewRange
 	m.Behavior = behaviorFactory(m.AI, m)
+	m.PoisonList = NewPoisonList()
 	return m
 }
 
@@ -196,7 +198,58 @@ func (m *Monster) GetBaseStats() BaseStats {
 
 func (m *Monster) AddBuff(buff *Buff) {}
 
-func (m *Monster) ApplyPoison(poison *Poison, caster IMapObject) {}
+func (m *Monster) ApplyPoison(p *Poison, caster IMapObject) {
+
+	ignoreDefence := false
+
+	if p.Owner != nil && p.Owner.IsAttackTarget(m) {
+		m.Target = p.Owner
+	}
+	// TODO
+	/*
+	  if (Master != null && p.Owner != null && p.Owner.Race == ObjectType.Player && p.Owner != Master)
+	  {
+	      if (Envir.Time > Master.BrownTime && Master.PKPoints < 200)
+	          p.Owner.BrownTime = Envir.Time + Settings.Minute;
+	  }
+
+	*/
+
+	if !ignoreDefence && (p.PType == common.PoisonTypeGreen) {
+		armour := m.GetDefencePower(int(m.MinMAC), int(m.MaxMAC))
+
+		if p.Value < armour {
+
+			p.PType = common.PoisonTypeNone
+		} else {
+			p.Value -= armour
+		}
+	}
+
+	if p.PType == common.PoisonTypeNone {
+		return
+	}
+	// TODO
+	/*
+	  for (int i = 0; i < PoisonList.Count; i++)
+	  {
+	      if (PoisonList[i].PType != p.PType) continue;
+	      if ((PoisonList[i].PType == PoisonType.Green) && (PoisonList[i].Value > p.Value)) return;//cant cast weak poison to cancel out strong poison
+	      if ((PoisonList[i].PType != PoisonType.Green) && ((PoisonList[i].Duration - PoisonList[i].Time) > p.Duration)) return;//cant cast 1 second poison to make a 1minute poison go away!
+	      if (p.PType == PoisonType.DelayedExplosion) return;
+	      if ((PoisonList[i].PType == PoisonType.Frozen) || (PoisonList[i].PType == PoisonType.Slow) || (PoisonList[i].PType == PoisonType.Paralysis) || (PoisonList[i].PType == PoisonType.LRParalysis)) return;//prevents mobs from being perma frozen/slowed
+	      PoisonList[i] = p;
+	      return;
+	  }
+
+	  if (p.PType == PoisonType.DelayedExplosion)
+	  {
+	      ExplosionInflictedTime = Envir.Time + 4000;
+	      Broadcast(new S.ObjectEffect { ObjectID = ObjectID, Effect = SpellEffect.DelayedExplosion });
+	  }
+	*/
+	m.PoisonList.List.PushBack(p)
+}
 
 func (m *Monster) Broadcast(msg interface{}) {
 	m.Map.BroadcastP(m.CurrentLocation, msg, nil)
