@@ -120,8 +120,11 @@ func (r *Respawn) SpawnOne() bool {
 		}
 
 		m := NewMonster(r.Map, common.NewPoint(x, y), r.Monster)
+		m.CurrentDirection = common.MirDirection(r.Info.Direction)
 		r.Map.AddObject(m)
-		// TODO: broadcast INFO
+
+		m.Broadcast(m.GetInfo())
+		// TODO: broadcast HealthChange
 
 		r.Count++
 

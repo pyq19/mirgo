@@ -15,13 +15,13 @@ func (m *Monster) GuardAttack() {
 
 	target := ObjectBack(m.Target)
 
-	m.CurrentDirection = DirectionFromPoint(target, m.Target.GetPoint())
+	dir := DirectionFromPoint(target, m.Target.GetPoint())
 
 	m.Broadcast(&server.ObjectAttack{
 		ObjectID:  m.GetID(),
 		LocationX: int32(target.X),
 		LocationY: int32(target.Y),
-		Direction: m.CurrentDirection,
+		Direction: dir,
 		Spell:     common.SpellNone,
 		Level:     uint8(0),
 		Type:      uint8(0),

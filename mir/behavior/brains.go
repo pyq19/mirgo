@@ -31,7 +31,7 @@ func DeerBrain() INode {
 func GuardBrain() INode {
 
 	root := Priority(1*time.Second,
-		While(FindMonsterInViewRange, GuardAttack()),
+		If(FindMonsterInViewRange, GuardAttack()),
 	)
 
 	return root
@@ -41,7 +41,7 @@ func GuardBrain() INode {
 func TownArcherBrain() INode {
 
 	root := Priority(1*time.Second,
-		While(FindPlayerByPKPoints200, WatchAndShoot()),
+		If(FindPlayerByPKPoints200, WatchAndShoot()),
 	)
 
 	return root
