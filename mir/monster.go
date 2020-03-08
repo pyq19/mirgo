@@ -1,6 +1,7 @@
 package mir
 
 import (
+	"container/list"
 	"fmt"
 	"time"
 
@@ -386,6 +387,46 @@ func (m *Monster) ProcessRegan() {
 
 // ProcessPoison 处理怪物中毒效果
 func (m *Monster) ProcessPoison() {
+	if m.IsDead() {
+		return
+	}
+	l := m.PoisonList.List
+	var next *list.Element
+	for e := l.Front(); e != nil; e = next {
+		next = e.Next()
+		poison := e.Value.(*Poison)
+		if poison.Owner == nil || poison.TickCnt > poison.TickNum {
+			l.Remove(e)
+			continue
+		}
+		if time.Now().After(poison.TickTime) {
+			poison.TickTime = poison.TickTime.Add(poison.TickSpeed)
+			poison.TickCnt++
+
+			if poison.PType == common.PoisonTypeGreen || poison.PType == common.PoisonTypeBleeding {
+
+				// TODO
+				// if (m.EXPOwner == nil || m.EXPOwner.Dead) {
+				// 	EXPOwner = poison.Owner;
+				// 	EXPOwnerTime = Envir.Time + EXPOwnerDelay;
+				// } else if (m.EXPOwner == poison.Owner) {
+				// 	EXPOwnerTime = Envir.Time + EXPOwnerDelay;
+				// }
+
+				if poison.PType == common.PoisonTypeBleeding {
+					m.Broadcast(&server.ObjectEffect{ObjectID: m.GetID(), Effect: common.SpellEffectBleeding, EffectType: 0})
+				}
+
+				m.ChangeHP(-poison.Value)
+				// if (PoisonStopRegen) {	// 停止回血
+				// 	RegenTime = Envir.Time + RegenDelay;
+				// }
+			}
+
+			// TODO
+			// if (poison.PType == PoisonType.DelayedExplosion)
+		}
+	}
 
 }
 

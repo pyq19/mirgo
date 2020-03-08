@@ -16,9 +16,10 @@ type Poison struct {
 	PType     common.PoisonType
 	Value     int           // 效果总数
 	Duration  time.Duration // 持续多久（秒）
-	TickSpeed time.Duration
-	TickNum   int // 总共跳几次
-	TickTime  int // 当前第几跳
+	TickSpeed time.Duration // 两次间隔多少毫秒
+	TickNum   int           // 总共跳几次
+	TickCnt   int           // 当前第几跳
+	TickTime  time.Time     // 下次生效时间
 }
 
 func NewPoison(duration int, owner IMapObject, ptype common.PoisonType, tickSpeed int, value int) *Poison {
@@ -32,7 +33,8 @@ func NewPoison(duration int, owner IMapObject, ptype common.PoisonType, tickSpee
 		Duration:  d,
 		TickSpeed: t,
 		TickNum:   tickNum,
-		TickTime:  0,
+		TickCnt:   0,
+		TickTime:  time.Now().Add(t),
 	}
 }
 
