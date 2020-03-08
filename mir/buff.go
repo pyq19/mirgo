@@ -1,10 +1,15 @@
 package mir
 
 import (
+	"container/list"
 	"time"
 
 	"github.com/yenkeia/mirgo/common"
 )
+
+type BuffList struct {
+	List *list.List
+}
 
 type Buff struct {
 	ObjectID   uint32
@@ -24,4 +29,14 @@ func NewBuff(id uint32, typ common.BuffType, value int, expire time.Time) *Buff 
 		Values:     value,
 		ExpireTime: expire,
 	}
+}
+
+func NewBuffList() *BuffList {
+	ret := &BuffList{}
+	ret.List = list.New()
+	return ret
+}
+
+func (ls *BuffList) Execute() {
+
 }

@@ -36,6 +36,12 @@ func NewPoison(duration int, owner IMapObject, ptype common.PoisonType, tickSpee
 	}
 }
 
+func NewPoisonList() *PoisonList {
+	ret := &PoisonList{}
+	ret.List = list.New()
+	return ret
+}
+
 func (ls *PoisonList) Execute() {
 
 }
