@@ -307,6 +307,14 @@ func (p *Player) CompleteMagic(args ...interface{}) {
 		}
 		p.LevelMagic(magic)
 	case common.SpellElectricShock:
+		monster, ok := args[1].(*Monster)
+		if !ok {
+			return
+		}
+		if monster == nil || !monster.IsAttackTarget(p) { // || monster.CurrentMap != CurrentMap || monster.Node == null) return;
+			return
+		}
+		p.ElectricShock(monster, magic)
 	case common.SpellPoisoning:
 		value := args[1].(int)
 		target := args[2].(IMapObject)
@@ -782,3 +790,6 @@ func (p *Player) UltimateEnhancer(target IMapObject, magic *common.UserMagic) bo
 
 // Plague 瘟疫
 func (p *Player) Plague(magic *common.UserMagic, location common.Point) bool { return true }
+
+// ElectricShock 诱惑之光
+func (p *Player) ElectricShock(target *Monster, magic *common.UserMagic) {}
