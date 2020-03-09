@@ -123,8 +123,8 @@ func (r *Respawn) SpawnOne() bool {
 		m.CurrentDirection = common.MirDirection(r.Info.Direction)
 		r.Map.AddObject(m)
 
-		m.Broadcast(m.GetInfo())
-		// TODO: broadcast HealthChange
+		m.BroadcastInfo()
+		m.BroadcastHealthChange()
 
 		r.Count++
 

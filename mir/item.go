@@ -52,6 +52,18 @@ func NewItem(dropper IMapObject, ui *common.UserItem) *Item {
 	return item
 }
 
+func (p *Item) Spawned() {
+	IMapObject_Spawned(p)
+}
+
+func (p *Item) BroadcastHealthChange() {
+
+}
+
+func (p *Item) BroadcastInfo() {
+	p.Broadcast(p.GetInfo())
+}
+
 func (i *Item) GetMap() *Map {
 	return i.Map
 }

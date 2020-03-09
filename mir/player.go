@@ -139,6 +139,14 @@ func (p *Player) GetName() string {
 	return p.Name
 }
 
+func (p *Player) GetHP() int {
+	return int(p.HP)
+}
+
+func (p *Player) GetMaxHP() int {
+	return int(p.MaxHP)
+}
+
 func (p *Player) Point() common.Point {
 	return p.GetPoint()
 }
@@ -156,6 +164,18 @@ func (m *Player) AddPlayerCount(n int) {
 	case 0:
 		m.Map.DelActiveObj(m)
 	}
+}
+
+func (p *Player) BroadcastHealthChange() {
+	IMapObject_BroadcastHealthChange(p)
+}
+
+func (p *Player) BroadcastInfo() {
+	p.Broadcast(p.GetInfo())
+}
+
+func (p *Player) Spawned() {
+	IMapObject_Spawned(p)
 }
 
 func (m *Player) GetPlayerCount() int {
@@ -848,17 +868,30 @@ func (p *Player) WinExp(amount, targetLevel int) {
 }
 
 func (p *Player) SetHP(amount uint32) {
+	if p.HP == uint16(amount) {
+		return
+	}
+
 	p.HP = uint16(amount)
+
+	if !p.IsDead() && p.HP == 0 {
+		p.Die()
+	}
+
 	msg := ServerMessage{}.HealthChanged(p.HP, p.MP)
 	p.Enqueue(msg)
-	p.Broadcast(msg)
+	p.BroadcastHealthChange()
 }
 
 func (p *Player) SetMP(amount uint32) {
+	if p.MP == uint16(amount) {
+		return
+	}
+
 	p.MP = uint16(amount)
 	msg := ServerMessage{}.HealthChanged(p.HP, p.MP)
 	p.Enqueue(msg)
-	p.Broadcast(msg)
+	p.BroadcastHealthChange()
 }
 
 func (p *Player) ChangeHP(amount int) {
@@ -908,7 +941,7 @@ func (p *Player) Teleport(m *Map, pt common.Point) {
 
 		p.Broadcast(&server.ObjectTeleportIn{ObjectID: p.GetID(), Type: 0})
 
-		// BroadcastHealthChange()
+		p.BroadcastHealthChange()
 	}
 
 	p.Enqueue(&server.MapChanged{

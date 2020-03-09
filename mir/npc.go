@@ -64,6 +64,18 @@ func NewNPC(m *Map, id uint32, ni *common.NpcInfo) *NPC {
 	return npc
 }
 
+func (p *NPC) BroadcastHealthChange() {
+
+}
+
+func (p *NPC) BroadcastInfo() {
+	p.Broadcast(p.GetInfo())
+}
+
+func (p *NPC) Spawned() {
+	IMapObject_Spawned(p)
+}
+
 func (n *NPC) HasType(typ common.ItemType) bool {
 	if n.Script.Types != nil {
 		for _, v := range n.Script.Types {

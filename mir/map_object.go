@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/yenkeia/mirgo/common"
+	"github.com/yenkeia/mirgo/proto/server"
 )
 
 type BaseStats struct {
@@ -21,19 +22,30 @@ type BaseStats struct {
 	Agility  uint8
 }
 
-type IProcessObject interface {
+type IDObject interface {
 	GetID() uint32
+}
+
+type ISimpleMapObject interface {
+	IDObject
+	GetMap() *Map
+	GetRace() common.ObjectType
+	Broadcast(interface{})
+}
+
+type IProcessObject interface {
+	IDObject
 	Process(dt time.Duration)
 }
 
 type IMapObject interface {
-	GetID() uint32
-	GetMap() *Map
+	ISimpleMapObject
 	GetName() string
-	GetRace() common.ObjectType
 	GetPoint() common.Point
 	GetCell() *Cell
-	Broadcast(interface{})
+	BroadcastHealthChange()
+	BroadcastInfo()
+	Spawned()
 	GetDirection() common.MirDirection
 	GetInfo() interface{}
 	GetBaseStats() BaseStats
@@ -48,6 +60,13 @@ type IMapObject interface {
 	AddPlayerCount(n int)
 	GetPlayerCount() int
 	Attacked(attacker IMapObject, damage int, dtype common.DefenceType, damageWeapon bool) int
+	GetMapObject() *MapObject
+}
+
+type ILifeObject interface {
+	ISimpleMapObject
+	GetHP() int
+	GetMaxHP() int
 }
 
 type MapObject struct {
@@ -61,4 +80,32 @@ type MapObject struct {
 	Buffs            []*Buff
 	Dead             bool
 	PlayerCount      int // 记录在DataRange内有多少个玩家
+	InSafeZone       bool
+}
+
+func (m *MapObject) GetMapObject() *MapObject {
+	return m
+}
+
+func IMapObject_Spawned(m IMapObject) {
+	m.BroadcastInfo()
+	m.BroadcastHealthChange()
+}
+
+func IMapObject_BroadcastHealthChange(m ILifeObject) {
+	if m.GetRace() != common.ObjectTypePlayer && m.GetRace() != common.ObjectTypeMonster {
+		return
+	}
+
+	// TODO RevTime
+
+	percent := byte(float32(m.GetHP()) / float32(m.GetMaxHP()) * 100)
+
+	msg := &server.ObjectHealth{
+		ObjectID: m.GetID(),
+		Percent:  percent,
+		Expire:   5,
+	}
+
+	m.Broadcast(msg)
 }

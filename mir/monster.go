@@ -159,6 +159,26 @@ func (m *Monster) GetDirection() common.MirDirection {
 	return m.CurrentDirection
 }
 
+func (p *Monster) GetHP() int {
+	return int(p.HP)
+}
+
+func (p *Monster) GetMaxHP() int {
+	return int(p.MaxHP)
+}
+
+func (m *Monster) BroadcastHealthChange() {
+	IMapObject_BroadcastHealthChange(m)
+}
+
+func (m *Monster) BroadcastInfo() {
+	m.Broadcast(m.GetInfo())
+}
+
+func (m *Monster) Spawned() {
+	IMapObject_Spawned(m)
+}
+
 func (m *Monster) GetInfo() interface{} {
 	res := &server.ObjectMonster{
 		ObjectID:          m.ID,
