@@ -65,6 +65,10 @@ func InRange(a, b common.Point, i int) bool {
 	return ut.AbsInt(int(a.X)-int(b.X)) <= i && ut.AbsInt(int(a.Y)-int(b.Y)) <= i
 }
 
+func InRangeXY(a common.Point, x, y, i int) bool {
+	return ut.AbsInt(int(a.X)-x) <= i && ut.AbsInt(int(a.Y)-y) <= i
+}
+
 func DirectionFromPoint(source, dest common.Point) common.MirDirection {
 	if source.X < dest.X {
 		if source.Y < dest.Y {

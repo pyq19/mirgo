@@ -197,12 +197,10 @@ func (e *Environ) InitMaps() {
 		m := LoadMap(uppercaseNameRealNameMap[strings.ToUpper(mi.Filename+".map")])
 		mi.Filename = strings.ToUpper(mi.Filename)
 		m.Info = mi
-		if err := m.InitMonsters(); err != nil {
+		if err := m.InitAll(); err != nil {
 			panic(err)
 		}
-		if err := m.InitNPCs(); err != nil {
-			panic(err)
-		}
+
 		e.Maps[mi.ID] = m
 	}
 }

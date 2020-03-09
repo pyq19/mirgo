@@ -10,21 +10,20 @@ import (
 
 // Map ...
 type Map struct {
-	Width    int
-	Height   int
-	Version  int
-	Info     *common.MapInfo
-	cells    []*Cell
-	doors    map[byte]*Door
-	doorsMap *Grid
-	Respawns []*Respawn
-
+	Width          int
+	Height         int
+	Version        int
+	Info           *common.MapInfo
+	SafeZoneInfos  []*common.SafeZoneInfo
+	Respawns       []*Respawn
+	cells          []*Cell
+	doors          map[byte]*Door
+	doorsMap       *Grid
 	players        map[uint32]*Player
 	monsters       map[uint32]*Monster
 	npcs           map[uint32]*NPC
 	activedObjects map[uint32]IProcessObject
-
-	ActionList *ActionList
+	ActionList     *ActionList
 }
 
 func NewMap(w, h, version int) *Map {
@@ -223,8 +222,9 @@ func (m *Map) UpdateObject(obj IMapObject, point common.Point) bool {
 	return true
 }
 
-// InitNPCs 初始化地图上的 NPC
-func (m *Map) InitNPCs() error {
+func (m *Map) InitAll() error {
+
+	//  init npc
 	for _, ni := range data.NpcInfos {
 		ni := ni
 		if ni.MapID == m.Info.ID {
@@ -232,11 +232,8 @@ func (m *Map) InitNPCs() error {
 			m.AddObject(n)
 		}
 	}
-	return nil
-}
 
-// InitMonsters 初始化地图上的怪物
-func (m *Map) InitMonsters() error {
+	// init respawn
 	m.Respawns = []*Respawn{}
 	for _, ri := range data.RespawnInfos {
 		if ri.MapID == m.Info.ID {
@@ -252,6 +249,22 @@ func (m *Map) InitMonsters() error {
 		r.Spawn()
 	}
 
+	// init safe zones
+	m.SafeZoneInfos = []*common.SafeZoneInfo{}
+	for _, s := range data.SafeZoneInfos {
+		if s.MapID == m.Info.ID {
+			m.SafeZoneInfos = append(m.SafeZoneInfos, s)
+		}
+	}
+	return nil
+}
+
+func (m *Map) GetSafeZone(loc common.Point) *common.SafeZoneInfo {
+	for _, s := range m.SafeZoneInfos {
+		if InRangeXY(loc, s.LocationX, s.LocationY, s.Size) {
+			return s
+		}
+	}
 	return nil
 }
 

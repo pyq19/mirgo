@@ -1096,6 +1096,8 @@ func (p *Player) Turn(direction common.MirDirection) {
 		return
 	}
 	p.CurrentDirection = direction
+	p.UpdateInSafeZone()
+
 	p.Enqueue(ServerMessage{}.UserLocation(p))
 	p.Broadcast(ServerMessage{}.ObjectTurn(p))
 }
@@ -1118,6 +1120,8 @@ func (p *Player) Walk(direction common.MirDirection) {
 	}
 	p.CurrentDirection = direction
 	p.CurrentLocation = n
+	p.UpdateInSafeZone()
+
 	p.Enqueue(ServerMessage{}.UserLocation(p))
 	p.Broadcast(ServerMessage{}.ObjectWalk(p))
 }
@@ -1164,6 +1168,8 @@ func (p *Player) Run(direction common.MirDirection) {
 	}
 	p.CurrentDirection = direction
 	p.CurrentLocation = loc
+	p.UpdateInSafeZone()
+
 	p.Enqueue(ServerMessage{}.UserLocation(p))
 	p.Broadcast(ServerMessage{}.ObjectRun(p))
 }

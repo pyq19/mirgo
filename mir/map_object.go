@@ -86,8 +86,16 @@ type MapObject struct {
 func (m *MapObject) GetMapObject() *MapObject {
 	return m
 }
+func (m *MapObject) UpdateInSafeZone() {
+	if m.Map != nil {
+		m.InSafeZone = m.Map.GetSafeZone(m.CurrentLocation) != nil
+	} else {
+		m.InSafeZone = false
+	}
+}
 
 func IMapObject_Spawned(m IMapObject) {
+	m.GetMapObject().UpdateInSafeZone()
 	m.BroadcastInfo()
 	m.BroadcastHealthChange()
 }

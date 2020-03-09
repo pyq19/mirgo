@@ -688,6 +688,7 @@ func (m *Monster) Walk(dir common.MirDirection) bool {
 
 	m.CurrentDirection = dir
 	m.CurrentLocation = dest
+	m.UpdateInSafeZone()
 
 	m.WalkNotify(oldpos, destcell.Point)
 
@@ -737,6 +738,8 @@ func (m *Monster) Turn(dir common.MirDirection) {
 		Direction: dir,
 		Location:  m.CurrentLocation,
 	})
+
+	m.UpdateInSafeZone()
 
 	// TODO:
 	// InSafeZone = CurrentMap.GetSafeZone(CurrentLocation) != null
