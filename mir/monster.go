@@ -143,6 +143,10 @@ func (m *Monster) GetName() string {
 	return m.Name
 }
 
+func (m *Monster) GetLevel() int {
+	return int(m.Level)
+}
+
 func (m *Monster) GetRace() common.ObjectType {
 	return common.ObjectTypeMonster
 }

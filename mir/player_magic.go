@@ -236,6 +236,43 @@ func (p *Player) CompleteMagic(args ...interface{}) {
 			p.LevelMagic(magic)
 		}
 	case common.SpellFrostCrunch:
+		value := args[1].(int)
+		target := args[2].(IMapObject)
+		if target == nil || !target.IsAttackTarget(p) { //|| target.CurrentMap != CurrentMap || target.Node == null) return;
+			return
+		}
+		if target.Attacked(p, value, common.DefenceTypeMAC, false) > 0 {
+			var tmp1 int
+			var tmp2 int
+			var duration int
+			if target.GetRace() == common.ObjectTypePlayer {
+				tmp1 = 2
+				tmp2 = 100
+				duration = 4
+			} else {
+				tmp1 = 10
+				tmp2 = 20
+				duration = 5 + ut.RandomNext(5)
+			}
+			if int(p.Level)+tmp1 >= target.GetLevel() && ut.RandomNext(tmp2) <= magic.Level {
+				target.ApplyPoison(NewPoison(duration, p, common.PoisonTypeSlow, 1000, 0), p)
+				// TODO // target.OperateTime = 0;
+			}
+			if target.GetRace() == common.ObjectTypePlayer {
+				tmp1 = 2
+				tmp2 = 100
+				duration = 2
+			} else {
+				tmp1 = 10
+				tmp2 = 40
+				duration = 5 + int(p.Freezing)
+			}
+			if int(p.Level)+tmp1 >= target.GetLevel() && ut.RandomNext(tmp2) <= magic.Level {
+				target.ApplyPoison(NewPoison(duration, p, common.PoisonTypeFrozen, 1000, 0), p)
+				// TODO // target.OperateTime = 0;
+			}
+			p.LevelMagic(magic)
+		}
 	case common.SpellVampirism:
 		// value = args[1].(int)
 		// target = args[2].(IMapObject)

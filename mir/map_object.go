@@ -41,6 +41,7 @@ type IProcessObject interface {
 type IMapObject interface {
 	ISimpleMapObject
 	GetName() string
+	GetLevel() int
 	GetPoint() common.Point
 	GetCell() *Cell
 	BroadcastHealthChange()

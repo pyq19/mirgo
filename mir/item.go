@@ -76,6 +76,10 @@ func (i *Item) GetName() string {
 	return i.Name
 }
 
+func (i *Item) GetLevel() int {
+	return 0
+}
+
 func (m *Item) AddPlayerCount(n int) {
 	m.PlayerCount += n
 	switch m.PlayerCount {

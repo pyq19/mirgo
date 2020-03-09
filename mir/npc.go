@@ -129,6 +129,10 @@ func (n *NPC) GetName() string {
 	return n.Name
 }
 
+func (n *NPC) GetLevel() int {
+	return 0
+}
+
 func (n *NPC) AttackMode() common.AttackMode {
 	return common.AttackModePeace
 }

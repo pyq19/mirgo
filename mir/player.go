@@ -139,6 +139,10 @@ func (p *Player) GetName() string {
 	return p.Name
 }
 
+func (p *Player) GetLevel() int {
+	return int(p.Level)
+}
+
 func (p *Player) GetHP() int {
 	return int(p.HP)
 }
