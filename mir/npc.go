@@ -32,7 +32,7 @@ func NewNPC(m *Map, id uint32, ni *common.NpcInfo) *NPC {
 		MapObject: MapObject{
 			ID:               id,
 			Name:             ni.Name,
-			NameColor:        common.Color{R: 255, G: 255, B: 255},
+			NameColor:        common.ColorLime,
 			Map:              m,
 			CurrentLocation:  common.NewPoint(ni.LocationX, ni.LocationY),
 			CurrentDirection: common.MirDirection(ut.RandomInt(0, 1)),
@@ -169,7 +169,7 @@ func (n *NPC) GetInfo() interface{} {
 	res := &server.ObjectNPC{
 		ObjectID:  n.ID,
 		Name:      n.Name,
-		NameColor: -16711936, // TODO
+		NameColor: n.NameColor.ToInt32(),
 		Image:     uint16(n.Image),
 		Color:     0, // TODO
 		Location:  n.GetPoint(),

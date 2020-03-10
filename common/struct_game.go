@@ -90,4 +90,5 @@ var (
 	ColorDarkOrange  = NewColor(0xFFFF8C00)
 	ColorPlum        = NewColor(0xFFDDA0DD)
 	ColorCyan        = NewColor(0xFF00FFFF)
+	ColorLime        = NewColor(0xFF00FF00)
 )
