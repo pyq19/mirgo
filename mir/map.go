@@ -503,9 +503,10 @@ func (m *Map) CompleteMagic(args ...interface{}) {
 			return true
 		})
 	case common.SpellSoulShield, common.SpellBlessedArmour:
-		value := args[1].(int)
-		location := args[2].(common.Point)
-		player := args[3].(*Player)
+		player := args[0].(*Player)
+		magic := args[1].(*common.UserMagic)
+		value := args[2].(int)
+		location := args[3].(common.Point)
 		buffType := common.BuffTypeSoulShield
 		if magic.Spell == common.SpellBlessedArmour {
 			buffType = common.BuffTypeBlessedArmour

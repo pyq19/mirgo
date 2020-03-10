@@ -604,7 +604,10 @@ func (p *Player) SoulShield(magic *common.UserMagic, location common.Point) bool
 	}
 	// int delay = Functions.MaxDistance(CurrentLocation, location) * 50 + 500; //50 MS per Step
 	// DelayedAction action = new DelayedAction(DelayedType.Magic, Envir.Time + delay, this, magic, GetAttackPower(MinSC, MaxSC) * 2 + (magic.Level + 1) * 10, location);
-	p.ActionList.PushActionSuper(DelayedTypeMagic, p.Map.CompleteMagic, magic, p.GetAttackPower(int(p.MinSC), int(p.MaxSC))*2+(magic.Level+1)*10, location, p)
+	delay := 500
+	p.Map.ActionList.PushDelayAction(DelayedTypeMagic, delay, func() {
+		p.Map.CompleteMagic(p, magic, p.GetAttackPower(int(p.MinSC), int(p.MaxSC))*2+(magic.Level+1)*10, location)
+	})
 	p.ConsumeItem(userItem, 1)
 	return true
 }
