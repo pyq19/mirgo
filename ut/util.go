@@ -75,6 +75,9 @@ func RandomInt(low int, high int) int {
 	if low == high {
 		return low
 	}
+	if low > high || high == 0 {
+		return 0
+	}
 
 	return rand.Intn(high-low+1) + low
 }
@@ -86,9 +89,6 @@ func RandomNext2(low, high int) int {
 
 // c# random.next [0, high)
 func RandomNext(high int) int {
-	if high == 0 {
-		return 0
-	}
 	return RandomNext2(0, high)
 }
 
