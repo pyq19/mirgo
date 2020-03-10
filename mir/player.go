@@ -1950,20 +1950,22 @@ func (p *Player) CallNPC1(npc *NPC, key string) {
 	p.Enqueue(ServerMessage{}.NPCResponse(replaceTemplates(npc, p, say)))
 
 	// ProcessSpecial
-	key = strings.ToUpper(key)[2 : len(key)-1]
+	key = strings.ToUpper(key)
 	fmt.Println("call npc", npc.Name, key)
 
 	switch key {
-	case "BUY":
+	case BuyKey:
 		sendBuyKey(p, npc)
-	case "SELL":
+	case SellKey:
 		p.Enqueue(&server.NPCSell{})
-	case "BUYSELL":
+	case BuySellKey:
 		sendBuyKey(p, npc)
 		p.Enqueue(&server.NPCSell{})
-	case "STORAGE":
+	case StorageKey:
 		sendStorage(p, npc)
 		p.Enqueue(&server.NPCStorage{})
+	case BuyBackKey:
+		p.Enqueue(&server.NPCGoods{Goods: npc.GetPlayerBuyBack(p), Rate: 1})
 
 	default:
 		// TODO
@@ -2071,7 +2073,7 @@ func (p *Player) SellItem(id uint64, count uint32) {
 	// 	return;
 	// }
 
-	if p.CallingNPC.HasType(temp.Info.Type) {
+	if !p.CallingNPC.HasType(temp.Info.Type) {
 		p.ReceiveChat("You cannot sell this item here.", common.ChatTypeSystem)
 		p.Enqueue(msg)
 		return

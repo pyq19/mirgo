@@ -1,6 +1,7 @@
 package mir
 
 import (
+	"container/list"
 	"fmt"
 	"strconv"
 	"strings"
@@ -19,6 +20,7 @@ type NPC struct {
 	TurnTime time.Time
 	Script   *script.Script
 	Goods    []*common.UserItem
+	BuyBack  map[uint32]*list.List
 }
 
 func NewNPC(m *Map, id uint32, ni *common.NpcInfo) *NPC {
@@ -40,6 +42,7 @@ func NewNPC(m *Map, id uint32, ni *common.NpcInfo) *NPC {
 		TurnTime: time.Now(),
 		Script:   sc,
 		Goods:    []*common.UserItem{},
+		BuyBack:  map[uint32]*list.List{},
 	}
 
 	for _, name := range npc.Script.Goods {
@@ -206,6 +209,20 @@ func (n *NPC) Process(dt time.Duration) {
 		n.CurrentDirection = common.MirDirection(ut.RandomInt(0, 1))
 		n.Broadcast(ServerMessage{}.ObjectTurn(n))
 	}
+
+	for _, items := range n.BuyBack {
+		for it := items.Front(); it != nil; {
+			ele := it.Value.(*BuyBackItem)
+			if ele.Expire <= dt {
+				old := it
+				it = it.Next()
+				items.Remove(old)
+			} else {
+				ele.Expire -= dt
+				it = it.Next()
+			}
+		}
+	}
 }
 
 // GetUserItemByID 获取 NPC Goods
@@ -220,27 +237,80 @@ func (n *NPC) GetUserItemByID(id uint64) *common.UserItem {
 
 // Buy 玩家向 NPC 购买物品
 func (n *NPC) Buy(p *Player, userItemID uint64, count uint32) {
-	userItem := n.GetUserItemByID(userItemID)
-	if userItem == nil {
+
+	var userItem *common.UserItem
+	var iter *list.Element
+
+	items, isBuyBack := n.BuyBack[p.ID]
+	if isBuyBack {
+		for iter = items.Front(); iter != nil; iter = iter.Next() {
+			if iter.Value.(*BuyBackItem).Item.ID == userItemID {
+				userItem = iter.Value.(*BuyBackItem).Item
+				break
+			}
+		}
+	} else {
+		userItem = n.GetUserItemByID(userItemID)
+	}
+
+	if userItem == nil || count == 0 || count > userItem.Count {
 		return
 	}
-	itemInfo := data.GetItemInfoByID(int(userItem.ItemID))
-	if itemInfo == nil {
+
+	price := userItem.Price()
+	if price > p.Gold {
 		return
 	}
-	ui := env.NewUserItem(itemInfo)
-	ui.Count = count
-	p.GainItem(ui)
+
+	if isBuyBack {
+		count = userItem.Count
+		items.Remove(iter)
+	} else {
+		userItem = env.NewUserItem(userItem.Info)
+		userItem.Count = count
+	}
+
+	p.TakeGold(price)
+	p.GainItem(userItem)
+}
+
+type BuyBackItem struct {
+	Expire time.Duration
+	Item   *common.UserItem
+}
+
+func (n *NPC) GetPlayerBuyBack(p *Player) (ret []*common.UserItem) {
+
+	items, has := n.BuyBack[p.ID]
+	if !has {
+		return
+	}
+	for it := items.Front(); it != nil; it = it.Next() {
+		ret = append(ret, it.Value.(*BuyBackItem).Item)
+	}
+	return
 }
 
 func (n *NPC) Sell(p *Player, item *common.UserItem) {
-	// if (!BuyBack.ContainsKey(player.Name)) BuyBack[player.Name] = new List<UserItem>();
 
-	// if (BuyBack[player.Name].Count >= Settings.GoodsBuyBackMaxStored)
-	// 	BuyBack[player.Name].RemoveAt(0);
+	// TODO: config
+	const GoodsBuyBackMaxStored = 20
+	const GoodsBuyBackTime = 1 * time.Hour
 
-	// item.BuybackExpiryDate = Envir.Now;
-	// BuyBack[player.Name].Add(item);
+	items, has := n.BuyBack[p.ID]
+	if !has {
+		items = list.New()
+		n.BuyBack[p.ID] = items
+	}
+
+	if items.Len() >= GoodsBuyBackMaxStored {
+		items.Remove(items.Front())
+	}
+
+	items.PushBack(&BuyBackItem{
+		Item:   item,
+		Expire: GoodsBuyBackTime,
+	})
 }
 
 func (n *NPC) Craft(p *Player, index uint64, count uint32, slots []int) {
