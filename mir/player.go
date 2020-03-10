@@ -1955,21 +1955,33 @@ func (p *Player) CallNPC1(npc *NPC, key string) {
 
 	switch key {
 	case BuyKey:
-		sendBuyKey(p, npc)
+		sendNpcGoods(p, npc)
 	case SellKey:
 		p.Enqueue(&server.NPCSell{})
 	case BuySellKey:
-		sendBuyKey(p, npc)
+		sendNpcGoods(p, npc)
 		p.Enqueue(&server.NPCSell{})
 	case StorageKey:
 		sendStorage(p, npc)
 		p.Enqueue(&server.NPCStorage{})
 	case BuyBackKey:
-		p.Enqueue(&server.NPCGoods{Goods: npc.GetPlayerBuyBack(p), Rate: 1})
+		sendBuyBackGoods(p, npc, true)
 
 	default:
 		// TODO
 	}
+}
+
+func sendBuyBackGoods(p *Player, npc *NPC, syncItem bool) {
+	goods := npc.GetPlayerBuyBack(p)
+
+	if syncItem {
+		for _, item := range goods {
+			p.EnqueueItemInfo(item.ItemID)
+		}
+	}
+
+	p.Enqueue(&server.NPCGoods{Goods: goods, Rate: 1})
 }
 
 func sendStorage(p *Player, npc *NPC) {
@@ -1985,7 +1997,7 @@ func sendStorage(p *Player, npc *NPC) {
 	p.Enqueue(&server.UserStorage{Storage: p.Storage.Items})
 }
 
-func sendBuyKey(p *Player, npc *NPC) {
+func sendNpcGoods(p *Player, npc *NPC) {
 
 	goods := npc.Goods
 
@@ -1994,11 +2006,7 @@ func sendBuyKey(p *Player, npc *NPC) {
 	}
 
 	if len(goods) != 0 {
-		p.Enqueue(&server.NPCGoods{
-			Goods: goods,
-			Rate:  1.0,
-			Type:  common.PanelTypeBuy,
-		})
+		p.Enqueue(&server.NPCGoods{Goods: goods, Rate: 1.0, Type: common.PanelTypeBuy})
 		return
 	}
 }

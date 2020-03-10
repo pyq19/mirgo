@@ -210,6 +210,7 @@ func (n *NPC) Process(dt time.Duration) {
 		n.Broadcast(ServerMessage{}.ObjectTurn(n))
 	}
 
+	// TODO: 过期的buyback 放入商店供所有人购买
 	for _, items := range n.BuyBack {
 		for it := items.Front(); it != nil; {
 			ele := it.Value.(*BuyBackItem)
@@ -240,16 +241,21 @@ func (n *NPC) Buy(p *Player, userItemID uint64, count uint32) {
 
 	var userItem *common.UserItem
 	var iter *list.Element
+	var isBuyBack bool
 
-	items, isBuyBack := n.BuyBack[p.ID]
-	if isBuyBack {
+	items, has := n.BuyBack[p.ID]
+	if has {
 		for iter = items.Front(); iter != nil; iter = iter.Next() {
 			if iter.Value.(*BuyBackItem).Item.ID == userItemID {
 				userItem = iter.Value.(*BuyBackItem).Item
+				isBuyBack = true
 				break
 			}
 		}
-	} else {
+		isBuyBack = false
+	}
+
+	if !isBuyBack {
 		userItem = n.GetUserItemByID(userItemID)
 	}
 
@@ -265,6 +271,7 @@ func (n *NPC) Buy(p *Player, userItemID uint64, count uint32) {
 	if isBuyBack {
 		count = userItem.Count
 		items.Remove(iter)
+		sendBuyBackGoods(p, n, false)
 	} else {
 		userItem = env.NewUserItem(userItem.Info)
 		userItem.Count = count
