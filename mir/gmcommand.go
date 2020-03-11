@@ -105,6 +105,10 @@ func _gmGold(p *Player, gold int) {
 	p.GainGold(uint64(gold))
 }
 
+func _gmExp(p *Player, exp int) {
+	p.GainExp(uint32(exp))
+}
+
 var cmd = script.NewContext()
 
 func init() {
@@ -116,4 +120,5 @@ func init() {
 	cmd.Action("MOB", _gmMob)
 	cmd.Action("MOVE", _gmMove)
 	cmd.Action("GOLD", _gmGold)
+	cmd.Action("EXP", _gmExp)
 }
