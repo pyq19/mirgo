@@ -168,7 +168,18 @@ func (m *Monster) GetHP() int {
 }
 
 func (m *Monster) SetHP(amount uint32) {
-
+	if m.HP == amount {
+		return
+	}
+	if amount <= m.MaxHP {
+		m.HP = amount
+	} else {
+		m.HP = m.MaxHP
+	}
+	if !m.Dead && m.HP == 0 {
+		m.Die()
+	}
+	m.BroadcastHealthChange()
 }
 
 func (m *Monster) GetMaxHP() int {

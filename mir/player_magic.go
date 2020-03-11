@@ -288,22 +288,15 @@ func (p *Player) CompleteMagic(args ...interface{}) {
 		if target == nil || !target.IsFriendlyTarget(p) {
 			return
 		}
-		if target.GetRace() == common.ObjectTypePlayer {
-			obj := target.(*Player)
-			hp := int(obj.HP)
-			maxHP := int(obj.MaxHP)
+		if target.GetRace() == common.ObjectTypePlayer || target.GetRace() == common.ObjectTypeMonster {
+			obj := target.(ILifeObject)
+			hp := int(obj.GetHP())
+			maxHP := int(obj.GetMaxHP())
 			if hp >= maxHP {
 				return
 			}
-			obj.HP += uint16(value)
-		} else if target.GetRace() == common.ObjectTypeMonster {
-			obj := target.(*Monster)
-			hp := int(obj.HP)
-			maxHP := int(obj.MaxHP)
-			if hp >= maxHP {
-				return
-			}
-			obj.HP += uint32(value)
+			// obj.HP += uint16(value)
+			obj.ChangeHP(value)
 		}
 		p.LevelMagic(magic)
 	case common.SpellElectricShock:
