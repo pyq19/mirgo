@@ -348,7 +348,7 @@ func (p *Player) GetBaseStats() BaseStats {
 
 // AddBuff ...
 func (p *Player) AddBuff(buff *Buff) {
-
+	p.BuffList.List.PushBack(buff)
 }
 
 func (p *Player) ApplyPoison(poison *Poison, caster IMapObject) {

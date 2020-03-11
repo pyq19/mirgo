@@ -274,14 +274,6 @@ func (p *Player) CompleteMagic(args ...interface{}) {
 			p.LevelMagic(magic)
 		}
 	case common.SpellVampirism:
-		// value = args[1].(int)
-		// target = args[2].(IMapObject)
-		// if (target == null || !target.IsAttackTarget(this) || target.CurrentMap != CurrentMap || target.Node == null) return;
-		// value = target.Attacked(this, value, DefenceType.MAC, false);
-		// if (value == 0) return;
-		// LevelMagic(magic);
-		// if (VampAmount == 0) VampTime = Envir.Time + 1000;
-		// VampAmount += (ushort)(value * (magic.Level + 1) * 0.25F);
 	case common.SpellHealing:
 		value := args[1].(int)
 		target := args[2].(IMapObject)
@@ -332,18 +324,19 @@ func (p *Player) CompleteMagic(args ...interface{}) {
 	case common.SpellTeleport:
 	case common.SpellBlink:
 	case common.SpellHiding:
-		/*
-			for i := range p.Buffs {
-				if p.Buffs[i].BuffType == common.BuffTypeHiding {
-					return
-				}
+		for e := p.BuffList.List.Front(); e != nil; e = e.Next() {
+			if e.Value.(*Buff).BuffType == common.BuffTypeHiding {
+				return
 			}
-			value := args[1].(int)
-			expireTime := time.Now().Add(time.Duration(value*1000) * time.Millisecond)
-			buff := NewBuff(p.NewObjectID(), common.BuffTypeHiding, 0, expireTime)
-			p.AddBuff(buff)
-			p.LevelMagic(magic)
-		*/
+		}
+		value := args[1].(int)
+		buff := &Buff{
+			BuffType:   common.BuffTypeHiding,
+			Caster:     p,
+			ExpireTime: 1000 * value,
+		}
+		p.AddBuff(buff)
+		p.LevelMagic(magic)
 	case common.SpellHaste:
 	case common.SpellFury:
 		buff := &Buff{
