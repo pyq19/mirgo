@@ -70,7 +70,6 @@ type ILifeObject interface {
 	ChangeHP(hp int)
 	GetMaxHP() int
 	SetHP(uint32)
-	ChangeHP(int)
 }
 
 type MapObject struct {
