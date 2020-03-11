@@ -1699,11 +1699,17 @@ func (p *Player) GiveSkill(spell common.Spell, level int) bool {
 	info := data.GetMagicInfoBySpell(spell)
 
 	if info != nil {
-		magic := &common.UserMagic{Info: info, Level: level}
-		// TODO: 重复检查
+		for _, v := range p.Magics {
+			if v.Spell == spell {
+				p.ReceiveChat("你已经学习该技能", common.ChatTypeSystem)
+				return true
+			}
+		}
+		magic := &common.UserMagic{Info: info, Level: level, CharacterID: int(p.ID), MagicID: info.ID, Spell: spell}
 		p.Magics = append(p.Magics, magic)
 		p.Enqueue(magic.Info)
-		// TODO: add do db
+		adb.AddSkill(p, magic)
+
 		p.RefreshStats()
 		return true
 	}

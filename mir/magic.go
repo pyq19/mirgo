@@ -134,7 +134,7 @@ func startMagic(ctx *MagicContext) (cast bool, targetid uint32) {
 		// TODO
 	}
 
-	item, count := ctx.Config.ItemCost(ctx)
+	item, count := cfg.ItemCost(ctx)
 
 	if item != nil {
 		ctx.Player.ConsumeItem(item, count)

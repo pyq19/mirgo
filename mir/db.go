@@ -67,3 +67,7 @@ func (d *DB) SyncMagicKey(p *Player, spell common.Spell, key uint8) {
 	}
 	table.Model(&found).Update("magic_key", key)
 }
+
+func (d *DB) AddSkill(p *Player, magic *common.UserMagic) {
+	d.db.Table("user_magic").Create(magic)
+}
