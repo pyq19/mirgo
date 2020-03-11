@@ -2202,14 +2202,11 @@ func (p *Player) Magic(spell common.Spell, direction common.MirDirection, target
 }
 
 func (p *Player) MagicKey(spell common.Spell, key uint8) {
-	clientMagics := p.GetClientMagics()
-	for _, cm := range clientMagics {
-		// log.Debugln(cm)
-		if cm.Spell == spell {
-			cm.Key = key
+	for _, m := range p.Magics {
+		if m.Spell == spell {
+			m.Key = int(key)
 			adb.SyncMagicKey(p, spell, key)
-			// log.Debugln("found: ", cm.Spell)
-			return
+			break
 		}
 	}
 }
