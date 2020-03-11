@@ -77,8 +77,6 @@ type MapObject struct {
 	Map              *Map
 	CurrentLocation  common.Point
 	CurrentDirection common.MirDirection
-	Poisons          []*Poison
-	Buffs            []*Buff
 	Dead             bool
 	PlayerCount      int // 记录在DataRange内有多少个玩家
 	InSafeZone       bool

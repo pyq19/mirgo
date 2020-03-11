@@ -339,22 +339,27 @@ func (p *Player) CompleteMagic(args ...interface{}) {
 	case common.SpellTeleport:
 	case common.SpellBlink:
 	case common.SpellHiding:
-		for i := range p.Buffs {
-			if p.Buffs[i].BuffType == common.BuffTypeHiding {
-				return
+		/*
+			for i := range p.Buffs {
+				if p.Buffs[i].BuffType == common.BuffTypeHiding {
+					return
+				}
 			}
-		}
-		value := args[1].(int)
-		expireTime := time.Now().Add(time.Duration(value*1000) * time.Millisecond)
-		buff := NewBuff(p.NewObjectID(), common.BuffTypeHiding, 0, expireTime)
-		p.AddBuff(buff)
-		p.LevelMagic(magic)
+			value := args[1].(int)
+			expireTime := time.Now().Add(time.Duration(value*1000) * time.Millisecond)
+			buff := NewBuff(p.NewObjectID(), common.BuffTypeHiding, 0, expireTime)
+			p.AddBuff(buff)
+			p.LevelMagic(magic)
+		*/
 	case common.SpellHaste:
 	case common.SpellFury:
-		// p.AddBuff(new Buff { Type = BuffType.Fury, Caster = this, ExpireTime = Envir.Time + 60000 + magic.Level * 10000, Values = new int[] { 4 }, Visible = true });
-		expireTime := time.Now().Add(time.Duration(60000 + magic.Level*10000))
-		buff := NewBuff(p.NewObjectID(), common.BuffTypeFury, 4, expireTime)
-		buff.Visible = true
+		buff := &Buff{
+			BuffType:   common.BuffTypeFury,
+			Caster:     p,
+			ExpireTime: 60000 + magic.Level*10000,
+			Values:     []int{4},
+			Visible:    true,
+		}
 		p.AddBuff(buff)
 		p.LevelMagic(magic)
 	case common.SpellImmortalSkin:
@@ -362,16 +367,14 @@ func (p *Player) CompleteMagic(args ...interface{}) {
 	case common.SpellMagicShield:
 	case common.SpellTurnUndead:
 	case common.SpellMagicBooster:
-		// buff := NewBuff { Type = BuffType.MagicBooster
-		// 	 Caster = this
-		// 	  ExpireTime = Envir.Time + 60000,
-		// 	   Values = new int[] { value, 6 + magic.Level }
-		// 	    Visible = true });
 		value := args[1].(int)
-		values := value + 6 + int(magic.Level)
-		expireTime := time.Now().Add(time.Duration(60000) * time.Millisecond)
-		buff := NewBuff(p.NewObjectID(), common.BuffTypeMagicBooster, values, expireTime)
-		buff.Visible = true
+		buff := &Buff{
+			BuffType:   common.BuffTypeMagicBooster,
+			Caster:     p,
+			ExpireTime: 60000,
+			Values:     []int{value, 6 + magic.Level},
+			Visible:    true,
+		}
 		p.AddBuff(buff)
 		p.LevelMagic(magic)
 	case common.SpellPurification:
