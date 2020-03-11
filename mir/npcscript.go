@@ -180,7 +180,9 @@ func _PARAM3(npc *NPC, p *Player, g1 string) {
 func _MONGEN(npc *NPC, p *Player, g1 string, n int) {
 }
 
-func _GIVESKILL(npc *NPC, p *Player, name string, v int) {
+func _GIVESKILL(npc *NPC, p *Player, name string, level int) {
+	info := data.GetMagicInfoByName(name)
+	p.GiveSkill(common.Spell(info.Spell), level)
 }
 
 func _CHANGELEVEL(npc *NPC, p *Player, lv int) {

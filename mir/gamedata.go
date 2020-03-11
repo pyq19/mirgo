@@ -249,3 +249,12 @@ func (db *GameData) GetMagicInfoBySpell(spell common.Spell) *common.MagicInfo {
 	}
 	return nil
 }
+
+func (db *GameData) GetMagicInfoByName(name string) *common.MagicInfo {
+	for _, v := range db.MagicIDInfoMap {
+		if v.Name == name {
+			return v
+		}
+	}
+	return nil
+}

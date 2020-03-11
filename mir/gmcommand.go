@@ -109,6 +109,11 @@ func _gmExp(p *Player, exp int) {
 	p.GainExp(uint32(exp))
 }
 
+func _gmGiveSkill(p *Player, name string, level int) {
+	info := data.GetMagicInfoByName(name)
+	p.GiveSkill(common.Spell(info.Spell), level)
+}
+
 var cmd = script.NewContext()
 
 func init() {
@@ -121,4 +126,5 @@ func init() {
 	cmd.Action("MOVE", _gmMove)
 	cmd.Action("GOLD", _gmGold)
 	cmd.Action("EXP", _gmExp)
+	cmd.Action("GIVESKILL", _gmGiveSkill)
 }

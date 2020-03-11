@@ -1671,16 +1671,7 @@ func (p *Player) UseItem(id uint64) {
 	case common.ItemTypeScroll:
 		msg.Success = p.UseItemScroll(item)
 	case common.ItemTypeBook:
-		magic := &common.UserMagic{}
-		magic.Spell = common.Spell(info.Shape)
-		magic.Info = data.GetMagicInfoBySpell(magic.Spell)
-
-		if magic.Info != nil {
-			p.Magics = append(p.Magics, magic)
-			p.Enqueue(magic.Info)
-			p.RefreshStats()
-			msg.Success = true
-		}
+		msg.Success = p.GiveSkill(common.Spell(info.Shape), 1)
 
 	case common.ItemTypeScript:
 		p.CallDefaultNPC(DefaultNPCTypeUseItem, info.Shape)
@@ -1701,6 +1692,23 @@ func (p *Player) UseItem(id uint64) {
 	}
 
 	p.Enqueue(msg)
+}
+
+func (p *Player) GiveSkill(spell common.Spell, level int) bool {
+
+	info := data.GetMagicInfoBySpell(spell)
+
+	if info != nil {
+		magic := &common.UserMagic{Info: info, Level: level}
+		// TODO: 重复检查
+		p.Magics = append(p.Magics, magic)
+		p.Enqueue(magic.Info)
+		// TODO: add do db
+		p.RefreshStats()
+		return true
+	}
+
+	return false
 }
 
 func (p *Player) CallDefaultNPC(calltype DefaultNPCType, args ...interface{}) {
