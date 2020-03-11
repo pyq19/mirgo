@@ -90,33 +90,27 @@ type MagicContext struct {
 
 var configsMap = map[common.Spell]*MagicConfig{}
 
-func ConfigMagic(sp common.Spell, s MagicSelectType, t MagicTargetType, a MagicAction, f MagicDamageFormula, args ...interface{}) {
+func ConfigMagic(sp common.Spell, s MagicSelectType, t MagicTargetType, a MagicAction, f MagicDamageFormula, c MagicItemCost, d MagicDelayAt) {
 	config := &MagicConfig{}
 
 	config.SelectType = s
 	config.TargetType = t
 	config.Formula = f
 	config.Action = a
-
-	if len(args) >= 1 {
-		config.ItemCost = args[0].(MagicItemCost)
-	}
-
-	if len(args) >= 2 {
-		config.DelayAt = args[1].(MagicDelayAt)
-	}
+	config.ItemCost = c
+	config.DelayAt = d
 
 	configsMap[sp] = config
 }
 
 func init() {
 	add := ConfigMagic
-	add(common.SpellFireBall, Select_Point|Select_Enemy, Target_Enemy, Action_DamageTarget, Formula_MC)
-	add(common.SpellGreatFireBall, Select_Point|Select_Enemy, Target_Enemy, Action_DamageTarget, Formula_MC)
-	add(common.SpellFrostCrunch, Select_Point|Select_Enemy, Target_Enemy, Action_FrostCrunch, Formula_MC)
-	add(common.SpellThunderBolt, Select_Enemy, Target_Enemy, Action_DamageTarget, Formula_MC)
-	add(common.SpellSoulFireBall, Select_Point|Select_Enemy, Target_Enemy, Action_DamageTarget, Formula_MC, Cost_Amulet)
-	add(common.SpellHealing, Select_Friend|Select_Self, Target_Friend|Target_Self, Action_HealingTarget, Formula_MC)
+	add(common.SpellFireBall, Select_Point|Select_Enemy, Target_Enemy, Action_DamageTarget, Formula_MC, Cost_None, DelayAt_Player)
+	add(common.SpellGreatFireBall, Select_Point|Select_Enemy, Target_Enemy, Action_DamageTarget, Formula_MC, Cost_None, DelayAt_Player)
+	add(common.SpellFrostCrunch, Select_Point|Select_Enemy, Target_Enemy, Action_FrostCrunch, Formula_MC, Cost_None, DelayAt_Player)
+	add(common.SpellThunderBolt, Select_Enemy, Target_Enemy, Action_DamageTarget, Formula_MC, Cost_None, DelayAt_Player)
+	add(common.SpellSoulFireBall, Select_Point|Select_Enemy, Target_Enemy, Action_DamageTarget, Formula_MC, Cost_Amulet, DelayAt_Player)
+	add(common.SpellHealing, Select_Friend|Select_Self, Target_Friend|Target_Self, Action_HealingTarget, Formula_MC, Cost_None, DelayAt_Player)
 }
 
 func startMagic(ctx *MagicContext) (cast bool, targetid uint32) {
