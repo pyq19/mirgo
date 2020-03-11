@@ -2,6 +2,7 @@ package mir
 
 import (
 	"container/list"
+	"time"
 
 	"github.com/yenkeia/mirgo/common"
 )
@@ -15,10 +16,23 @@ type Buff struct {
 	Caster     IMapObject
 	Visible    bool // 是否可见
 	ObjectID   uint32
-	ExpireTime int   // time.Time // 过期时间️ 毫秒
-	Values     []int // public int[] Values
-	Infinite   bool  // 是否永久
+	ExpireTime time.Time // 过期时间️
+	Values     []int     // public int[] Values
+	Infinite   bool      // 是否永久
 	Paused     bool
+}
+
+func NewBuff(buffType common.BuffType, caster IMapObject, expireTime int, values []int) *Buff {
+	return &Buff{
+		BuffType:   buffType,
+		Caster:     caster,
+		Visible:    false,
+		ObjectID:   0,
+		ExpireTime: time.Now().Add(time.Duration(expireTime) * time.Millisecond),
+		Values:     values,
+		Infinite:   false,
+		Paused:     false,
+	}
 }
 
 func NewBuffList() *BuffList {
