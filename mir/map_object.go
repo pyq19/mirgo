@@ -67,9 +67,9 @@ type IMapObject interface {
 type ILifeObject interface {
 	ISimpleMapObject
 	GetHP() int
-	ChangeHP(hp int)
 	GetMaxHP() int
 	SetHP(uint32)
+	ChangeHP(int)
 }
 
 type MapObject struct {

@@ -516,12 +516,8 @@ func (m *Map) CompleteMagic(args ...interface{}) {
 		m.RangeObject(location, 1, func(o IMapObject) bool {
 			if o.GetRace() == common.ObjectTypePlayer {
 				target := o.(*Player)
-				target.AddBuff(&Buff{
-					BuffType:   buffType,
-					Caster:     player,
-					ExpireTime: value * 1000,
-					Values:     []int{int(target.Level/7) + 4},
-				})
+				buff := NewBuff(buffType, player, value*1000, []int{int(target.Level/7) + 4})
+				target.AddBuff(buff)
 				// target.OperateTime = 0;
 				// train = true;
 			}

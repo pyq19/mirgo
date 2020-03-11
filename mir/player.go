@@ -460,7 +460,29 @@ func (p *Player) Process(dt time.Duration) {
 
 // ProcessBuffs 增益效果
 func (p *Player) ProcessBuffs() {
-
+	refresh := false
+	now := time.Now()
+	for e := p.BuffList.List.Front(); e != nil; e = e.Next() {
+		buff := e.Value.(*Buff)
+		if now.Before(buff.ExpireTime) || buff.Infinite || buff.Paused {
+			continue
+			// TODO
+		}
+	}
+	/*
+			if (Concentrating && !ConcentrateInterrupted && (ConcentrateInterruptTime != 0))
+		   	{
+		        //check for reenable
+		        if (ConcentrateInterruptTime <= SMain.Envir.Time)
+		        {
+		            ConcentrateInterruptTime = 0;
+		            UpdateConcentration();//Update & send to client
+		        }
+		   	}
+	*/
+	if refresh {
+		p.RefreshStats()
+	}
 }
 
 // ProcessPoison 中毒效果

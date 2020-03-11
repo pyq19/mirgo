@@ -337,22 +337,13 @@ func (p *Player) CompleteMagic(args ...interface{}) {
 			}
 		}
 		value := args[1].(int)
-		buff := &Buff{
-			BuffType:   common.BuffTypeHiding,
-			Caster:     p,
-			ExpireTime: 1000 * value,
-		}
+		buff := NewBuff(common.BuffTypeHiding, p, 1000*value, []int{})
 		p.AddBuff(buff)
 		p.LevelMagic(magic)
 	case common.SpellHaste:
 	case common.SpellFury:
-		buff := &Buff{
-			BuffType:   common.BuffTypeFury,
-			Caster:     p,
-			ExpireTime: 60000 + magic.Level*10000,
-			Values:     []int{4},
-			Visible:    true,
-		}
+		buff := NewBuff(common.BuffTypeFury, p, 60000+magic.Level*10000, []int{4})
+		buff.Visible = true
 		p.AddBuff(buff)
 		p.LevelMagic(magic)
 	case common.SpellImmortalSkin:
@@ -361,13 +352,8 @@ func (p *Player) CompleteMagic(args ...interface{}) {
 	case common.SpellTurnUndead:
 	case common.SpellMagicBooster:
 		value := args[1].(int)
-		buff := &Buff{
-			BuffType:   common.BuffTypeMagicBooster,
-			Caster:     p,
-			ExpireTime: 60000,
-			Values:     []int{value, 6 + magic.Level},
-			Visible:    true,
-		}
+		buff := NewBuff(common.BuffTypeMagicBooster, p, 60000, []int{value, 6 + magic.Level})
+		buff.Visible = true
 		p.AddBuff(buff)
 		p.LevelMagic(magic)
 	case common.SpellPurification:
