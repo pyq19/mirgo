@@ -163,12 +163,27 @@ func (m *Monster) GetDirection() common.MirDirection {
 	return m.CurrentDirection
 }
 
-func (p *Monster) GetHP() int {
-	return int(p.HP)
+func (m *Monster) GetHP() int {
+	return int(m.HP)
 }
 
-func (p *Monster) GetMaxHP() int {
-	return int(p.MaxHP)
+func (m *Monster) SetHP(amount uint32) {
+	if m.HP == amount {
+		return
+	}
+	if amount <= m.MaxHP {
+		m.HP = amount
+	} else {
+		m.HP = m.MaxHP
+	}
+	if !m.Dead && m.HP == 0 {
+		m.Die()
+	}
+	m.BroadcastHealthChange()
+}
+
+func (m *Monster) GetMaxHP() int {
+	return int(m.MaxHP)
 }
 
 func (m *Monster) BroadcastHealthChange() {

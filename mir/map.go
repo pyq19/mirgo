@@ -487,25 +487,28 @@ func (m *Map) CompleteMagic(args ...interface{}) {
 			monster.Spawn()
 		}
 	case common.SpellMassHealing:
-		value := args[1].(int)
-		location := args[2].(common.Point)
-		player := args[3].(*Player)
-		m.RangeObject(location, 1, func(o IMapObject) bool {
-			if o.GetRace() == common.ObjectTypePlayer && o.IsFriendlyTarget(player) {
-				target := o.(*Player)
-				for i := range target.Buffs {
-					if target.Buffs[i].BuffType == common.BuffTypeHiding {
-						return true
+		/*
+			value := args[1].(int)
+			location := args[2].(common.Point)
+			player := args[3].(*Player)
+			m.RangeObject(location, 1, func(o IMapObject) bool {
+				if o.GetRace() == common.ObjectTypePlayer && o.IsFriendlyTarget(player) {
+					target := o.(*Player)
+					for i := range target.Buffs {
+						if target.Buffs[i].BuffType == common.BuffTypeHiding {
+							return true
+						}
 					}
+					target.AddBuff(NewBuff(player.NewObjectID(), common.BuffTypeHiding, 0, time.Now().Add(time.Duration(value*1000)*time.Millisecond)))
 				}
-				target.AddBuff(NewBuff(player.NewObjectID(), common.BuffTypeHiding, 0, time.Now().Add(time.Duration(value*1000)*time.Millisecond)))
-			}
-			return true
-		})
+				return true
+			})
+		*/
 	case common.SpellSoulShield, common.SpellBlessedArmour:
-		value := args[1].(int)
-		location := args[2].(common.Point)
-		player := args[3].(*Player)
+		player := args[0].(*Player)
+		magic := args[1].(*common.UserMagic)
+		value := args[2].(int)
+		location := args[3].(common.Point)
 		buffType := common.BuffTypeSoulShield
 		if magic.Spell == common.SpellBlessedArmour {
 			buffType = common.BuffTypeBlessedArmour
@@ -513,7 +516,14 @@ func (m *Map) CompleteMagic(args ...interface{}) {
 		m.RangeObject(location, 1, func(o IMapObject) bool {
 			if o.GetRace() == common.ObjectTypePlayer {
 				target := o.(*Player)
-				target.AddBuff(NewBuff(player.NewObjectID(), buffType, int(target.Level)/7+4, time.Now().Add(time.Duration(value*1000)*time.Millisecond)))
+				target.AddBuff(&Buff{
+					BuffType:   buffType,
+					Caster:     player,
+					ExpireTime: value * 1000,
+					Values:     []int{int(target.Level/7) + 4},
+				})
+				// target.OperateTime = 0;
+				// train = true;
 			}
 			return true
 		})

@@ -281,36 +281,21 @@ func (p *Player) CompleteMagic(args ...interface{}) {
 			p.LevelMagic(magic)
 		}
 	case common.SpellVampirism:
-		// value = args[1].(int)
-		// target = args[2].(IMapObject)
-		// if (target == null || !target.IsAttackTarget(this) || target.CurrentMap != CurrentMap || target.Node == null) return;
-		// value = target.Attacked(this, value, DefenceType.MAC, false);
-		// if (value == 0) return;
-		// LevelMagic(magic);
-		// if (VampAmount == 0) VampTime = Envir.Time + 1000;
-		// VampAmount += (ushort)(value * (magic.Level + 1) * 0.25F);
 	case common.SpellHealing:
 		value := args[1].(int)
 		target := args[2].(IMapObject)
 		if target == nil || !target.IsFriendlyTarget(p) {
 			return
 		}
-		if target.GetRace() == common.ObjectTypePlayer {
-			obj := target.(*Player)
-			hp := int(obj.HP)
-			maxHP := int(obj.MaxHP)
+		if target.GetRace() == common.ObjectTypePlayer || target.GetRace() == common.ObjectTypeMonster {
+			obj := target.(ILifeObject)
+			hp := int(obj.GetHP())
+			maxHP := int(obj.GetMaxHP())
 			if hp >= maxHP {
 				return
 			}
-			obj.HP += uint16(value)
-		} else if target.GetRace() == common.ObjectTypeMonster {
-			obj := target.(*Monster)
-			hp := int(obj.HP)
-			maxHP := int(obj.MaxHP)
-			if hp >= maxHP {
-				return
-			}
-			obj.HP += uint32(value)
+			// obj.HP += uint16(value)
+			obj.ChangeHP(value)
 		}
 		p.LevelMagic(magic)
 	case common.SpellElectricShock:
@@ -346,22 +331,28 @@ func (p *Player) CompleteMagic(args ...interface{}) {
 	case common.SpellTeleport:
 	case common.SpellBlink:
 	case common.SpellHiding:
-		for i := range p.Buffs {
-			if p.Buffs[i].BuffType == common.BuffTypeHiding {
+		for e := p.BuffList.List.Front(); e != nil; e = e.Next() {
+			if e.Value.(*Buff).BuffType == common.BuffTypeHiding {
 				return
 			}
 		}
 		value := args[1].(int)
-		expireTime := time.Now().Add(time.Duration(value*1000) * time.Millisecond)
-		buff := NewBuff(p.NewObjectID(), common.BuffTypeHiding, 0, expireTime)
+		buff := &Buff{
+			BuffType:   common.BuffTypeHiding,
+			Caster:     p,
+			ExpireTime: 1000 * value,
+		}
 		p.AddBuff(buff)
 		p.LevelMagic(magic)
 	case common.SpellHaste:
 	case common.SpellFury:
-		// p.AddBuff(new Buff { Type = BuffType.Fury, Caster = this, ExpireTime = Envir.Time + 60000 + magic.Level * 10000, Values = new int[] { 4 }, Visible = true });
-		expireTime := time.Now().Add(time.Duration(60000 + magic.Level*10000))
-		buff := NewBuff(p.NewObjectID(), common.BuffTypeFury, 4, expireTime)
-		buff.Visible = true
+		buff := &Buff{
+			BuffType:   common.BuffTypeFury,
+			Caster:     p,
+			ExpireTime: 60000 + magic.Level*10000,
+			Values:     []int{4},
+			Visible:    true,
+		}
 		p.AddBuff(buff)
 		p.LevelMagic(magic)
 	case common.SpellImmortalSkin:
@@ -369,16 +360,14 @@ func (p *Player) CompleteMagic(args ...interface{}) {
 	case common.SpellMagicShield:
 	case common.SpellTurnUndead:
 	case common.SpellMagicBooster:
-		// buff := NewBuff { Type = BuffType.MagicBooster
-		// 	 Caster = this
-		// 	  ExpireTime = Envir.Time + 60000,
-		// 	   Values = new int[] { value, 6 + magic.Level }
-		// 	    Visible = true });
 		value := args[1].(int)
-		values := value + 6 + int(magic.Level)
-		expireTime := time.Now().Add(time.Duration(60000) * time.Millisecond)
-		buff := NewBuff(p.NewObjectID(), common.BuffTypeMagicBooster, values, expireTime)
-		buff.Visible = true
+		buff := &Buff{
+			BuffType:   common.BuffTypeMagicBooster,
+			Caster:     p,
+			ExpireTime: 60000,
+			Values:     []int{value, 6 + magic.Level},
+			Visible:    true,
+		}
 		p.AddBuff(buff)
 		p.LevelMagic(magic)
 	case common.SpellPurification:
@@ -611,7 +600,10 @@ func (p *Player) SoulShield(magic *common.UserMagic, location common.Point) bool
 	}
 	// int delay = Functions.MaxDistance(CurrentLocation, location) * 50 + 500; //50 MS per Step
 	// DelayedAction action = new DelayedAction(DelayedType.Magic, Envir.Time + delay, this, magic, GetAttackPower(MinSC, MaxSC) * 2 + (magic.Level + 1) * 10, location);
-	p.ActionList.PushActionSuper(DelayedTypeMagic, p.Map.CompleteMagic, magic, p.GetAttackPower(int(p.MinSC), int(p.MaxSC))*2+(magic.Level+1)*10, location, p)
+	delay := 500
+	p.Map.ActionList.PushDelayAction(DelayedTypeMagic, delay, func() {
+		p.Map.CompleteMagic(p, magic, p.GetAttackPower(int(p.MinSC), int(p.MaxSC))*2+(magic.Level+1)*10, location)
+	})
 	p.ConsumeItem(userItem, 1)
 	return true
 }
