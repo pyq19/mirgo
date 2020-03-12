@@ -70,6 +70,7 @@ func Formula_MC(ctx *MagicContext) int {
 }
 
 type MagicConfig struct {
+	Spell      common.Spell
 	Formula    MagicDamageFormula
 	SelectType MagicSelectType
 	TargetType MagicTargetType
@@ -89,29 +90,6 @@ type MagicContext struct {
 }
 
 var configsMap = map[common.Spell]*MagicConfig{}
-
-func ConfigMagic(sp common.Spell, s MagicSelectType, t MagicTargetType, a MagicAction, f MagicDamageFormula, c MagicItemCost, d MagicDelayAt) {
-	config := &MagicConfig{}
-
-	config.SelectType = s
-	config.TargetType = t
-	config.Formula = f
-	config.Action = a
-	config.ItemCost = c
-	config.DelayAt = d
-
-	configsMap[sp] = config
-}
-
-func init() {
-	add := ConfigMagic
-	add(common.SpellFireBall, Select_Point|Select_Enemy, Target_Enemy, Action_DamageTarget, Formula_MC, Cost_None, DelayAt_Player)
-	add(common.SpellGreatFireBall, Select_Point|Select_Enemy, Target_Enemy, Action_DamageTarget, Formula_MC, Cost_None, DelayAt_Player)
-	add(common.SpellFrostCrunch, Select_Point|Select_Enemy, Target_Enemy, Action_FrostCrunch, Formula_MC, Cost_None, DelayAt_Player)
-	add(common.SpellThunderBolt, Select_Enemy, Target_Enemy, Action_DamageTarget, Formula_MC, Cost_None, DelayAt_Player)
-	add(common.SpellSoulFireBall, Select_Point|Select_Enemy, Target_Enemy, Action_DamageTarget, Formula_MC, Cost_Amulet, DelayAt_Player)
-	add(common.SpellHealing, Select_Friend|Select_Self, Target_Friend|Target_Self, Action_HealingTarget, Formula_MC, Cost_None, DelayAt_Player)
-}
 
 func startMagic(ctx *MagicContext) (cast bool, targetid uint32) {
 	cfg := configsMap[ctx.Spell]
@@ -177,8 +155,14 @@ func Action_DamageTarget(ctx *MagicContext) {
 }
 
 func Action_HealingTarget(ctx *MagicContext) {
-	target := ctx.Target.(ILifeObject)
-	target.ChangeHP(ctx.Damage)
+	// target.HealAmount = (ushort)Math.Min(ushort.MaxValue, target.HealAmount + value);
+
+	if ctx.Target == nil {
+		ctx.Player.ChangeHP(ctx.Damage)
+	} else {
+		target := ctx.Target.(ILifeObject)
+		target.ChangeHP(ctx.Damage)
+	}
 }
 
 func Action_FrostCrunch(ctx *MagicContext) {
