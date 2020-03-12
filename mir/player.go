@@ -355,10 +355,6 @@ func (p *Player) ApplyPoison(poison *Poison, caster IMapObject) {
 
 }
 
-func (p *Player) NewObjectID() uint32 {
-	return env.NewObjectID()
-}
-
 func (p *Player) IsDead() bool {
 	return false
 }
@@ -710,13 +706,12 @@ func (p *Player) RefreshSkills() {
 	for _, magic := range p.Magics {
 		switch magic.Spell {
 		case common.SpellFencing: // 基本剑术
-			// Accuracy = (byte)Math.Min(byte.MaxValue, Accuracy + magic.Level * 3);
-			// MaxAC = (ushort)Math.Min(ushort.MaxValue, MaxAC + (magic.Level + 1) * 3);
+			p.Accuracy = ut.Uint8(int(p.Accuracy) + magic.Level*3)
+			p.MaxAC = ut.Uint16(int(p.MaxAC) + (magic.Level+1)*3)
 		case common.SpellFatalSword: // 刺客的技能 忽略
-			// Accuracy = (byte)Math.Min(byte.MaxValue, Accuracy + magic.Level);
 		case common.SpellSpiritSword: // 精神力战法
-			// Accuracy = (byte)Math.Min(byte.MaxValue, Accuracy + magic.Level);
-			// MaxDC = (ushort)Math.Min(ushort.MaxValue, MaxDC + MaxSC * (magic.Level + 1) * 0.1F);
+			p.Accuracy = ut.Uint8(int(p.Accuracy) + magic.Level)
+			p.MaxAC = ut.Uint16(int(p.MaxDC) + int(float32(p.MaxSC)*float32(magic.Level+1)*0.1))
 		}
 	}
 }
