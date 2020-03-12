@@ -72,7 +72,16 @@ func (g *Environ) ServerStart() {
 	queue.Wait()      // 阻塞等待事件队列结束退出( 在另外的goroutine调用queue.StopLoop() )
 }
 
-func newEnv() *Environ {
+// NewEnviron ...
+func NewEnviron() *Environ {
+	settings = setting.Must()
+
+	gameData, _ := gorm.Open("sqlite3", settings.DBPath)
+	data = NewGameData(gameData)
+
+	accountData, _ := gorm.Open("sqlite3", settings.AccountDBPath)
+	adb = NewAccountDB(accountData)
+
 	e := new(Environ)
 	env = e
 
@@ -97,20 +106,6 @@ func newEnv() *Environ {
 	e.Game = &Game{}
 
 	PrintEnviron(e)
-	return e
-}
-
-// NewEnviron ...
-func NewEnviron() *Environ {
-	settings = setting.Must()
-
-	gameData, _ := gorm.Open("sqlite3", settings.DBPath)
-	data = NewGameData(gameData)
-
-	accountData, _ := gorm.Open("sqlite3", settings.AccountDBPath)
-	adb = NewDB(accountData)
-
-	newEnv()
 
 	return env
 }

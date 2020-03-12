@@ -15,7 +15,7 @@ import (
 
 // GameDB 服务端数据，启动时加载
 type GameData struct {
-	Basic              common.Basic
+	// Basic              common.Basic
 	GameShopItems      []*common.GameShopItem
 	ItemInfos          []*common.ItemInfo
 	StartItems         []*common.ItemInfo // 新玩家初始装备
@@ -55,7 +55,7 @@ func NewGameData(db *gorm.DB) *GameData {
 }
 
 func (d *GameData) Load(db *gorm.DB) {
-	db.Table("basic").First(&d.Basic)
+	// db.Table("basic").First(&d.Basic)
 	db.Table("game_shop_item").Find(&d.GameShopItems)
 	db.Table("item").Find(&d.ItemInfos)
 	db.Table("magic").Find(&d.MagicInfos)

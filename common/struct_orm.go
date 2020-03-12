@@ -29,6 +29,7 @@ type AccountCharacter struct {
 	CharacterID int
 }
 
+/*
 type Basic struct {
 	ID            int `gorm:"primary_key"`
 	GameVersion   int
@@ -41,6 +42,7 @@ type Basic struct {
 	ConquestIndex int
 	RespawnIndex  int
 }
+*/
 
 // Character 角色
 type Character struct {

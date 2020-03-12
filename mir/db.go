@@ -12,7 +12,7 @@ type DB struct {
 // adb 保存游戏运行时生成的数据
 var adb *DB
 
-func NewDB(db *gorm.DB) *DB {
+func NewAccountDB(db *gorm.DB) *DB {
 
 	r := &DB{db: db}
 
