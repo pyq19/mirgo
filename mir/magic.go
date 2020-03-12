@@ -1,6 +1,8 @@
 package mir
 
 import (
+	"errors"
+
 	"github.com/yenkeia/mirgo/common"
 	"github.com/yenkeia/mirgo/ut"
 )
@@ -70,13 +72,15 @@ func Formula_MC(ctx *MagicContext) int {
 }
 
 type MagicConfig struct {
-	Spell      common.Spell
-	Formula    MagicDamageFormula
-	SelectType MagicSelectType
-	TargetType MagicTargetType
-	DelayAt    MagicDelayAt
-	ItemCost   MagicItemCost
-	Action     MagicAction
+	Spell        common.Spell
+	Formula      MagicDamageFormula
+	SelectType   MagicSelectType
+	TargetType   MagicTargetType
+	DelayAt      MagicDelayAt
+	ItemCost     MagicItemCost
+	BeforeAction MagicAction
+	Action       MagicAction
+	Data         interface{}
 }
 
 type MagicContext struct {
@@ -90,6 +94,21 @@ type MagicContext struct {
 }
 
 var configsMap = map[common.Spell]*MagicConfig{}
+
+func checkMagicItemCost(ctx *MagicContext) error {
+	item, count := ctx.Config.ItemCost(ctx)
+
+	if count != 0 {
+		if item == nil {
+			return errors.New("没有施法道具")
+		} else {
+			ctx.Player.ConsumeItem(item, count)
+		}
+		return nil
+	}
+
+	return nil
+}
 
 func startMagic(ctx *MagicContext) (cast bool, targetid uint32) {
 	cfg := configsMap[ctx.Spell]
@@ -112,16 +131,22 @@ func startMagic(ctx *MagicContext) (cast bool, targetid uint32) {
 		// TODO
 	}
 
-	item, count := cfg.ItemCost(ctx)
-
-	if item != nil {
-		ctx.Player.ConsumeItem(item, count)
-	}
-
 	ctx.Config = cfg
-	ctx.Damage = cfg.Formula(ctx)
 
-	ctx.Config.DelayAt(ctx, func() { completeMagic(ctx) })
+	if cfg.BeforeAction != nil {
+		cfg.BeforeAction(ctx)
+	} else {
+
+		if checkMagicItemCost(ctx) != nil {
+			return false, 0
+		}
+
+		if cfg.Formula != nil {
+			ctx.Damage = cfg.Formula(ctx)
+		}
+
+		cfg.DelayAt(ctx, func() { completeMagic(ctx) })
+	}
 
 	return true, targetid
 }
