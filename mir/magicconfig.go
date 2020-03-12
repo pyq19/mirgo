@@ -91,6 +91,40 @@ func init() {
 		ItemCost:   Cost_Poison,
 		Action:     Action_Poisoning,
 	})
+
+	// 隐身术
+	add(common.SpellPoisoning, &MagicConfig{
+		Formula: func(ctx *MagicContext) int {
+			return ctx.Player.GetAttackPower(int(ctx.Player.MinSC), int(ctx.Player.MaxSC)) + (ctx.Magic.Level+1)*5
+		},
+		ItemCost: Cost_Amulet,
+		Action:   Action_Hidding,
+	})
+
+	// 龙血剑法
+	add(common.SpellFury, &MagicConfig{
+		Action: Action_Fury,
+	})
+}
+
+func Action_Fury(ctx *MagicContext) bool {
+	buff := NewBuff(common.BuffTypeFury, ctx.Player, 60000+ctx.Magic.Level*10000, []int{4})
+	buff.Visible = true
+	ctx.Player.AddBuff(buff)
+	return true
+}
+
+func Action_Hidding(ctx *MagicContext) bool {
+	p := ctx.Player
+
+	for e := p.BuffList.List.Front(); e != nil; e = e.Next() {
+		if e.Value.(*Buff).BuffType == common.BuffTypeHiding {
+			return false
+		}
+	}
+	buff := NewBuff(common.BuffTypeHiding, p, 1000*ctx.Damage, []int{})
+	p.AddBuff(buff)
+	return true
 }
 
 func Action_Poisoning(ctx *MagicContext) bool {

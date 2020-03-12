@@ -38,18 +38,8 @@ func (p *Player) UseMagic(spell common.Spell, magic *common.UserMagic, target IM
 		p.Repulsion(magic)
 	case common.SpellElectricShock:
 		p.ActionList.PushActionSuper(DelayedTypeMagic, p.CompleteMagic, magic, target)
-	case common.SpellPoisoning:
-		if !p.Poisoning(target, magic) {
-			cast = false
-		}
 	case common.SpellHellFire:
 		p.HellFire(magic)
-	case common.SpellSoulFireBall:
-		// if (!SoulFireball(target, magic, out cast)) targetID = 0;
-		if !p.SoulFireball(target, magic) {
-			targetID = 0
-			cast = false
-		}
 	case common.SpellTeleport, common.SpellBlink:
 		p.ActionList.PushActionSuper(DelayedTypeMagic, p.CompleteMagic, magic, p.GetPoint())
 		// ActionList.Add(new DelayedAction(DelayedType.Magic, Envir.Time + 200, magic, location));
@@ -58,8 +48,6 @@ func (p *Player) UseMagic(spell common.Spell, magic *common.UserMagic, target IM
 	case common.SpellHaste, common.SpellLightBody:
 		// ActionList.Add(new DelayedAction(DelayedType.Magic, Envir.Time + 500, magic));
 		p.ActionList.PushActionSuper(DelayedTypeMagic, p.CompleteMagic, magic)
-	case common.SpellFury:
-		cast = p.FurySpell(magic)
 	case common.SpellImmortalSkin:
 		cast = p.ImmortalSkin(magic)
 	case common.SpellFireBang, common.SpellIceStorm:
@@ -213,23 +201,7 @@ func (p *Player) CompleteMagic(args ...interface{}) {
 		}
 
 	case common.SpellVampirism:
-	case common.SpellHealing:
-		value := args[1].(int)
-		target := args[2].(IMapObject)
-		if target == nil || !target.IsFriendlyTarget(p) {
-			return
-		}
-		if target.GetRace() == common.ObjectTypePlayer || target.GetRace() == common.ObjectTypeMonster {
-			obj := target.(ILifeObject)
-			hp := int(obj.GetHP())
-			maxHP := int(obj.GetMaxHP())
-			if hp >= maxHP {
-				return
-			}
-			// obj.HP += uint16(value)
-			obj.ChangeHP(value)
-		}
-		p.LevelMagic(magic)
+
 	case common.SpellElectricShock:
 		monster, ok := args[1].(*Monster)
 		if !ok {
@@ -240,29 +212,6 @@ func (p *Player) CompleteMagic(args ...interface{}) {
 		}
 		p.ElectricShock(monster, magic)
 
-	case common.SpellStormEscape:
-	case common.SpellTeleport:
-	case common.SpellBlink:
-	case common.SpellHiding:
-		for e := p.BuffList.List.Front(); e != nil; e = e.Next() {
-			if e.Value.(*Buff).BuffType == common.BuffTypeHiding {
-				return
-			}
-		}
-		value := args[1].(int)
-		buff := NewBuff(common.BuffTypeHiding, p, 1000*value, []int{})
-		p.AddBuff(buff)
-		p.LevelMagic(magic)
-	case common.SpellHaste:
-	case common.SpellFury:
-		buff := NewBuff(common.BuffTypeFury, p, 60000+magic.Level*10000, []int{4})
-		buff.Visible = true
-		p.AddBuff(buff)
-		p.LevelMagic(magic)
-	case common.SpellImmortalSkin:
-	case common.SpellLightBody:
-	case common.SpellMagicShield:
-	case common.SpellTurnUndead:
 	case common.SpellMagicBooster:
 		value := args[1].(int)
 		buff := NewBuff(common.BuffTypeMagicBooster, p, 60000, []int{value, 6 + magic.Level})
@@ -334,51 +283,9 @@ func (p *Player) Repulsion(magic *common.UserMagic) {
 
 }
 
-// Poisoning 施毒术
-func (p *Player) Poisoning(target IMapObject, magic *common.UserMagic) bool {
-	if target == nil || !target.IsAttackTarget(p) {
-		return false
-	}
-	item := p.GetPoison(1)
-	if item == nil {
-		return false
-	}
-	power := magic.GetDamage(p.GetAttackPower(int(p.MinSC), int(p.MaxSC)))
-	p.ActionList.PushActionSuper(DelayedTypeMagic, p.CompleteMagic, magic, power, target, item)
-	p.ConsumeItem(item, 1)
-	return true
-}
-
 // HellFire 地狱火
 func (p *Player) HellFire(magic *common.UserMagic) {
 
-}
-
-// ThunderBolt 雷电术
-func (p *Player) ThunderBolt(target IMapObject, magic *common.UserMagic) {
-	if target == nil || !target.IsAttackTarget(p) {
-		return
-	}
-	damage := magic.GetDamage(p.GetAttackPower(int(p.MinMC), int(p.MaxMC)))
-	// if (target.Undead) damage = (int)(damage * 1.5F);
-	p.ActionList.PushActionSuper(DelayedTypeMagic, p.CompleteMagic, magic, damage, target)
-}
-
-// SoulFireball 灵魂火符
-func (p *Player) SoulFireball(target IMapObject, magic *common.UserMagic) bool {
-	userItem := p.GetAmulet(1)
-	if userItem == nil {
-		return false
-	}
-	if target == nil || !target.IsAttackTarget(p) { //|| !CanFly(target.CurrentLocation)) return false;
-		return false
-	}
-	damage := magic.GetDamage(p.GetAttackPower(int(p.MinSC), int(p.MaxSC)))
-	// int delay = Functions.MaxDistance(CurrentLocation, target.CurrentLocation) * 50 + 500; //50 MS per Step
-	// DelayedAction action = new DelayedAction(DelayedType.Magic, Envir.Time + delay, magic, damage, target);
-	p.ActionList.PushActionSuper(DelayedTypeMagic, p.CompleteMagic, magic, damage, target)
-	p.ConsumeItem(userItem, 1)
-	return true
 }
 
 // GetAmulet 获取玩家身上装备的护身符
@@ -420,13 +327,6 @@ func (p *Player) Hiding(magic *common.UserMagic) {
 	p.ConsumeItem(userItem, 1)
 	damage := p.GetAttackPower(int(p.MinSC), int(p.MaxSC)) + (magic.Level+1)*5
 	p.ActionList.PushActionSuper(DelayedTypeMagic, p.CompleteMagic, magic, damage)
-}
-
-// FurySpell 龙血剑法 SpellFury
-func (p *Player) FurySpell(magic *common.UserMagic) bool {
-	// ActionList.Add(new DelayedAction(DelayedType.Magic, Envir.Time + 500, magic));
-	p.ActionList.PushActionSuper(DelayedTypeMagic, p.CompleteMagic, magic)
-	return true
 }
 
 // ImmortalSkin ...
