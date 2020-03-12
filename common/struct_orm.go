@@ -44,6 +44,8 @@ type Basic struct {
 }
 */
 
+// Basic 保存上一次关闭服务端时候的自增 ID
+// TODO MonsterID ItemID 分开
 type Basic struct {
 	ID       int32 `gorm:"primary_key"`
 	ObjectID uint32
