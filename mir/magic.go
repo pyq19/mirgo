@@ -32,18 +32,14 @@ const (
 )
 
 // 技能额外消耗类型
-type MagicItemCost func(ctx *MagicContext) (*common.UserItem, int)
+type MagicItemCost func(ctx *MagicContext) *common.UserItem
 
-func Cost_None(ctx *MagicContext) (*common.UserItem, int) {
-	return nil, 0
+func Cost_Amulet(ctx *MagicContext) *common.UserItem {
+	return ctx.Player.GetAmulet(ctx.Config.ItemCostCount)
 }
 
-func Cost_Amulet(ctx *MagicContext) (*common.UserItem, int) {
-	return ctx.Player.GetAmulet(1), 1
-}
-
-func Cost_Poison(ctx *MagicContext) (*common.UserItem, int) {
-	return ctx.Player.GetPoison(1), 1
+func Cost_Poison(ctx *MagicContext) *common.UserItem {
+	return ctx.Player.GetPoison(ctx.Config.ItemCostCount)
 }
 
 // 技能延迟在哪里执行
@@ -57,8 +53,11 @@ func DelayAt_Player(ctx *MagicContext, f func()) {
 	ctx.Player.ActionList.PushAction(DelayedTypeMagic, f)
 }
 
+//
+type MagicBeforeAction func(ctx *MagicContext) (bool, uint32)
+
 // 技能最终作用函数
-type MagicAction func(ctx *MagicContext)
+type MagicAction func(ctx *MagicContext) bool
 
 // 伤害值计算公式
 type MagicDamageFormula func(ctx *MagicContext) int
@@ -72,22 +71,24 @@ func Formula_MC(ctx *MagicContext) int {
 }
 
 type MagicConfig struct {
-	Spell        common.Spell
-	Formula      MagicDamageFormula
-	SelectType   MagicSelectType
-	TargetType   MagicTargetType
-	DelayAt      MagicDelayAt
-	ItemCost     MagicItemCost
-	BeforeAction MagicAction
-	Action       MagicAction
-	Data         interface{}
+	Spell         common.Spell
+	Formula       MagicDamageFormula
+	SelectType    MagicSelectType
+	TargetType    MagicTargetType
+	DelayAt       MagicDelayAt
+	ItemCost      MagicItemCost
+	ItemCostCount int
+	BeforeAction  MagicBeforeAction
+	Action        MagicAction
+	Data          interface{}
 }
 
 type MagicContext struct {
 	Spell  common.Spell
 	Target IMapObject
-	Magic  *common.UserMagic
-	Player *Player
+	Magic  *common.UserMagic // 当前施法
+	Player *Player           // 施法玩家
+	Item   *common.UserItem  // 消耗的物品
 
 	Damage int
 	Config *MagicConfig
@@ -96,16 +97,19 @@ type MagicContext struct {
 var configsMap = map[common.Spell]*MagicConfig{}
 
 func checkMagicItemCost(ctx *MagicContext) error {
-	item, count := ctx.Config.ItemCost(ctx)
-
-	if count != 0 {
-		if item == nil {
-			return errors.New("没有施法道具")
-		} else {
-			ctx.Player.ConsumeItem(item, count)
-		}
+	if ctx.Config.ItemCost == nil || ctx.Config.ItemCostCount == 0 {
 		return nil
 	}
+
+	item := ctx.Config.ItemCost(ctx)
+
+	if item == nil {
+		return errors.New("没有施法道具")
+	} else {
+		ctx.Player.ConsumeItem(item, ctx.Config.ItemCostCount)
+	}
+
+	ctx.Item = item
 
 	return nil
 }
@@ -134,7 +138,7 @@ func startMagic(ctx *MagicContext) (cast bool, targetid uint32) {
 	ctx.Config = cfg
 
 	if cfg.BeforeAction != nil {
-		cfg.BeforeAction(ctx)
+		return cfg.BeforeAction(ctx)
 	} else {
 
 		if checkMagicItemCost(ctx) != nil {
@@ -146,9 +150,8 @@ func startMagic(ctx *MagicContext) (cast bool, targetid uint32) {
 		}
 
 		cfg.DelayAt(ctx, func() { completeMagic(ctx) })
+		return true, targetid
 	}
-
-	return true, targetid
 }
 
 func completeMagic(ctx *MagicContext) {
@@ -170,16 +173,16 @@ func completeMagic(ctx *MagicContext) {
 		// TODO
 	}
 
-	cfg.Action(ctx)
-
-	ctx.Player.LevelMagic(ctx.Magic)
+	if cfg.Action(ctx) {
+		ctx.Player.LevelMagic(ctx.Magic)
+	}
 }
 
-func Action_DamageTarget(ctx *MagicContext) {
-	ctx.Target.Attacked(ctx.Player, ctx.Damage, common.DefenceTypeMAC, false)
+func Action_DamageTarget(ctx *MagicContext) bool {
+	return ctx.Target.Attacked(ctx.Player, ctx.Damage, common.DefenceTypeMAC, false) > 0
 }
 
-func Action_HealingTarget(ctx *MagicContext) {
+func Action_HealingTarget(ctx *MagicContext) bool {
 	// target.HealAmount = (ushort)Math.Min(ushort.MaxValue, target.HealAmount + value);
 
 	if ctx.Target == nil {
@@ -188,9 +191,10 @@ func Action_HealingTarget(ctx *MagicContext) {
 		target := ctx.Target.(ILifeObject)
 		target.ChangeHP(ctx.Damage)
 	}
+	return true
 }
 
-func Action_FrostCrunch(ctx *MagicContext) {
+func Action_FrostCrunch(ctx *MagicContext) bool {
 	target := ctx.Target
 	p := ctx.Player
 
@@ -224,5 +228,7 @@ func Action_FrostCrunch(ctx *MagicContext) {
 			target.ApplyPoison(NewPoison(duration, p, common.PoisonTypeFrozen, 1000, 0), p)
 			// TODO // target.OperateTime = 0;
 		}
+		return true
 	}
+	return false
 }

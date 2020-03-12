@@ -4,14 +4,19 @@ import (
 	"time"
 
 	"github.com/yenkeia/mirgo/common"
+	"github.com/yenkeia/mirgo/ut"
 )
 
 func addMagic(sp common.Spell, c *MagicConfig) {
 
 	c.Spell = sp
-	if c.ItemCost == nil {
-		c.ItemCost = Cost_None
+
+	if c.ItemCost != nil {
+		if c.ItemCostCount == 0 {
+			c.ItemCostCount = 1
+		}
 	}
+
 	if c.DelayAt == nil {
 		c.DelayAt = DelayAt_Player
 	}
@@ -22,6 +27,7 @@ func addMagic(sp common.Spell, c *MagicConfig) {
 func init() {
 	add := addMagic
 
+	// 火球术
 	add(common.SpellFireBall, &MagicConfig{
 		SelectType: Select_Point | Select_Enemy,
 		TargetType: Target_Enemy,
@@ -29,6 +35,7 @@ func init() {
 		Formula:    Formula_MC,
 	})
 
+	// 大火球
 	add(common.SpellGreatFireBall, &MagicConfig{
 		SelectType: Select_Point | Select_Enemy,
 		TargetType: Target_Enemy,
@@ -36,6 +43,7 @@ func init() {
 		Formula:    Formula_MC,
 	})
 
+	// 寒冰掌
 	add(common.SpellFrostCrunch, &MagicConfig{
 		SelectType: Select_Point | Select_Enemy,
 		TargetType: Target_Enemy,
@@ -43,6 +51,7 @@ func init() {
 		Formula:    Formula_MC,
 	})
 
+	// 雷电术
 	add(common.SpellThunderBolt, &MagicConfig{
 		SelectType: Select_Enemy,
 		TargetType: Target_Enemy,
@@ -50,6 +59,7 @@ func init() {
 		Formula:    Formula_MC,
 	})
 
+	// 灵魂火符
 	add(common.SpellSoulFireBall, &MagicConfig{
 		SelectType: Select_Enemy | Select_Point,
 		TargetType: Target_Enemy,
@@ -58,6 +68,7 @@ func init() {
 		ItemCost:   Cost_Amulet,
 	})
 
+	// 治愈术
 	add(common.SpellHealing, &MagicConfig{
 		SelectType: Select_Self | Select_Friend,
 		TargetType: Target_Friend | Target_Self,
@@ -67,8 +78,32 @@ func init() {
 		},
 	})
 
-	SummonMagic(common.SpellSummonSkeleton, "BoneFamiliar")
-	SummonMagic(common.SpellSummonShinsu, "Shinsu")
+	// 召唤骷髅
+	SummonMagic(common.SpellSummonSkeleton, "BoneFamiliar", 1)
+	// 召唤神兽
+	SummonMagic(common.SpellSummonShinsu, "Shinsu", 5)
+
+	// 施毒术
+	add(common.SpellPoisoning, &MagicConfig{
+		SelectType: Select_Enemy,
+		TargetType: Select_Enemy,
+		Formula:    Formula_SC,
+		ItemCost:   Cost_Poison,
+		Action:     Action_Poisoning,
+	})
+}
+
+func Action_Poisoning(ctx *MagicContext) bool {
+
+	duration := (ctx.Damage * 2) + ((ctx.Magic.Level + 1) * 7)
+	value := ctx.Damage/15 + ctx.Magic.Level + 1 + ut.RandomNext(int(ctx.Player.PoisonAttack))
+	switch ctx.Item.Info.Shape {
+	case 1:
+		ctx.Target.ApplyPoison(NewPoison(duration, ctx.Player, common.PoisonTypeGreen, 2000, value), ctx.Player)
+	case 2:
+		ctx.Target.ApplyPoison(NewPoison(duration, ctx.Player, common.PoisonTypeRed, 2000, 0), ctx.Player)
+	}
+	return true
 }
 
 type summonData struct {
@@ -77,36 +112,37 @@ type summonData struct {
 	SpellMap    *Map
 }
 
-func SummonMagic(sp common.Spell, sumname string) {
+func SummonMagic(sp common.Spell, sumname string, amuletCount int) {
 	addMagic(sp, &MagicConfig{
-		SelectType:   Select_None,
-		TargetType:   Target_None,
-		ItemCost:     Cost_Amulet,
-		BeforeAction: SummonMagic_BeforeAction,
-		Action:       SummonMagic_Action,
+		SelectType:    Select_None,
+		TargetType:    Target_None,
+		ItemCost:      Cost_Amulet,
+		ItemCostCount: amuletCount,
+		BeforeAction:  SummonMagic_BeforeAction,
+		Action:        SummonMagic_Action,
 		Data: &summonData{
 			MonsterName: sumname,
 		},
 	})
 }
 
-func SummonMagic_BeforeAction(ctx *MagicContext) {
+func SummonMagic_BeforeAction(ctx *MagicContext) (bool, uint32) {
 	sumdata := ctx.Config.Data.(*summonData)
 	p := ctx.Player
 	for i := range p.Pets {
 		if p.Pets[i].GetName() == sumdata.MonsterName {
 			m := p.Pets[i].(*Monster)
 			p.ActionList.PushAction(DelayedTypeRecall, m.PetRecall)
-			return
+			return false, 0
 		}
 	}
 
 	if len(p.Pets) > 1 {
-		return
+		return false, 0
 	}
 
 	if checkMagicItemCost(ctx) != nil {
-		return
+		return false, 0
 	}
 
 	sumdata.Pets = []*Monster{}
@@ -127,11 +163,13 @@ func SummonMagic_BeforeAction(ctx *MagicContext) {
 	sumdata.Pets = append(sumdata.Pets, monster)
 
 	DelayAt_Map(ctx, func() { completeMagic(ctx) })
+
+	return true, 0
 }
 
-func SummonMagic_Action(ctx *MagicContext) {
+func SummonMagic_Action(ctx *MagicContext) bool {
 	if ctx.Player.IsDead() {
-		return
+		return false
 	}
 
 	sumdata := ctx.Config.Data.(*summonData)
@@ -144,4 +182,6 @@ func SummonMagic_Action(ctx *MagicContext) {
 			v.Spawn()
 		}
 	}
+
+	return true
 }

@@ -1,10 +1,7 @@
 package mir
 
 import (
-	"time"
-
 	"github.com/yenkeia/mirgo/common"
-	"github.com/yenkeia/mirgo/ut"
 )
 
 // GetMagic ...
@@ -37,16 +34,6 @@ func (p *Player) UseMagic(spell common.Spell, magic *common.UserMagic, target IM
 	}
 
 	switch spell {
-	case common.SpellFireBall, common.SpellGreatFireBall, common.SpellFrostCrunch:
-		if ok := p.Fireball(target, magic); !ok {
-			targetID = 0
-		}
-	case common.SpellHealing:
-		if target == nil {
-			target = p
-			targetID = p.GetID()
-		}
-		p.Healing(target, magic)
 	case common.SpellRepulsion, common.SpellEnergyRepulsor, common.SpellFireBurst:
 		p.Repulsion(magic)
 	case common.SpellElectricShock:
@@ -57,16 +44,12 @@ func (p *Player) UseMagic(spell common.Spell, magic *common.UserMagic, target IM
 		}
 	case common.SpellHellFire:
 		p.HellFire(magic)
-	case common.SpellThunderBolt:
-		p.ThunderBolt(target, magic)
 	case common.SpellSoulFireBall:
 		// if (!SoulFireball(target, magic, out cast)) targetID = 0;
 		if !p.SoulFireball(target, magic) {
 			targetID = 0
 			cast = false
 		}
-	case common.SpellSummonSkeleton:
-		p.SummonSkeleton(magic)
 	case common.SpellTeleport, common.SpellBlink:
 		p.ActionList.PushActionSuper(DelayedTypeMagic, p.CompleteMagic, magic, p.GetPoint())
 		// ActionList.Add(new DelayedAction(DelayedType.Magic, Envir.Time + 200, magic, location));
@@ -138,8 +121,6 @@ func (p *Player) UseMagic(spell common.Spell, magic *common.UserMagic, target IM
 		p.MagicBooster(magic)
 	case common.SpellVampirism:
 		p.Vampirism(target, magic)
-	case common.SpellSummonShinsu:
-		p.SummonShinsu(magic)
 	case common.SpellPurification:
 		/*
 			if (target == null)
@@ -221,7 +202,7 @@ func (p *Player) UseMagic(spell common.Spell, magic *common.UserMagic, target IM
 func (p *Player) CompleteMagic(args ...interface{}) {
 	magic := args[0].(*common.UserMagic)
 	switch magic.Spell {
-	case common.SpellFireBall, common.SpellGreatFireBall, common.SpellThunderBolt, common.SpellSoulFireBall, common.SpellFlameDisruptor, common.SpellStraightShot, common.SpellDoubleShot:
+	case common.SpellFlameDisruptor, common.SpellStraightShot, common.SpellDoubleShot:
 		value := args[1].(int)
 		target := args[2].(IMapObject)
 		if target == nil || !target.IsAttackTarget(p) {
@@ -230,44 +211,7 @@ func (p *Player) CompleteMagic(args ...interface{}) {
 		if target.Attacked(p, value, common.DefenceTypeMAC, false) > 0 {
 			p.LevelMagic(magic)
 		}
-	case common.SpellFrostCrunch:
-		value := args[1].(int)
-		target := args[2].(IMapObject)
-		if target == nil || !target.IsAttackTarget(p) { //|| target.CurrentMap != CurrentMap || target.Node == null) return;
-			return
-		}
-		if target.Attacked(p, value, common.DefenceTypeMAC, false) > 0 {
-			var tmp1 int
-			var tmp2 int
-			var duration int
-			if target.GetRace() == common.ObjectTypePlayer {
-				tmp1 = 2
-				tmp2 = 100
-				duration = 4
-			} else {
-				tmp1 = 10
-				tmp2 = 20
-				duration = 5 + ut.RandomNext(5)
-			}
-			if int(p.Level)+tmp1 >= target.GetLevel() && ut.RandomNext(tmp2) <= magic.Level {
-				target.ApplyPoison(NewPoison(duration, p, common.PoisonTypeSlow, 1000, 0), p)
-				// TODO // target.OperateTime = 0;
-			}
-			if target.GetRace() == common.ObjectTypePlayer {
-				tmp1 = 2
-				tmp2 = 100
-				duration = 2
-			} else {
-				tmp1 = 10
-				tmp2 = 40
-				duration = 5 + int(p.Freezing)
-			}
-			if int(p.Level)+tmp1 >= target.GetLevel() && ut.RandomNext(tmp2) <= magic.Level {
-				target.ApplyPoison(NewPoison(duration, p, common.PoisonTypeFrozen, 1000, 0), p)
-				// TODO // target.OperateTime = 0;
-			}
-			p.LevelMagic(magic)
-		}
+
 	case common.SpellVampirism:
 	case common.SpellHealing:
 		value := args[1].(int)
@@ -295,26 +239,7 @@ func (p *Player) CompleteMagic(args ...interface{}) {
 			return
 		}
 		p.ElectricShock(monster, magic)
-	case common.SpellPoisoning:
-		value := args[1].(int)
-		target := args[2].(IMapObject)
-		userItem := args[3].(*common.UserItem)
-		itemInfo := data.GetItemInfoByID(int(userItem.ItemID))
-		if itemInfo == nil {
-			return
-		}
-		if target == nil || !target.IsAttackTarget(p) {
-			return
-		}
-		duration := (value * 2) + ((magic.Level + 1) * 7)
-		value = value/15 + magic.Level + 1 + ut.RandomNext(int(p.PoisonAttack))
-		switch itemInfo.Shape {
-		case 1:
-			target.ApplyPoison(NewPoison(duration, p, common.PoisonTypeGreen, 2000, value), p)
-		case 2:
-			target.ApplyPoison(NewPoison(duration, p, common.PoisonTypeRed, 2000, 0), p)
-		}
-		p.LevelMagic(magic)
+
 	case common.SpellStormEscape:
 	case common.SpellTeleport:
 	case common.SpellBlink:
@@ -404,16 +329,6 @@ func (p *Player) Fireball(target IMapObject, magic *common.UserMagic) bool {
 	return true
 }
 
-// Healing 治愈术
-func (p *Player) Healing(target IMapObject, magic *common.UserMagic) {
-	if target == nil || !target.IsFriendlyTarget(p) {
-		return
-	}
-	// int health = magic.GetDamage(GetAttackPower(MinSC, MaxSC) * 2) + Level;
-	health := magic.GetDamage(p.GetAttackPower(int(p.MinSC), int(p.MaxSC))*2) + int(p.Level)
-	p.ActionList.PushActionSuper(DelayedTypeMagic, p.CompleteMagic, magic, health, target)
-}
-
 // Repulsion 抗拒火环
 func (p *Player) Repulsion(magic *common.UserMagic) {
 
@@ -464,40 +379,6 @@ func (p *Player) SoulFireball(target IMapObject, magic *common.UserMagic) bool {
 	p.ActionList.PushActionSuper(DelayedTypeMagic, p.CompleteMagic, magic, damage, target)
 	p.ConsumeItem(userItem, 1)
 	return true
-}
-
-// SummonSkeleton 召唤骷髅
-func (p *Player) SummonSkeleton(magic *common.UserMagic) {
-	skeletonName := "BoneFamiliar"
-	for i := range p.Pets {
-		if p.Pets[i].GetName() == skeletonName {
-			m := p.Pets[i].(*Monster)
-			p.ActionList.PushAction(DelayedTypeRecall, m.PetRecall)
-			return
-		}
-	}
-	if len(p.Pets) > 1 {
-		return
-	}
-	userItem := p.GetAmulet(1)
-	if userItem == nil {
-		return
-	}
-	monsterInfo := data.GetMonsterInfoByName(skeletonName)
-	p.LevelMagic(magic)
-	p.ConsumeItem(userItem, 1) // 减少物品数量
-	dir := int(p.CurrentDirection) + 4
-	if dir > 8 {
-		dir -= 8
-	}
-	monster := NewMonster(p.Map, p.GetPoint().NextPoint(common.MirDirection(dir), 1), monsterInfo)
-	monster.PetLevel = uint16(magic.Level)
-	monster.Master = p
-	monster.ActionTime = time.Now().Add(time.Duration(1000) * time.Millisecond)
-	// monster.RefreshNameColour(false);
-	// DelayedAction action = new DelayedAction(DelayedType.Magic, Envir.Time + 500, this, magic, monster, Front);
-	p.ActionList.PushActionSuper(DelayedTypeMagic, p.Map.CompleteMagic, magic, p, monster, p.GetFrontPoint())
-	// log.Debugln(action.ID)
 }
 
 // GetAmulet 获取玩家身上装备的护身符
@@ -655,39 +536,6 @@ func (p *Player) Vampirism(target IMapObject, magic *common.UserMagic) {
 	}
 	damage := magic.GetDamage(p.GetAttackPower(int(p.MinMC), int(p.MaxMC)))
 	p.ActionList.PushActionSuper(DelayedTypeMagic, p.CompleteMagic, magic, damage, target)
-}
-
-// SummonShinsu 召唤神兽
-func (p *Player) SummonShinsu(magic *common.UserMagic) {
-	skeletonName := "Shinsu"
-	for i := range p.Pets {
-		if p.Pets[i].GetName() == skeletonName {
-			m := p.Pets[i].(*Monster)
-			m.ActionList.PushAction(DelayedTypeRecall, m.PetRecall)
-			return
-		}
-	}
-	if len(p.Pets) > 1 {
-		return
-	}
-	userItem := p.GetAmulet(5)
-	if userItem == nil {
-		return
-	}
-	monsterInfo := data.GetMonsterInfoByName(skeletonName)
-	p.LevelMagic(magic)
-	p.ConsumeItem(userItem, 5) // 减少物品数量
-	dir := int(p.CurrentDirection) + 4
-	if dir > 8 {
-		dir -= 8
-	}
-	monster := NewMonster(p.Map, p.GetPoint().NextPoint(common.MirDirection(dir), 1), monsterInfo)
-	monster.PetLevel = uint16(magic.Level)
-	monster.Master = p
-	monster.ActionTime = time.Now().Add(time.Duration(1000) * time.Millisecond)
-	// monster.RefreshNameColour(false);
-	// DelayedAction action = new DelayedAction(DelayedType.Magic, Envir.Time + 500, this, magic, monster, Front);
-	p.ActionList.PushActionSuper(DelayedTypeMagic, p.Map.CompleteMagic, magic, p, monster, p.GetFrontPoint())
 }
 
 // Purification 净化术
