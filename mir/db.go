@@ -18,6 +18,7 @@ func NewAccountDB(db *gorm.DB) *DB {
 
 	db.SingularTable(true)
 	db.AutoMigrate(
+		&common.Basic{},
 		&common.Account{},
 		&common.AccountCharacter{},
 		&common.Character{},
@@ -58,4 +59,14 @@ func (d *DB) SyncMagicKey(p *Player, spell common.Spell, key uint8) {
 
 func (d *DB) AddSkill(p *Player, magic *common.UserMagic) {
 	d.db.Table("user_magic").Create(magic)
+}
+
+func (d *DB) GetObjectID() uint32 {
+	var basic common.Basic
+	d.db.Table("basic").First(&basic)
+	return basic.ObjectID
+}
+
+func (d *DB) SyncObjectID(id uint32) {
+	d.db.Table("basic").Where(common.Basic{ID: 1}).Update(map[string]interface{}{"object_id": id})
 }

@@ -44,6 +44,11 @@ type Basic struct {
 }
 */
 
+type Basic struct {
+	ID       int32 `gorm:"primary_key"`
+	ObjectID uint32
+}
+
 // Character 角色
 type Character struct {
 	ID               int32 `gorm:"primary_key"`

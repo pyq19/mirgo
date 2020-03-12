@@ -36,6 +36,7 @@ type Environ struct {
 	SessionIDPlayerMap *sync.Map    // map[int64]*Player
 	Maps               map[int]*Map // mapID: Map
 	ObjectID           uint32
+	ObjectIDChan       chan uint32
 	Players            []*Player
 	lock               *sync.Mutex
 	lastFrame          time.Time
@@ -76,16 +77,35 @@ func (g *Environ) ServerStart() {
 func NewEnviron() *Environ {
 	settings = setting.Must()
 
-	gameData, _ := gorm.Open("sqlite3", settings.DBPath)
+	gameData, err := gorm.Open("sqlite3", settings.DBPath)
+	if err != nil {
+		panic(err)
+	}
 	data = NewGameData(gameData)
 
-	accountData, _ := gorm.Open("sqlite3", settings.AccountDBPath)
+	accountData, err := gorm.Open("sqlite3", settings.AccountDBPath)
+	if err != nil {
+		panic(err)
+	}
 	adb = NewAccountDB(accountData)
 
 	e := new(Environ)
 	env = e
 
 	e.lastFrame = time.Now()
+
+	e.ObjectIDChan = make(chan uint32, 100000)
+	id := adb.GetObjectID()
+	if id == 0 {
+		id = 100000
+		adb.Table("basic").Create(&common.Basic{ID: 1, ObjectID: id})
+	}
+	e.ObjectID = id
+	go func() {
+		for id := range e.ObjectIDChan {
+			adb.SyncObjectID(id)
+		}
+	}()
 
 	script.SearchPaths = []string{
 		filepath.Join(settings.EnvirPath, "NPCs"),
@@ -99,7 +119,6 @@ func NewEnviron() *Environ {
 
 	e.InitMaps()
 
-	e.ObjectID = 100000
 	e.Players = make([]*Player, 0)
 	e.lock = new(sync.Mutex)
 	e.SessionIDPlayerMap = new(sync.Map)
@@ -201,7 +220,9 @@ func (e *Environ) InitMaps() {
 }
 
 func (e *Environ) NewObjectID() uint32 {
-	return atomic.AddUint32(&e.ObjectID, 1)
+	id := atomic.AddUint32(&e.ObjectID, 1)
+	e.ObjectIDChan <- id
+	return id
 }
 
 func (e *Environ) AddPlayer(p *Player) {

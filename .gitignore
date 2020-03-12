@@ -60,3 +60,4 @@ account.sqlite
 
 vendor
 go.sum
+dotnettools/account.sqlite-journal
