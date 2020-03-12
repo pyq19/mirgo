@@ -21,7 +21,7 @@ func (p *Player) LevelMagic(userMagic *common.UserMagic) {
 }
 
 // UseMagic ...
-func (p *Player) UseMagic(spell common.Spell, magic *common.UserMagic, target IMapObject) (cast bool, targetID uint32) {
+func (p *Player) UseMagic(spell common.Spell, magic *common.UserMagic, target IMapObject, targetLoc common.Point) (cast bool, targetID uint32) {
 
 	cast = true
 	if target != nil {
@@ -29,7 +29,13 @@ func (p *Player) UseMagic(spell common.Spell, magic *common.UserMagic, target IM
 	}
 
 	if _, ok := configsMap[spell]; ok {
-		ctx := &MagicContext{Spell: spell, Magic: magic, Target: target, Player: p}
+		ctx := &MagicContext{
+			Spell:       spell,
+			Magic:       magic,
+			Target:      target,
+			Player:      p,
+			TargetPoint: targetLoc,
+		}
 		return startMagic(ctx)
 	}
 

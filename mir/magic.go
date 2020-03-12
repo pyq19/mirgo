@@ -84,11 +84,14 @@ type MagicConfig struct {
 }
 
 type MagicContext struct {
-	Spell  common.Spell
-	Target IMapObject
-	Magic  *common.UserMagic // 当前施法
-	Player *Player           // 施法玩家
-	Item   *common.UserItem  // 消耗的物品
+	Spell            common.Spell
+	Target           IMapObject
+	Magic            *common.UserMagic // 当前施法
+	Player           *Player           // 施法玩家
+	Item             *common.UserItem  // 消耗的物品
+	Map              *Map              // 施法的地图
+	TargetPoint      common.Point      // 施法目标位置
+	PlayerSpellPoint common.Point      // 施法时候玩家的位置
 
 	Damage int
 	Config *MagicConfig
@@ -135,6 +138,7 @@ func startMagic(ctx *MagicContext) (cast bool, targetid uint32) {
 		// TODO
 	}
 
+	ctx.Map = ctx.Player.Map
 	ctx.Config = cfg
 
 	if cfg.BeforeAction != nil {

@@ -93,7 +93,7 @@ func init() {
 	})
 
 	// 隐身术
-	add(common.SpellPoisoning, &MagicConfig{
+	add(common.SpellHiding, &MagicConfig{
 		Formula: func(ctx *MagicContext) int {
 			return ctx.Player.GetAttackPower(int(ctx.Player.MinSC), int(ctx.Player.MaxSC)) + (ctx.Magic.Level+1)*5
 		},
@@ -105,6 +105,44 @@ func init() {
 	add(common.SpellFury, &MagicConfig{
 		Action: Action_Fury,
 	})
+
+	// 爆裂火焰
+	add(common.SpellFireBang, &MagicConfig{
+		SelectType: Select_Enemy | Select_Point,
+		TargetType: Target_Enemy,
+		Action:     Action_RangeDamage1,
+		Formula:    Formula_MC,
+	})
+
+	// 冰咆哮
+	add(common.SpellIceStorm, &MagicConfig{
+		SelectType: Select_Enemy | Select_Point,
+		TargetType: Target_Enemy,
+		Action:     Action_RangeDamage1,
+		Formula:    Formula_MC,
+	})
+}
+
+func Action_RangeDamage1(ctx *MagicContext) bool {
+	const damageRange = 1
+	var loc common.Point
+	if ctx.Target == nil {
+		loc = ctx.PlayerSpellPoint
+	} else {
+		loc = ctx.Target.GetPoint()
+	}
+
+	ctx.Map.RangeObject(loc, damageRange, func(o IMapObject) bool {
+		switch o.GetRace() {
+		case common.ObjectTypePlayer, common.ObjectTypeMonster:
+			if o.IsAttackTarget(ctx.Player) {
+				o.Attacked(ctx.Player, ctx.Damage, common.DefenceTypeMAC, false)
+			}
+		}
+		return true
+	})
+
+	return true
 }
 
 func Action_Fury(ctx *MagicContext) bool {
