@@ -2170,7 +2170,7 @@ func (p *Player) Magic(spell common.Spell, direction common.MirDirection, target
 	p.CurrentDirection = direction
 	p.ChangeMP(-cost)
 	target := p.Map.GetObjectInAreaByID(targetID, targetLocation)
-	cast, targetID := p.UseMagic(spell, magic, target)
+	cast, targetID := p.UseMagic(spell, magic, target, targetLocation)
 	p.Enqueue(ServerMessage{}.UserLocation(p))
 	p.Enqueue(&server.Magic{
 		Spell:    spell,
