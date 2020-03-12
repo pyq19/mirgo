@@ -439,11 +439,11 @@ func (um *UserMagic) DefPower() int {
 	}
 }
 
-func (um *UserMagic) GetClientMagic(info *MagicInfo) ClientMagic {
+func (um *UserMagic) GetClientMagic(info *MagicInfo) *ClientMagic {
 	delay := info.DelayBase - (um.Level * info.DelayReduction)
 	//castTime := (CastTime != 0) && (SMain.Envir.Time > CastTime) ? SMain.Envir.Time - CastTime : 0
 	castTime := 0
-	return ClientMagic{
+	return &ClientMagic{
 		Name:       info.Name,
 		Spell:      um.Spell,
 		BaseCost:   uint8(info.BaseCost),

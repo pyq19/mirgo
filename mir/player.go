@@ -355,10 +355,6 @@ func (p *Player) ApplyPoison(poison *Poison, caster IMapObject) {
 
 }
 
-func (p *Player) NewObjectID() uint32 {
-	return env.NewObjectID()
-}
-
 func (p *Player) IsDead() bool {
 	return false
 }
@@ -710,13 +706,12 @@ func (p *Player) RefreshSkills() {
 	for _, magic := range p.Magics {
 		switch magic.Spell {
 		case common.SpellFencing: // 基本剑术
-			// Accuracy = (byte)Math.Min(byte.MaxValue, Accuracy + magic.Level * 3);
-			// MaxAC = (ushort)Math.Min(ushort.MaxValue, MaxAC + (magic.Level + 1) * 3);
+			p.Accuracy = ut.Uint8(int(p.Accuracy) + magic.Level*3)
+			p.MaxAC = ut.Uint16(int(p.MaxAC) + (magic.Level+1)*3)
 		case common.SpellFatalSword: // 刺客的技能 忽略
-			// Accuracy = (byte)Math.Min(byte.MaxValue, Accuracy + magic.Level);
 		case common.SpellSpiritSword: // 精神力战法
-			// Accuracy = (byte)Math.Min(byte.MaxValue, Accuracy + magic.Level);
-			// MaxDC = (ushort)Math.Min(ushort.MaxValue, MaxDC + MaxSC * (magic.Level + 1) * 0.1F);
+			p.Accuracy = ut.Uint8(int(p.Accuracy) + magic.Level)
+			p.MaxAC = ut.Uint16(int(p.MaxDC) + int(float32(p.MaxSC)*float32(magic.Level+1)*0.1))
 		}
 	}
 }
@@ -1671,16 +1666,7 @@ func (p *Player) UseItem(id uint64) {
 	case common.ItemTypeScroll:
 		msg.Success = p.UseItemScroll(item)
 	case common.ItemTypeBook:
-		magic := &common.UserMagic{}
-		magic.Spell = common.Spell(info.Shape)
-		magic.Info = data.GetMagicInfoBySpell(magic.Spell)
-
-		if magic.Info != nil {
-			p.Magics = append(p.Magics, magic)
-			p.Enqueue(magic.Info)
-			p.RefreshStats()
-			msg.Success = true
-		}
+		msg.Success = p.GiveSkill(common.Spell(info.Shape), 1)
 
 	case common.ItemTypeScript:
 		p.CallDefaultNPC(DefaultNPCTypeUseItem, info.Shape)
@@ -1701,6 +1687,28 @@ func (p *Player) UseItem(id uint64) {
 	}
 
 	p.Enqueue(msg)
+}
+
+func (p *Player) GiveSkill(spell common.Spell, level int) bool {
+
+	info := data.GetMagicInfoBySpell(spell)
+
+	if info != nil {
+		for _, v := range p.Magics {
+			if v.Spell == spell {
+				p.ReceiveChat("你已经学习该技能", common.ChatTypeSystem)
+				return true
+			}
+		}
+		magic := &common.UserMagic{Info: info, Level: level, CharacterID: int(p.ID), MagicID: info.ID, Spell: spell}
+		adb.AddSkill(p, magic)
+		p.Magics = append(p.Magics, magic)
+		p.Enqueue(magic.Info)
+		p.RefreshStats()
+		return true
+	}
+
+	return false
 }
 
 func (p *Player) CallDefaultNPC(calltype DefaultNPCType, args ...interface{}) {
@@ -2188,14 +2196,11 @@ func (p *Player) Magic(spell common.Spell, direction common.MirDirection, target
 }
 
 func (p *Player) MagicKey(spell common.Spell, key uint8) {
-	clientMagics := p.GetClientMagics()
-	for _, cm := range clientMagics {
-		// log.Debugln(cm)
-		if cm.Spell == spell {
-			cm.Key = key
+	for _, m := range p.Magics {
+		if m.Spell == spell {
+			m.Key = int(key)
 			adb.SyncMagicKey(p, spell, key)
-			// log.Debugln("found: ", cm.Spell)
-			return
+			break
 		}
 	}
 }

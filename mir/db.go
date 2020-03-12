@@ -53,17 +53,9 @@ func (d *DB) SyncPosition(p *Player) {
 }
 
 func (d *DB) SyncMagicKey(p *Player, spell common.Spell, key uint8) {
-	table := d.db.Table("user_magic")
-	var userMagics []*common.UserMagic
-	var found *common.UserMagic
-	table.Where("character_id = ?", p.GetID()).Find(&userMagics)
-	for _, magic := range userMagics {
-		if magic.Key == int(key) {
-			table.Model(&magic).Update("magic_key", 0)
-		}
-		if magic.Spell == spell {
-			found = magic
-		}
-	}
-	table.Model(&found).Update("magic_key", key)
+	d.db.Table("user_magic").Where("spell = ?", spell).Update("magic_key", key)
+}
+
+func (d *DB) AddSkill(p *Player, magic *common.UserMagic) {
+	d.db.Table("user_magic").Create(magic)
 }

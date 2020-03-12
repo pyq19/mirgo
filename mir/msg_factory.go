@@ -96,6 +96,15 @@ func (ServerMessage) UserInformation(p *Player) *server.UserInformation {
 	return ui
 }
 
+func (p *Player) GetClientMagics() []*common.ClientMagic {
+	res := make([]*common.ClientMagic, 0)
+	for i := range p.Magics {
+		userMagic := p.Magics[i]
+		res = append(res, userMagic.GetClientMagic(userMagic.Info))
+	}
+	return res
+}
+
 func (ServerMessage) UserLocation(p *Player) *server.UserLocation {
 	return &server.UserLocation{
 		Location:  p.Point(),

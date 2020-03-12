@@ -18,18 +18,6 @@ func (p *Player) GetMagic(spell common.Spell) *common.UserMagic {
 	return nil
 }
 
-// GetClientMagics ...
-func (p *Player) GetClientMagics() []common.ClientMagic {
-	gdb := data
-	res := make([]common.ClientMagic, 0)
-	for i := range p.Magics {
-		userMagic := p.Magics[i]
-		info := gdb.GetMagicInfoByID(userMagic.MagicID)
-		res = append(res, userMagic.GetClientMagic(info))
-	}
-	return res
-}
-
 // LevelMagic ...
 func (p *Player) LevelMagic(userMagic *common.UserMagic) {
 

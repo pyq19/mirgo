@@ -106,13 +106,19 @@ func (b *Bag) UseCount(i int, c uint32) {
 func (b *Bag) MoveTo(from, to int, tobag *Bag) error {
 
 	item := b.Items[from]
-
 	adb.Table("character_user_item").Where("user_item_id = ?", item.ID).Update(AnyMap{
 		"type":  tobag.Type,
 		"index": to,
 	})
-
 	b.Items[from] = nil
+
+	toItem := tobag.Items[to]
+	if toItem != nil {
+		adb.Table("character_user_item").Where("user_item_id = ?", toItem.ID).Update(AnyMap{
+			"type":  b.Type,
+			"index": from,
+		})
+	}
 	tobag.Items[to] = item
 
 	return nil

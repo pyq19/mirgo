@@ -1,6 +1,8 @@
 package mir
 
 import (
+	"errors"
+
 	"github.com/yenkeia/mirgo/common"
 	"github.com/yenkeia/mirgo/ut"
 )
@@ -70,12 +72,15 @@ func Formula_MC(ctx *MagicContext) int {
 }
 
 type MagicConfig struct {
-	Formula    MagicDamageFormula
-	SelectType MagicSelectType
-	TargetType MagicTargetType
-	DelayAt    MagicDelayAt
-	ItemCost   MagicItemCost
-	Action     MagicAction
+	Spell        common.Spell
+	Formula      MagicDamageFormula
+	SelectType   MagicSelectType
+	TargetType   MagicTargetType
+	DelayAt      MagicDelayAt
+	ItemCost     MagicItemCost
+	BeforeAction MagicAction
+	Action       MagicAction
+	Data         interface{}
 }
 
 type MagicContext struct {
@@ -90,27 +95,19 @@ type MagicContext struct {
 
 var configsMap = map[common.Spell]*MagicConfig{}
 
-func ConfigMagic(sp common.Spell, s MagicSelectType, t MagicTargetType, a MagicAction, f MagicDamageFormula, c MagicItemCost, d MagicDelayAt) {
-	config := &MagicConfig{}
+func checkMagicItemCost(ctx *MagicContext) error {
+	item, count := ctx.Config.ItemCost(ctx)
 
-	config.SelectType = s
-	config.TargetType = t
-	config.Formula = f
-	config.Action = a
-	config.ItemCost = c
-	config.DelayAt = d
+	if count != 0 {
+		if item == nil {
+			return errors.New("没有施法道具")
+		} else {
+			ctx.Player.ConsumeItem(item, count)
+		}
+		return nil
+	}
 
-	configsMap[sp] = config
-}
-
-func init() {
-	add := ConfigMagic
-	add(common.SpellFireBall, Select_Point|Select_Enemy, Target_Enemy, Action_DamageTarget, Formula_MC, Cost_None, DelayAt_Player)
-	add(common.SpellGreatFireBall, Select_Point|Select_Enemy, Target_Enemy, Action_DamageTarget, Formula_MC, Cost_None, DelayAt_Player)
-	add(common.SpellFrostCrunch, Select_Point|Select_Enemy, Target_Enemy, Action_FrostCrunch, Formula_MC, Cost_None, DelayAt_Player)
-	add(common.SpellThunderBolt, Select_Enemy, Target_Enemy, Action_DamageTarget, Formula_MC, Cost_None, DelayAt_Player)
-	add(common.SpellSoulFireBall, Select_Point|Select_Enemy, Target_Enemy, Action_DamageTarget, Formula_MC, Cost_Amulet, DelayAt_Player)
-	add(common.SpellHealing, Select_Friend|Select_Self, Target_Friend|Target_Self, Action_HealingTarget, Formula_MC, Cost_None, DelayAt_Player)
+	return nil
 }
 
 func startMagic(ctx *MagicContext) (cast bool, targetid uint32) {
@@ -134,16 +131,22 @@ func startMagic(ctx *MagicContext) (cast bool, targetid uint32) {
 		// TODO
 	}
 
-	item, count := ctx.Config.ItemCost(ctx)
-
-	if item != nil {
-		ctx.Player.ConsumeItem(item, count)
-	}
-
 	ctx.Config = cfg
-	ctx.Damage = cfg.Formula(ctx)
 
-	ctx.Config.DelayAt(ctx, func() { completeMagic(ctx) })
+	if cfg.BeforeAction != nil {
+		cfg.BeforeAction(ctx)
+	} else {
+
+		if checkMagicItemCost(ctx) != nil {
+			return false, 0
+		}
+
+		if cfg.Formula != nil {
+			ctx.Damage = cfg.Formula(ctx)
+		}
+
+		cfg.DelayAt(ctx, func() { completeMagic(ctx) })
+	}
 
 	return true, targetid
 }
@@ -177,8 +180,14 @@ func Action_DamageTarget(ctx *MagicContext) {
 }
 
 func Action_HealingTarget(ctx *MagicContext) {
-	target := ctx.Target.(ILifeObject)
-	target.ChangeHP(ctx.Damage)
+	// target.HealAmount = (ushort)Math.Min(ushort.MaxValue, target.HealAmount + value);
+
+	if ctx.Target == nil {
+		ctx.Player.ChangeHP(ctx.Damage)
+	} else {
+		target := ctx.Target.(ILifeObject)
+		target.ChangeHP(ctx.Damage)
+	}
 }
 
 func Action_FrostCrunch(ctx *MagicContext) {

@@ -376,7 +376,7 @@ type UserInformation struct {
 	Credit                    uint32
 	HasExpandedStorage        bool
 	ExpandedStorageExpiryTime int64
-	ClientMagics              []common.ClientMagic
+	ClientMagics              []*common.ClientMagic
 }
 
 func (msg *UserInformation) String() string {
