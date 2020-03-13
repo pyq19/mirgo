@@ -883,7 +883,7 @@ type ItemRepaired struct {
 }
 
 type NewMagic struct {
-	Magic common.ClientMagic
+	Magic *common.ClientMagic
 }
 
 type RemoveMagic struct {

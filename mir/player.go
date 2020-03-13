@@ -1703,7 +1703,7 @@ func (p *Player) GiveSkill(spell common.Spell, level int) bool {
 		magic := &common.UserMagic{Info: info, Level: level, CharacterID: int(p.ID), MagicID: info.ID, Spell: spell}
 		adb.AddSkill(p, magic)
 		p.Magics = append(p.Magics, magic)
-		p.Enqueue(magic.Info)
+		p.Enqueue(&server.NewMagic{Magic: magic.GetClientMagic(magic.Info)})
 		p.RefreshStats()
 		return true
 	}

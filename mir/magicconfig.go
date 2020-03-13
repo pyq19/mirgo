@@ -110,19 +110,13 @@ func init() {
 
 	// 爆裂火焰
 	add(common.SpellFireBang, &MagicConfig{
-		SelectType: Select_Enemy | Select_Point,
-		TargetType: Target_Enemy,
+		SelectType: Select_Point,
+		TargetType: Target_Point,
 		Action:     Action_RangeDamage1,
 		Formula:    Formula_MC,
 	})
-
 	// 冰咆哮
-	add(common.SpellIceStorm, &MagicConfig{
-		SelectType: Select_Enemy | Select_Point,
-		TargetType: Target_Enemy,
-		Action:     Action_RangeDamage1,
-		Formula:    Formula_MC,
-	})
+	cloneMagic(common.SpellIceStorm, common.SpellFireBang)
 
 	// 火龙术
 	add(common.SpellFlameDisruptor, &MagicConfig{
@@ -294,7 +288,7 @@ func Action_RangeDamage1(ctx *MagicContext) bool {
 	const damageRange = 1
 	var loc common.Point
 	if ctx.Target == nil {
-		loc = ctx.PlayerSpellPoint
+		loc = ctx.TargetPoint
 	} else {
 		loc = ctx.Target.GetPoint()
 	}
