@@ -1291,7 +1291,7 @@ func (p *Player) MoveItem(mirGridType common.MirGridType, from int32, to int32) 
 	}
 
 	if err != nil {
-		log.Errorln(err)
+		p.ReceiveChat(err.Error(), common.ChatTypeSystem)
 	} else {
 		msg.Success = true
 	}

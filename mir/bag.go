@@ -106,13 +106,18 @@ func (b *Bag) UseCount(i int, c uint32) {
 }
 
 func (b *Bag) MoveTo(from, to int, tobag *Bag) error {
+	if from < 0 || to < 0 || from > len(b.Items) || to > len(tobag.Items) {
+		return fmt.Errorf("Move: 位置不存在 from=%d to=%d", from, to)
+	}
 
 	item := b.Items[from]
+	if item == nil {
+		return fmt.Errorf("格子 %d 没有物品", from)
+	}
 	adb.Table("character_user_item").Where("user_item_id = ?", item.ID).Update(AnyMap{
 		"type":  tobag.Type,
 		"index": to,
 	})
-	b.Items[from] = nil
 
 	toItem := tobag.Items[to]
 	if toItem != nil {
@@ -121,7 +126,8 @@ func (b *Bag) MoveTo(from, to int, tobag *Bag) error {
 			"index": from,
 		})
 	}
-	tobag.Items[to] = item
+
+	b.Items[from], tobag.Items[to] = tobag.Items[to], b.Items[from]
 
 	return nil
 }
