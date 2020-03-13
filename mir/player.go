@@ -1791,6 +1791,7 @@ func (p *Player) DropItem(id uint64, count uint32) {
 	obj := NewItem(p, userItem)
 	if dropMsg, ok := obj.Drop(p.GetPoint(), 1); !ok {
 		p.ReceiveChat(dropMsg, common.ChatTypeSystem)
+		p.Enqueue(msg)
 		return
 	}
 	if count >= userItem.Count {
