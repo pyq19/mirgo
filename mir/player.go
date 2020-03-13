@@ -774,7 +774,7 @@ func (p *Player) ConsumeItem(userItem *common.UserItem, count uint32) {
 }
 
 // GainItem 为玩家增加物品，增加成功返回 true
-func (p *Player) GainItem(item *common.UserItem) bool {
+func (p *Player) GainItem(item *common.UserItem) (res bool) {
 	item.SoulBoundId = p.GetID()
 
 	info := item.Info
@@ -812,15 +812,19 @@ func (p *Player) GainItem(item *common.UserItem) bool {
 			i++
 			continue
 		}
+		res = true
 		p.Inventory.Set(i, item)
 		// p.Inventory.Items[i] = ui
 		break
 	}
-
-	p.EnqueueItemInfo(item.ItemID)
-	p.Enqueue(ServerMessage{}.GainedItem(item))
-	p.RefreshBagWeight()
-	return true
+	if res {
+		p.EnqueueItemInfo(item.ItemID)
+		p.Enqueue(ServerMessage{}.GainedItem(item))
+		p.RefreshBagWeight()
+	} else {
+		p.ReceiveChat("没有合适的格子放置物品", common.ChatTypeSystem)
+	}
+	return
 }
 
 // GainGold 为玩家增加金币

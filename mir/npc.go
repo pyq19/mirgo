@@ -276,9 +276,9 @@ func (n *NPC) Buy(p *Player, userItemID uint64, count uint32) {
 		userItem = env.NewUserItem(userItem.Info)
 		userItem.Count = count
 	}
-
-	p.TakeGold(price)
-	p.GainItem(userItem)
+	if p.GainItem(userItem) {
+		p.TakeGold(price)
+	}
 }
 
 type BuyBackItem struct {
