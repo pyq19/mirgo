@@ -195,7 +195,7 @@ func encodeValue(v reflect.Value) (bytes []byte, err error) {
 			slice := vvv.Slice(0, l)
 			bytes = append(bytes, common.Uint32ToBytes(uint32(l))...)
 			for i := 0; i < l; i++ {
-				b, err := encode(slice.Index(i).Interface())
+				b, err := encodeValue(slice.Index(i))
 				if err != nil {
 					panic(err)
 				}

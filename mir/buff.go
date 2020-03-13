@@ -7,22 +7,18 @@ import (
 	"github.com/yenkeia/mirgo/common"
 )
 
-type BuffList struct {
-	List *list.List
-}
-
 type Buff struct {
+	ObjectID   uint32
 	BuffType   common.BuffType
 	Caster     IMapObject
-	Visible    bool // 是否可见
-	ObjectID   uint32
+	Visible    bool      // 是否可见
 	ExpireTime time.Time // 过期时间️
-	Values     []int     // public int[] Values
+	Values     []int32   // public int[] Values
 	Infinite   bool      // 是否永久
 	Paused     bool
 }
 
-func NewBuff(buffType common.BuffType, caster IMapObject, expireTime int, values []int) *Buff {
+func NewBuff(buffType common.BuffType, caster IMapObject, expireTime int, values []int32) *Buff {
 	return &Buff{
 		BuffType:   buffType,
 		Caster:     caster,
@@ -35,8 +31,51 @@ func NewBuff(buffType common.BuffType, caster IMapObject, expireTime int, values
 	}
 }
 
+type BuffList struct {
+	List *list.List
+}
+
 func NewBuffList() *BuffList {
 	ret := &BuffList{}
 	ret.List = list.New()
 	return ret
+}
+
+func (bl *BuffList) AddBuff(b *Buff) {
+	for it := bl.List.Front(); it != nil; it = it.Next() {
+		buf := it.Value.(*Buff)
+		if buf.BuffType != b.BuffType {
+			continue
+		}
+
+		// 新的替换旧的
+		b.Paused = false
+		bl.List.InsertBefore(b, it)
+		bl.List.Remove(it)
+		return
+	}
+
+	bl.List.PushBack(b)
+}
+
+func (bl *BuffList) RemoveBuff(t common.BuffType) {
+	for it := bl.List.Front(); it != nil; it = it.Next() {
+		buf := it.Value.(*Buff)
+		if buf.BuffType != t {
+			continue
+		}
+
+		buf.Infinite = false
+		buf.ExpireTime = time.Now()
+	}
+}
+
+func (bl *BuffList) Has(f func(b *Buff) bool) bool {
+	for it := bl.List.Front(); it != nil; it = it.Next() {
+
+		if f(it.Value.(*Buff)) {
+			return true
+		}
+	}
+	return false
 }

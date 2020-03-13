@@ -137,8 +137,8 @@ func init() {
 
 	// 幽灵盾
 	add(common.SpellSoulShield, &MagicConfig{
-		SelectType: Select_Friend | Select_Point,
-		TargetType: Target_Friend | Target_Point,
+		SelectType: Select_Point,
+		TargetType: Target_Point,
 		ItemCost:   Cost_Amulet,
 		DelayAt:    DelayAt_Map,
 		Action:     Action_SoulShield,
@@ -231,7 +231,7 @@ func Action_ElectricShock(ctx *MagicContext) bool {
 }
 
 func Action_SoulShield(ctx *MagicContext) bool {
-	const damageRange = 1
+	const damageRange = 3
 	var loc common.Point
 	if ctx.Target == nil {
 		loc = ctx.TargetPoint
@@ -248,7 +248,7 @@ func Action_SoulShield(ctx *MagicContext) bool {
 		switch o.GetRace() {
 		case common.ObjectTypePlayer, common.ObjectTypeMonster:
 			if o.IsFriendlyTarget(ctx.Player) {
-				buff := NewBuff(buffType, ctx.Player, ctx.Damage*1000, []int{int(o.GetLevel()/7) + 4})
+				buff := NewBuff(buffType, ctx.Player, ctx.Damage*1000, []int32{int32(o.GetLevel()/7) + 4})
 				o.AddBuff(buff)
 			}
 		}
@@ -308,7 +308,7 @@ func Action_RangeDamage1(ctx *MagicContext) bool {
 }
 
 func Action_Fury(ctx *MagicContext) bool {
-	buff := NewBuff(common.BuffTypeFury, ctx.Player, 60000+ctx.Magic.Level*10000, []int{4})
+	buff := NewBuff(common.BuffTypeFury, ctx.Player, 60000+ctx.Magic.Level*10000, []int32{4})
 	buff.Visible = true
 	ctx.Player.AddBuff(buff)
 	return true
@@ -322,7 +322,7 @@ func Action_Hidding(ctx *MagicContext) bool {
 			return false
 		}
 	}
-	buff := NewBuff(common.BuffTypeHiding, p, 1000*ctx.Damage, []int{})
+	buff := NewBuff(common.BuffTypeHiding, p, 1000*ctx.Damage, []int32{})
 	p.AddBuff(buff)
 	return true
 }

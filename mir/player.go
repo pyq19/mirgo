@@ -347,8 +347,38 @@ func (p *Player) GetBaseStats() BaseStats {
 }
 
 // AddBuff ...
-func (p *Player) AddBuff(buff *Buff) {
-	p.BuffList.List.PushBack(buff)
+func (p *Player) AddBuff(b *Buff) {
+	if p.BuffList.Has(func(temp *Buff) bool { return temp.Infinite && b.BuffType == temp.BuffType }) {
+		return //cant overwrite infinite buff with regular buff
+	}
+
+	p.BuffList.AddBuff(b)
+
+	var caster string
+	if b.Caster != nil {
+		caster = b.Caster.GetName()
+	}
+
+	if b.Values == nil {
+		b.Values = []int32{}
+	}
+
+	msg := &server.AddBuff{
+		Type:     b.BuffType,
+		Caster:   caster,
+		Expire:   10000, // TODO
+		Values:   b.Values,
+		Infinite: b.Infinite,
+		ObjectID: p.ID,
+		Visible:  b.Visible,
+	}
+
+	p.Enqueue(msg)
+	if b.Visible {
+		p.Broadcast(msg)
+	}
+
+	p.RefreshStats()
 }
 
 func (p *Player) ApplyPoison(poison *Poison, caster IMapObject) {

@@ -259,7 +259,7 @@ func (n *NPC) Buy(p *Player, userItemID uint64, count uint32) {
 		userItem = n.GetUserItemByID(userItemID)
 	}
 
-	if userItem == nil || count == 0 || count > userItem.Count {
+	if userItem == nil || count == 0 || count > userItem.Info.StackSize {
 		return
 	}
 
