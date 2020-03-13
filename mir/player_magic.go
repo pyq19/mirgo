@@ -49,8 +49,6 @@ func (p *Player) UseMagic(spell common.Spell, magic *common.UserMagic, target IM
 	case common.SpellTeleport, common.SpellBlink:
 		p.ActionList.PushActionSuper(DelayedTypeMagic, p.CompleteMagic, magic, p.GetPoint())
 		// ActionList.Add(new DelayedAction(DelayedType.Magic, Envir.Time + 200, magic, location));
-	case common.SpellHiding:
-		p.Hiding(magic)
 	case common.SpellHaste, common.SpellLightBody:
 		// ActionList.Add(new DelayedAction(DelayedType.Magic, Envir.Time + 500, magic));
 		p.ActionList.PushActionSuper(DelayedTypeMagic, p.CompleteMagic, magic)
@@ -70,13 +68,6 @@ func (p *Player) UseMagic(spell common.Spell, magic *common.UserMagic, target IM
 			location = p.GetPoint()
 		}
 		cast = p.MassHiding(magic, location)
-	case common.SpellSoulShield, common.SpellBlessedArmour:
-		// SoulShield(magic, target == null ? location : target.CurrentLocation, out cast);
-		location := target.GetPoint()
-		if target == nil {
-			location = p.GetPoint()
-		}
-		cast = p.SoulShield(magic, location)
 	case common.SpellFireWall:
 		location := target.GetPoint()
 		if target == nil {
@@ -107,8 +98,6 @@ func (p *Player) UseMagic(spell common.Spell, magic *common.UserMagic, target IM
 	case common.SpellMagicShield:
 		// ActionList.Add(new DelayedAction(DelayedType.Magic, Envir.Time + 500, magic, magic.GetPower(GetAttackPower(MinMC, MaxMC) + 15)));
 		p.ActionList.PushActionSuper(DelayedTypeMagic, p.CompleteMagic, magic, magic.GetPower1(p.GetAttackPower(int(p.MinMC), int(p.MaxMC))+15))
-	case common.SpellFlameDisruptor:
-		p.FlameDisruptor(target, magic)
 	case common.SpellTurnUndead:
 		p.TurnUndead(target, magic)
 	case common.SpellMagicBooster:
@@ -274,16 +263,6 @@ func (p *Player) CompleteMagic(args ...interface{}) {
 	}
 }
 
-// Fireball 火球术
-func (p *Player) Fireball(target IMapObject, magic *common.UserMagic) bool {
-	if target == nil || !target.IsAttackTarget(p) {
-		return false
-	}
-	damage := magic.GetDamage(p.GetAttackPower(int(p.MinMC), int(p.MaxMC)))
-	p.ActionList.PushActionSuper(DelayedTypeMagic, p.CompleteMagic, magic, damage, target)
-	return true
-}
-
 // Repulsion 抗拒火环
 func (p *Player) Repulsion(magic *common.UserMagic) {
 
@@ -292,47 +271,6 @@ func (p *Player) Repulsion(magic *common.UserMagic) {
 // HellFire 地狱火
 func (p *Player) HellFire(magic *common.UserMagic) {
 
-}
-
-// GetAmulet 获取玩家身上装备的护身符
-func (p *Player) GetAmulet(count int) *common.UserItem {
-	for _, userItem := range p.Equipment.Items {
-		if userItem == nil {
-			continue
-		}
-		itemInfo := data.GetItemInfoByID(int(userItem.ItemID))
-		if itemInfo != nil && itemInfo.Type == common.ItemTypeAmulet && int(userItem.Count) > count {
-			return userItem
-		}
-	}
-	return nil
-}
-
-// GetPoison 获取玩家身上装备的毒药
-func (p *Player) GetPoison(count int) *common.UserItem {
-	for _, userItem := range p.Equipment.Items {
-		if userItem == nil {
-			continue
-		}
-		itemInfo := data.GetItemInfoByID(int(userItem.ItemID))
-		if itemInfo != nil && itemInfo.Type == common.ItemTypeAmulet && int(userItem.Count) > count {
-			if itemInfo.Shape == 1 || itemInfo.Shape == 2 {
-				return userItem
-			}
-		}
-	}
-	return nil
-}
-
-// Hiding 隐身术
-func (p *Player) Hiding(magic *common.UserMagic) {
-	userItem := p.GetAmulet(1)
-	if userItem == nil {
-		return
-	}
-	p.ConsumeItem(userItem, 1)
-	damage := p.GetAttackPower(int(p.MinSC), int(p.MaxSC)) + (magic.Level+1)*5
-	p.ActionList.PushActionSuper(DelayedTypeMagic, p.CompleteMagic, magic, damage)
 }
 
 // ImmortalSkin ...
@@ -350,22 +288,6 @@ func (p *Player) MassHiding(magic *common.UserMagic, location common.Point) bool
 	// int delay = Functions.MaxDistance(CurrentLocation, location) * 50 + 500; //50 MS per Step
 	// DelayedAction action = new DelayedAction(DelayedType.Magic, Envir.Time + delay, this, magic, GetAttackPower(MinSC, MaxSC) / 2 + (magic.Level + 1) * 2, location);
 	p.ActionList.PushActionSuper(DelayedTypeMagic, p.Map.CompleteMagic, magic, p.GetAttackPower(int(p.MinSC), int(p.MaxSC))/2+(magic.Level+1)*2, location, p)
-	return true
-}
-
-// SoulShield 幽灵盾
-func (p *Player) SoulShield(magic *common.UserMagic, location common.Point) bool {
-	userItem := p.GetAmulet(1)
-	if userItem == nil {
-		return false
-	}
-	// int delay = Functions.MaxDistance(CurrentLocation, location) * 50 + 500; //50 MS per Step
-	// DelayedAction action = new DelayedAction(DelayedType.Magic, Envir.Time + delay, this, magic, GetAttackPower(MinSC, MaxSC) * 2 + (magic.Level + 1) * 10, location);
-	delay := 500
-	p.Map.ActionList.PushDelayAction(DelayedTypeMagic, delay, func() {
-		p.Map.CompleteMagic(p, magic, p.GetAttackPower(int(p.MinSC), int(p.MaxSC))*2+(magic.Level+1)*10, location)
-	})
-	p.ConsumeItem(userItem, 1)
 	return true
 }
 
@@ -397,16 +319,6 @@ func (p *Player) ShoulderDash(magic *common.UserMagic) {}
 func (p *Player) ThunderStorm(magic *common.UserMagic) {
 	damage := magic.GetDamage(p.GetAttackPower(int(p.MinMC), int(p.MaxMC)))
 	p.ActionList.PushActionSuper(DelayedTypeMagic, p.Map.CompleteMagic, magic, p, damage, p.CurrentLocation)
-}
-
-// FlameDisruptor 火龙术
-func (p *Player) FlameDisruptor(target IMapObject, magic *common.UserMagic) {
-	if target == nil || (target.GetRace() != common.ObjectTypePlayer && target.GetRace() != common.ObjectTypeMonster) || !target.IsAttackTarget(p) {
-		return
-	}
-	damage := magic.GetDamage(p.GetAttackPower(int(p.MinMC), int(p.MaxMC)))
-	// if (!target.Undead) damage = (int)(damage * 1.5F);
-	p.ActionList.PushActionSuper(DelayedTypeMagic, p.CompleteMagic, magic, damage, target)
 }
 
 // TurnUndead 圣言术

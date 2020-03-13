@@ -504,25 +504,7 @@ func (m *Map) CompleteMagic(args ...interface{}) {
 				return true
 			})
 		*/
-	case common.SpellSoulShield, common.SpellBlessedArmour:
-		player := args[0].(*Player)
-		magic := args[1].(*common.UserMagic)
-		value := args[2].(int)
-		location := args[3].(common.Point)
-		buffType := common.BuffTypeSoulShield
-		if magic.Spell == common.SpellBlessedArmour {
-			buffType = common.BuffTypeBlessedArmour
-		}
-		m.RangeObject(location, 1, func(o IMapObject) bool {
-			if o.GetRace() == common.ObjectTypePlayer {
-				target := o.(*Player)
-				buff := NewBuff(buffType, player, value*1000, []int{int(target.Level/7) + 4})
-				target.AddBuff(buff)
-				// target.OperateTime = 0;
-				// train = true;
-			}
-			return true
-		})
+
 	case common.SpellFireWall:
 		// player := args[1].(*Player)
 		// value := args[2].(int)

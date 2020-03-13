@@ -236,3 +236,33 @@ func Action_FrostCrunch(ctx *MagicContext) bool {
 	}
 	return false
 }
+
+// GetAmulet 获取玩家身上装备的护身符
+func (p *Player) GetAmulet(count int) *common.UserItem {
+	for _, userItem := range p.Equipment.Items {
+		if userItem == nil {
+			continue
+		}
+		itemInfo := data.GetItemInfoByID(int(userItem.ItemID))
+		if itemInfo != nil && itemInfo.Type == common.ItemTypeAmulet && int(userItem.Count) > count {
+			return userItem
+		}
+	}
+	return nil
+}
+
+// GetPoison 获取玩家身上装备的毒药
+func (p *Player) GetPoison(count int) *common.UserItem {
+	for _, userItem := range p.Equipment.Items {
+		if userItem == nil {
+			continue
+		}
+		itemInfo := data.GetItemInfoByID(int(userItem.ItemID))
+		if itemInfo != nil && itemInfo.Type == common.ItemTypeAmulet && int(userItem.Count) > count {
+			if itemInfo.Shape == 1 || itemInfo.Shape == 2 {
+				return userItem
+			}
+		}
+	}
+	return nil
+}

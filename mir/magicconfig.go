@@ -82,6 +82,15 @@ func init() {
 	SummonMagic(common.SpellSummonSkeleton, "BoneFamiliar", 1)
 	// 召唤神兽
 	SummonMagic(common.SpellSummonShinsu, "Shinsu", 5)
+	// 召唤月灵
+	SummonMagic(common.SpellSummonHolyDeva, "HolyDeva", 2)
+	// TODO: AliveTime，SetTarget
+	//
+	SummonMagic1(common.SpellSummonVampire, "VampireSpider", Select_Enemy, 0)
+	//
+	SummonMagic1(common.SpellSummonToad, "SpittingToad", Select_Enemy, 0)
+	//
+	SummonMagic1(common.SpellSummonSnakes, "SnakeTotem", Select_Enemy, 0)
 
 	// 施毒术
 	add(common.SpellPoisoning, &MagicConfig{
@@ -121,6 +130,101 @@ func init() {
 		Action:     Action_RangeDamage1,
 		Formula:    Formula_MC,
 	})
+
+	// 火龙术
+	add(common.SpellFlameDisruptor, &MagicConfig{
+		SelectType: Select_Enemy,
+		TargetType: Target_Enemy,
+		Formula:    Formula_MC,
+		Action:     Action_DamageTarget,
+		// if (!target.Undead) damage = (int)(damage * 1.5F);
+	})
+
+	// 净化术
+	add(common.SpellPurification, &MagicConfig{
+		SelectType: Select_Self | Select_Friend,
+		TargetType: Target_Friend | Target_Self,
+		Action:     Action_Purification,
+	})
+
+	// 幽灵盾
+	add(common.SpellSoulShield, &MagicConfig{
+		SelectType: Select_Friend | Select_Point,
+		TargetType: Target_Friend | Target_Point,
+		ItemCost:   Cost_Amulet,
+		DelayAt:    DelayAt_Map,
+		Action:     Action_SoulShield,
+		Formula: func(ctx *MagicContext) int {
+			return ctx.Player.GetAttackPower(int(ctx.Player.MinSC), int(ctx.Player.MaxSC))*2 + (ctx.Magic.Level+1)*10
+		},
+	})
+
+	// 神圣战甲术
+	add(common.SpellBlessedArmour, &MagicConfig{
+		SelectType: Select_Friend | Select_Point,
+		TargetType: Target_Friend | Target_Point,
+		ItemCost:   Cost_Amulet,
+		DelayAt:    DelayAt_Map,
+		Action:     Action_SoulShield,
+		Formula: func(ctx *MagicContext) int {
+			return ctx.Player.GetAttackPower(int(ctx.Player.MinSC), int(ctx.Player.MaxSC))*2 + (ctx.Magic.Level+1)*10
+		},
+	})
+}
+
+func Action_SoulShield(ctx *MagicContext) bool {
+	const damageRange = 1
+	var loc common.Point
+	if ctx.Target == nil {
+		loc = ctx.TargetPoint
+	} else {
+		loc = ctx.Target.GetPoint()
+	}
+
+	buffType := common.BuffTypeSoulShield
+	if ctx.Magic.Spell == common.SpellBlessedArmour {
+		buffType = common.BuffTypeBlessedArmour
+	}
+
+	ctx.Map.RangeObject(loc, damageRange, func(o IMapObject) bool {
+		switch o.GetRace() {
+		case common.ObjectTypePlayer, common.ObjectTypeMonster:
+			if o.IsFriendlyTarget(ctx.Player) {
+				buff := NewBuff(buffType, ctx.Player, ctx.Damage*1000, []int{int(o.GetLevel()/7) + 4})
+				o.AddBuff(buff)
+			}
+		}
+		return true
+	})
+
+	return true
+}
+
+func Action_Purification(ctx *MagicContext) bool {
+	if ctx.Target.GetMap() != ctx.Player.Map {
+		return false
+	}
+
+	// target.ExplosionInflictedTime = 0;
+	// target.ExplosionInflictedStage = 0;
+
+	// for (int i = 0; i < target.Buffs.Count; i++)
+	// {
+	// 	if (target.Buffs[i].Type == BuffType.Curse)
+	// 	{
+	// 		target.Buffs.RemoveAt(i);
+	// 		break;
+	// 	}
+	// }
+
+	// target.PoisonList.Clear();
+	// target.OperateTime = 0;
+
+	// if (target.ObjectID == ObjectID)
+	// 	Enqueue(new S.RemoveDelayedExplosion { ObjectID = target.ObjectID });
+	// target.Broadcast(new S.RemoveDelayedExplosion { ObjectID = target.ObjectID });
+
+	return true
 }
 
 func Action_RangeDamage1(ctx *MagicContext) bool {
@@ -184,9 +288,9 @@ type summonData struct {
 	SpellMap    *Map
 }
 
-func SummonMagic(sp common.Spell, sumname string, amuletCount int) {
-	addMagic(sp, &MagicConfig{
-		SelectType:    Select_None,
+func SummonMagic1(sp common.Spell, sumname string, sel MagicSelectType, amuletCount int) {
+	cfg := &MagicConfig{
+		SelectType:    sel,
 		TargetType:    Target_None,
 		ItemCost:      Cost_Amulet,
 		ItemCostCount: amuletCount,
@@ -195,7 +299,17 @@ func SummonMagic(sp common.Spell, sumname string, amuletCount int) {
 		Data: &summonData{
 			MonsterName: sumname,
 		},
-	})
+	}
+
+	if amuletCount == 0 {
+		cfg.ItemCost = nil
+	}
+
+	addMagic(sp, cfg)
+}
+
+func SummonMagic(sp common.Spell, sumname string, amuletCount int) {
+	SummonMagic1(sp, sumname, Select_Enemy, 0)
 }
 
 func SummonMagic_BeforeAction(ctx *MagicContext) (bool, uint32) {
