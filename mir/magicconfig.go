@@ -24,6 +24,10 @@ func addMagic(sp common.Spell, c *MagicConfig) {
 	configsMap[sp] = c
 }
 
+func cloneMagic(spDest, spSrc common.Spell) {
+	configsMap[spDest] = configsMap[spSrc]
+}
+
 func init() {
 	add := addMagic
 
@@ -36,12 +40,9 @@ func init() {
 	})
 
 	// 大火球
-	add(common.SpellGreatFireBall, &MagicConfig{
-		SelectType: Select_Point | Select_Enemy,
-		TargetType: Target_Enemy,
-		Action:     Action_DamageTarget,
-		Formula:    Formula_MC,
-	})
+	cloneMagic(common.SpellGreatFireBall, common.SpellFireBall)
+	// 雷电术
+	cloneMagic(common.SpellThunderBolt, common.SpellFireBall)
 
 	// 寒冰掌
 	add(common.SpellFrostCrunch, &MagicConfig{
@@ -51,20 +52,12 @@ func init() {
 		Formula:    Formula_MC,
 	})
 
-	// 雷电术
-	add(common.SpellThunderBolt, &MagicConfig{
-		SelectType: Select_Enemy,
-		TargetType: Target_Enemy,
-		Action:     Action_DamageTarget,
-		Formula:    Formula_MC,
-	})
-
 	// 灵魂火符
 	add(common.SpellSoulFireBall, &MagicConfig{
 		SelectType: Select_Enemy | Select_Point,
 		TargetType: Target_Enemy,
 		Action:     Action_DamageTarget,
-		Formula:    Formula_MC,
+		Formula:    Formula_SC,
 		ItemCost:   Cost_Amulet,
 	})
 
@@ -160,16 +153,86 @@ func init() {
 	})
 
 	// 神圣战甲术
-	add(common.SpellBlessedArmour, &MagicConfig{
-		SelectType: Select_Friend | Select_Point,
-		TargetType: Target_Friend | Target_Point,
-		ItemCost:   Cost_Amulet,
-		DelayAt:    DelayAt_Map,
-		Action:     Action_SoulShield,
-		Formula: func(ctx *MagicContext) int {
-			return ctx.Player.GetAttackPower(int(ctx.Player.MinSC), int(ctx.Player.MaxSC))*2 + (ctx.Magic.Level+1)*10
-		},
+	cloneMagic(common.SpellBlessedArmour, common.SpellSoulShield)
+
+	// 诱惑之光
+	add(common.SpellElectricShock, &MagicConfig{
+		SelectType: Select_Enemy,
+		TargetType: Target_Enemy,
+		Formula:    Formula_MC,
+		Action:     Action_DamageTarget,
 	})
+}
+
+func Action_ElectricShock(ctx *MagicContext) bool {
+	if ut.RandomNext(4-ctx.Magic.Level) > 0 {
+		if ut.RandomNext(2) == 0 {
+			return true
+		}
+		return false
+	}
+	/*
+		if (target.Master == this)
+		{
+			target.ShockTime = Envir.Time + (magic.Level * 5 + 10) * 1000;
+			target.Target = null;
+			return;
+		}
+
+		if (Envir.Random.Next(2) > 0)
+		{
+			target.ShockTime = Envir.Time + (magic.Level * 5 + 10) * 1000;
+			target.Target = null;
+			return;
+		}
+
+		if (target.Level > Level + 2 || !target.Info.CanTame) return;
+
+		if (Envir.Random.Next(Level + 20 + magic.Level * 5) <= target.Level + 10)
+		{
+			if (Envir.Random.Next(5) > 0 && target.Master == null)
+			{
+				target.RageTime = Envir.Time + (Envir.Random.Next(20) + 10) * 1000;
+				target.Target = null;
+			}
+			return;
+		}
+
+		if (Pets.Count(t => !t.Dead) >= magic.Level + 2) return;
+		int rate = (int)(target.MaxHP / 100);
+		if (rate <= 2) rate = 2;
+		else rate *= 2;
+
+		if (Envir.Random.Next(rate) != 0) return;
+		//else if (Envir.Random.Next(20) == 0) target.Die();
+
+		if (target.Master != null)
+		{
+			target.SetHP(target.MaxHP / 10);
+			target.Master.Pets.Remove(target);
+		}
+		else if (target.Respawn != null)
+		{
+			target.Respawn.Count--;
+			Envir.MonsterCount--;
+			CurrentMap.MonsterCount--;
+			target.Respawn = null;
+		}
+
+		target.Master = this;
+		//target.HealthChanged = true;
+		target.BroadcastHealthChange();
+		Pets.Add(target);
+		target.Target = null;
+		target.RageTime = 0;
+		target.ShockTime = 0;
+		target.OperateTime = 0;
+		target.MaxPetLevel = (byte)(1 + magic.Level * 2);
+		//target.TameTime = Envir.Time + (Settings.Minute * 60);
+
+		target.Broadcast(new S.ObjectName { ObjectID = target.ObjectID, Name = target.Name });
+	*/
+	return true
 }
 
 func Action_SoulShield(ctx *MagicContext) bool {
@@ -267,6 +330,57 @@ func Action_Hidding(ctx *MagicContext) bool {
 	buff := NewBuff(common.BuffTypeHiding, p, 1000*ctx.Damage, []int{})
 	p.AddBuff(buff)
 	return true
+}
+
+func Action_HealingTarget(ctx *MagicContext) bool {
+	// target.HealAmount = (ushort)Math.Min(ushort.MaxValue, target.HealAmount + value);
+
+	if ctx.Target == nil {
+		ctx.Player.ChangeHP(ctx.Damage)
+	} else {
+		target := ctx.Target.(ILifeObject)
+		target.ChangeHP(ctx.Damage)
+	}
+	return true
+}
+
+func Action_FrostCrunch(ctx *MagicContext) bool {
+	target := ctx.Target
+	p := ctx.Player
+
+	if target.Attacked(p, ctx.Damage, common.DefenceTypeMAC, false) > 0 {
+		var tmp1 int
+		var tmp2 int
+		var duration int
+		if target.GetRace() == common.ObjectTypePlayer {
+			tmp1 = 2
+			tmp2 = 100
+			duration = 4
+		} else {
+			tmp1 = 10
+			tmp2 = 20
+			duration = 5 + ut.RandomNext(5)
+		}
+		if int(p.Level)+tmp1 >= target.GetLevel() && ut.RandomNext(tmp2) <= ctx.Magic.Level {
+			target.ApplyPoison(NewPoison(duration, p, common.PoisonTypeSlow, 1000, 0), p)
+			// TODO // target.OperateTime = 0;
+		}
+		if target.GetRace() == common.ObjectTypePlayer {
+			tmp1 = 2
+			tmp2 = 100
+			duration = 2
+		} else {
+			tmp1 = 10
+			tmp2 = 40
+			duration = 5 + int(p.Freezing)
+		}
+		if int(p.Level)+tmp1 >= target.GetLevel() && ut.RandomNext(tmp2) <= ctx.Magic.Level {
+			target.ApplyPoison(NewPoison(duration, p, common.PoisonTypeFrozen, 1000, 0), p)
+			// TODO // target.OperateTime = 0;
+		}
+		return true
+	}
+	return false
 }
 
 func Action_Poisoning(ctx *MagicContext) bool {

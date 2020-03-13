@@ -2170,7 +2170,22 @@ func (p *Player) Magic(spell common.Spell, direction common.MirDirection, target
 	p.CurrentDirection = direction
 	p.ChangeMP(-cost)
 	target := p.Map.GetObjectInAreaByID(targetID, targetLocation)
-	cast, targetID := p.UseMagic(spell, magic, target, targetLocation)
+
+	_, ok := configsMap[spell]
+	if !ok {
+		p.ReceiveChat("技能还没实现。。。", common.ChatTypeSystem)
+		return
+	}
+
+	ctx := &MagicContext{
+		Spell:       spell,
+		Magic:       magic,
+		Target:      target,
+		Player:      p,
+		TargetPoint: targetLocation,
+	}
+	cast, targetID := startMagic(ctx)
+
 	p.Enqueue(ServerMessage{}.UserLocation(p))
 	p.Enqueue(&server.Magic{
 		Spell:    spell,

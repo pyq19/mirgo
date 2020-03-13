@@ -4,7 +4,6 @@ import (
 	"errors"
 
 	"github.com/yenkeia/mirgo/common"
-	"github.com/yenkeia/mirgo/ut"
 )
 
 // 技能选择类型
@@ -186,57 +185,6 @@ func Action_DamageTarget(ctx *MagicContext) bool {
 	return ctx.Target.Attacked(ctx.Player, ctx.Damage, common.DefenceTypeMAC, false) > 0
 }
 
-func Action_HealingTarget(ctx *MagicContext) bool {
-	// target.HealAmount = (ushort)Math.Min(ushort.MaxValue, target.HealAmount + value);
-
-	if ctx.Target == nil {
-		ctx.Player.ChangeHP(ctx.Damage)
-	} else {
-		target := ctx.Target.(ILifeObject)
-		target.ChangeHP(ctx.Damage)
-	}
-	return true
-}
-
-func Action_FrostCrunch(ctx *MagicContext) bool {
-	target := ctx.Target
-	p := ctx.Player
-
-	if target.Attacked(p, ctx.Damage, common.DefenceTypeMAC, false) > 0 {
-		var tmp1 int
-		var tmp2 int
-		var duration int
-		if target.GetRace() == common.ObjectTypePlayer {
-			tmp1 = 2
-			tmp2 = 100
-			duration = 4
-		} else {
-			tmp1 = 10
-			tmp2 = 20
-			duration = 5 + ut.RandomNext(5)
-		}
-		if int(p.Level)+tmp1 >= target.GetLevel() && ut.RandomNext(tmp2) <= ctx.Magic.Level {
-			target.ApplyPoison(NewPoison(duration, p, common.PoisonTypeSlow, 1000, 0), p)
-			// TODO // target.OperateTime = 0;
-		}
-		if target.GetRace() == common.ObjectTypePlayer {
-			tmp1 = 2
-			tmp2 = 100
-			duration = 2
-		} else {
-			tmp1 = 10
-			tmp2 = 40
-			duration = 5 + int(p.Freezing)
-		}
-		if int(p.Level)+tmp1 >= target.GetLevel() && ut.RandomNext(tmp2) <= ctx.Magic.Level {
-			target.ApplyPoison(NewPoison(duration, p, common.PoisonTypeFrozen, 1000, 0), p)
-			// TODO // target.OperateTime = 0;
-		}
-		return true
-	}
-	return false
-}
-
 // GetAmulet 获取玩家身上装备的护身符
 func (p *Player) GetAmulet(count int) *common.UserItem {
 	for _, userItem := range p.Equipment.Items {
@@ -262,6 +210,22 @@ func (p *Player) GetPoison(count int) *common.UserItem {
 			if itemInfo.Shape == 1 || itemInfo.Shape == 2 {
 				return userItem
 			}
+		}
+	}
+	return nil
+}
+
+// LevelMagic ...
+func (p *Player) LevelMagic(userMagic *common.UserMagic) {
+
+}
+
+// GetMagic ...
+func (p *Player) GetMagic(spell common.Spell) *common.UserMagic {
+	for i := range p.Magics {
+		userMagic := p.Magics[i]
+		if userMagic.Spell == spell {
+			return userMagic
 		}
 	}
 	return nil
