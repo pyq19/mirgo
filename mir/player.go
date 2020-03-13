@@ -754,8 +754,23 @@ func (p *Player) GetUserItemByID(mirGridType common.MirGridType, id uint64) (ind
 }
 
 // ConsumeItem 减少物品数量
-func (p *Player) ConsumeItem(userItem *common.UserItem, count int) {
-	userItem.Count -= uint32(count)
+func (p *Player) ConsumeItem(userItem *common.UserItem, count uint32) {
+
+	bag := p.Equipment
+	idx, item := p.GetUserItemByID(common.MirGridTypeEquipment, userItem.ID)
+	if idx == -1 || item != userItem {
+		bag = p.Inventory
+		idx, item = p.GetUserItemByID(common.MirGridTypeInventory, userItem.ID)
+	}
+
+	if idx == -1 || item != userItem {
+		// 没该物品
+		return
+	}
+
+	p.Enqueue(&server.DeleteItem{UniqueID: item.ID, Count: count})
+
+	bag.UseCount(idx, count)
 }
 
 // GainItem 为玩家增加物品，增加成功返回 true
@@ -2184,7 +2199,12 @@ func (p *Player) Magic(spell common.Spell, direction common.MirDirection, target
 		Player:      p,
 		TargetPoint: targetLocation,
 	}
-	cast, targetID := startMagic(ctx)
+	err, targetID := startMagic(ctx)
+	cast := true
+	if err != nil {
+		cast = false
+		p.ReceiveChat(err.Error(), common.ChatTypeSystem)
+	}
 
 	p.Enqueue(ServerMessage{}.UserLocation(p))
 	p.Enqueue(&server.Magic{

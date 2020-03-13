@@ -53,7 +53,7 @@ func DelayAt_Player(ctx *MagicContext, f func()) {
 }
 
 //
-type MagicBeforeAction func(ctx *MagicContext) (bool, uint32)
+type MagicBeforeAction func(ctx *MagicContext) (error, uint32)
 
 // 技能最终作用函数
 type MagicAction func(ctx *MagicContext) bool
@@ -76,7 +76,7 @@ type MagicConfig struct {
 	TargetType    MagicTargetType
 	DelayAt       MagicDelayAt
 	ItemCost      MagicItemCost
-	ItemCostCount int
+	ItemCostCount uint32
 	BeforeAction  MagicBeforeAction
 	Action        MagicAction
 	Data          interface{}
@@ -116,25 +116,25 @@ func checkMagicItemCost(ctx *MagicContext) error {
 	return nil
 }
 
-func startMagic(ctx *MagicContext) (cast bool, targetid uint32) {
+func startMagic(ctx *MagicContext) (err error, targetid uint32) {
 	cfg := configsMap[ctx.Spell]
 
-	if cfg.SelectType&Select_Enemy == Select_Enemy {
-		if ctx.Target == nil || !ctx.Target.IsAttackTarget(ctx.Player) {
-			return false, 0
-		}
-		targetid = ctx.Target.GetID()
-	}
-
-	if cfg.SelectType&Select_Friend == Select_Friend {
-		if ctx.Target == nil || !ctx.Target.IsFriendlyTarget(ctx.Player) {
-			return false, 0
-		}
-		targetid = ctx.Target.GetID()
-	}
-
 	if cfg.SelectType&Select_Point == Select_Point {
-		// TODO
+
+	} else {
+		if cfg.SelectType&Select_Enemy == Select_Enemy {
+			if ctx.Target == nil || !ctx.Target.IsAttackTarget(ctx.Player) {
+				return errors.New("请选择一个目标"), 0
+			}
+			targetid = ctx.Target.GetID()
+		}
+
+		if cfg.SelectType&Select_Friend == Select_Friend {
+			if ctx.Target == nil || !ctx.Target.IsFriendlyTarget(ctx.Player) {
+				return errors.New("请选择一个目标"), 0
+			}
+			targetid = ctx.Target.GetID()
+		}
 	}
 
 	ctx.Map = ctx.Player.Map
@@ -145,7 +145,7 @@ func startMagic(ctx *MagicContext) (cast bool, targetid uint32) {
 	} else {
 
 		if checkMagicItemCost(ctx) != nil {
-			return false, 0
+			return errors.New("缺少释放技能的道具"), 0
 		}
 
 		if cfg.Formula != nil {
@@ -153,7 +153,7 @@ func startMagic(ctx *MagicContext) (cast bool, targetid uint32) {
 		}
 
 		cfg.DelayAt(ctx, func() { completeMagic(ctx) })
-		return true, targetid
+		return nil, targetid
 	}
 }
 
@@ -186,13 +186,12 @@ func Action_DamageTarget(ctx *MagicContext) bool {
 }
 
 // GetAmulet 获取玩家身上装备的护身符
-func (p *Player) GetAmulet(count int) *common.UserItem {
+func (p *Player) GetAmulet(count uint32) *common.UserItem {
 	for _, userItem := range p.Equipment.Items {
 		if userItem == nil {
 			continue
 		}
-		itemInfo := data.GetItemInfoByID(int(userItem.ItemID))
-		if itemInfo != nil && itemInfo.Type == common.ItemTypeAmulet && int(userItem.Count) > count {
+		if userItem.Info.Type == common.ItemTypeAmulet && userItem.Count >= count {
 			return userItem
 		}
 	}
@@ -200,14 +199,13 @@ func (p *Player) GetAmulet(count int) *common.UserItem {
 }
 
 // GetPoison 获取玩家身上装备的毒药
-func (p *Player) GetPoison(count int) *common.UserItem {
+func (p *Player) GetPoison(count uint32) *common.UserItem {
 	for _, userItem := range p.Equipment.Items {
 		if userItem == nil {
 			continue
 		}
-		itemInfo := data.GetItemInfoByID(int(userItem.ItemID))
-		if itemInfo != nil && itemInfo.Type == common.ItemTypeAmulet && int(userItem.Count) > count {
-			if itemInfo.Shape == 1 || itemInfo.Shape == 2 {
+		if userItem.Info.Type == common.ItemTypeAmulet && userItem.Count >= count {
+			if userItem.Info.Shape == 1 || userItem.Info.Shape == 2 {
 				return userItem
 			}
 		}

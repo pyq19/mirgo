@@ -1,6 +1,7 @@
 package mir
 
 import (
+	"errors"
 	"time"
 
 	"github.com/yenkeia/mirgo/common"
@@ -396,7 +397,7 @@ type summonData struct {
 	SpellMap    *Map
 }
 
-func SummonMagic1(sp common.Spell, sumname string, sel MagicSelectType, amuletCount int) {
+func SummonMagic1(sp common.Spell, sumname string, sel MagicSelectType, amuletCount uint32) {
 	cfg := &MagicConfig{
 		SelectType:    sel,
 		TargetType:    Target_None,
@@ -420,23 +421,23 @@ func SummonMagic(sp common.Spell, sumname string, amuletCount int) {
 	SummonMagic1(sp, sumname, Select_Enemy, 0)
 }
 
-func SummonMagic_BeforeAction(ctx *MagicContext) (bool, uint32) {
+func SummonMagic_BeforeAction(ctx *MagicContext) (error, uint32) {
 	sumdata := ctx.Config.Data.(*summonData)
 	p := ctx.Player
 	for i := range p.Pets {
 		if p.Pets[i].GetName() == sumdata.MonsterName {
 			m := p.Pets[i].(*Monster)
 			p.ActionList.PushAction(DelayedTypeRecall, m.PetRecall)
-			return false, 0
+			return nil, 0
 		}
 	}
 
 	if len(p.Pets) > 1 {
-		return false, 0
+		return nil, 0
 	}
 
 	if checkMagicItemCost(ctx) != nil {
-		return false, 0
+		return errors.New("缺少释放技能的道具"), 0
 	}
 
 	sumdata.Pets = []*Monster{}
@@ -458,7 +459,7 @@ func SummonMagic_BeforeAction(ctx *MagicContext) (bool, uint32) {
 
 	DelayAt_Map(ctx, func() { completeMagic(ctx) })
 
-	return true, 0
+	return nil, 0
 }
 
 func SummonMagic_Action(ctx *MagicContext) bool {
