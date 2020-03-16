@@ -193,6 +193,17 @@ func ServerRecvLTVPacket(reader io.Reader, maxPacketSize int) (msg interface{}, 
 
 	allBytes := append(sizeBuffer, body...)
 
+	// 发生错误时返回
+	if err != nil {
+		log.Infoln(err)
+		return
+	}
+
+	if len(body) < msgIDSize {
+		log.Infoln(ErrShortMsgID)
+		return nil, ErrShortMsgID
+	}
+
 	skip := make(map[string]bool)
 	skip["client.KEEP_ALIVE"] = true
 	skip["client.OBJECT_TURN"] = true
@@ -201,15 +212,6 @@ func ServerRecvLTVPacket(reader io.Reader, maxPacketSize int) (msg interface{}, 
 	packetName := GetPacketName("client", int(common.BytesToUint16(body[:2])))
 	if !skip[packetName] {
 		log.Debugln("<--- 服务端收到 (" + packetName + ") " + strconv.Itoa(len(allBytes)) + "字节: " + String(allBytes))
-	}
-
-	// 发生错误时返回
-	if err != nil {
-		return
-	}
-
-	if len(body) < msgIDSize {
-		return nil, ErrShortMsgID
 	}
 
 	msgid := binary.LittleEndian.Uint16(body)
