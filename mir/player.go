@@ -1688,10 +1688,37 @@ func (p *Player) UserItemPotion(item *common.UserItem) bool {
 		p.ChangeHP(int(info.HP))
 		p.ChangeMP(int(info.MP))
 	case 2: // TODO MysteryWater
-	case 3: // TODO Buff
-	case 4: // TODO Exp 经验
+		log.Debugln("MysteryWater")
+	case 3: // Buff
+		expireTime := int(info.Durability)
+		if info.MaxDC+item.DC > 0 {
+			p.AddBuff(NewBuff(common.BuffTypeImpact, p, expireTime, []int32{int32(info.MaxDC + item.DC)}))
+		}
+		if info.MaxMC+item.MC > 0 {
+			p.AddBuff(NewBuff(common.BuffTypeMagic, p, expireTime, []int32{int32(info.MaxMC + item.MC)}))
+		}
+		if info.MaxSC+item.SC > 0 {
+			p.AddBuff(NewBuff(common.BuffTypeTaoist, p, expireTime, []int32{int32(info.MaxSC + item.SC)}))
+		}
+		if (info.AttackSpeed + item.AttackSpeed) > 0 {
+			p.AddBuff(NewBuff(common.BuffTypeStorm, p, expireTime, []int32{int32(info.AttackSpeed + item.AttackSpeed)}))
+		}
+		if (info.HP + uint16(item.HP)) > 0 {
+			p.AddBuff(NewBuff(common.BuffTypeHealthAid, p, expireTime, []int32{int32(info.HP + uint16(item.HP))}))
+		}
+		if (info.MP + uint16(item.MP)) > 0 {
+			p.AddBuff(NewBuff(common.BuffTypeManaAid, p, expireTime, []int32{int32(info.MP + uint16(item.MP))}))
+		}
+		if (info.MaxAC + item.AC) > 0 {
+			p.AddBuff(NewBuff(common.BuffTypeDefence, p, expireTime, []int32{int32(info.MaxAC + item.AC)}))
+		}
+		if (info.MaxMAC + item.MAC) > 0 {
+			p.AddBuff(NewBuff(common.BuffTypeMagicDefence, p, expireTime, []int32{int32(info.MaxMAC + item.MAC)}))
+		}
+	case 4: // Exp 经验
+		expireTime := int(info.Durability)
+		p.AddBuff(NewBuff(common.BuffTypeExp, p, expireTime, []int32{int32(info.Luck + item.Luck)}))
 	}
-
 	return true
 }
 
