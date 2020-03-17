@@ -1561,6 +1561,21 @@ func (p *Player) SplitItem(grid common.MirGridType, id uint64, count uint32) {
 	}
 }
 
+func (p *Player) TeleportRandom(attempts int, distance uint16, m *Map) bool {
+	if m == nil {
+		m = p.Map
+	}
+
+	for i := 0; i < attempts; i++ {
+		loc := common.NewPoint(ut.RandomNext(m.Width), ut.RandomNext(m.Height))
+		if p.Teleport(m, loc) {
+			return true
+		}
+	}
+
+	return false
+}
+
 // Scrolls are consumable items that have various uses.
 
 // Common Name			Shape	Used Stats	Description
@@ -1589,13 +1604,13 @@ func (p *Player) UseItemScroll(item *common.UserItem) bool {
 			}
 		}
 	case 1: //TT
-		// if (!p.Teleport(env.GetMap(BindMapIndex), BindLocation)) {
-		// 	return false
-		// }
+		if !p.Teleport(env.GetMap(p.BindMapIndex), p.BindLocation) {
+			return false
+		}
 	case 2: //RT
-		// if (!TeleportRandom(200, item.Info.Durability)) {
-		// 	Enqueue(p);
-		// }
+		if !p.TeleportRandom(200, item.Info.Durability, p.Map) {
+			return true
+		}
 	case 3: //BenedictionOil
 		// if (!TryLuckWeapon()) {
 		// 	Enqueue(p);
