@@ -499,6 +499,8 @@ func updatePlayerInfo(g *Game, p *Player, c *common.Character) {
 	p.NameColor = common.Color{R: 255, G: 255, B: 255}
 	p.CurrentDirection = c.Direction
 	p.CurrentLocation = common.NewPoint(int(c.CurrentLocationX), int(c.CurrentLocationY))
+	p.BindLocation = common.NewPoint(c.BindLocationX, c.BindLocationY)
+	p.BindMapIndex = c.BindMapID
 
 	magics := make([]*common.UserMagic, 0)
 	adb.Table("user_magic").Where("character_id = ?", c.ID).Find(&magics)

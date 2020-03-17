@@ -197,9 +197,15 @@ func (ServerMessage) NewCharacterSuccess(g *Game, AccountID int, name string, cl
 	c.Class = class
 	c.Gender = gender
 	c.Hair = 1
-	c.CurrentMapID = 1
-	c.CurrentLocationX = 284
-	c.CurrentLocationY = 608
+
+	startPoint := data.RandomStartPoint()
+	c.CurrentMapID = startPoint.MapID
+	c.CurrentLocationX = startPoint.LocationX
+	c.CurrentLocationY = startPoint.LocationY
+	c.BindMapID = startPoint.MapID
+	c.BindLocationX = startPoint.LocationX
+	c.BindLocationY = startPoint.LocationY
+
 	c.Direction = common.MirDirectionDown
 	c.HP = 15
 	c.MP = 17

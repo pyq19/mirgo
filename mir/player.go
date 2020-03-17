@@ -105,6 +105,8 @@ type Player struct {
 	Slaying            bool // TODO
 	FlamingSword       bool // TODO
 	TwinDrakeBlade     bool // TODO
+	BindMapIndex       int
+	BindLocation       common.Point
 }
 
 type Health struct {
@@ -990,13 +992,13 @@ func (p *Player) Die() {
 
 }
 
-func (p *Player) Teleport(m *Map, pt common.Point) {
+func (p *Player) Teleport(m *Map, pt common.Point) bool {
 	oldMap := p.Map
 
 	{ // MapObject Teleport
 		if m == nil || !m.ValidPoint(pt) {
 			log.Warnln("Teleport: map not valid", m == nil)
-			return
+			return false
 		}
 		oldMap.DeleteObject(p)
 		p.Broadcast(&server.ObjectTeleportOut{ObjectID: p.GetID(), Type: 0})
@@ -1079,6 +1081,8 @@ func (p *Player) Teleport(m *Map, pt common.Point) {
 
 	Report.MapChange("Teleported", oldMap.Info, CurrentMap.Info);
 	*/
+
+	return true
 }
 
 func (p *Player) EnqueueAreaObjects(oldCell, newCell *Cell) {
@@ -1557,12 +1561,33 @@ func (p *Player) SplitItem(grid common.MirGridType, id uint64, count uint32) {
 	}
 }
 
+// Scrolls are consumable items that have various uses.
+
+// Common Name			Shape	Used Stats	Description
+// Dungeon Escape		0					Teleports player to a random position on their last saved map.
+// Town Teleport		1					Teleports player to their last saved safezone.
+// Random Teleport		2					Randomly teleports player to a new coordinate on the same map.
+// Benediction Oil		3					Chance to luck the players equipped weapon.
+// Repair Oil			4					Repairs equipped weapons durability by 5, whilst reducing its maximum durability.
+// WarGod Oil			5					Repairs equipped weapons durability to maximum.
+// Resurrection Scroll	6					Revives player with 100% of their HP & MP.
+// Credit Scroll		7		Price		Gives player x amount of game shop credits.
+// Map Shout Scroll		8					Allows a single special shout across the players current map.
+// Server Shout Scroll	9					Allows a single special shout across the server.
+// Guild Skill Scroll	10		Effect		Adds a skill to the players guild. Only usable by guild leaders. Skill chosen by effect number.
+
 func (p *Player) UseItemScroll(item *common.UserItem) bool {
 	switch item.Info.Shape {
 	case 0: //DE
-		// if (!p.TeleportEscape(20)) {
-		// 	return false
-		// }
+		temp := env.GetMap(p.BindMapIndex)
+		for i := 0; i < 20; i++ {
+			x := int(p.BindLocation.X) + ut.RandomInt(-100, 100)
+			y := int(p.BindLocation.Y) + ut.RandomInt(-100, 100)
+			loc := common.NewPoint(x, y)
+			if p.Teleport(temp, loc) {
+				return true
+			}
+		}
 	case 1: //TT
 		// if (!p.Teleport(env.GetMap(BindMapIndex), BindLocation)) {
 		// 	return false

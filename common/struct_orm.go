@@ -59,9 +59,12 @@ type Character struct {
 	Class            MirClass
 	Gender           MirGender
 	Hair             uint8
-	CurrentMapID     int32
-	CurrentLocationX int32
-	CurrentLocationY int32
+	CurrentMapID     int
+	CurrentLocationX int
+	CurrentLocationY int
+	BindMapID        int
+	BindLocationX    int
+	BindLocationY    int
 	Direction        MirDirection
 	HP               uint16
 	MP               uint16

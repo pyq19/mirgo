@@ -27,6 +27,7 @@ type GameData struct {
 	QuestInfos         []*common.QuestInfo
 	RespawnInfos       []*common.RespawnInfo
 	SafeZoneInfos      []*common.SafeZoneInfo
+	StartPoints        []*common.SafeZoneInfo // 起始点
 	MapIDInfoMap       map[int]*common.MapInfo
 	ItemIDInfoMap      map[int]*common.ItemInfo
 	ItemNameInfoMap    map[string]*common.ItemInfo
@@ -75,6 +76,13 @@ func (d *GameData) Load(db *gorm.DB) {
 		}
 	}
 
+	d.StartPoints = []*common.SafeZoneInfo{}
+	for _, v := range d.SafeZoneInfos {
+		if v.StartPoint != 0 {
+			d.StartPoints = append(d.StartPoints, v)
+		}
+	}
+
 	for _, v := range d.MapInfos {
 		d.MapIDInfoMap[v.ID] = v
 	}
@@ -92,6 +100,10 @@ func (d *GameData) Load(db *gorm.DB) {
 
 	d.LoadMonsterDrop()
 	d.LoadExpList()
+}
+
+func (d *GameData) RandomStartPoint() *common.SafeZoneInfo {
+	return d.StartPoints[ut.RandomNext(len(d.StartPoints))]
 }
 
 func (d *GameData) LoadMonsterDrop() {
