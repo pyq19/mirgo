@@ -209,6 +209,12 @@ func encodeValue(v reflect.Value) (bytes []byte, err error) {
 }
 
 func decodeValue(f reflect.Value, bytes []byte) []byte {
+	defer func() {
+		err := recover()
+		if err != nil {
+			log.Warnln(err)
+		}
+	}()
 	if f.Type().Kind() == reflect.Ptr {
 		f = f.Elem()
 	}
