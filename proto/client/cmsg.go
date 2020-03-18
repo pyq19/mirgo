@@ -312,7 +312,7 @@ type ChangeAMode struct {
 }
 
 type ChangePMode struct {
-	Mode common.AttackMode
+	Mode common.PetMode
 }
 
 type ChangeTrade struct {

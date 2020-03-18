@@ -520,7 +520,12 @@ func (p *Player) ProcessPoison() {
 
 // SaveData 保存玩家数据
 func (p *Player) SaveData() {
+	// 玩家当前位置
 	adb.SyncPosition(p)
+
+	// 玩家 level magic
+
+	// AMode PMode
 }
 
 func (p *Player) EnqueueItemInfos() {
@@ -1938,11 +1943,13 @@ func (p *Player) Inspect(id uint32) {
 }
 
 func (p *Player) ChangeAMode(mode common.AttackMode) {
-
+	p.AMode = mode
+	p.Enqueue(&server.ChangeAMode{Mode: p.AMode})
 }
 
-func (p *Player) ChangePMode(mode common.AttackMode) {
-
+func (p *Player) ChangePMode(mode common.PetMode) {
+	p.PMode = mode
+	p.Enqueue(&server.ChangePMode{Mode: p.PMode})
 }
 
 func (p *Player) ChangeTrade(trade bool) {
