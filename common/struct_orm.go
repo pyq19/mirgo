@@ -449,6 +449,10 @@ func (um *UserMagic) DefPower() int {
 	}
 }
 
+func (um *UserMagic) GetDelay() int {
+	return um.Info.DelayBase - (um.Level * um.Info.DelayReduction)
+}
+
 func (um *UserMagic) GetClientMagic(info *MagicInfo) *ClientMagic {
 	delay := info.DelayBase - (um.Level * info.DelayReduction)
 	//castTime := (CastTime != 0) && (SMain.Envir.Time > CastTime) ? SMain.Envir.Time - CastTime : 0

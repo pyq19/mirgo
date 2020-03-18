@@ -4,6 +4,8 @@ import (
 	"errors"
 
 	"github.com/yenkeia/mirgo/common"
+	"github.com/yenkeia/mirgo/proto/server"
+	"github.com/yenkeia/mirgo/ut"
 )
 
 // 技能选择类型
@@ -213,11 +215,6 @@ func (p *Player) GetPoison(count uint32) *common.UserItem {
 	return nil
 }
 
-// LevelMagic ...
-func (p *Player) LevelMagic(userMagic *common.UserMagic) {
-
-}
-
 // GetMagic ...
 func (p *Player) GetMagic(spell common.Spell) *common.UserMagic {
 	for i := range p.Magics {
@@ -227,4 +224,41 @@ func (p *Player) GetMagic(spell common.Spell) *common.UserMagic {
 		}
 	}
 	return nil
+}
+
+// LevelMagic ...
+func (p *Player) LevelMagic(magic *common.UserMagic) {
+	exp := ut.RandomNext(3) + 1
+
+	magicLevel := 0
+	magicNeed := 0
+	oldLevel := magic.Level
+
+	switch oldLevel {
+	case 0:
+		magicLevel = magic.Info.Level1
+		magicNeed = magic.Info.Need1
+	case 1:
+		magicLevel = magic.Info.Level2
+		magicNeed = magic.Info.Need2
+	case 2:
+		magicLevel = magic.Info.Level3
+		magicNeed = magic.Info.Need3
+	}
+
+	if int(p.Level) < magicLevel {
+		return
+	}
+	magic.Experience += exp
+	if magic.Experience >= magicNeed {
+		magic.Level++
+		magic.Experience = (magic.Experience - magicNeed)
+		p.RefreshStats()
+	}
+
+	if oldLevel != magic.Level {
+		p.Enqueue(&server.MagicDelay{Spell: magic.Spell, Delay: int64(magic.GetDelay())})
+	}
+
+	p.Enqueue(&server.MagicLeveled{Spell: magic.Spell, Level: uint8(magic.Level), Experience: uint16(magic.Experience)})
 }

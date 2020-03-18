@@ -1705,6 +1705,18 @@ func (p *Player) UseItemScroll(item *common.UserItem) bool {
 	return true
 }
 
+// Potions are consumable items that will heal or buff the player.
+
+// Common Name		Shape	Used Stats				Description
+// Normal Potion	0		HP/MP					Gradually heals player.
+// Sun Potion		1		HP/MP					Instantly heals player.
+// Mystery Water	2		None					Allows player to unequip a cursed item (officially mystery items only).
+
+// Buff Potion		3		DC/MC/SC/ASpeed/HP/MP/MaxAC/MaxMAC/Durability
+//													Gives player the relative buff. Length of buff depends on potions durability. 1 dura = 1 minute.
+
+// Exp Potion		4		Luck/Durability			Increases players percent of exp gain through the luck stat. Length of buff depends on potions durability. 1 dura = 1 minute.
+
 func (p *Player) UserItemPotion(item *common.UserItem) bool {
 	info := item.Info
 	switch info.Shape {
