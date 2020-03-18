@@ -173,3 +173,20 @@ const (
 	AIHellBomb                  = 99
 	AIVenomSpider               = 100
 )
+
+const (
+	EquipmentSlotWeapon    = 0
+	EquipmentSlotArmour    = 1
+	EquipmentSlotHelmet    = 2
+	EquipmentSlotTorch     = 3
+	EquipmentSlotNecklace  = 4
+	EquipmentSlotBraceletL = 5
+	EquipmentSlotBraceletR = 6
+	EquipmentSlotRingL     = 7
+	EquipmentSlotRingR     = 8
+	EquipmentSlotAmulet    = 9
+	EquipmentSlotBelt      = 10
+	EquipmentSlotBoots     = 11
+	EquipmentSlotStone     = 12
+	EquipmentSlotMount     = 13
+)

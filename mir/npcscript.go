@@ -2,9 +2,11 @@ package mir
 
 import (
 	"errors"
+	"fmt"
 	"reflect"
 	"regexp"
 	"strings"
+	"time"
 
 	"github.com/yenkeia/mirgo/common"
 	"github.com/yenkeia/mirgo/mir/script"
@@ -281,14 +283,59 @@ func replaceTemplates(npc *NPC, player *Player, say []string) []string {
 }
 
 func replaceTemplateName(npc *NPC, player *Player, s string) string {
-	switch s {
-	case "<$USERNAME>":
+
+	// <$USERNAME>
+	switch s[2 : len(s)-1] {
+	case "USERNAME":
 		return player.Name
-	case "<$NPCNAME>":
+	case "NPCNAME":
 		return npc.Name
+	case "PKPOINT":
+		return fmt.Sprintf("%d", player.PKPoints)
+	case "ARMOUR":
+		return getEquipmentName(player, EquipmentSlotArmour)
+	case "WEAPON":
+		return getEquipmentName(player, EquipmentSlotWeapon)
+	case "RING_L":
+		return getEquipmentName(player, EquipmentSlotRingL)
+	case "RING_R":
+		return getEquipmentName(player, EquipmentSlotRingR)
+	case "NECKLACE":
+		return getEquipmentName(player, EquipmentSlotNecklace)
+	case "BELT":
+		return getEquipmentName(player, EquipmentSlotBelt)
+	case "BOOTS":
+		return getEquipmentName(player, EquipmentSlotBoots)
+	case "STONE":
+		return getEquipmentName(player, EquipmentSlotStone)
+	case "HELMET":
+		return getEquipmentName(player, EquipmentSlotHelmet)
+	case "GAMEGOLD":
+		return fmt.Sprintf("%d", player.Gold)
+	case "HP":
+		return fmt.Sprintf("%d", player.HP)
+	case "MP":
+		return fmt.Sprintf("%d", player.MP)
+	case "MAXHP":
+		return fmt.Sprintf("%d", player.MaxHP)
+	case "MAXMP":
+		return fmt.Sprintf("%d", player.MaxMP)
+	case "LEVEL":
+		return fmt.Sprintf("%d", player.Level)
+	case "DATE":
+		return time.Now().Format("2006-01-02")
 	}
 
 	log.Warnf("NPC 脚本缺少替换文本: %s %s\n", npc.Name, s)
 
 	return s
+}
+
+func getEquipmentName(p *Player, slot int) string {
+	item := p.Equipment.Items[slot]
+	if item == nil {
+		return "无"
+	}
+
+	return item.Info.Name
 }
