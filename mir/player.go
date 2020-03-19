@@ -2446,3 +2446,131 @@ func (p *Player) OpenDoor(doorIndex byte) {
 		p.Broadcast(&server.Opendoor{DoorIndex: doorIndex})
 	}
 }
+
+func (p *Player) EditGuildNotice(notice []string) {
+
+}
+
+func (p *Player) GuildInvite(acceptInvite bool) {
+
+}
+
+func (p *Player) RequestGuildInfo(tpy uint8) {
+
+}
+
+func (p *Player) GuildNameReturn(name string) {
+
+}
+
+func (p *Player) GuildStorageGoldChange(tpy uint8, amount uint32) {
+
+}
+
+func (p *Player) GuildStorageItemChange(tpy uint8, from int32, to int32) {
+
+}
+
+func (p *Player) GuildWarReturn(name string) {
+
+}
+
+func (p *Player) MarriageRequest() {
+
+}
+
+func (p *Player) MarriageReply(acceptInvite bool) {
+
+}
+
+func (p *Player) ChangeMarriage() {
+
+}
+
+func (p *Player) DivorceRequest() {
+
+}
+
+func (p *Player) DivorceReply(acceptInvite bool) {
+
+}
+
+func (p *Player) AddMentor(name string) {
+
+}
+
+func (p *Player) MentorReply(acceptInvite bool) {
+
+}
+
+func (p *Player) AllowMentor() {
+
+}
+
+func (p *Player) CancelMentor() {
+
+}
+
+func (p *Player) TradeRequest() {
+
+}
+
+func (p *Player) TradeGold(amount uint32) {
+
+}
+
+func (p *Player) TradeReply(acceptInvite bool) {
+
+}
+
+func (p *Player) TradeConfirm(locked bool) {
+
+}
+
+func (p *Player) TradeCancel() {
+
+}
+
+func (p *Player) EquipSlotItem(grid common.MirGridType, uniqueID uint64, to int32, gridTo common.MirGridType) {
+
+}
+
+func (p *Player) FishingCast(castOut bool) {
+
+}
+
+func (p *Player) FishingChangeAutocast(autoCast bool) {
+
+}
+
+func (p *Player) AcceptQuest(npcIndex uint32, questIndex int32) {
+
+}
+
+func (p *Player) FinishQuest(questIndex int32, selectedItemIndex int32) {
+
+}
+
+func (p *Player) AbandonQuest(questIndex int32) {
+
+}
+
+func (p *Player) ShareQuest(questIndex int32) {
+
+}
+
+func (p *Player) AcceptReincarnation() {
+
+}
+
+func (p *Player) CancelReincarnation() {
+
+}
+
+func (p *Player) CombineItem(idFrom uint64, idTo uint64) {
+
+}
+
+func (p *Player) SetConcentration(objectID uint32, enabled bool, interrupted bool) {
+
+}

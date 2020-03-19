@@ -448,102 +448,126 @@ type EditGuildMember struct {
 	RankName   string
 }
 
-// TODO
 type EditGuildNotice struct {
+	Notice []string
 }
 
-// TODO
-type GuildInvite struct{}
+type GuildInvite struct {
+	AcceptInvite bool
+}
 
-// TODO
-type GuildNameReturn struct{}
+type GuildNameReturn struct {
+	Name string
+}
 
-// TODO
-type RequestGuildInfo struct{}
+type RequestGuildInfo struct {
+	Type uint8
+}
 
-// TODO
-type GuildStorageGoldChange struct{}
+type GuildStorageGoldChange struct {
+	Type   uint8
+	Amount uint32
+}
 
-// TODO
-type GuildStorageItemChange struct{}
+type GuildStorageItemChange struct {
+	Type uint8
+	From int32
+	To   int32
+}
 
-// TODO
-type GuildWarReturn struct{}
+type GuildWarReturn struct {
+	Name string
+}
 
-// TODO
 type MarriageRequest struct{}
 
-// TODO
-type MarriageReply struct{}
+type MarriageReply struct {
+	AcceptInvite bool
+}
 
-// TODO
 type ChangeMarriage struct{}
 
-// TODO
 type DivorceRequest struct{}
 
-// TODO
-type DivorceReply struct{}
+type DivorceReply struct {
+	AcceptInvite bool
+}
 
-// TODO
-type AddMentor struct{}
+type AddMentor struct {
+	Name string
+}
 
-// TODO
-type MentorReply struct{}
+type MentorReply struct {
+	AcceptInvite bool
+}
 
-// TODO
 type AllowMentor struct{}
 
-// TODO
 type CancelMentor struct{}
 
-// TODO
 type TradeRequest struct{}
 
-// TODO
-type TradeReply struct{}
+type TradeReply struct {
+	AcceptInvite bool
+}
 
-// TODO
-type TradeGold struct{}
+type TradeGold struct {
+	Amount uint32
+}
 
-// TODO
-type TradeConfirm struct{}
+type TradeConfirm struct {
+	Locked bool
+}
 
-// TODO
 type TradeCancel struct{}
 
-// TODO
-type EquipSlotItem struct{}
+type EquipSlotItem struct {
+	Grid     common.MirGridType
+	UniqueID uint64
+	To       int32
+	GridTo   common.MirGridType
+}
 
-// TODO
-type FishingCast struct{}
+type FishingCast struct {
+	CastOut bool
+}
 
-// TODO
-type FishingChangeAutocast struct{}
+type FishingChangeAutocast struct {
+	AutoCast bool
+}
 
-// TODO
-type AcceptQuest struct{}
+type AcceptQuest struct {
+	NPCIndex   uint32
+	QuestIndex int32
+}
 
-// TODO
-type FinishQuest struct{}
+type FinishQuest struct {
+	QuestIndex        int32
+	SelectedItemIndex int32
+}
 
-// TODO
-type AbandonQuest struct{}
+type AbandonQuest struct {
+	QuestIndex int32
+}
 
-// TODO
-type ShareQuest struct{}
+type ShareQuest struct {
+	QuestIndex int32
+}
 
-// TODO
 type AcceptReincarnation struct{}
 
-// TODO
 type CancelReincarnation struct{}
 
-// TODO
-type CombineItem struct{}
+type CombineItem struct {
+	IDFrom uint64
+	IDTo   uint64
+}
 
-// TODO
-type SetConcentration struct{}
+type SetConcentration struct {
+	ObjectID    uint32
+	Enabled     bool
+	Interrupted bool
+}
 
 // TODO
 type AwakeningNeedMaterials struct{}
