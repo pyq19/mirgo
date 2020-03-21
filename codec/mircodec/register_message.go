@@ -1,10 +1,11 @@
 package mircodec
 
 import (
+	"reflect"
+
 	"github.com/davyxu/cellnet"
 	"github.com/yenkeia/mirgo/proto/client"
 	"github.com/yenkeia/mirgo/proto/server"
-	"reflect"
 )
 
 func init() {
@@ -690,6 +691,7 @@ func initServerMessage() {
 	mirObjectPlayerCodec := new(MirObjectPlayerCodec)
 	mirObjectNPCCodec := new(MirObjectNPCCodec)
 	mirNPCResponseCodec := new(MirNPCResponseCodec)
+	mirSplitItemCodec := new(MirSplitItemCodec)
 
 	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
 		Codec: mirCodec,
@@ -867,7 +869,7 @@ func initServerMessage() {
 		ID:    server.STORE_ITEM,
 	})
 	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
-		Codec: mirCodec,
+		Codec: mirSplitItemCodec,
 		Type:  reflect.TypeOf((*server.SplitItem)(nil)).Elem(),
 		ID:    server.SPLIT_ITEM,
 	})

@@ -814,54 +814,61 @@ func (p *Player) ConsumeItem(userItem *common.UserItem, count uint32) {
 func (p *Player) GainItem(item *common.UserItem) (res bool) {
 	item.SoulBoundId = p.GetID()
 
-	info := item.Info
-
-	if info.StackSize > 1 {
+	if item.Info.StackSize > 1 {
 		for i, v := range p.Inventory.Items {
-			if v == nil || info != v.Info || v.Count > info.StackSize {
+			if v == nil || item.Info != v.Info || v.Count > item.Info.StackSize {
 				continue
 			}
-			if item.Count+v.Count <= info.StackSize {
+			if item.Count+v.Count <= item.Info.StackSize {
 				p.Inventory.SetCount(i, v.Count+item.Count)
+				p.Enqueue(ServerMessage{}.GainedItem(item))
 				return true
 			}
-
 			p.Inventory.SetCount(i, v.Count+item.Count)
-			item.Count -= info.StackSize - v.Count
+			item.Count -= item.Info.StackSize - v.Count
 		}
 	}
 
-	i, j := 6, 46
-	if info.Type == common.ItemTypePotion ||
-		info.Type == common.ItemTypeScroll ||
-		info.Type == common.ItemTypeScript ||
-		info.Type == common.ItemTypeAmulet {
+	i, j := 0, 46
+	if item.Info.Type == common.ItemTypePotion ||
+		item.Info.Type == common.ItemTypeScroll ||
+		(item.Info.Type == common.ItemTypeScript && item.Info.Effect == 1) {
 		i = 0
 		j = 4
-	} else if info.Type == common.ItemTypeAmulet {
+	} else if item.Info.Type == common.ItemTypeAmulet {
 		i = 4
 		j = 6
 	} else {
 		i = 6
+		j = 46
 	}
 	for i < j {
 		if p.Inventory.Items[i] != nil {
 			i++
 			continue
 		}
-		res = true
 		p.Inventory.Set(i, item)
 		// p.Inventory.Items[i] = ui
-		break
-	}
-	if res {
 		p.EnqueueItemInfo(item.ItemID)
 		p.Enqueue(ServerMessage{}.GainedItem(item))
 		p.RefreshBagWeight()
-	} else {
-		p.ReceiveChat("没有合适的格子放置物品", common.ChatTypeSystem)
+		return true
 	}
-	return
+	i = 0
+	for i < 46 {
+		if p.Inventory.Items[i] != nil {
+			i++
+			continue
+		}
+		p.Inventory.Set(i, item)
+		// p.Inventory.Items[i] = ui
+		p.EnqueueItemInfo(item.ItemID)
+		p.Enqueue(ServerMessage{}.GainedItem(item))
+		p.RefreshBagWeight()
+		return true
+	}
+	p.ReceiveChat("没有合适的格子放置物品", common.ChatTypeSystem)
+	return false
 }
 
 // GainGold 为玩家增加金币
@@ -1524,46 +1531,86 @@ func (p *Player) SplitItem(grid common.MirGridType, id uint64, count uint32) {
 		Count:    count,
 		Success:  false,
 	}
-	var array []*common.UserItem
+	var bag *Bag
 	switch grid {
 	case common.MirGridTypeInventory:
-		_, userItem := p.GetUserItemByID(common.MirGridTypeInventory, id)
-		if userItem == nil {
-			p.Enqueue(msg)
-			return
-		}
-		userItem.Count -= count
-		itemInfo := data.GetItemInfoByID(int(userItem.ItemID))
-		newUserItem := env.NewUserItem(itemInfo)
-		newUserItem.Count = count
-		msg.Success = true
-		p.Enqueue(msg)
-		p.Enqueue(&server.SplitItem{Item: newUserItem, Grid: grid})
-		a, b := 0, 6
-		if itemInfo.Type == common.ItemTypePotion || itemInfo.Type == common.ItemTypeScroll { // 药水 卷轴
-			a = 0
-			b = 4
-		} else if itemInfo.Type == common.ItemTypeAmulet { // 护身符
-			a = 4
-			b = 6
-		} else {
-			a = 6
-			b = len(array)
-		}
-		for i := a; i < b; i++ {
-			if array[i] != nil {
-				continue
-			}
-			array[i] = newUserItem
-			p.RefreshBagWeight()
-			return
-		}
+		bag = p.Inventory
 	case common.MirGridTypeStorage:
-		// TODO
-		p.Enqueue(msg)
+		bag = p.Storage
 	default:
 		p.Enqueue(msg)
+		return
 	}
+	index, item := p.GetUserItemByID(grid, id)
+	if item == nil || count >= item.Count || p.FreeSpace(bag) == 0 {
+		p.Enqueue(msg)
+		return
+	}
+	newItem := env.NewUserItem(item.Info)
+	newItem.SoulBoundId = p.GetID()
+	newItem.Count = count
+
+	item.Count -= count
+	bag.SetCount(index, item.Count)
+
+	msg.Success = true
+	p.Enqueue(msg)
+	p.Enqueue(&server.SplitItem{Item: newItem, Grid: grid})
+
+	temp := newItem
+	array := bag.Items
+	if grid == common.MirGridTypeInventory && (temp.Info.Type == common.ItemTypePotion || temp.Info.Type == common.ItemTypeScroll || temp.Info.Type == common.ItemTypeAmulet || (temp.Info.Type == common.ItemTypeScript && temp.Info.Effect == 1)) {
+		if temp.Info.Type == common.ItemTypePotion || temp.Info.Type == common.ItemTypeScroll || (temp.Info.Type == common.ItemTypeScript && temp.Info.Effect == 1) {
+			for i := 0; i < 4; i++ {
+				if array[i] != nil {
+					continue
+				}
+				array[i] = temp
+				p.Inventory.Set(i, temp)
+				p.RefreshBagWeight()
+				return
+			}
+		} else if temp.Info.Type == common.ItemTypeAmulet {
+			for i := 4; i < 6; i++ {
+				if array[i] != nil {
+					continue
+				}
+				array[i] = temp
+				p.Inventory.Set(i, temp)
+				p.RefreshBagWeight()
+				return
+			}
+		}
+	}
+	for i := 6; i < len(array); i++ {
+		if array[i] != nil {
+			continue
+		}
+		array[i] = temp
+		p.Inventory.Set(i, temp)
+		p.RefreshBagWeight()
+		return
+	}
+	for i := 0; i < 6; i++ {
+		if array[i] != nil {
+			continue
+		}
+		array[i] = temp
+		p.Inventory.Set(i, temp)
+		p.RefreshBagWeight()
+		return
+	}
+}
+
+// FreeSpace Bag 剩余空格数量
+func (p *Player) FreeSpace(bag *Bag) int {
+	count := 0
+	for i := 0; i < len(bag.Items); i++ {
+		if bag.Items[i] == nil {
+			count++
+		}
+	}
+	return count
 }
 
 func (p *Player) TeleportRandom(attempts int, distance uint16, m *Map) bool {
