@@ -1448,8 +1448,99 @@ func (p *Player) RetrieveTradeItem(from int32, to int32) {
 
 }
 
-func (p *Player) MergeItem(from common.MirGridType, to common.MirGridType, from2 uint64, to2 uint64) {
+func (p *Player) MergeItem(gridFrom common.MirGridType, gridTo common.MirGridType, fromID uint64, toID uint64) {
+	msg := &server.MergeItem{
+		GridFrom: gridFrom,
+		GridTo:   gridTo,
+		IDFrom:   fromID,
+		IDTo:     toID,
+		Success:  false,
+	}
+	var arrayFrom []*common.UserItem
+	var bagFrom *Bag
+	switch gridFrom {
+	case common.MirGridTypeInventory:
+		bagFrom = p.Inventory
+	case common.MirGridTypeStorage:
+		bagFrom = p.Storage
+	case common.MirGridTypeEquipment:
+		bagFrom = p.Equipment
+	// case common.MirGridTypeFishing:
+	default:
+		p.Enqueue(msg)
+		return
+	}
+	arrayFrom = bagFrom.Items
 
+	var arrayTo []*common.UserItem
+	var bagTo *Bag
+	switch gridTo {
+	case common.MirGridTypeInventory:
+		bagTo = p.Inventory
+	case common.MirGridTypeStorage:
+		bagTo = p.Storage
+	case common.MirGridTypeEquipment:
+		bagTo = p.Equipment
+	// case common.MirGridTypeFishing:
+	default:
+		p.Enqueue(msg)
+		return
+	}
+	arrayTo = bagTo.Items
+
+	var tempFrom *common.UserItem
+	var indexFrom int
+	index := -1
+	for i := 0; i < len(arrayFrom); i++ {
+		if arrayFrom[i] == nil || arrayFrom[i].ID != fromID {
+			continue
+		}
+		index = i
+		tempFrom = arrayFrom[i]
+		indexFrom = i
+		break
+	}
+	if tempFrom == nil || tempFrom.Info.StackSize == 1 || index == -1 {
+		p.Enqueue(msg)
+		return
+	}
+
+	var tempTo *common.UserItem
+	var indexTo int
+	for i := 0; i < len(arrayTo); i++ {
+		if arrayTo[i] == nil || arrayTo[i].ID != toID {
+			continue
+		}
+		tempTo = arrayTo[i]
+		indexTo = i
+		break
+	}
+	if tempTo == nil || tempTo.Info != tempFrom.Info || tempTo.Count == tempTo.Info.StackSize {
+		p.Enqueue(msg)
+		return
+	}
+	if tempTo.Info.Type != common.ItemTypeAmulet && (gridFrom == common.MirGridTypeEquipment || gridTo == common.MirGridTypeEquipment) {
+		p.Enqueue(msg)
+		return
+	}
+	if tempTo.Info.Type != common.ItemTypeBait && (gridFrom == common.MirGridTypeFishing || gridTo == common.MirGridTypeFishing) {
+		p.Enqueue(msg)
+		return
+	}
+	if tempFrom.Count <= tempTo.Info.StackSize-tempTo.Count {
+		tempTo.Count += tempFrom.Count
+		bagTo.SetCount(indexTo, tempTo.Count)
+		bagFrom.SetCount(indexFrom, 0)
+		arrayFrom[index] = nil
+	} else {
+		tempFrom.Count -= tempTo.Info.StackSize - tempTo.Count
+		tempTo.Count = tempTo.Info.StackSize
+		bagTo.SetCount(indexTo, tempTo.Count)
+		bagFrom.SetCount(indexFrom, tempFrom.Count)
+	}
+	msg.Success = true
+	p.Enqueue(msg)
+	p.RefreshStats()
 }
 
 func (p *Player) EquipItem(mirGridType common.MirGridType, id uint64, to int32) {

@@ -94,6 +94,9 @@ func (b *Bag) Get(i int) *common.UserItem {
 
 func (b *Bag) SetCount(i int, c uint32) {
 	if c == 0 {
+		log.Infof("Delete UserItem %d \n", b.Items[i].ID)
+		// adb.Table("user_item").Where("id = ?", b.Items[i].ID).Delete(&common.UserItem{})
+		// adb.Table("character_user_item").Where("user_item_id = ?", b.Items[i].ID).Delete(&common.CharacterUserItem{})
 		b.Set(i, nil)
 	} else {
 		adb.Table("user_item").Where("id = ?", b.Items[i].ID).Update("count", c)
