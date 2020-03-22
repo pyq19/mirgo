@@ -56,6 +56,7 @@ type Monster struct {
 	ViewRange     int
 	Master        *Player
 	EXPOwner      *Player
+	EXPOwnerTime  time.Time
 	ActionList    *ActionList
 	ActionTime    time.Time
 	AttackTime    time.Time
@@ -449,6 +450,10 @@ func (m *Monster) Process(dt time.Duration) {
 		return
 	}
 
+	if m.EXPOwner != nil && now.After(m.EXPOwnerTime) {
+		m.EXPOwner = nil
+	}
+
 	m.Behavior.Process(dt)
 
 	m.ProcessBuffs()
@@ -642,6 +647,32 @@ func (m *Monster) Attacked(attacker IMapObject, damage int, defenceType common.D
 		m.BroadcastDamageIndicator(common.DamageTypeMiss, 0)
 		return 0
 	}
+
+	switch attacker := attacker.(type) {
+	case *Monster:
+		if attacker.AI == 6 || attacker.AI == 58 {
+			m.EXPOwner = nil
+		} else if attacker.Master != nil {
+			if attacker.GetMap() != attacker.Master.GetMap() || !InRange(attacker.CurrentLocation, attacker.Master.CurrentLocation, DataRange) {
+				m.EXPOwner = nil
+			} else {
+				if m.EXPOwner == nil || m.EXPOwner.Dead {
+					m.EXPOwner = attacker.Master
+				}
+				if m.EXPOwner == attacker.Master {
+					m.EXPOwnerTime = time.Now().Add(5 * time.Second)
+				}
+			}
+		}
+	case *Player:
+		if m.EXPOwner == nil || m.EXPOwner.Dead {
+			m.EXPOwner = attacker
+		}
+		if m.EXPOwner == attacker {
+			m.EXPOwnerTime = time.Now().Add(5 * time.Second)
+		}
+	}
+
 	// TODO 还有很多没做
 	m.Broadcast(ServerMessage{}.ObjectStruck(m, attacker.GetID()))
 	m.BroadcastDamageIndicator(common.DamageTypeHit, value)
