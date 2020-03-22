@@ -615,34 +615,34 @@ func (m *Monster) Attacked(attacker IMapObject, damage int, defenceType common.D
 	if m.Target == nil && attacker.IsAttackTarget(m) {
 		m.Target = attacker
 	}
-	armor := 0
+	armour := 0
 	switch defenceType {
 	case common.DefenceTypeACAgility:
 		if ut.RandomInt(0, int(m.Agility)) > int(attacker.GetBaseStats().Accuracy) {
 			m.BroadcastDamageIndicator(common.DamageTypeMiss, 0)
 			return 0
 		}
-		armor = m.GetDefencePower(int(m.MinAC), int(m.MaxAC))
+		armour = m.GetDefencePower(int(m.MinAC), int(m.MaxAC))
 	case common.DefenceTypeAC:
-		armor = m.GetDefencePower(int(m.MinAC), int(m.MaxAC))
+		armour = m.GetDefencePower(int(m.MinAC), int(m.MaxAC))
 	case common.DefenceTypeMACAgility:
 		if ut.RandomInt(0, int(m.Agility)) > int(attacker.GetBaseStats().Accuracy) {
 			m.BroadcastDamageIndicator(common.DamageTypeMiss, 0)
 			return 0
 		}
-		armor = m.GetDefencePower(int(m.MinMAC), int(m.MaxMAC))
+		armour = m.GetDefencePower(int(m.MinMAC), int(m.MaxMAC))
 	case common.DefenceTypeMAC:
-		armor = m.GetDefencePower(int(m.MinMAC), int(m.MaxMAC))
+		armour = m.GetDefencePower(int(m.MinMAC), int(m.MaxMAC))
 	case common.DefenceTypeAgility:
 		if ut.RandomInt(0, int(m.Agility)) > int(attacker.GetBaseStats().Accuracy) {
 			m.BroadcastDamageIndicator(common.DamageTypeMiss, 0)
 			return 0
 		}
 	}
-	armor = int(float32(armor) * m.ArmourRate)
+	armour = int(float32(armour) * m.ArmourRate)
 	damage = int(float32(damage) * m.DamageRate)
-	value := damage - armor
-	log.Debugf("attacker damage: %d, monster armor: %d\n", damage, armor)
+	value := damage - armour
+	log.Debugf("attacker damage: %d, monster armour: %d\n", damage, armour)
 	if value <= 0 {
 		m.BroadcastDamageIndicator(common.DamageTypeMiss, 0)
 		return 0

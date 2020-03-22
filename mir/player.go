@@ -6,7 +6,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/yenkeia/mirgo/setting"
 	"github.com/yenkeia/mirgo/ut"
 
 	"github.com/davyxu/cellnet"
@@ -74,7 +73,7 @@ type Player struct {
 	Luck               int8
 	LifeOnHit          uint8
 	HpDrainRate        uint8
-	Reflect            uint8
+	Reflect            uint8 // TODO
 	MagicResist        uint8
 	PoisonResist       uint8
 	HealthRecovery     uint8
@@ -107,6 +106,11 @@ type Player struct {
 	TwinDrakeBlade     bool // TODO
 	BindMapIndex       int
 	BindLocation       common.Point
+	MagicShield        bool // TODO 是否有魔法盾
+	MagicShieldLv      int  // TODO 魔法盾等级
+	ArmourRate         float32
+	DamageRate         float32
+	StruckTime         time.Time
 }
 
 type Health struct {
@@ -587,7 +591,7 @@ func (p *Player) RefreshStats() {
 }
 
 func (p *Player) RefreshLevelStats() {
-	baseStats := setting.BaseStats[p.Class]
+	baseStats := settings.BaseStats[p.Class]
 	p.Accuracy = uint8(baseStats.StartAccuracy)
 	p.Agility = uint8(baseStats.StartAgility)
 	p.CriticalRate = uint8(baseStats.StartCriticalRate)
@@ -908,9 +912,118 @@ func (p *Player) GetAttackPower(min, max int) int {
 	return ut.RandomInt(min, max)
 }
 
-// TODO
-func (p *Player) Attacked(attacker IMapObject, damageFinal int, defenceType common.DefenceType, damageWeapon bool) int {
+func (p *Player) Attacked(attacker IMapObject, damage int, typ common.DefenceType, damageWeapon bool) int {
+	armour := 0
+	switch attacker := attacker.(type) {
+	case *Player:
+		// TODO
+	case *Monster:
+		switch typ {
+		case common.DefenceTypeACAgility:
+			if ut.RandomNext(int(p.Agility)+1) > int(attacker.Accuracy) {
+				p.BroadcastDamageIndicator(common.DamageTypeMiss, 0)
+				return 0
+			}
+			armour = p.GetDefencePower(p.MinAC, p.MaxAC)
+		case common.DefenceTypeAC:
+			armour = p.GetDefencePower(p.MinAC, p.MaxAC)
+		case common.DefenceTypeMACAgility:
+			if ut.RandomNext(settings.MagicResistWeight) < int(p.MagicResist) {
+				p.BroadcastDamageIndicator(common.DamageTypeMiss, 0)
+				return 0
+			}
+			if ut.RandomNext(int(p.Agility)+1) > int(attacker.Accuracy) {
+				return 0
+			}
+			armour = p.GetDefencePower(p.MinMAC, p.MaxMAC)
+		case common.DefenceTypeMAC:
+			if ut.RandomNext(settings.MagicResistWeight) < int(p.MagicResist) {
+				p.BroadcastDamageIndicator(common.DamageTypeMiss, 0)
+				return 0
+			}
+			armour = p.GetDefencePower(p.MinMAC, p.MaxMAC)
+		case common.DefenceTypeAgility:
+			if ut.RandomNext(int(p.Agility)+1) > int(attacker.Accuracy) {
+				log.Debugln("Player attacked DefenceTypeAgility")
+				log.Debugf("p.Agility: %d, attacker.Accuracy: %d\n", p.Agility, attacker.Accuracy)
+				log.Debugf("ut.RandomNext(int(p.Agility)+1): %d\n", ut.RandomNext(int(p.Agility)+1))
+				p.BroadcastDamageIndicator(common.DamageTypeMiss, 0)
+				return 0
+			}
+		}
+		if ut.RandomNext(100) < int(p.Reflect) { // TODO ???
+			if attacker.IsAttackTarget(p) {
+				attacker.Attacked(p, damage, typ, false)
+				// CurrentMap.Broadcast(new S.ObjectEffect { ObjectID = ObjectID, Effect = SpellEffect.Reflect }, CurrentLocation);
+				p.Broadcast(&server.ObjectEffect{ObjectID: p.GetID(), Effect: common.SpellEffectReflect, EffectType: 0, DelayTime: 0, Time: 0})
+			}
+			return 0
+		}
+		// armour = (int)Math.Max(int.MinValue, (Math.Min(int.MaxValue, (decimal)(armour * ArmourRate))));
+		// damage= (int)Math.Max(int.MinValue, (Math.Min(int.MaxValue, (decimal)(damage * DamageRate))));
+		armour = ut.Int(int(float32(armour) * p.ArmourRate))
+		damage = ut.Int(int(float32(damage) * p.DamageRate))
+		if p.MagicShield {
+			damage -= damage * (p.MagicShieldLv + 2) / 10
+		}
+		if armour >= damage {
+			log.Debugln("Player Attacked")
+			log.Debugf("armour >= damage. armour: %d, damage: %d\n", armour, damage)
+			p.BroadcastDamageIndicator(common.DamageTypeMiss, 0)
+			return 0
+		}
+		// TODO
+		/*
+			if (p.MagicShield){
+				MagicShieldTime -= (damage - armour) * 60;
+				AddBuff(new Buff { Type = BuffType.MagicShield, Caster = this, ExpireTime = MagicShieldTime, Values = new int[] { MagicShieldLv } });
+			}
+			for (int i = PoisonList.Count - 1; i >= 0; i--){
+				if (PoisonList[i].PType != PoisonType.LRParalysis){
+					continue;
+				}
+				PoisonList.RemoveAt(i);
+				OperateTime = 0;
+			}
+
+			LastHitter = attacker.Master ?? attacker;
+			LastHitTime = Envir.Time + 10000;
+			RegenTime = Envir.Time + RegenDelay;
+			LogTime = Envir.Time + Globals.LogDelay;
+
+			DamageDura();
+			ActiveBlizzard = false;
+			ActiveReincarnation = false;
+
+			CounterAttackCast(GetMagic(Spell.CounterAttack), LastHitter);
+		*/
+
+		now := time.Now()
+		if now.After(p.StruckTime) {
+			// p.Enqueue(new S.Struck { AttackerID = attacker.ObjectID });
+			// p.Broadcast(new S.ObjectStruck { ObjectID = ObjectID, AttackerID = attacker.ObjectID, Direction = Direction, Location = CurrentLocation });
+			p.Enqueue(&server.Struck{AttackerID: attacker.GetID()})
+			p.Broadcast(&server.ObjectStruck{ObjectID: p.GetID(), AttackerID: attacker.GetID(), Direction: p.GetDirection(), LocationX: int32(p.CurrentLocation.X), LocationY: int32(p.CurrentLocation.Y)})
+			p.StruckTime = now.Add(500 * time.Millisecond)
+		}
+		p.BroadcastDamageIndicator(common.DamageTypeHit, armour-damage)
+		p.ChangeHP(armour - damage)
+
+		log.Debugf("Player attacked, armour: %d, damage: %d. armour - damage: %d\n", armour, damage, armour-damage)
+		return damage - armour
+	}
+
 	return 0
+}
+
+func (p *Player) GetDefencePower(min, max uint16) int {
+	if min < 0 {
+		min = 0
+	}
+	if min > max {
+		max = min
+	}
+	return ut.RandomNext2(int(min), int(max+1))
 }
 
 // GainExp 为玩家增加经验

@@ -10,12 +10,55 @@ import (
 	"github.com/yenkeia/mirgo/ut"
 )
 
-var (
-	BaseStats map[common.MirClass]baseStats
-)
+type Conf struct {
+	DataPath string
+}
 
-func init() {
-	BaseStats = make(map[common.MirClass]baseStats)
+type Settings struct {
+	Addr          string
+	DBPath        string
+	AccountDBPath string
+	MapDirPath    string
+	DropDirPath   string
+	EnvirPath     string
+	ConfigsPath   string
+	RoutePath     string
+
+	BaseStats         map[common.MirClass]baseStats
+	MagicResistWeight int
+}
+
+func Must() *Settings {
+	s, err := New()
+	if err != nil {
+		panic("配置初始化失败:" + err.Error())
+	}
+	return s
+}
+
+func New() (*Settings, error) {
+	file := "./config.toml"
+
+	conf := Conf{}
+
+	data, err := ioutil.ReadFile(file)
+	if err != nil {
+		checkdir, err := filepath.Abs("../dotnettools")
+		if err != nil {
+			return nil, errors.New("没有配置")
+		}
+
+		if ut.IsDir(checkdir) {
+			conf.DataPath = checkdir
+		}
+	}
+
+	err = toml.Unmarshal(data, &conf)
+	if err != nil {
+		return nil, err
+	}
+
+	BaseStats := make(map[common.MirClass]baseStats)
 	BaseStats[common.MirClassWarrior] = baseStats{
 		HpGain:              4,
 		HpGainRate:          4.5,
@@ -88,62 +131,18 @@ func init() {
 		CritialRateGain:     0,
 		CriticalDamageGain:  0,
 	}
-}
-
-type Conf struct {
-	DataPath string
-}
-
-type Settings struct {
-	Addr          string
-	DBPath        string
-	AccountDBPath string
-	MapDirPath    string
-	DropDirPath   string
-	EnvirPath     string
-	ConfigsPath   string
-	RoutePath     string
-}
-
-func Must() *Settings {
-	s, err := New()
-	if err != nil {
-		panic("配置初始化失败:" + err.Error())
-	}
-	return s
-}
-
-func New() (*Settings, error) {
-	file := "./config.toml"
-
-	conf := Conf{}
-
-	data, err := ioutil.ReadFile(file)
-	if err != nil {
-		checkdir, err := filepath.Abs("../dotnettools")
-		if err != nil {
-			return nil, errors.New("没有配置")
-		}
-
-		if ut.IsDir(checkdir) {
-			conf.DataPath = checkdir
-		}
-	}
-
-	err = toml.Unmarshal(data, &conf)
-	if err != nil {
-		return nil, err
-	}
 
 	return &Settings{
-		Addr:          "0.0.0.0:7000",
-		DBPath:        filepath.Join(conf.DataPath, "/mir.sqlite"),
-		AccountDBPath: filepath.Join(conf.DataPath, "/account.sqlite"),
-		MapDirPath:    filepath.Join(conf.DataPath, "/database/Maps/"),
-		DropDirPath:   filepath.Join(conf.DataPath, "/database/Envir/Drops/"),
-		EnvirPath:     filepath.Join(conf.DataPath, "/database/Envir/"),
-		ConfigsPath:   filepath.Join(conf.DataPath, "/database/Configs/"),
-		RoutePath:     filepath.Join(conf.DataPath, "/database/Envir/Routes/"),
+		Addr:              "0.0.0.0:7000",
+		DBPath:            filepath.Join(conf.DataPath, "/mir.sqlite"),
+		AccountDBPath:     filepath.Join(conf.DataPath, "/account.sqlite"),
+		MapDirPath:        filepath.Join(conf.DataPath, "/database/Maps/"),
+		DropDirPath:       filepath.Join(conf.DataPath, "/database/Envir/Drops/"),
+		EnvirPath:         filepath.Join(conf.DataPath, "/database/Envir/"),
+		ConfigsPath:       filepath.Join(conf.DataPath, "/database/Configs/"),
+		RoutePath:         filepath.Join(conf.DataPath, "/database/Envir/Routes/"),
+		BaseStats:         BaseStats,
+		MagicResistWeight: 10,
 	}, nil
 }
 

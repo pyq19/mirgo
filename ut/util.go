@@ -16,6 +16,10 @@ func Uint16(v int) uint16 {
 	return uint16(Clamp(v, 0, math.MaxUint16))
 }
 
+func Int(v int) int {
+	return int(Clamp(v, math.MinInt32, math.MaxInt32))
+}
+
 func Int8(v int) int8 {
 	return int8(Clamp(v, math.MinInt8, math.MaxInt8))
 }
