@@ -1006,10 +1006,11 @@ func (p *Player) Attacked(attacker IMapObject, damage int, typ common.DefenceTyp
 			p.Broadcast(&server.ObjectStruck{ObjectID: p.GetID(), AttackerID: attacker.GetID(), Direction: p.GetDirection(), LocationX: int32(p.CurrentLocation.X), LocationY: int32(p.CurrentLocation.Y)})
 			p.StruckTime = now.Add(500 * time.Millisecond)
 		}
+		log.Debugf("Player attacked, armour: %d, damage: %d. armour - damage: %d\n", armour, damage, armour-damage)
+		log.Debugf("Player ChangeHP: %d\n", armour-damage)
+		log.Debugf("Player HP: %d\n", p.HP)
 		p.BroadcastDamageIndicator(common.DamageTypeHit, armour-damage)
 		p.ChangeHP(armour - damage)
-
-		log.Debugf("Player attacked, armour: %d, damage: %d. armour - damage: %d\n", armour, damage, armour-damage)
 		return damage - armour
 	}
 
@@ -1095,7 +1096,11 @@ func (p *Player) ChangeHP(amount int) {
 	if amount == 0 || p.IsDead() || p.HP >= p.MaxHP {
 		return
 	}
-	p.SetHP(uint32(int(p.HP) + amount))
+	hp := int(p.HP) + amount
+	if hp <= 0 {
+		hp = 0
+	}
+	p.SetHP(uint32(hp))
 }
 
 func (p *Player) ChangeMP(amount int) {
@@ -1114,7 +1119,26 @@ func (p *Player) LevelUp() {
 }
 
 func (p *Player) Die() {
-
+	// TODO 复活戒指、凶手武器诅咒、死亡掉落
+	p.HP = 0
+	p.Dead = true
+	// LogTime = Envir.Time;
+	// BrownTime = Envir.Time;
+	p.Enqueue(&server.Death{Direction: p.GetDirection(), LocationX: int32(p.CurrentLocation.X), LocationY: int32(p.CurrentLocation.Y)})
+	p.Broadcast(&server.ObjectDied{ObjectID: p.GetID(), Direction: p.GetDirection(), LocationX: int32(p.CurrentLocation.X), LocationY: int32(p.CurrentLocation.Y), Type: 0})
+	/*
+		for (int i = 0; i < Buffs.Count; i++)
+		{
+			if (Buffs[i].Type == BuffType.Curse)
+			{
+				Buffs.RemoveAt(i);
+				break;
+			}
+		}
+		PoisonList.Clear();
+		InTrapRock = false;
+	*/
+	p.CallDefaultNPC(DefaultNPCTypeDie)
 }
 
 func (p *Player) Teleport(m *Map, pt common.Point) bool {

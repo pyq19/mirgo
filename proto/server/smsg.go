@@ -712,7 +712,8 @@ type DeleteItem struct {
 }
 
 type Death struct {
-	Location  common.Point
+	LocationX int32
+	LocationY int32
 	Direction common.MirDirection
 }
 

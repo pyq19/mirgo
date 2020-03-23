@@ -544,6 +544,8 @@ func updatePlayerInfo(g *Game, p *Player, c *common.Character) {
 	p.PMode = common.PetModeNone
 	p.CallingNPC = nil
 	p.StruckTime = time.Now()
+	p.DamageRate = 1.0
+	p.ArmourRate = 1.0
 }
 
 // StartGame 开始游戏
