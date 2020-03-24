@@ -1069,6 +1069,9 @@ func (p *Player) SetHP(amount uint32) {
 	if p.HP == uint16(amount) {
 		return
 	}
+	if amount >= uint32(p.MaxHP) {
+		amount = uint32(p.MaxHP)
+	}
 
 	p.HP = uint16(amount)
 
@@ -1093,7 +1096,7 @@ func (p *Player) SetMP(amount uint32) {
 }
 
 func (p *Player) ChangeHP(amount int) {
-	if amount == 0 || p.IsDead() || p.HP >= p.MaxHP {
+	if amount == 0 || p.IsDead() {
 		return
 	}
 	hp := int(p.HP) + amount

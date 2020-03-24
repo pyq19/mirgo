@@ -283,6 +283,8 @@ func ServerSendLTVPacket(writer io.Writer, ctx cellnet.ContextSet, data interfac
 	skip["server.OBJECT_MONSTER"] = true
 	skip["server.HEALTH_CHANGED"] = true
 	skip["server.USER_LOCATION"] = true
+	skip["server.OBJECT_ATTACK"] = true
+	skip["server.DAMAGE_INDICATOR"] = true
 	// skip["server.OBJECT_ATTACK"] = true
 	// skip["server.OBJECT_STRUCK"] = true
 	packetName := GetPacketName("server", int(common.BytesToUint16(pkt[2:4])))
