@@ -9,14 +9,15 @@
 --------------------
   * [安装golang环境](http://docscn.studygolang.com/doc/install)
   * [设置拉取依赖代理](https://goproxy.io/zh/)
-  * 进入目录 mirgo/dotnettools 
-  * 将 Daneo1989_Server.rar 解压到database目录（压缩包密码：LOMCN）。database目录最终包含： Configs、Envir、Maps 三文件夹
 
 编译运行
 --------------------
+  * 获取服务端资源 git clone https://gitee.com/wrq2/mir2ServerRelease.git
+  * 获取服务端代码 git clone https://github.com/yenkeia/mirgo
   * 进入目录 mirgo/server，依次执行命令：
   * go mod vendor 
   * go build 
+  * 新建 config.toml, 文件内容 DataPath="服务端资源绝对路径(mir2ServerRelease)"
   * ./server
   
 联系方式
@@ -25,8 +26,8 @@
 
 客户端
 --------------------
-  * 客户端代码： https://github.com/yenkeia/mir2
-  * 客户端资源： 链接: https://pan.baidu.com/s/1ELI8pO278v9JRyt6lS-A8Q 提取码: 0nc3
+  * [客户端代码](https://gitee.com/wrq2/mir2.git)，感谢 https://github.com/cjlaaa/mir2 的汉化
+  * [客户端资源](https://pan.baidu.com/s/1ELI8pO278v9JRyt6lS-A8Q) 提取码: 0nc3
 
 感谢贡献者
 --------------------
