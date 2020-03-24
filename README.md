@@ -9,15 +9,15 @@
 --------------------
   * [安装golang环境](http://docscn.studygolang.com/doc/install)
   * [设置拉取依赖代理](https://goproxy.io/zh/)
+  * 获取服务端资源 git clone https://gitee.com/wrq2/mir2ServerRelease.git
+  * 获取服务端代码 git clone https://github.com/yenkeia/mirgo.git
 
 编译运行
 --------------------
-  * 获取服务端资源 git clone https://gitee.com/wrq2/mir2ServerRelease.git
-  * 获取服务端代码 git clone https://github.com/yenkeia/mirgo.git
-  * 进入目录 mirgo/server，依次执行命令：
+  * 进入目录 mirgo/server
+  * 新建 config.toml, 文件内容 DataPath="服务端资源绝对路径(mir2ServerRelease)"
   * go mod vendor 
   * go build 
-  * 新建 config.toml, 文件内容 DataPath="服务端资源绝对路径(mir2ServerRelease)"
   * ./server
   
 联系方式
