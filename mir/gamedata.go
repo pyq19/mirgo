@@ -141,13 +141,15 @@ func (d *GameData) loadDropFile(filename string) ([]*common.DropInfo, error) {
 	for i, line := range lines {
 
 		line = strings.TrimSpace(line)
-		if line == "" || line[0] == ';' {
+		line = ut.RemoveBOM(line)
+		if line == "" || strings.HasPrefix(line, ";") {
 			continue
 		}
 
 		res := ut.SplitString(line)
 
 		if len(res) != 3 && len(res) != 2 {
+			log.Errorf("line: %s; line[0]: %s", line, line[0])
 			return nil, lineError(i, "参数个数")
 		}
 

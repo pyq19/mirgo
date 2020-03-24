@@ -207,3 +207,14 @@ func ReadLinesByReader(r io.Reader) []string {
 
 	return lines
 }
+
+// RemoveBOM 删除 windows 保存文件时加入的 bom
+func RemoveBOM(s string) string {
+	bytes := []byte(s)
+	if len(bytes) >= 3 {
+		if bytes[0] == 0xef && bytes[1] == 0xbb && bytes[2] == 0xbf {
+			return string(bytes[3:])
+		}
+	}
+	return s
+}
