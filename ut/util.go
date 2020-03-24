@@ -9,7 +9,6 @@ import (
 	"path"
 	"path/filepath"
 	"strings"
-	"unicode/utf8"
 )
 
 func Uint16(v int) uint16 {
@@ -155,15 +154,16 @@ func SplitString(s string) []string {
 	start := 0
 	var stat byte
 
-	for i := 0; i < utf8.RuneCountInString(s); i++ {
+	for i := 0; i < len(s); i++ {
 		// if unicode.IsSpace(rune(s[i])) {
-		if string(s[i]) == " " {
+		c := string(s[i])
+		if c == " " {
 			if stat == 1 {
 				ret = append(ret, s[start:i])
 				stat = 0
 			}
 
-		} else if s[i] == '\'' || s[i] == '"' {
+		} else if c == "'" || c == "\"" {
 			if stat == s[i] {
 				ret = append(ret, s[start:i])
 				stat = 0
@@ -203,7 +203,7 @@ func ReadLinesByReader(r io.Reader) []string {
 	lines := []string{}
 	scanner := bufio.NewScanner(r)
 	for scanner.Scan() {
-		lines = append(lines, scanner.Text())
+		lines = append(lines, RemoveBOM(scanner.Text()))
 	}
 
 	return lines
@@ -218,4 +218,15 @@ func RemoveBOM(s string) string {
 		}
 	}
 	return s
+}
+
+// FixSeparator 修改路径分隔符
+// 比如 SystemScripts\00Default\GuardsHelp.txt
+// Windows 下不变
+// Unix 下改成 SystemScripts/00Default/GuardsHelp.txt
+func FixSeparator(s string) string {
+	if string(os.PathSeparator) == "\\" {
+		return s
+	}
+	return strings.Replace(s, "\\", "/", -1)
 }

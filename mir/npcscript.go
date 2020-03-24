@@ -194,6 +194,10 @@ func _CHECKBUFF(npc *NPC, p *Player, bufname string) bool {
 	return false
 }
 
+func _CHECKCLASS(npc *NPC, p *Player, classname string) bool {
+	return false
+}
+
 func init() {
 	script.AddParser(reflect.TypeOf((*Player)(nil)), nil)
 	script.AddParser(reflect.TypeOf((*NPC)(nil)), nil)
@@ -216,6 +220,7 @@ func init() {
 	script.Check("ISADMIN", _ISADMIN)
 	script.Check("CHECKHUM", _CHECKHUM)
 	script.Check("CHECKBUFF", _CHECKBUFF)
+	script.Check("CHECKCLASS", _CHECKCLASS)
 
 	script.Action("TAKEITEM", _TAKEITEM)
 	script.Action("CHECKITEM", _CHECKITEM, 1) // GM-Manager.txt 32行：可能是配置写错了。

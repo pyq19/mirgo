@@ -113,7 +113,7 @@ func expandScript(lines []string) ([]string, error) {
 
 			} else if StartsWithI(line, "#INCLUDE") {
 				match := regexInclude.FindStringSubmatch(line)
-				insertLines, err := loadScriptPage(match[1], match[2])
+				insertLines, err := loadScriptPage(ut.FixSeparator(match[1]), match[2])
 				if err != nil {
 					return nil, err
 				}
