@@ -13,7 +13,7 @@
 编译运行
 --------------------
   * 获取服务端资源 git clone https://gitee.com/wrq2/mir2ServerRelease.git
-  * 获取服务端代码 git clone https://github.com/yenkeia/mirgo
+  * 获取服务端代码 git clone https://github.com/yenkeia/mirgo.git
   * 进入目录 mirgo/server，依次执行命令：
   * go mod vendor 
   * go build 
