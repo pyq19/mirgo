@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/yenkeia/mirgo/common"
-	"github.com/yenkeia/mirgo/proto/server"
 )
 
 type Item struct {
@@ -60,8 +59,12 @@ func (p *Item) BroadcastHealthChange() {
 
 }
 
-func (p *Item) BroadcastInfo() {
-	p.Broadcast(p.GetInfo())
+func (i *Item) BroadcastInfo() {
+	if i.UserItem == nil {
+		i.Broadcast(ServerMessage{}.ObjectGold(i))
+	} else {
+		i.Broadcast(ServerMessage{}.ObjectItem(i))
+	}
 }
 
 func (i *Item) GetMap() *Map {
@@ -134,29 +137,6 @@ func (i *Item) Broadcast(msg interface{}) {
 
 func (i *Item) GetDirection() common.MirDirection {
 	return i.CurrentDirection
-}
-
-func (i *Item) GetInfo() interface{} {
-	if i.UserItem == nil {
-		res := &server.ObjectGold{
-			ObjectID:  i.GetID(),
-			Gold:      uint32(i.Gold),
-			LocationX: int32(i.GetPoint().X),
-			LocationY: int32(i.GetPoint().Y),
-		}
-		return res
-	} else {
-		res := &server.ObjectItem{
-			ObjectID:  i.GetID(),
-			Name:      i.Name,
-			NameColor: i.NameColor.ToInt32(),
-			LocationX: int32(i.GetPoint().X),
-			LocationY: int32(i.GetPoint().Y),
-			Image:     i.GetImage(),
-			Grade:     common.ItemGradeNone, // TODO
-		}
-		return res
-	}
 }
 
 func (i *Item) IsAttackTarget(attacker IMapObject) bool {
@@ -237,7 +217,7 @@ func (i *Item) Drop(center common.Point, distance int) (string, bool) {
 		ok = true
 		i.CurrentLocation = common.NewPoint(x, y)
 		i.Map.AddObject(i)
-		i.Broadcast(i.GetInfo())
+		i.BroadcastInfo()
 
 		return false
 	})

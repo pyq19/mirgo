@@ -181,7 +181,7 @@ func (p *Player) BroadcastHealthChange() {
 }
 
 func (p *Player) BroadcastInfo() {
-	p.Broadcast(p.GetInfo())
+	p.Broadcast(ServerMessage{}.ObjectPlayer(p))
 }
 
 func (p *Player) Spawned() {
@@ -297,42 +297,6 @@ func (p *Player) IsFriendlyTarget(obj IMapObject) bool {
 		return true
 	}
 	return true
-}
-
-func (p *Player) GetInfo() interface{} {
-	res := &server.ObjectPlayer{
-		ObjectID:         p.ID,
-		Name:             p.Name,
-		GuildName:        p.GuildName,
-		GuildRankName:    p.GuildRankName,
-		NameColor:        p.NameColor.ToInt32(),
-		Class:            p.Class,
-		Gender:           p.Gender,
-		Level:            p.Level,
-		Location:         p.GetPoint(),
-		Direction:        p.GetDirection(),
-		Hair:             p.Hair,
-		Light:            p.Light,
-		Weapon:           int16(p.LooksWeapon),
-		WeaponEffect:     int16(p.LooksWeaponEffect),
-		Armour:           int16(p.LooksArmour),
-		Poison:           common.PoisonTypeNone, // TODO
-		Dead:             p.IsDead(),
-		Hidden:           p.IsHidden(),
-		Effect:           common.SpellEffectNone, // TODO
-		WingEffect:       uint8(p.LooksWings),
-		Extra:            false,                      // TODO
-		MountType:        0,                          // TODO
-		RidingMount:      false,                      // TODO
-		Fishing:          false,                      // TODO
-		TransformType:    0,                          // TODO
-		ElementOrbEffect: 0,                          // TODO
-		ElementOrbLvl:    0,                          // TODO
-		ElementOrbMax:    0,                          // TODO
-		Buffs:            make([]common.BuffType, 0), // TODO
-		LevelEffects:     common.LevelEffectsNone,    // TODO
-	}
-	return res
 }
 
 func (p *Player) GetBaseStats() BaseStats {
@@ -1161,7 +1125,7 @@ func (p *Player) Teleport(m *Map, pt common.Point) bool {
 
 		// InTrapRock = false;
 		m.AddObject(p)
-		p.Broadcast(p.GetInfo())
+		p.BroadcastInfo()
 
 		p.Broadcast(&server.ObjectTeleportIn{ObjectID: p.GetID(), Type: 0})
 

@@ -9,7 +9,6 @@ import (
 
 	"github.com/yenkeia/mirgo/common"
 	"github.com/yenkeia/mirgo/mir/script"
-	"github.com/yenkeia/mirgo/proto/server"
 	"github.com/yenkeia/mirgo/ut"
 )
 
@@ -72,7 +71,7 @@ func (p *NPC) BroadcastHealthChange() {
 }
 
 func (p *NPC) BroadcastInfo() {
-	p.Broadcast(p.GetInfo())
+	p.Broadcast(ServerMessage{}.ObjectNPC(p))
 }
 
 func (p *NPC) Spawned() {
@@ -163,20 +162,6 @@ func (n *NPC) GetDirection() common.MirDirection {
 
 func (p *NPC) Attacked(attacker IMapObject, damageFinal int, defenceType common.DefenceType, damageWeapon bool) int {
 	return 0
-}
-
-func (n *NPC) GetInfo() interface{} {
-	res := &server.ObjectNPC{
-		ObjectID:  n.ID,
-		Name:      n.Name,
-		NameColor: n.NameColor.ToInt32(),
-		Image:     uint16(n.Image),
-		Color:     0, // TODO
-		Location:  n.GetPoint(),
-		Direction: n.GetDirection(),
-		QuestIDs:  []int32{}, // TODO
-	}
-	return res
 }
 
 func (n *NPC) IsAttackTarget(IMapObject) bool {

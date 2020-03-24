@@ -23,20 +23,95 @@ func (ServerMessage) SetObjectConcentration(p *Player) *server.SetObjectConcentr
 	}
 }
 
-func (ServerMessage) ObjectPlayer(o IMapObject) (res *server.ObjectPlayer) {
-	return o.GetInfo().(*server.ObjectPlayer)
+func (ServerMessage) ObjectPlayer(p *Player) (res *server.ObjectPlayer) {
+	return &server.ObjectPlayer{
+		ObjectID:         p.ID,
+		Name:             p.Name,
+		GuildName:        p.GuildName,
+		GuildRankName:    p.GuildRankName,
+		NameColor:        p.NameColor.ToInt32(),
+		Class:            p.Class,
+		Gender:           p.Gender,
+		Level:            p.Level,
+		Location:         p.GetPoint(),
+		Direction:        p.GetDirection(),
+		Hair:             p.Hair,
+		Light:            p.Light,
+		Weapon:           int16(p.LooksWeapon),
+		WeaponEffect:     int16(p.LooksWeaponEffect),
+		Armour:           int16(p.LooksArmour),
+		Poison:           common.PoisonTypeNone, // TODO
+		Dead:             p.IsDead(),
+		Hidden:           p.IsHidden(),
+		Effect:           common.SpellEffectNone, // TODO
+		WingEffect:       uint8(p.LooksWings),
+		Extra:            false,                      // TODO
+		MountType:        0,                          // TODO
+		RidingMount:      false,                      // TODO
+		Fishing:          false,                      // TODO
+		TransformType:    0,                          // TODO
+		ElementOrbEffect: 0,                          // TODO
+		ElementOrbLvl:    0,                          // TODO
+		ElementOrbMax:    0,                          // TODO
+		Buffs:            make([]common.BuffType, 0), // TODO
+		LevelEffects:     common.LevelEffectsNone,    // TODO
+	}
 }
 
-func (ServerMessage) ObjectMonster(o IMapObject) *server.ObjectMonster {
-	return o.GetInfo().(*server.ObjectMonster)
+func (ServerMessage) ObjectMonster(m *Monster) *server.ObjectMonster {
+	return &server.ObjectMonster{
+		ObjectID:          m.ID,
+		Name:              m.Name,
+		NameColor:         m.NameColor.ToInt32(),
+		Location:          m.GetPoint(),
+		Image:             m.Image,
+		Direction:         m.GetDirection(),
+		Effect:            uint8(m.Effect),
+		AI:                uint8(m.AI),
+		Light:             m.Light,
+		Dead:              m.IsDead(),
+		Skeleton:          m.IsSkeleton(),
+		Poison:            m.Poison,
+		Hidden:            m.IsHidden(),
+		ShockTime:         0,     // TODO
+		BindingShotCenter: false, // TODO
+		Extra:             false, // TODO
+		ExtraByte:         0,     // TODO
+	}
 }
 
-func (ServerMessage) ObjectGold(o IMapObject) *server.ObjectGold {
-	return o.GetInfo().(*server.ObjectGold)
+func (ServerMessage) ObjectGold(i *Item) *server.ObjectGold {
+	return &server.ObjectGold{
+		ObjectID:  i.GetID(),
+		Gold:      uint32(i.Gold),
+		LocationX: int32(i.GetPoint().X),
+		LocationY: int32(i.GetPoint().Y),
+	}
 }
 
-func (ServerMessage) ObjectItem(o IMapObject) *server.ObjectItem {
-	return o.GetInfo().(*server.ObjectItem)
+func (ServerMessage) ObjectItem(i *Item) *server.ObjectItem {
+	return &server.ObjectItem{
+		ObjectID:  i.GetID(),
+		Name:      i.Name,
+		NameColor: i.NameColor.ToInt32(),
+		LocationX: int32(i.GetPoint().X),
+		LocationY: int32(i.GetPoint().Y),
+		Image:     i.GetImage(),
+		Grade:     common.ItemGradeNone, // TODO
+	}
+}
+
+func (ServerMessage) ObjectNPC(n *NPC) *server.ObjectNPC {
+	return &server.ObjectNPC{
+		ObjectID:  n.ID,
+		Name:      n.Name,
+		NameColor: n.NameColor.ToInt32(),
+		Image:     uint16(n.Image),
+		Color:     0, // TODO
+		Location:  n.GetPoint(),
+		Direction: n.GetDirection(),
+		QuestIDs:  []int32{}, // TODO
+	}
 }
 
 func (ServerMessage) MapInformation(info *common.MapInfo) *server.MapInformation {
@@ -149,10 +224,6 @@ func (ServerMessage) ObjectChat(p *Player, message string, chatType common.ChatT
 	}
 }
 
-func (ServerMessage) ObjectNPC(o IMapObject) *server.ObjectNPC {
-	return o.GetInfo().(*server.ObjectNPC)
-}
-
 func (ServerMessage) PlayerInspect(p *Player) *server.PlayerInspect {
 	return &server.PlayerInspect{
 		Name:      p.Name,
@@ -239,19 +310,18 @@ func (ServerMessage) NPCResponse(page []string) *server.NPCResponse {
 }
 
 func (m ServerMessage) Object(obj IMapObject) interface{} {
-	switch obj.GetRace() {
-	case common.ObjectTypePlayer:
+	switch obj := obj.(type) {
+	case *Player:
 		return m.ObjectPlayer(obj)
-	case common.ObjectTypeMonster:
+	case *Monster:
 		return m.ObjectMonster(obj)
-	case common.ObjectTypeMerchant:
+	case *NPC:
 		return m.ObjectNPC(obj)
-	case common.ObjectTypeItem:
-		item := obj.(*Item)
-		if item.UserItem == nil {
-			return m.ObjectGold(item)
+	case *Item:
+		if obj.UserItem == nil {
+			return m.ObjectGold(obj)
 		} else {
-			return m.ObjectItem(item)
+			return m.ObjectItem(obj)
 		}
 	default:
 		panic("unknown object")

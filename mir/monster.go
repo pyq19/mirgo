@@ -192,34 +192,11 @@ func (m *Monster) BroadcastHealthChange() {
 }
 
 func (m *Monster) BroadcastInfo() {
-	m.Broadcast(m.GetInfo())
+	m.Broadcast(ServerMessage{}.ObjectMonster(m))
 }
 
 func (m *Monster) Spawned() {
 	IMapObject_Spawned(m)
-}
-
-func (m *Monster) GetInfo() interface{} {
-	res := &server.ObjectMonster{
-		ObjectID:          m.ID,
-		Name:              m.Name,
-		NameColor:         m.NameColor.ToInt32(),
-		Location:          m.GetPoint(),
-		Image:             m.Image,
-		Direction:         m.GetDirection(),
-		Effect:            uint8(m.Effect),
-		AI:                uint8(m.AI),
-		Light:             m.Light,
-		Dead:              m.IsDead(),
-		Skeleton:          m.IsSkeleton(),
-		Poison:            m.Poison,
-		Hidden:            m.IsHidden(),
-		ShockTime:         0,     // TODO
-		BindingShotCenter: false, // TODO
-		Extra:             false, // TODO
-		ExtraByte:         0,     // TODO
-	}
-	return res
 }
 
 func (m *Monster) GetBaseStats() BaseStats {
