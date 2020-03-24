@@ -2653,7 +2653,51 @@ func (p *Player) GroupInvite(invite bool) {
 }
 
 func (p *Player) TownRevive() {
-
+	if !p.IsDead() {
+		return
+	}
+	/*
+		Map temp = Envir.GetMap(BindMapIndex);
+		Point bindLocation = BindLocation;
+		if (Info.PKPoints >= 200)
+		{
+			temp = Envir.GetMapByNameAndInstance(Settings.PKTownMapName, 1);
+			bindLocation = new Point(Settings.PKTownPositionX, Settings.PKTownPositionY);
+			if (temp == null)
+			{
+				temp = Envir.GetMap(BindMapIndex);
+				bindLocation = BindLocation;
+			}
+		}
+		if (temp == null || !temp.ValidPoint(bindLocation)) return;
+		Dead = false;
+		SetHP(MaxHP);
+		SetMP(MaxMP);
+		RefreshStats();
+		CurrentMap.RemoveObject(this);
+		Broadcast(new S.ObjectRemove { ObjectID = ObjectID });
+		CurrentMap = temp;
+		CurrentLocation = bindLocation;
+		CurrentMap.AddObject(this);
+		Enqueue(new S.MapChanged
+		{
+			FileName = CurrentMap.Info.FileName,
+			Title = CurrentMap.Info.Title,
+			MiniMap = CurrentMap.Info.MiniMap,
+			BigMap = CurrentMap.Info.BigMap,
+			Lights = CurrentMap.Info.Light,
+			Location = CurrentLocation,
+			Direction = Direction,
+			MapDarkLight = CurrentMap.Info.MapDarkLight,
+			Music = CurrentMap.Info.Music
+		});
+		GetObjects();
+		Enqueue(new S.Revived());
+		Broadcast(new S.ObjectRevived { ObjectID = ObjectID, Effect = true });
+		InSafeZone = true;
+		Fishing = false;
+		Enqueue(GetFishInfo());
+	*/
 }
 
 func (p *Player) SpellToggle(spell common.Spell, use bool) {
