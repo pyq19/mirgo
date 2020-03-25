@@ -356,7 +356,7 @@ func (p *Player) ApplyPoison(poison *Poison, caster IMapObject) {
 }
 
 func (p *Player) IsDead() bool {
-	return false
+	return p.Dead
 }
 
 func (p *Player) IsUndead() bool {

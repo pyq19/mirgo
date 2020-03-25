@@ -514,6 +514,7 @@ func updatePlayerInfo(g *Game, p *Player, c *common.Character) {
 	p.Storage = BagLoadFromDB(p, common.UserItemTypeStorage, 80)
 
 	healNextTime := time.Now().Add(10 * time.Second)
+	p.Dead = false
 	p.HP = c.HP
 	p.MP = c.MP
 	p.Level = c.Level
