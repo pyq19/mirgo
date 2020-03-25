@@ -9,6 +9,7 @@ import (
 	"path"
 	"path/filepath"
 	"strings"
+	"unicode"
 )
 
 func Uint16(v int) uint16 {
@@ -152,24 +153,24 @@ func SplitString(s string) []string {
 	ret := []string{}
 
 	start := 0
-	var stat byte
+	var stat rune
 
-	for i := 0; i < len(s); i++ {
-		// if unicode.IsSpace(rune(s[i])) {
-		c := string(s[i])
-		if c == " " {
+	r := []rune(s)
+
+	for i := 0; i < len(r); i++ {
+		if unicode.IsSpace(r[i]) {
 			if stat == 1 {
-				ret = append(ret, s[start:i])
+				ret = append(ret, string(r[start:i]))
 				stat = 0
 			}
 
-		} else if c == "'" || c == "\"" {
-			if stat == s[i] {
-				ret = append(ret, s[start:i])
+		} else if r[i] == '\'' || r[i] == '"' {
+			if stat == r[i] {
+				ret = append(ret, string(r[start:i]))
 				stat = 0
 			} else {
 				if stat == 0 {
-					stat = s[i]
+					stat = r[i]
 					start = i + 1
 				}
 			}
@@ -183,7 +184,7 @@ func SplitString(s string) []string {
 	}
 
 	if stat != 0 {
-		ret = append(ret, s[start:])
+		ret = append(ret, string(r[start:]))
 	}
 
 	return ret
