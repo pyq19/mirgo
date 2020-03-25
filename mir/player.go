@@ -2488,9 +2488,10 @@ func (p *Player) SellItem(id uint64, count uint32) {
 	// 	Enqueue(p);
 	// 	return;
 	// }
-
+	log.Debugf("SellItem Info.Type: %d\n", temp.Info.Type)
+	log.Debugf("CallingNPC.Script.Types: %s\n", p.CallingNPC.Script.Types)
 	if !p.CallingNPC.HasType(temp.Info.Type) {
-		p.ReceiveChat("You cannot sell this item here.", common.ChatTypeSystem)
+		p.ReceiveChat("不能在这里卖这类商品", common.ChatTypeSystem)
 		p.Enqueue(msg)
 		return
 	}
