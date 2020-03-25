@@ -30,7 +30,7 @@ func NewNPC(m *Map, id uint32, ni *common.NpcInfo) *NPC {
 	npc := &NPC{
 		MapObject: MapObject{
 			ID:               id,
-			Name:             ni.Name,
+			Name:             ni.ChineseName,
 			NameColor:        common.ColorLime,
 			Map:              m,
 			CurrentLocation:  common.NewPoint(ni.LocationX, ni.LocationY),

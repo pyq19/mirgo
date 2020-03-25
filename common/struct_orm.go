@@ -289,8 +289,9 @@ type NpcInfo struct {
 	MapID         int
 	Filename      string `gorm:"Column:file_name"`
 	Name          string
-	LocationX     int `gorm:"Column:location_x"`
-	LocationY     int `gorm:"Column:location_y"`
+	ChineseName   string `gorm:"Column:chinese_name"`
+	LocationX     int    `gorm:"Column:location_x"`
+	LocationY     int    `gorm:"Column:location_y"`
 	Rate          int
 	Image         int
 	TimeVisible   int
