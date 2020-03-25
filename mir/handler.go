@@ -533,9 +533,9 @@ func updatePlayerInfo(g *Game, p *Player, c *common.Character) {
 	p.BuffList = NewBuffList()
 	p.Health = Health{
 		HPPotNextTime: new(time.Time),
-		HPPotDuration: 3 * time.Second,
+		HPPotDuration: 1 * time.Second,
 		MPPotNextTime: new(time.Time),
-		MPPotDuration: 3 * time.Second,
+		MPPotDuration: 1 * time.Second,
 		HealNextTime:  &healNextTime,
 		HealDuration:  10 * time.Second,
 	}
