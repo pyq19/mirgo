@@ -32,6 +32,49 @@ func cloneMagic(spDest, spSrc common.Spell) {
 func init() {
 	add := addMagic
 
+	/////////////////////////////////////////////
+	//////////////////// 战士 ////////////////////
+	/////////////////////////////////////////////
+
+	// 基本剑术
+
+	// 攻杀剑术
+
+	// 刺杀剑术
+
+	// 半月弯刀
+
+	// 野蛮冲撞
+
+	// 双龙斩
+
+	// 捕绳剑
+
+	// 烈火剑法
+
+	// 狮子吼
+
+	// 圆月弯刀
+
+	// 攻破斩
+
+	// 护身气幕
+
+	// 剑气爆
+
+	// 反击
+
+	// 日闪
+
+	// 血龙剑法
+	add(common.SpellFury, &MagicConfig{
+		Action: Action_Fury,
+	})
+
+	/////////////////////////////////////////////
+	//////////////////// 法师 ////////////////////
+	/////////////////////////////////////////////
+
 	// 火球术
 	add(common.SpellFireBall, &MagicConfig{
 		SelectType: Select_Point | Select_Enemy,
@@ -40,10 +83,37 @@ func init() {
 		Formula:    Formula_MC,
 	})
 
+	// 抗拒火环
+
+	// 诱惑之光
+	add(common.SpellElectricShock, &MagicConfig{
+		SelectType: Select_Enemy,
+		TargetType: Target_Enemy,
+		Formula:    Formula_MC,
+		Action:     Action_DamageTarget,
+	})
+
 	// 大火球
 	cloneMagic(common.SpellGreatFireBall, common.SpellFireBall)
+
+	// 地狱火
+
 	// 雷电术
 	cloneMagic(common.SpellThunderBolt, common.SpellFireBall)
+
+	// 瞬息移动
+
+	// 爆裂火焰
+	add(common.SpellFireBang, &MagicConfig{
+		SelectType: Select_Point,
+		TargetType: Target_Point,
+		Action:     Action_RangeDamage1,
+		Formula:    Formula_MC,
+	})
+
+	// 火墙
+
+	// 疾光电影
 
 	// 寒冰掌
 	add(common.SpellFrostCrunch, &MagicConfig{
@@ -53,69 +123,14 @@ func init() {
 		Formula:    Formula_MC,
 	})
 
-	// 灵魂火符
-	add(common.SpellSoulFireBall, &MagicConfig{
-		SelectType: Select_Enemy | Select_Point,
-		TargetType: Target_Enemy,
-		Action:     Action_DamageTarget,
-		Formula:    Formula_SC,
-		ItemCost:   Cost_Amulet,
-	})
+	// 地狱雷光
 
-	// 治愈术
-	add(common.SpellHealing, &MagicConfig{
-		SelectType: Select_Self | Select_Friend,
-		TargetType: Target_Friend | Target_Self,
-		Action:     Action_HealingTarget,
-		Formula: func(ctx *MagicContext) int {
-			return ctx.Magic.GetDamage(ctx.Player.GetAttackPower(int(ctx.Player.MinSC), int(ctx.Player.MaxSC))*2) + int(ctx.Player.Level)
-		},
-	})
+	// 魔法盾
 
-	// 召唤骷髅
-	SummonMagic(common.SpellSummonSkeleton, "BoneFamiliar", 1)
-	// 召唤神兽
-	SummonMagic(common.SpellSummonShinsu, "Shinsu", 5)
-	// 召唤月灵
-	SummonMagic(common.SpellSummonHolyDeva, "HolyDeva", 2)
-	// TODO: AliveTime，SetTarget
-	//
-	SummonMagic1(common.SpellSummonVampire, "VampireSpider", Select_Enemy, 0)
-	//
-	SummonMagic1(common.SpellSummonToad, "SpittingToad", Select_Enemy, 0)
-	//
-	SummonMagic1(common.SpellSummonSnakes, "SnakeTotem", Select_Enemy, 0)
+	// 圣言术
 
-	// 施毒术
-	add(common.SpellPoisoning, &MagicConfig{
-		SelectType: Select_Enemy,
-		TargetType: Select_Enemy,
-		Formula:    Formula_SC,
-		ItemCost:   Cost_Poison,
-		Action:     Action_Poisoning,
-	})
+	// 嗜血术
 
-	// 隐身术
-	add(common.SpellHiding, &MagicConfig{
-		Formula: func(ctx *MagicContext) int {
-			return ctx.Player.GetAttackPower(int(ctx.Player.MinSC), int(ctx.Player.MaxSC)) + (ctx.Magic.Level+1)*5
-		},
-		ItemCost: Cost_Amulet,
-		Action:   Action_Hidding,
-	})
-
-	// 龙血剑法
-	add(common.SpellFury, &MagicConfig{
-		Action: Action_Fury,
-	})
-
-	// 爆裂火焰
-	add(common.SpellFireBang, &MagicConfig{
-		SelectType: Select_Point,
-		TargetType: Target_Point,
-		Action:     Action_RangeDamage1,
-		Formula:    Formula_MC,
-	})
 	// 冰咆哮
 	cloneMagic(common.SpellIceStorm, common.SpellFireBang)
 
@@ -128,12 +143,65 @@ func init() {
 		// if (!target.Undead) damage = (int)(damage * 1.5F);
 	})
 
-	// 净化术
-	add(common.SpellPurification, &MagicConfig{
+	// 分身术
+
+	// 火龙气焰
+
+	// 天霜冰环
+
+	// 深延术
+
+	// 流星火雨
+
+	// 冰焰术
+
+	/////////////////////////////////////////////
+	//////////////////// 道士 ////////////////////
+	/////////////////////////////////////////////
+
+	// 治愈术
+	add(common.SpellHealing, &MagicConfig{
 		SelectType: Select_Self | Select_Friend,
 		TargetType: Target_Friend | Target_Self,
-		Action:     Action_Purification,
+		Action:     Action_HealingTarget,
+		Formula: func(ctx *MagicContext) int {
+			return ctx.Magic.GetDamage(ctx.Player.GetAttackPower(int(ctx.Player.MinSC), int(ctx.Player.MaxSC))*2) + int(ctx.Player.Level)
+		},
 	})
+
+	// 精神力战法
+
+	// 施毒术
+	add(common.SpellPoisoning, &MagicConfig{
+		SelectType: Select_Enemy,
+		TargetType: Select_Enemy,
+		Formula:    Formula_SC,
+		ItemCost:   Cost_Poison,
+		Action:     Action_Poisoning,
+	})
+
+	// 灵魂火符
+	add(common.SpellSoulFireBall, &MagicConfig{
+		SelectType: Select_Enemy | Select_Point,
+		TargetType: Target_Enemy,
+		Action:     Action_DamageTarget,
+		Formula:    Formula_SC,
+		ItemCost:   Cost_Amulet,
+	})
+
+	// 召唤骷髅
+	SummonMagic(common.SpellSummonSkeleton, "BoneFamiliar", 1)
+
+	// 隐身术
+	add(common.SpellHiding, &MagicConfig{
+		Formula: func(ctx *MagicContext) int {
+			return ctx.Player.GetAttackPower(int(ctx.Player.MinSC), int(ctx.Player.MaxSC)) + (ctx.Magic.Level+1)*5
+		},
+		ItemCost: Cost_Amulet,
+		Action:   Action_Hidding,
+	})
+
+	// 集体隐身术
 
 	// 幽灵盾
 	add(common.SpellSoulShield, &MagicConfig{
@@ -147,16 +215,54 @@ func init() {
 		},
 	})
 
+	// 心灵启示
+
 	// 神圣战甲术
 	cloneMagic(common.SpellBlessedArmour, common.SpellSoulShield)
 
-	// 诱惑之光
-	add(common.SpellElectricShock, &MagicConfig{
-		SelectType: Select_Enemy,
-		TargetType: Target_Enemy,
-		Formula:    Formula_MC,
-		Action:     Action_DamageTarget,
+	// 气功波
+
+	// 困魔咒
+
+	// 净化术
+	add(common.SpellPurification, &MagicConfig{
+		SelectType: Select_Self | Select_Friend,
+		TargetType: Target_Friend | Target_Self,
+		Action:     Action_Purification,
 	})
+
+	// 群体治疗术
+
+	// 迷魂术
+
+	// 无极真气
+
+	// 召唤神兽
+	SummonMagic(common.SpellSummonShinsu, "Shinsu", 5)
+
+	// 复活术
+
+	// 召唤月灵
+	SummonMagic(common.SpellSummonHolyDeva, "HolyDeva", 2)
+
+	// 诅咒术
+
+	// 瘟疫
+
+	// 毒云
+
+	// 阴阳盾
+
+	// 血龙水
+
+	// TODO: AliveTime，SetTarget
+	//
+	SummonMagic1(common.SpellSummonVampire, "VampireSpider", Select_Enemy, 0)
+	//
+	SummonMagic1(common.SpellSummonToad, "SpittingToad", Select_Enemy, 0)
+	//
+	SummonMagic1(common.SpellSummonSnakes, "SnakeTotem", Select_Enemy, 0)
+
 }
 
 func Action_ElectricShock(ctx *MagicContext) bool {
