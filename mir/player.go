@@ -318,7 +318,7 @@ func (p *Player) GetBaseStats() BaseStats {
 
 // AddBuff ...
 func (p *Player) AddBuff(b *Buff) {
-	if p.BuffList.Has(func(temp *Buff) bool { return temp.Infinite && b.BuffType == temp.BuffType }) {
+	if p.BuffList.Has(func(temp *Buff) bool { return temp.Infinite && b.Type == temp.Type }) {
 		return //cant overwrite infinite buff with regular buff
 	}
 
@@ -334,7 +334,7 @@ func (p *Player) AddBuff(b *Buff) {
 	}
 
 	msg := &server.AddBuff{
-		Type:     b.BuffType,
+		Type:     b.Type,
 		Caster:   caster,
 		Expire:   10000, // TODO
 		Values:   b.Values,
@@ -462,8 +462,14 @@ func (p *Player) ProcessBuffs() {
 		buff := e.Value.(*Buff)
 		if now.Before(buff.ExpireTime) || buff.Infinite || buff.Paused {
 			continue
-			// TODO
 		}
+		// Buffs.RemoveAt(i);
+		p.Enqueue(&server.RemoveBuff{Type: buff.Type, ObjectID: p.GetID()})
+		if buff.Visible {
+			p.Broadcast(&server.RemoveBuff{Type: buff.Type, ObjectID: p.GetID()})
+		}
+		// switch (buff.Type)
+		refresh = true
 	}
 	/*
 			if (Concentrating && !ConcentrateInterrupted && (ConcentrateInterruptTime != 0))

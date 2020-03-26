@@ -9,7 +9,7 @@ import (
 
 type Buff struct {
 	ObjectID   uint32
-	BuffType   common.BuffType
+	Type       common.BuffType
 	Caster     IMapObject
 	Visible    bool      // 是否可见
 	ExpireTime time.Time // 过期时间️
@@ -20,7 +20,7 @@ type Buff struct {
 
 func NewBuff(buffType common.BuffType, caster IMapObject, expireTime int, values []int32) *Buff {
 	return &Buff{
-		BuffType:   buffType,
+		Type:       buffType,
 		Caster:     caster,
 		Visible:    false,
 		ObjectID:   0,
@@ -44,7 +44,7 @@ func NewBuffList() *BuffList {
 func (bl *BuffList) AddBuff(b *Buff) {
 	for it := bl.List.Front(); it != nil; it = it.Next() {
 		buf := it.Value.(*Buff)
-		if buf.BuffType != b.BuffType {
+		if buf.Type != b.Type {
 			continue
 		}
 
@@ -61,7 +61,7 @@ func (bl *BuffList) AddBuff(b *Buff) {
 func (bl *BuffList) RemoveBuff(t common.BuffType) {
 	for it := bl.List.Front(); it != nil; it = it.Next() {
 		buf := it.Value.(*Buff)
-		if buf.BuffType != t {
+		if buf.Type != t {
 			continue
 		}
 

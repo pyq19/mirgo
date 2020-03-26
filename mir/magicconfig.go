@@ -318,7 +318,7 @@ func Action_Hidding(ctx *MagicContext) bool {
 	p := ctx.Player
 
 	for e := p.BuffList.List.Front(); e != nil; e = e.Next() {
-		if e.Value.(*Buff).BuffType == common.BuffTypeHiding {
+		if e.Value.(*Buff).Type == common.BuffTypeHiding {
 			return false
 		}
 	}
