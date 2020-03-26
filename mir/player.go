@@ -463,12 +463,14 @@ func (p *Player) ProcessBuffs() {
 		if now.Before(buff.ExpireTime) || buff.Infinite || buff.Paused {
 			continue
 		}
-		// Buffs.RemoveAt(i);
+		p.BuffList.RemoveBuff(buff.Type)
 		p.Enqueue(&server.RemoveBuff{Type: buff.Type, ObjectID: p.GetID()})
 		if buff.Visible {
 			p.Broadcast(&server.RemoveBuff{Type: buff.Type, ObjectID: p.GetID()})
 		}
-		// switch (buff.Type)
+		// switch buff.Type {
+		// case common.BuffTypeHiding:
+		// }
 		refresh = true
 	}
 	/*
