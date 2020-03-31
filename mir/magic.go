@@ -183,10 +183,6 @@ func completeMagic(ctx *MagicContext) {
 	}
 }
 
-func Action_DamageTarget(ctx *MagicContext) bool {
-	return ctx.Target.Attacked(ctx.Player, ctx.Damage, common.DefenceTypeMAC, false) > 0
-}
-
 // GetAmulet 获取玩家身上装备的护身符
 func (p *Player) GetAmulet(count uint32) *common.UserItem {
 	for _, userItem := range p.Equipment.Items {

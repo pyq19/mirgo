@@ -31,6 +31,7 @@ func cloneMagic(spDest, spSrc common.Spell) {
 
 func init() {
 	add := addMagic
+	clone := cloneMagic
 
 	/////////////////////////////////////////////
 	//////////////////// 战士 ////////////////////
@@ -94,14 +95,25 @@ func init() {
 	})
 
 	// 大火球
-	cloneMagic(common.SpellGreatFireBall, common.SpellFireBall)
+	clone(common.SpellGreatFireBall, common.SpellFireBall)
 
 	// 地狱火
+	add(common.SpellHellFire, &MagicConfig{
+		Spell:      common.SpellHellFire,
+		Formula:    Formula_MC,
+		SelectType: Select_None,
+		TargetType: Target_Enemy,
+		DelayAt:    DelayAt_Map,
+		Action:     Action_HellFire,
+	})
 
 	// 雷电术
-	cloneMagic(common.SpellThunderBolt, common.SpellFireBall)
+	clone(common.SpellThunderBolt, common.SpellFireBall)
 
 	// 瞬息移动
+	add(common.SpellTeleport, &MagicConfig{
+		Action: Action_Teleport,
+	})
 
 	// 爆裂火焰
 	add(common.SpellFireBang, &MagicConfig{
@@ -132,7 +144,7 @@ func init() {
 	// 嗜血术
 
 	// 冰咆哮
-	cloneMagic(common.SpellIceStorm, common.SpellFireBang)
+	clone(common.SpellIceStorm, common.SpellFireBang)
 
 	// 火龙术
 	add(common.SpellFlameDisruptor, &MagicConfig{
@@ -218,7 +230,7 @@ func init() {
 	// 心灵启示
 
 	// 神圣战甲术
-	cloneMagic(common.SpellBlessedArmour, common.SpellSoulShield)
+	clone(common.SpellBlessedArmour, common.SpellSoulShield)
 
 	// 气功波
 
@@ -265,6 +277,12 @@ func init() {
 
 }
 
+// Action_DamageTarget 单一目标攻击
+func Action_DamageTarget(ctx *MagicContext) bool {
+	return ctx.Target.Attacked(ctx.Player, ctx.Damage, common.DefenceTypeMAC, false) > 0
+}
+
+// Action_ElectricShock 雷电术
 func Action_ElectricShock(ctx *MagicContext) bool {
 	if ut.RandomNext(4-ctx.Magic.Level) > 0 {
 		if ut.RandomNext(2) == 0 {
@@ -417,6 +435,16 @@ func Action_Fury(ctx *MagicContext) bool {
 	buff := NewBuff(common.BuffTypeFury, ctx.Player, 60000+ctx.Magic.Level*10000, []int32{4})
 	buff.Visible = true
 	ctx.Player.AddBuff(buff)
+	return true
+}
+
+// TODO Action_HellFire 地狱火
+func Action_HellFire(ctx *MagicContext) bool {
+	return true
+}
+
+// TODO Action_Teleport 瞬息移动
+func Action_Teleport(ctx *MagicContext) bool {
 	return true
 }
 

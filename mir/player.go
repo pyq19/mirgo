@@ -706,14 +706,17 @@ func (p *Player) RefreshEquipmentStats() {
 	}
 }
 
+// RefreshItemSetStats ???
 func (p *Player) RefreshItemSetStats() {
 
 }
 
+// RefreshMirSetStats ???
 func (p *Player) RefreshMirSetStats() {
 
 }
 
+// RefreshSkills 技能加的属性
 func (p *Player) RefreshSkills() {
 	// 这些技能只是用来加属性
 	for _, magic := range p.Magics {
@@ -729,18 +732,33 @@ func (p *Player) RefreshSkills() {
 	}
 }
 
+// RefreshBuffs 刷新玩家身上的 buff
 func (p *Player) RefreshBuffs() {
 
 }
 
+// RefreshStatCaps 刷新各种状态
 func (p *Player) RefreshStatCaps() {
-
+	/*
+		MagicResist = Math.Min(Settings.MaxMagicResist, MagicResist);
+		PoisonResist = Math.Min(Settings.MaxPoisonResist, PoisonResist);
+		CriticalRate = Math.Min(Settings.MaxCriticalRate, CriticalRate);
+		CriticalDamage = Math.Min(Settings.MaxCriticalDamage, CriticalDamage);
+		Freezing = Math.Min(Settings.MaxFreezing, Freezing);
+		PoisonAttack = Math.Min(Settings.MaxPoisonAttack, PoisonAttack);
+		HealthRecovery = Math.Min(Settings.MaxHealthRegen, HealthRecovery);
+		PoisonRecovery = Math.Min(Settings.MaxPoisonRecovery, PoisonRecovery);
+		SpellRecovery = Math.Min(Settings.MaxManaRegen, SpellRecovery);
+		HpDrainRate = Math.Min((byte)100, HpDrainRate);
+	*/
 }
 
+// RefreshMountStats 刷新装备嵌套的宝石属性
 func (p *Player) RefreshMountStats() {
 
 }
 
+// RefreshGuildBuffs 刷新工会 buff
 func (p *Player) RefreshGuildBuffs() {
 
 }
