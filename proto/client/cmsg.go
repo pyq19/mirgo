@@ -180,7 +180,7 @@ type NewCharacter struct {
 }
 
 type DeleteCharacter struct {
-	CharacterIndex int16
+	CharacterIndex int32
 }
 
 type StartGame struct {

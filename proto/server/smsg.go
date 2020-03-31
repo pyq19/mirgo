@@ -316,7 +316,7 @@ type DeleteCharacter struct {
 }
 
 type DeleteCharacterSuccess struct {
-	CharacterIndex int16
+	CharacterIndex int32
 }
 
 type StartGame struct {
