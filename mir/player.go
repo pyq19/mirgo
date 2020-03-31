@@ -101,13 +101,13 @@ type Player struct {
 	PMode              common.PetMode
 	CallingNPC         *NPC
 	CallingNPCPage     string
-	Slaying            bool // TODO
-	FlamingSword       bool // TODO
-	TwinDrakeBlade     bool // TODO
-	BindMapIndex       int
-	BindLocation       common.Point
-	MagicShield        bool // TODO 是否有魔法盾
-	MagicShieldLv      int  // TODO 魔法盾等级
+	Slaying            bool         // TODO
+	FlamingSword       bool         // TODO
+	TwinDrakeBlade     bool         // TODO
+	BindMapIndex       int          // 绑定的地图 死亡时复活用
+	BindLocation       common.Point // 绑定的坐标 死亡时复活用
+	MagicShield        bool         // TODO 是否有魔法盾
+	MagicShieldLv      int          // TODO 魔法盾等级
 	ArmourRate         float32
 	DamageRate         float32
 	StruckTime         time.Time
@@ -502,6 +502,8 @@ func (p *Player) SaveData() {
 	// 玩家 level magic
 
 	// AMode PMode
+
+	// BindMapIndex BindLocation
 }
 
 func (p *Player) EnqueueItemInfos() {
@@ -2650,48 +2652,46 @@ func (p *Player) TownRevive() {
 	if !p.IsDead() {
 		return
 	}
-	/*
-		Map temp = Envir.GetMap(BindMapIndex);
-		Point bindLocation = BindLocation;
-		if (Info.PKPoints >= 200)
-		{
-			temp = Envir.GetMapByNameAndInstance(Settings.PKTownMapName, 1);
-			bindLocation = new Point(Settings.PKTownPositionX, Settings.PKTownPositionY);
-			if (temp == null)
-			{
-				temp = Envir.GetMap(BindMapIndex);
-				bindLocation = BindLocation;
-			}
-		}
-		if (temp == null || !temp.ValidPoint(bindLocation)) return;
-		Dead = false;
-		SetHP(MaxHP);
-		SetMP(MaxMP);
-		RefreshStats();
-		CurrentMap.RemoveObject(this);
-		Broadcast(new S.ObjectRemove { ObjectID = ObjectID });
-		CurrentMap = temp;
-		CurrentLocation = bindLocation;
-		CurrentMap.AddObject(this);
-		Enqueue(new S.MapChanged
-		{
-			FileName = CurrentMap.Info.FileName,
-			Title = CurrentMap.Info.Title,
-			MiniMap = CurrentMap.Info.MiniMap,
-			BigMap = CurrentMap.Info.BigMap,
-			Lights = CurrentMap.Info.Light,
-			Location = CurrentLocation,
-			Direction = Direction,
-			MapDarkLight = CurrentMap.Info.MapDarkLight,
-			Music = CurrentMap.Info.Music
-		});
-		GetObjects();
-		Enqueue(new S.Revived());
-		Broadcast(new S.ObjectRevived { ObjectID = ObjectID, Effect = true });
-		InSafeZone = true;
-		Fishing = false;
-		Enqueue(GetFishInfo());
-	*/
+	temp := env.GetMap(p.BindMapIndex)
+	bindLocation := p.BindLocation
+	// TODO 送到红名村
+	// if (Info.PKPoints >= 200)
+	// {
+	// 	temp = Envir.GetMapByNameAndInstance(Settings.PKTownMapName, 1);
+	// 	bindLocation = new Point(Settings.PKTownPositionX, Settings.PKTownPositionY);
+	// 	if (temp == null)
+	// 	{
+	// 		temp = Envir.GetMap(BindMapIndex);
+	// 		bindLocation = BindLocation;
+	// 	}
+	// }
+	// if (temp == null || !temp.ValidPoint(bindLocation)) return;
+	p.Dead = false
+	p.SetHP(uint32(p.MaxHP))
+	p.SetMP(uint32(p.MaxMP))
+	p.RefreshStats()
+	p.Broadcast(&server.ObjectRemove{ObjectID: p.GetID()})
+	p.Map.DeleteObject(p)
+	p.Map = temp
+	p.CurrentLocation = bindLocation
+	p.Map.AddObject(p)
+	p.Enqueue(&server.MapChanged{
+		FileName:     p.Map.Info.Filename,
+		Title:        p.Map.Info.Title,
+		MiniMap:      uint16(p.Map.Info.MiniMap),
+		BigMap:       uint16(p.Map.Info.BigMap),
+		Lights:       common.LightSetting(p.Map.Info.Light),
+		Location:     p.CurrentLocation,
+		Direction:    p.CurrentDirection,
+		MapDarkLight: uint8(p.Map.Info.MapDarkLight),
+		Music:        uint16(p.Map.Info.Music),
+	})
+	p.EnqueueAreaObjects(nil, p.GetCell())
+	p.Enqueue(&server.Revived{})
+	p.Broadcast(&server.ObjectRevived{ObjectID: p.GetID(), Effect: true})
+	// InSafeZone = true;
+	// Fishing = false;
+	// Enqueue(GetFishInfo());
 }
 
 func (p *Player) SpellToggle(spell common.Spell, use bool) {

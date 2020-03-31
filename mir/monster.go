@@ -668,6 +668,10 @@ func (m *Monster) Drop() {
 	}
 	mapItems := make([]*Item, 0)
 	for _, drop := range dropInfos {
+		// FIXME 任务还没做 任务相关的物品就不掉落
+		if drop.QuestRequired {
+			continue
+		}
 		if ut.RandomNext(drop.High) > drop.Low {
 			continue
 		}
