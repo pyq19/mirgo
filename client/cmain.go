@@ -65,7 +65,7 @@ func parse(str string) interface{} {
 		}
 	case "DeleteCharacter":
 		i, _ := strconv.Atoi(args[1])
-		return &client.DeleteCharacter{CharacterIndex: int16(i)}
+		return &client.DeleteCharacter{CharacterIndex: int32(i)}
 	case "StartGame", "start", "startgame": // 8
 		i, _ := strconv.Atoi(args[1])
 		return &client.StartGame{CharacterIndex: int16(i)}
