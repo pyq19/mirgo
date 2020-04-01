@@ -1297,7 +1297,7 @@ func (p *Player) StartGame() {
 	p.EnqueueQuestInfo()
 	p.Enqueue(ServerMessage{}.MapInformation(p.Map.Info))
 	p.Enqueue(ServerMessage{}.UserInformation(p))
-	p.Enqueue(ServerMessage{}.TimeOfDay(common.LightSettingDay))
+	p.Enqueue(&server.TimeOfDay{Lights: env.Lights})
 	// p.EnqueueAreaObjects(nil, p.Map.AOI.GetGridByPoint(p.GetPoint()))
 	p.EnqueueAreaObjects(nil, p.GetCell())
 	p.Enqueue(ServerMessage{}.NPCResponse([]string{}))

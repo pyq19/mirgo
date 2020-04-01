@@ -42,16 +42,24 @@ type Environ struct {
 	lastFrame          time.Time
 
 	DefaultNPC *NPC
+	Lights     common.LightSetting
 }
 
 func (e *Environ) Loop() {
 	now := time.Now()
 	dt := now.Sub(e.lastFrame)
-	e.lastFrame = now
+
+	lastHour := e.lastFrame.Hour()
+	nowHour := now.Hour()
+	if lastHour != nowHour {
+		e.AdjustLights()
+		e.Broadcast(&server.TimeOfDay{Lights: e.Lights})
+	}
 
 	for _, m := range e.Maps {
 		m.Frame(dt)
 	}
+	e.lastFrame = now
 }
 
 // ServerStart ...
@@ -123,6 +131,8 @@ func NewEnviron() *Environ {
 	e.lock = new(sync.Mutex)
 	e.SessionIDPlayerMap = new(sync.Map)
 	e.Game = &Game{}
+
+	e.AdjustLights()
 
 	PrintEnviron(e)
 
@@ -330,4 +340,23 @@ func (e *Environ) Debug() {
 	} else {
 		// log.Debugf("envPlayerCount: %d, map allPlayer: %d\n", envPlayerCount, len(allPlayer))
 	}
+}
+
+func (e *Environ) AdjustLights() {
+	oldLights := e.Lights
+	hours := (time.Now().Hour() * 2) % 24
+	if hours == 6 || hours == 7 {
+		e.Lights = common.LightSettingDawn
+	} else if hours >= 8 && hours <= 15 {
+		e.Lights = common.LightSettingDay
+	} else if hours == 16 || hours == 17 {
+		e.Lights = common.LightSettingEvening
+	} else {
+		// e.Lights = common.LightSettingNight
+		e.Lights = common.LightSettingEvening
+	}
+	if oldLights == e.Lights {
+		return
+	}
+	// e.Broadcast(&server.TimeOfDay{Lights: e.Lights})
 }
