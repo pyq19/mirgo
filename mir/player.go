@@ -748,6 +748,8 @@ func (p *Player) RefreshEquipmentStats() {
 			RefreshMount(false);
 		}
 	*/
+
+	log.Debugf("p.Name: %s\np.LooksArmour = %d\np.LooksWeapon = %d\np.LooksWeaponEffect = %d\np.LooksWings = %d\n", p.Name, p.LooksArmour, p.LooksWeapon, p.LooksWeaponEffect, p.LooksWings)
 }
 
 func (p *Player) GetUpdateInfo() *server.PlayerUpdate {

@@ -209,9 +209,14 @@ func ServerRecvLTVPacket(reader io.Reader, maxPacketSize int) (msg interface{}, 
 	skip["client.OBJECT_TURN"] = true
 	skip["client.WALK"] = true
 	skip["client.RUN"] = true
+	printBytes := false
 	packetName := GetPacketName("client", int(common.BytesToUint16(body[:2])))
 	if !skip[packetName] {
-		log.Debugln("<--- 服务端收到 (" + packetName + ") " + strconv.Itoa(len(allBytes)) + "字节: " + String(allBytes))
+		str := "<--- 服务端收到 (" + packetName + ") " + strconv.Itoa(len(allBytes))
+		if printBytes {
+			str += "字节: " + String(allBytes)
+		}
+		log.Debugln(str)
 	}
 
 	msgid := binary.LittleEndian.Uint16(body)
@@ -279,17 +284,29 @@ func ServerSendLTVPacket(writer io.Writer, ctx cellnet.ContextSet, data interfac
 	skip["server.KEEP_ALIVE"] = true
 	skip["server.OBJECT_TURN"] = true
 	skip["server.OBJECT_WALK"] = true
+	skip["server.OBJECT_RUN"] = true
 	skip["server.OBJECT_REMOVE"] = true
 	skip["server.OBJECT_MONSTER"] = true
 	skip["server.HEALTH_CHANGED"] = true
 	skip["server.USER_LOCATION"] = true
 	skip["server.OBJECT_ATTACK"] = true
 	skip["server.DAMAGE_INDICATOR"] = true
+	skip["server.OBJECT_HEALTH"] = true
+	skip["server.OBJECT_NPC"] = true
+	skip["server.NEW_ITEM_INFO"] = true
+	skip["server.OBJECT_ITEM"] = true
+	skip["server.OBJECT_DIED"] = true
+	skip["server.OBJECT_STRUCK"] = true
 	// skip["server.OBJECT_ATTACK"] = true
 	// skip["server.OBJECT_STRUCK"] = true
+	printBytes := false
 	packetName := GetPacketName("server", int(common.BytesToUint16(pkt[2:4])))
 	if !skip[packetName] {
-		log.Debugln("---> 服务端发送 (" + packetName + ") " + strconv.Itoa(len(pkt)) + "字节: " + String(pkt))
+		str := "---> 服务端发送 (" + packetName + ") " + strconv.Itoa(len(pkt))
+		if printBytes {
+			str += "字节: " + String(pkt)
+		}
+		log.Debugln(str)
 	}
 
 	// Codec中使用内存池时的释放位置
