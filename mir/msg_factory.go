@@ -46,13 +46,13 @@ func (ServerMessage) ObjectPlayer(p *Player) (res *server.ObjectPlayer) {
 		Effect:           common.SpellEffectNone, // TODO
 		WingEffect:       uint8(p.LooksWings),
 		Extra:            false,                      // TODO
-		MountType:        0,                          // TODO
+		MountType:        -1,                         // TODO
 		RidingMount:      false,                      // TODO
 		Fishing:          false,                      // TODO
-		TransformType:    0,                          // TODO
+		TransformType:    -1,                         // TODO
 		ElementOrbEffect: 0,                          // TODO
 		ElementOrbLvl:    0,                          // TODO
-		ElementOrbMax:    0,                          // TODO
+		ElementOrbMax:    200,                        // TODO
 		Buffs:            make([]common.BuffType, 0), // TODO
 		LevelEffects:     common.LevelEffectsNone,    // TODO
 	}
