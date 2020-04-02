@@ -594,7 +594,7 @@ func (g *Game) LogOut(s cellnet.Session, msg *client.LogOut) {
 	p.GameStage = SELECT
 	p.StopGame(StopGameUserReturnedToSelectChar)
 	env.DeletePlayer(p)
-	s.Send(ServerMessage{}.LogOutSuccess(g.getAccountCharacters(p.AccountID)))
+	s.Send(&server.LogOutSuccess{Characters: g.getAccountCharacters(p.AccountID)})
 	p.SaveData()
 }
 

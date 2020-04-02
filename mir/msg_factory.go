@@ -301,10 +301,6 @@ func (ServerMessage) LogOutSuccess(characters []common.SelectInfo) *server.LogOu
 	return &server.LogOutSuccess{Characters: characters}
 }
 
-func (ServerMessage) TimeOfDay(light common.LightSetting) *server.TimeOfDay {
-	return &server.TimeOfDay{Lights: light}
-}
-
 func (ServerMessage) NPCResponse(page []string) *server.NPCResponse {
 	return &server.NPCResponse{Page: page}
 }
