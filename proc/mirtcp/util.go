@@ -209,6 +209,7 @@ func ServerRecvLTVPacket(reader io.Reader, maxPacketSize int) (msg interface{}, 
 	skip["client.OBJECT_TURN"] = true
 	skip["client.WALK"] = true
 	skip["client.RUN"] = true
+	skip["client.TURN"] = true
 	printBytes := false
 	packetName := GetPacketName("client", int(common.BytesToUint16(body[:2])))
 	if !skip[packetName] {
