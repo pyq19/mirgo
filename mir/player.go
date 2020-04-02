@@ -649,6 +649,17 @@ func (p *Player) RefreshBagWeight() {
 }
 
 func (p *Player) RefreshEquipmentStats() {
+	oldLooksWeapon := p.LooksWeapon
+	oldLooksWeaponEffect := p.LooksWeaponEffect
+	oldLooksArmour := p.LooksArmour
+	// oldMountType = MountType;
+	oldLooksWings := p.LooksWings
+	oldLight := p.Light
+
+	p.LooksArmour = 0
+	p.LooksWeapon = -1
+	p.LooksWeaponEffect = 0
+	p.LooksWings = 0
 	for _, temp := range p.Equipment.Items {
 		if temp == nil {
 			continue
@@ -705,6 +716,49 @@ func (p *Player) RefreshEquipmentStats() {
 			p.LooksWeapon = int(RealItem.Shape)
 			p.LooksWeaponEffect = int(RealItem.Effect)
 		}
+	}
+
+	/*
+		MaxHP = (ushort)Math.Min(ushort.MaxValue, (((double)HPrate / 100) + 1) * MaxHP);
+		MaxMP = (ushort)Math.Min(ushort.MaxValue, (((double)MPrate / 100) + 1) * MaxMP);
+		MaxAC = (ushort)Math.Min(ushort.MaxValue, (((double)Acrate / 100) + 1) * MaxAC);
+		MaxMAC = (ushort)Math.Min(ushort.MaxValue, (((double)Macrate / 100) + 1) * MaxMAC);
+
+		AddTempSkills(skillsToAdd);
+		RemoveTempSkills(skillsToRemove);
+
+		if (HasMuscleRing)
+		{
+			MaxBagWeight = (ushort)(MaxBagWeight * 2);
+			MaxWearWeight = Math.Min(ushort.MaxValue, (ushort)(MaxWearWeight * 2));
+			MaxHandWeight = Math.Min(ushort.MaxValue, (ushort)(MaxHandWeight * 2));
+		}
+	*/
+
+	if (oldLooksArmour != p.LooksArmour) || (oldLooksWeapon != p.LooksWeapon) || (oldLooksWeaponEffect != p.LooksWeaponEffect) || (oldLooksWings != p.LooksWings) || (oldLight != p.Light) {
+		p.Broadcast(p.GetUpdateInfo())
+		// if (oldLooksWeapon == 49 || oldLooksWeapon == 50) && (p.LooksWeapon != 49 && p.LooksWeapon != 50) {
+		// 	p.Enqueue(p.GetFishInfo())
+		// }
+	}
+
+	/*
+		if (Old_MountType != MountType)
+		{
+			RefreshMount(false);
+		}
+	*/
+}
+
+func (p *Player) GetUpdateInfo() *server.PlayerUpdate {
+	p.UpdateConcentration()
+	return &server.PlayerUpdate{
+		ObjectID:     p.GetID(),
+		Weapon:       int16(p.LooksWeapon),
+		WeaponEffect: int16(p.LooksWeaponEffect),
+		Armour:       int16(p.LooksArmour),
+		Light:        p.Light,
+		WingEffect:   uint8(p.LooksWings),
 	}
 }
 
