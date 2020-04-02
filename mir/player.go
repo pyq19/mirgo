@@ -2203,10 +2203,18 @@ func (p *Player) PickUp() {
 
 func (p *Player) Inspect(id uint32) {
 	o := env.GetPlayer(id)
-	for i := range o.Equipment.Items {
-		item := data.GetItemInfoByID(int(o.Equipment.Items[i].ItemID))
-		if item != nil {
-			p.EnqueueItemInfo(item.ID)
+	if o == nil {
+		p.ReceiveChat("获取不到玩家数据", common.ChatTypeSystem)
+		log.Warnln("Player Inspect id error", id)
+		return
+	}
+	for _, i := range o.Equipment.Items {
+		i := i
+		if i != nil {
+			item := data.GetItemInfoByID(int(i.ItemID))
+			if item != nil {
+				p.EnqueueItemInfo(item.ID)
+			}
 		}
 	}
 	p.Enqueue(ServerMessage{}.PlayerInspect(o))
