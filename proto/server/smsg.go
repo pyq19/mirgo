@@ -422,7 +422,7 @@ type ObjectPlayer struct {
 }
 
 func (msg *ObjectPlayer) String() string {
-	return fmt.Sprintf("ObjectPlayer Name: %s(%d), Location: %s\n", msg.Name, msg.ObjectID, msg.Location)
+	return fmt.Sprintf("ObjectPlayer Name: %s(%d), Location: %s\nClass: %d, Gender: %d,\nLocation: %s, Direction: %d,\nHair: %d, Light: %d,\n Weapon: %d, WeaponEffect: %d, Armour: %d\n", msg.Name, msg.ObjectID, msg.Location, msg.Class, msg.Gender, msg.Location, msg.Direction, msg.Hair, msg.Light, msg.Weapon, msg.WeaponEffect, msg.Armour)
 }
 
 type ObjectRemove struct {

@@ -654,7 +654,7 @@ func (p *Player) RefreshEquipmentStats() {
 			continue
 		}
 
-		RealItem := temp.Info
+		RealItem := data.GetRealItem(temp.Info, p.Level, p.Class, data.ItemInfos)
 
 		p.MinAC = ut.Uint16(int(p.MinAC) + int(RealItem.MinAC))
 		p.MaxAC = ut.Uint16(int(p.MaxAC) + int(RealItem.MaxAC) + int(temp.AC))

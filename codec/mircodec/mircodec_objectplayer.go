@@ -30,6 +30,7 @@ func (*MirObjectPlayerCodec) MimeType() string {
 func (*MirObjectPlayerCodec) Encode(msgObj interface{}, ctx cellnet.ContextSet) (data interface{}, err error) {
 	var bytes []byte
 	op := msgObj.(*server.ObjectPlayer)
+	log.Debugln(op)
 	writer := &BytesWrapper{Bytes: &bytes}
 	writer.Write(op.ObjectID)
 	writer.Write(op.Name)

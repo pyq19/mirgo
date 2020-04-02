@@ -171,6 +171,8 @@ type ItemInfo struct {
 	CanAwakening   bool
 	IsToolTip      bool
 	ToolTip        string
+	ClassBased     bool `gorm:"-" codec:"-"`
+	LevelBased     bool `gorm:"-" codec:"-"`
 }
 
 type MagicInfo struct {

@@ -71,6 +71,17 @@ func (d *GameData) Load(db *gorm.DB) {
 	d.StartItems = []*common.ItemInfo{}
 
 	for _, v := range d.ItemInfos {
+		v := v
+		// ClassBased = (bools & 0x04) == 0x04;
+		b1 := v.Bools & 0x04
+		if b1 == 0x04 {
+			v.ClassBased = true
+		}
+		// LevelBased = (bools & 0x08) == 0x08;
+		b2 := v.Bools & 0x08
+		if b2 == 0x08 {
+			v.LevelBased = true
+		}
 		if v.StartItem {
 			d.StartItems = append(d.StartItems, v)
 		}
@@ -202,8 +213,8 @@ func (d *GameData) LoadExpList() {
 }
 
 // GetMapInfoByID ...
-func (db *GameData) GetMapInfoByID(mapID int) *common.MapInfo {
-	v, ok := db.MapIDInfoMap[mapID]
+func (d *GameData) GetMapInfoByID(mapID int) *common.MapInfo {
+	v, ok := d.MapIDInfoMap[mapID]
 	if !ok {
 		return nil
 	}
@@ -211,8 +222,8 @@ func (db *GameData) GetMapInfoByID(mapID int) *common.MapInfo {
 }
 
 // GetItemInfoByID ...
-func (db *GameData) GetItemInfoByID(itemID int) *common.ItemInfo {
-	v, ok := db.ItemIDInfoMap[itemID]
+func (d *GameData) GetItemInfoByID(itemID int) *common.ItemInfo {
+	v, ok := d.ItemIDInfoMap[itemID]
 	if !ok {
 		return nil
 	}
@@ -220,8 +231,8 @@ func (db *GameData) GetItemInfoByID(itemID int) *common.ItemInfo {
 }
 
 // GetItemInfoByName ...
-func (db *GameData) GetItemInfoByName(itemName string) *common.ItemInfo {
-	v, ok := db.ItemNameInfoMap[itemName]
+func (d *GameData) GetItemInfoByName(itemName string) *common.ItemInfo {
+	v, ok := d.ItemNameInfoMap[itemName]
 	if !ok {
 		return nil
 	}
@@ -229,8 +240,8 @@ func (db *GameData) GetItemInfoByName(itemName string) *common.ItemInfo {
 }
 
 // GetMonsterInfoByID ...
-func (db *GameData) GetMonsterInfoByID(monsterID int) *common.MonsterInfo {
-	v, ok := db.MonsterIDInfoMap[monsterID]
+func (d *GameData) GetMonsterInfoByID(monsterID int) *common.MonsterInfo {
+	v, ok := d.MonsterIDInfoMap[monsterID]
 	if !ok {
 		return nil
 	}
@@ -238,8 +249,8 @@ func (db *GameData) GetMonsterInfoByID(monsterID int) *common.MonsterInfo {
 }
 
 // GetMonsterInfoByName ...
-func (db *GameData) GetMonsterInfoByName(monsterName string) *common.MonsterInfo {
-	v, ok := db.MonsterNameInfoMap[monsterName]
+func (d *GameData) GetMonsterInfoByName(monsterName string) *common.MonsterInfo {
+	v, ok := d.MonsterNameInfoMap[monsterName]
 	if !ok {
 		return nil
 	}
@@ -247,16 +258,16 @@ func (db *GameData) GetMonsterInfoByName(monsterName string) *common.MonsterInfo
 }
 
 // GetMagicInfoByID ...
-func (db *GameData) GetMagicInfoByID(magicID int) *common.MagicInfo {
-	v, ok := db.MagicIDInfoMap[magicID]
+func (d *GameData) GetMagicInfoByID(magicID int) *common.MagicInfo {
+	v, ok := d.MagicIDInfoMap[magicID]
 	if !ok {
 		return nil
 	}
 	return v
 }
 
-func (db *GameData) GetMagicInfoBySpell(spell common.Spell) *common.MagicInfo {
-	for _, v := range db.MagicIDInfoMap {
+func (d *GameData) GetMagicInfoBySpell(spell common.Spell) *common.MagicInfo {
+	for _, v := range d.MagicIDInfoMap {
 		if v.Spell == int(spell) {
 			return v
 		}
@@ -264,11 +275,65 @@ func (db *GameData) GetMagicInfoBySpell(spell common.Spell) *common.MagicInfo {
 	return nil
 }
 
-func (db *GameData) GetMagicInfoByName(name string) *common.MagicInfo {
-	for _, v := range db.MagicIDInfoMap {
+func (d *GameData) GetMagicInfoByName(name string) *common.MagicInfo {
+	for _, v := range d.MagicIDInfoMap {
 		if v.Name == name {
 			return v
 		}
 	}
 	return nil
+}
+
+func (d *GameData) GetRealItem(origin *common.ItemInfo, level uint16, job common.MirClass, itemList []*common.ItemInfo) *common.ItemInfo {
+	if origin.ClassBased && origin.LevelBased {
+		return d.GetClassAndLevelBasedItem(origin, job, level, itemList)
+	}
+	if origin.ClassBased {
+		return d.GetClassBasedItem(origin, job, itemList)
+	}
+	if origin.LevelBased {
+		return d.GetLevelBasedItem(origin, level, itemList)
+	}
+	return origin
+}
+
+func (d *GameData) GetLevelBasedItem(origin *common.ItemInfo, level uint16, itemList []*common.ItemInfo) *common.ItemInfo {
+	output := origin
+	for i := 0; i < len(itemList); i++ {
+		info := itemList[i]
+		// if info.Name.StartsWith(Origin.Name) {
+		if strings.HasPrefix(info.Name, origin.Name) {
+			if (info.RequiredType == common.RequiredTypeLevel) && (uint16(info.RequiredAmount) <= level) && (output.RequiredAmount < info.RequiredAmount) && (origin.RequiredGender == info.RequiredGender) {
+				output = info
+			}
+		}
+	}
+	return output
+}
+
+func (d *GameData) GetClassBasedItem(origin *common.ItemInfo, job common.MirClass, itemList []*common.ItemInfo) *common.ItemInfo {
+	for i := 0; i < len(itemList); i++ {
+		info := itemList[i]
+		if strings.HasPrefix(info.Name, origin.Name) {
+			if (uint8(info.RequiredClass) == (1 << uint8(job))) && (origin.RequiredGender == info.RequiredGender) {
+				return info
+			}
+		}
+	}
+	return origin
+}
+
+func (d *GameData) GetClassAndLevelBasedItem(origin *common.ItemInfo, job common.MirClass, level uint16, itemList []*common.ItemInfo) *common.ItemInfo {
+	output := origin
+	for i := 0; i < len(itemList); i++ {
+		info := itemList[i]
+		if strings.HasPrefix(info.Name, origin.Name) {
+			if uint8(info.RequiredClass) == (1 << uint8(job)) {
+				if (info.RequiredType == common.RequiredTypeLevel) && (uint16(info.RequiredAmount) <= level) && (output.RequiredAmount <= info.RequiredAmount) && (origin.RequiredGender == info.RequiredGender) {
+					output = info
+				}
+			}
+		}
+	}
+	return output
 }
