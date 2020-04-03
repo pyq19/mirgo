@@ -560,7 +560,7 @@ func SummonMagic_BeforeAction(ctx *MagicContext) (error, uint32) {
 	p := ctx.Player
 	for i := range p.Pets {
 		if p.Pets[i].GetName() == sumdata.MonsterName {
-			m := p.Pets[i].(*Monster)
+			m := p.Pets[i]
 			p.ActionList.PushAction(DelayedTypeRecall, m.PetRecall)
 			return nil, 0
 		}

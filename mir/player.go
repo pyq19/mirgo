@@ -95,7 +95,7 @@ type Player struct {
 	PoisonList         *PoisonList
 	BuffList           *BuffList
 	Health             Health // 状态恢复
-	Pets               []IMapObject
+	Pets               []*Monster
 	PKPoints           int
 	AMode              common.AttackMode
 	PMode              common.PetMode
@@ -112,7 +112,7 @@ type Player struct {
 	DamageRate         float32      // 伤害
 	StruckTime         time.Time    // 被攻击硬直时间
 	AllowGroup         bool         // 是否允许组队
-	GroupMembers       []*Player    // 小队成员
+	GroupMembers       *PlayerList  // 小队成员
 	GroupInvitation    *Player      // 组队邀请人
 }
 
@@ -177,6 +177,10 @@ func (m *Player) AddPlayerCount(n int) {
 	case 0:
 		m.Map.DelActiveObj(m)
 	}
+}
+
+func (p *Player) GetPercentHealth() uint8 {
+	return uint8((float32(p.GetHP()) / float32(p.GetMaxHP()) * 100))
 }
 
 func (p *Player) BroadcastHealthChange() {
@@ -2706,29 +2710,93 @@ func (p *Player) SwitchGroup(group bool) {
 		return
 	}
 	p.AllowGroup = group
-	if p.AllowGroup || p.GroupMembers == nil || len(p.GroupMembers) == 0 {
+	if p.AllowGroup || p.GroupMembers == nil || p.GroupMembers.Count() == 0 {
 		return
 	}
 	p.RemoveGroupBuff()
-	if len(p.GroupMembers) > 1 {
-		for i := 0; i < len(p.GroupMembers); i++ {
-			p.GroupMembers[i].Enqueue(&server.DeleteMember{Name: p.Name})
+	if p.GroupMembers.Count() > 1 {
+		for i := 0; i < p.GroupMembers.Count(); i++ {
+			p.GroupMembers.Get(i).Enqueue(&server.DeleteMember{Name: p.Name})
 		}
 	} else {
-		p.GroupMembers[0].Enqueue(&server.DeleteGroup{})
-		p.GroupMembers[0].GroupMembers = nil
+		p.GroupMembers.Get(0).Enqueue(&server.DeleteGroup{})
+		p.GroupMembers.Get(0).GroupMembers = nil
 	}
 	p.GroupMembers = nil
 }
 
 // AddMember 添加别的玩家到自己小队
 func (p *Player) AddMember(name string) {
-
+	if p.GroupMembers != nil && p.GroupMembers.Get(0) != nil {
+		p.ReceiveChat("你不是队长。", common.ChatTypeSystem)
+		return
+	}
+	if p.GroupMembers != nil && p.GroupMembers.Count() >= MaxGroup {
+		p.ReceiveChat("你的队伍人数已满。", common.ChatTypeSystem)
+		return
+	}
+	player := env.GetPlayerByName(name)
+	if player == nil {
+		p.ReceiveChat(name+"无法找到。", common.ChatTypeSystem)
+		return
+	}
+	if player.ID == p.ID {
+		p.ReceiveChat("你无法添加你自己。", common.ChatTypeSystem)
+		return
+	}
+	if !player.AllowGroup {
+		p.ReceiveChat(name+"不允许组队。", common.ChatTypeSystem)
+		return
+	}
+	if player.GroupMembers != nil {
+		p.ReceiveChat(name+"已经在另一个队伍。", common.ChatTypeSystem)
+		return
+	}
+	if player.GroupInvitation != nil {
+		p.ReceiveChat(name+"已经收到了另一个玩家的邀请。", common.ChatTypeSystem)
+		return
+	}
+	p.SwitchGroup(true)
+	player.Enqueue(&server.GroupInvite{Name: p.Name})
+	player.GroupInvitation = p
 }
 
 // DelMember 删除小队里的玩家
 func (p *Player) DelMember(name string) {
+	if p.GroupMembers == nil {
+		p.ReceiveChat("你不在队伍中。", common.ChatTypeSystem)
+		return
+	}
+	if p.GroupMembers.Get(0) != p {
+		p.ReceiveChat("你不是队长。", common.ChatTypeSystem)
+		return
+	}
+	var player *Player
+	for i := 0; i < p.GroupMembers.Count(); i++ {
+		if p.GroupMembers.Get(i).Name != name {
+			continue
+		}
+		player = p.GroupMembers.Get(i)
+		break
+	}
+	if player == nil {
+		p.ReceiveChat(name+"不在你的队伍中。", common.ChatTypeSystem)
+		return
+	}
+	player.RemoveGroupBuff()
+	p.GroupMembers.Remove(player)
+	player.Enqueue(&server.DeleteGroup{})
 
+	if p.GroupMembers.Count() > 1 {
+		packet := &server.DeleteMember{Name: player.Name}
+		for i := 0; i < p.GroupMembers.Count(); i++ {
+			p.GroupMembers.Get(i).Enqueue(packet)
+		}
+	} else {
+		p.GroupMembers.Get(0).Enqueue(&server.DeleteGroup{})
+		p.GroupMembers.Get(0).GroupMembers = nil
+	}
+	player.GroupMembers = nil
 }
 
 // GroupInvite 玩家是否同意组队
@@ -2747,12 +2815,12 @@ func (p *Player) GroupInvite(accept bool) {
 		p.GroupInvitation = nil
 		return
 	}
-	if p.GroupInvitation.GroupMembers != nil && p.GroupInvitation.GroupMembers[0] != p.GroupInvitation {
+	if p.GroupInvitation.GroupMembers != nil && p.GroupInvitation.GroupMembers.Get(0) != p.GroupInvitation {
 		p.ReceiveChat(p.GroupInvitation.Name+"不再是队长。", common.ChatTypeSystem)
 		p.GroupInvitation = nil
 		return
 	}
-	if p.GroupInvitation.GroupMembers != nil && len(p.GroupInvitation.GroupMembers) >= MaxGroup {
+	if p.GroupInvitation.GroupMembers != nil && p.GroupInvitation.GroupMembers.Count() >= MaxGroup {
 		p.ReceiveChat(p.GroupInvitation.Name+"的队伍人数已满。", common.ChatTypeSystem)
 		p.GroupInvitation = nil
 		return
@@ -2767,10 +2835,69 @@ func (p *Player) GroupInvite(accept bool) {
 		p.GroupInvitation = nil
 		return
 	}
+	if p.GroupInvitation.GroupMembers == nil {
+		p.GroupInvitation.GroupMembers = NewPlayerList()
+		p.GroupInvitation.Enqueue(&server.AddMember{Name: p.GroupInvitation.Name})
+	}
+	packet := &server.AddMember{Name: p.Name}
+	p.GroupMembers = p.GroupInvitation.GroupMembers
+	p.GroupInvitation = nil
+	for i := 0; i < p.GroupMembers.Count(); i++ {
+		member := p.GroupMembers.Get(i)
+		member.Enqueue(packet)
+		p.Enqueue(&server.AddMember{Name: member.Name})
+		if p.Map.Info.ID != member.Map.Info.ID || !InRange(p.CurrentLocation, member.CurrentLocation, DataRange) {
+			continue
+		}
+
+		// byte time = Math.Min(byte.MaxValue, (byte)Math.Max(5, (RevTime - Envir.Time) / 1000));
+		// TODO
+		time := uint8(10)
+
+		member.Enqueue(&server.ObjectHealth{ObjectID: p.GetID(), Percent: p.GetPercentHealth(), Expire: time})
+		p.Enqueue(&server.ObjectHealth{ObjectID: member.GetID(), Percent: member.GetPercentHealth(), Expire: time})
+		for j := 0; j < len(member.Pets); j++ {
+			pet := member.Pets[j]
+			p.Enqueue(&server.ObjectHealth{ObjectID: pet.GetID(), Percent: pet.GetPercentHealth(), Expire: time})
+		}
+	}
+
+	p.GroupMembers.Add(p)
+
 	// TODO
+	/*
+		//Adding Buff on for marriage
+		if (GroupMembers != null)
+		for (int i = 0; i < GroupMembers.Count; i++)
+		{
+			PlayerObject player = GroupMembers[i];
+				if (Info.Married == player.Info.Index)
+				{
+					AddBuff(new Buff { Type = BuffType.RelationshipEXP, Caster = player, ExpireTime = Envir.Time * 1000, Infinite = true, Values = new int[] { Settings.LoverEXPBonus } });
+					player.AddBuff(new Buff { Type = BuffType.RelationshipEXP, Caster = this, ExpireTime = Envir.Time * 1000, Infinite = true, Values = new int[] { Settings.LoverEXPBonus } });
+				}
+				if (Info.Mentor == player.Info.Index)
+				{
+					if (Info.isMentor)
+					{
+						player.AddBuff(new Buff { Type = BuffType.Mentee, Caster = player, ExpireTime = Envir.Time * 1000, Infinite = true, Values = new int[] { Settings.MentorExpBoost } });
+						AddBuff(new Buff { Type = BuffType.Mentor, Caster = this, ExpireTime = Envir.Time * 1000, Infinite = true, Values = new int[] { Settings.MentorDamageBoost } });
+					}
+					else
+					{
+						AddBuff(new Buff { Type = BuffType.Mentee, Caster = player, ExpireTime = Envir.Time * 1000, Infinite = true, Values = new int[] { Settings.MentorExpBoost } });
+						player.AddBuff(new Buff { Type = BuffType.Mentor, Caster = this, ExpireTime = Envir.Time * 1000, Infinite = true, Values = new int[] { Settings.MentorDamageBoost } });
+					}
+				}
+		}
+	*/
+	for j := 0; j < len(p.Pets); j++ {
+		p.Pets[j].BroadcastHealthChange()
+	}
+	p.Enqueue(packet)
 }
 
-// RemoveGroupBuff 删除组队 buff
+// TODO RemoveGroupBuff 删除组队 buff
 func (p *Player) RemoveGroupBuff() {
 
 }

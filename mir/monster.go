@@ -187,6 +187,10 @@ func (m *Monster) GetMaxHP() int {
 	return int(m.MaxHP)
 }
 
+func (m *Monster) GetPercentHealth() uint8 {
+	return uint8((float32(m.GetHP()) / float32(m.GetMaxHP()) * 100))
+}
+
 func (m *Monster) BroadcastHealthChange() {
 	IMapObject_BroadcastHealthChange(m)
 }

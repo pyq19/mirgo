@@ -539,7 +539,7 @@ func updatePlayerInfo(g *Game, p *Player, c *common.Character) {
 		HealNextTime:  &healNextTime,
 		HealDuration:  10 * time.Second,
 	}
-	p.Pets = make([]IMapObject, 0)
+	p.Pets = make([]*Monster, 0)
 	p.PKPoints = 0
 	p.AMode = common.AttackModeAll
 	p.PMode = common.PetModeNone
