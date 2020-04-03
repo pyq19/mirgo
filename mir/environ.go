@@ -11,6 +11,7 @@ import (
 
 	"github.com/davyxu/cellnet"
 	"github.com/davyxu/cellnet/peer"
+	_ "github.com/davyxu/cellnet/peer/gorillaws"
 	_ "github.com/davyxu/cellnet/peer/tcp"
 	"github.com/davyxu/cellnet/proc"
 	"github.com/davyxu/cellnet/timer"
@@ -67,8 +68,16 @@ func (g *Environ) ServerStart() {
 
 	// 这里用cellnet 单线程模式。消息处理都在queue线程。无需再另开线程
 	queue := cellnet.NewEventQueue()
-	p := peer.NewGenericPeer("tcp.Acceptor", "server", settings.Addr, queue)
-	proc.BindProcessorHandler(p, "mir.server.tcp", g.Game.HandleEvent)
+
+	acceptor := "tcp.Acceptor"
+	if settings.Acceptor == "websocket" {
+		acceptor = "gorillaws.Acceptor"
+	} else {
+		settings.Acceptor = "tcp"
+	}
+
+	p := peer.NewGenericPeer(acceptor, "server", settings.Addr, queue)
+	proc.BindProcessorHandler(p, "mir.server."+settings.Acceptor, g.Game.HandleEvent)
 
 	timer.NewLoop(queue, time.Second/time.Duration(60), func(*timer.Loop) {
 		env.Loop()

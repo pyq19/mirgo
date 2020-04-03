@@ -12,6 +12,7 @@ import (
 
 type Conf struct {
 	DataPath string
+	Acceptor string // websocket | tcp(defulat)
 }
 
 type Settings struct {
@@ -23,6 +24,7 @@ type Settings struct {
 	EnvirPath     string
 	ConfigsPath   string
 	RoutePath     string
+	Acceptor      string
 
 	BaseStats         map[common.MirClass]baseStats
 	MagicResistWeight int
@@ -142,6 +144,7 @@ func New() (*Settings, error) {
 		ConfigsPath:       filepath.Join(conf.DataPath, "/Configs/"),
 		RoutePath:         filepath.Join(conf.DataPath, "/Envir/Routes/"),
 		BaseStats:         BaseStats,
+		Acceptor:          conf.Acceptor,
 		MagicResistWeight: 10,
 	}, nil
 }

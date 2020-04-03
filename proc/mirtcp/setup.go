@@ -14,4 +14,13 @@ func init() {
 		bundle.SetTransmitter(new(ServerTCPMessageTransmitter))
 		bundle.SetCallback(proc.NewQueuedEventCallback(userCallback))
 	})
+
+	// proc.RegisterProcessor("mir.client.websocket", func(bundle proc.ProcessorBundle, userCallback cellnet.EventCallback) {
+	// 	bundle.SetTransmitter(new(ClientWebsocketMessageTransmitter))
+	// 	bundle.SetCallback(proc.NewQueuedEventCallback(userCallback))
+	// })
+	proc.RegisterProcessor("mir.server.websocket", func(bundle proc.ProcessorBundle, userCallback cellnet.EventCallback) {
+		bundle.SetTransmitter(new(WSMessageTransmitter))
+		bundle.SetCallback(proc.NewQueuedEventCallback(userCallback))
+	})
 }
