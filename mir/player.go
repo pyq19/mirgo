@@ -108,9 +108,12 @@ type Player struct {
 	BindLocation       common.Point // 绑定的坐标 死亡时复活用
 	MagicShield        bool         // TODO 是否有魔法盾
 	MagicShieldLv      int          // TODO 魔法盾等级
-	ArmourRate         float32
-	DamageRate         float32
-	StruckTime         time.Time
+	ArmourRate         float32      // 防御
+	DamageRate         float32      // 伤害
+	StruckTime         time.Time    // 被攻击硬直时间
+	AllowGroup         bool         // 是否允许组队
+	GroupMembers       []*Player    // 小队成员
+	GroupInvitation    *Player      // 组队邀请人
 }
 
 type Health struct {
@@ -2696,19 +2699,79 @@ func (p *Player) MagicKey(spell common.Spell, key uint8) {
 	}
 }
 
+// SwitchGroup 组队开关切换(是否允许组队)
 func (p *Player) SwitchGroup(group bool) {
-
+	p.Enqueue(&server.SwitchGroup{AllowGroup: group})
+	if p.AllowGroup == group {
+		return
+	}
+	p.AllowGroup = group
+	if p.AllowGroup || p.GroupMembers == nil || len(p.GroupMembers) == 0 {
+		return
+	}
+	p.RemoveGroupBuff()
+	if len(p.GroupMembers) > 1 {
+		for i := 0; i < len(p.GroupMembers); i++ {
+			p.GroupMembers[i].Enqueue(&server.DeleteMember{Name: p.Name})
+		}
+	} else {
+		p.GroupMembers[0].Enqueue(&server.DeleteGroup{})
+		p.GroupMembers[0].GroupMembers = nil
+	}
+	p.GroupMembers = nil
 }
 
+// AddMember 添加别的玩家到自己小队
 func (p *Player) AddMember(name string) {
 
 }
 
+// DelMember 删除小队里的玩家
 func (p *Player) DelMember(name string) {
 
 }
 
-func (p *Player) GroupInvite(invite bool) {
+// GroupInvite 玩家是否同意组队
+func (p *Player) GroupInvite(accept bool) {
+	if p.GroupInvitation == nil {
+		p.ReceiveChat("你没有收到邀请或邀请已过期。", common.ChatTypeSystem)
+		return
+	}
+	if !accept {
+		p.GroupInvitation.ReceiveChat(p.Name+"拒绝了你的组队邀请。", common.ChatTypeSystem)
+		p.GroupInvitation = nil
+		return
+	}
+	if p.GroupMembers != nil {
+		p.ReceiveChat(fmt.Sprintf("你无法再加入%s的队伍。", p.GroupInvitation.Name), common.ChatTypeSystem)
+		p.GroupInvitation = nil
+		return
+	}
+	if p.GroupInvitation.GroupMembers != nil && p.GroupInvitation.GroupMembers[0] != p.GroupInvitation {
+		p.ReceiveChat(p.GroupInvitation.Name+"不再是队长。", common.ChatTypeSystem)
+		p.GroupInvitation = nil
+		return
+	}
+	if p.GroupInvitation.GroupMembers != nil && len(p.GroupInvitation.GroupMembers) >= MaxGroup {
+		p.ReceiveChat(p.GroupInvitation.Name+"的队伍人数已满。", common.ChatTypeSystem)
+		p.GroupInvitation = nil
+		return
+	}
+	if !p.GroupInvitation.AllowGroup {
+		p.ReceiveChat(p.GroupInvitation.Name+"不允许组队。", common.ChatTypeSystem)
+		p.GroupInvitation = nil
+		return
+	}
+	if p.GroupInvitation == nil {
+		p.ReceiveChat(p.GroupInvitation.Name+"不在线。", common.ChatTypeSystem)
+		p.GroupInvitation = nil
+		return
+	}
+	// TODO
+}
+
+// RemoveGroupBuff 删除组队 buff
+func (p *Player) RemoveGroupBuff() {
 
 }
 

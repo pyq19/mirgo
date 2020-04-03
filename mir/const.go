@@ -8,6 +8,8 @@ var settings *setting.Settings
 
 const DataRange = 20
 
+const MaxGroup = 5 // 小队的最大人数
+
 const (
 	StopGameServerClosed              = 0
 	StopGameDoubleLogin               = 1
