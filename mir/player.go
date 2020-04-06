@@ -502,6 +502,12 @@ func (p *Player) SaveData() {
 	// 玩家当前位置
 	adb.SyncPosition(p)
 
+	// 玩家已经获取的经验
+	adb.SyncExperience(p)
+
+	// 玩家 HP MP
+	adb.SyncHPMP(p)
+
 	// 玩家 level magic
 
 	// AMode PMode
@@ -1061,11 +1067,12 @@ func (p *Player) Attacked(attacker IMapObject, damage int, typ common.DefenceTyp
 			p.Broadcast(&server.ObjectStruck{ObjectID: p.GetID(), AttackerID: attacker.GetID(), Direction: p.GetDirection(), LocationX: int32(p.CurrentLocation.X), LocationY: int32(p.CurrentLocation.Y)})
 			p.StruckTime = now.Add(500 * time.Millisecond)
 		}
-		log.Debugf("Player attacked, armour: %d, damage: %d. armour - damage: %d\n", armour, damage, armour-damage)
-		log.Debugf("Player ChangeHP: %d\n", armour-damage)
-		log.Debugf("Player HP: %d\n", p.HP)
+		log.Debugf("Player %s attacked, armour: %d, damage: %d. armour - damage: %d\n", p.Name, armour, damage, armour-damage)
+		log.Debugf("Player %s HP: %d, MP: %d\n", p.Name, p.HP, p.MP)
 		p.BroadcastDamageIndicator(common.DamageTypeHit, armour-damage)
 		p.ChangeHP(armour - damage)
+		log.Debugf("Player %s ChangeHP: %d\n", p.Name, armour-damage)
+		log.Debugf("Player %s HP: %d, MP: %d\n", p.Name, p.HP, p.MP)
 		return damage - armour
 	}
 
@@ -1086,6 +1093,7 @@ func (p *Player) GetDefencePower(min, max uint16) int {
 func (p *Player) GainExp(amount uint32) {
 	p.Experience += int64(amount)
 	p.Enqueue(ServerMessage{}.GainExperience(amount))
+	log.Debugf("Player: %s GainExp amount: %d, p.Experience: %d, p.MaxExperience: %d\n", p.Name, amount, p.Experience, p.MaxExperience)
 	if p.Experience < p.MaxExperience {
 		return
 	}

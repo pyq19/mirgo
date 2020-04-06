@@ -79,3 +79,12 @@ func (d *DB) SyncAModePMode(p *Player) {
 func (d *DB) SyncAllowGroup(p *Player) {
 	d.setCharacterAttr(p, "allow_group", p.AllowGroup)
 }
+
+func (d *DB) SyncExperience(p *Player) {
+	d.setCharacterAttr(p, "experience", p.Experience)
+}
+
+func (d *DB) SyncHPMP(p *Player) {
+	d.setCharacterAttr(p, "hp", p.HP)
+	d.setCharacterAttr(p, "mp", p.MP)
+}

@@ -526,7 +526,7 @@ func updatePlayerInfo(g *Game, p *Player, c *common.Character) {
 	p.Gender = c.Gender
 	p.Hair = c.Hair
 	p.SendItemInfo = make([]*common.ItemInfo, 0)
-	p.MaxExperience = 100
+	p.MaxExperience = int64(data.ExpList[p.Level-1])
 	p.Magics = magics
 	p.ActionList = NewActionList()
 	p.PoisonList = NewPoisonList()

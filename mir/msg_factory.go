@@ -157,8 +157,8 @@ func (ServerMessage) UserInformation(p *Player) *server.UserInformation {
 	ui.Hair = p.Hair
 	ui.HP = p.HP
 	ui.MP = p.MP
-	ui.Experience = p.Experience             // TODO
-	ui.MaxExperience = 100                   // TODO
+	ui.Experience = p.Experience
+	ui.MaxExperience = int64(data.ExpList[p.Level-1])
 	ui.LevelEffect = common.LevelEffectsNone // TODO
 	ui.Gold = uint32(p.Gold)
 	ui.Credit = 100 // TODO
