@@ -101,10 +101,6 @@ func (m *Item) GetPlayerCount() int {
 	return m.PlayerCount
 }
 
-func (i *Item) AttackMode() common.AttackMode {
-	return common.AttackModePeace
-}
-
 func (i *Item) IsDead() bool { return i.Dead }
 
 func (i *Item) IsUndead() bool {

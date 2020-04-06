@@ -541,12 +541,13 @@ func updatePlayerInfo(g *Game, p *Player, c *common.Character) {
 	}
 	p.Pets = make([]*Monster, 0)
 	p.PKPoints = 0
-	p.AMode = common.AttackModeAll
-	p.PMode = common.PetModeNone
+	p.AMode = c.AttackMode
+	p.PMode = c.PetMode
 	p.CallingNPC = nil
 	p.StruckTime = time.Now()
 	p.DamageRate = 1.0
 	p.ArmourRate = 1.0
+	p.AllowGroup = c.AllowGroup
 }
 
 // StartGame 开始游戏

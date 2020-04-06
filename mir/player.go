@@ -222,10 +222,6 @@ func (p *Player) GetDirection() common.MirDirection {
 // 	return p.Map.AOI.GetGridByPoint(p.Point())
 // }
 
-func (p *Player) AttackMode() common.AttackMode {
-	return common.AttackModeAll
-}
-
 // IsAttackTarget 判断玩家是否是攻击者的攻击对象
 func (p *Player) IsAttackTarget(attacker IMapObject) bool {
 	// return false
@@ -509,8 +505,12 @@ func (p *Player) SaveData() {
 	// 玩家 level magic
 
 	// AMode PMode
+	adb.SyncAModePMode(p)
 
 	// BindMapIndex BindLocation
+
+	// AllowGroup 组队开关
+	adb.SyncAllowGroup(p)
 }
 
 func (p *Player) EnqueueItemInfos() {
@@ -1352,9 +1352,7 @@ func (p *Player) CompletePoison(args ...interface{})          {}
 func (p *Player) CompleteDamageIndicator(args ...interface{}) {}
 
 func (p *Player) StartGame() {
-	p.ReceiveChat("这是一个以学习为目的传奇服务端", common.ChatTypeSystem)
-	p.ReceiveChat("如有任何建议、疑问欢迎交流", common.ChatTypeSystem)
-	p.ReceiveChat("源码地址 https://github.com/yenkeia/mirgo", common.ChatTypeSystem)
+	p.ReceiveChat("[欢迎进入游戏，如有任何建议、疑问欢迎交流。联系QQ群：32309474]", common.ChatTypeHint)
 	p.EnqueueItemInfos()
 	p.RefreshStats()
 	p.EnqueueQuestInfo()
@@ -1362,6 +1360,9 @@ func (p *Player) StartGame() {
 	p.Enqueue(ServerMessage{}.UserInformation(p))
 	p.Enqueue(&server.TimeOfDay{Lights: env.Lights})
 	// p.EnqueueAreaObjects(nil, p.Map.AOI.GetGridByPoint(p.GetPoint()))
+	p.Enqueue(&server.ChangeAMode{Mode: p.AMode})
+	p.Enqueue(&server.ChangePMode{Mode: p.PMode})
+	p.Enqueue(&server.SwitchGroup{AllowGroup: p.AllowGroup})
 	p.EnqueueAreaObjects(nil, p.GetCell())
 	p.Enqueue(ServerMessage{}.NPCResponse([]string{}))
 	p.Broadcast(ServerMessage{}.ObjectPlayer(p))

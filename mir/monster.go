@@ -392,10 +392,6 @@ func (m *Monster) IsFriendlyTarget(attacker IMapObject) bool {
 	return false
 }
 
-func (m *Monster) AttackMode() common.AttackMode {
-	return common.AttackModeAll
-}
-
 func (m *Monster) CanMove() bool {
 	return time.Now().After(m.MoveTime)
 }

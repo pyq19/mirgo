@@ -72,6 +72,7 @@ type Character struct {
 	AttackMode       AttackMode
 	PetMode          PetMode
 	Gold             uint64 `codec:"-"` // 编码时，忽略这个字段，只用在数据库查询
+	AllowGroup       bool   `codec:"-"`
 }
 
 // CharacterUserItem 角色物品关系

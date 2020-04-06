@@ -205,21 +205,21 @@ func (m *Map) UpdateObject(obj IMapObject, point common.Point) bool {
 		}
 	}
 
-	/*
-		sourcecell := obj.GetCell()
-		sourcecell.DeleteObject(obj)
-		destcell.AddObject(obj)
+	// FIXME ObjectPlayer 发送太频繁
 
-		switch obj.GetRace() {
-		case common.ObjectTypePlayer:
-			p := obj.(*Player)
-			p.Broadcast(ServerMessage{}.ObjectPlayer(p))
-			p.EnqueueAreaObjects(sourcecell, destcell)
-		case common.ObjectTypeMonster:
-			m := obj.(*Monster)
-			m.Broadcast(ServerMessage{}.ObjectMonster(m))
-		}
-	*/
+	sourcecell := obj.GetCell()
+	sourcecell.DeleteObject(obj)
+	destcell.AddObject(obj)
+
+	switch obj.GetRace() {
+	case common.ObjectTypePlayer:
+		p := obj.(*Player)
+		p.Broadcast(ServerMessage{}.ObjectPlayer(p))
+		p.EnqueueAreaObjects(sourcecell, destcell)
+	case common.ObjectTypeMonster:
+		m := obj.(*Monster)
+		m.Broadcast(ServerMessage{}.ObjectMonster(m))
+	}
 
 	return true
 }

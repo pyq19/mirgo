@@ -54,7 +54,6 @@ type IMapObject interface {
 	IsDead() bool
 	IsUndead() bool
 	IsBlocking() bool
-	AttackMode() common.AttackMode
 	AddBuff(*Buff)
 	ApplyPoison(*Poison, IMapObject)
 	AddPlayerCount(n int)

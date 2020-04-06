@@ -70,3 +70,12 @@ func (d *DB) GetObjectID() uint32 {
 func (d *DB) SyncObjectID(id uint32) {
 	d.db.Table("basic").Where(common.Basic{ID: 1}).Update(map[string]interface{}{"object_id": id})
 }
+
+func (d *DB) SyncAModePMode(p *Player) {
+	d.setCharacterAttr(p, "attack_mode", p.AMode)
+	d.setCharacterAttr(p, "pet_mode", p.PMode)
+}
+
+func (d *DB) SyncAllowGroup(p *Player) {
+	d.setCharacterAttr(p, "allow_group", p.AllowGroup)
+}

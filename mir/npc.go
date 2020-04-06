@@ -135,10 +135,6 @@ func (n *NPC) GetLevel() int {
 	return 0
 }
 
-func (n *NPC) AttackMode() common.AttackMode {
-	return common.AttackModePeace
-}
-
 func (n *NPC) GetRace() common.ObjectType {
 	return common.ObjectTypeMerchant
 }
