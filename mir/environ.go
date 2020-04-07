@@ -38,8 +38,7 @@ type Environ struct {
 	Maps               map[int]*Map // mapID: Map
 	ObjectID           uint32
 	ObjectIDChan       chan uint32
-	Players            []*Player
-	lock               *sync.Mutex
+	Players            *PlayerList
 	lastFrame          time.Time
 
 	DefaultNPC *NPC
@@ -136,8 +135,7 @@ func NewEnviron() *Environ {
 
 	e.InitMaps()
 
-	e.Players = make([]*Player, 0)
-	e.lock = new(sync.Mutex)
+	e.Players = NewPlayerList()
 	e.SessionIDPlayerMap = new(sync.Map)
 	e.Game = &Game{}
 
@@ -244,66 +242,6 @@ func (e *Environ) NewObjectID() uint32 {
 	return id
 }
 
-func (e *Environ) AddPlayer(p *Player) {
-	e.lock.Lock()
-	e.Players = append(e.Players, p)
-	e.lock.Unlock()
-	p.Map.AddObject(p)
-}
-
-func (e *Environ) GetPlayer(ID uint32) *Player {
-	e.lock.Lock()
-	for i := 0; i < len(e.Players); i++ {
-		o := e.Players[i]
-		if ID == o.ID {
-			return o
-		}
-	}
-	e.lock.Unlock()
-	return nil
-}
-
-func (e *Environ) GetPlayerByName(name string) *Player {
-	e.lock.Lock()
-	for i := 0; i < len(e.Players); i++ {
-		o := e.Players[i]
-		if name == o.Name {
-			return o
-		}
-	}
-	e.lock.Unlock()
-	return nil
-}
-
-func (e *Environ) DeletePlayer(p *Player) {
-	e.lock.Lock()
-	for i := 0; i < len(e.Players); i++ {
-		o := e.Players[i]
-		if o == nil || o.ID == 0 {
-			continue
-		}
-		if p.ID == o.ID {
-			e.Players[i] = e.Players[len(e.Players)-1]
-			e.Players = e.Players[:len(e.Players)-1]
-			break
-		}
-	}
-	e.lock.Unlock()
-	p.Map.DeleteObject(p)
-}
-
-func (e *Environ) GetPlayersCount() int {
-	e.lock.Lock()
-	c := 0
-	for i := range e.Players {
-		if e.Players[i] != nil {
-			c++
-		}
-	}
-	e.lock.Unlock()
-	return c
-}
-
 func (e *Environ) GetMapByName(filename string) *Map {
 
 	for _, m := range e.Maps {
@@ -330,7 +268,7 @@ func (e *Environ) Broadcast(msg interface{}) {
 }
 
 func (e *Environ) SystemBroadcast(...interface{}) {
-	envPlayerCount := e.GetPlayersCount()
+	envPlayerCount := e.Players.Count()
 	text := "当前在线玩家人数: " + strconv.Itoa(envPlayerCount)
 	e.Broadcast(&server.Chat{
 		Message: text,
@@ -339,7 +277,7 @@ func (e *Environ) SystemBroadcast(...interface{}) {
 }
 
 func (e *Environ) Debug() {
-	envPlayerCount := e.GetPlayersCount()
+	envPlayerCount := e.Players.Count()
 	nplayers := 0
 	for _, m := range e.Maps {
 		nplayers += len(m.GetAllPlayers())

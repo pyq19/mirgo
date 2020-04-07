@@ -1028,8 +1028,7 @@ func (p *Player) Attacked(attacker IMapObject, damage int, typ common.DefenceTyp
 			damage -= damage * (p.MagicShieldLv + 2) / 10
 		}
 		if armour >= damage {
-			log.Debugln("Player Attacked")
-			log.Debugf("armour >= damage. armour: %d, damage: %d\n", armour, damage)
+			log.Debugf("Player %s armour >= damage. armour: %d, damage: %d\n", p.Name, armour, damage)
 			p.BroadcastDamageIndicator(common.DamageTypeMiss, 0)
 			return 0
 		}
@@ -1068,11 +1067,11 @@ func (p *Player) Attacked(attacker IMapObject, damage int, typ common.DefenceTyp
 			p.StruckTime = now.Add(500 * time.Millisecond)
 		}
 		log.Debugf("Player %s attacked, armour: %d, damage: %d. armour - damage: %d\n", p.Name, armour, damage, armour-damage)
-		log.Debugf("Player %s HP: %d, MP: %d\n", p.Name, p.HP, p.MP)
+		log.Debugf("Player %s HP: %d, MP: %d, MaxHP: %d, MaxMP: %d\n", p.Name, p.HP, p.MP, p.MaxHP, p.MaxMP)
 		p.BroadcastDamageIndicator(common.DamageTypeHit, armour-damage)
 		p.ChangeHP(armour - damage)
 		log.Debugf("Player %s ChangeHP: %d\n", p.Name, armour-damage)
-		log.Debugf("Player %s HP: %d, MP: %d\n", p.Name, p.HP, p.MP)
+		log.Debugf("Player %s HP: %d, MP: %d, MaxHP: %d, MaxMP: %d\n", p.Name, p.HP, p.MP, p.MaxHP, p.MaxMP)
 		return damage - armour
 	}
 
@@ -2274,7 +2273,7 @@ func (p *Player) PickUp() {
 }
 
 func (p *Player) Inspect(id uint32) {
-	o := env.GetPlayer(id)
+	o := env.Players.GetPlayerByID(id)
 	if o == nil {
 		p.ReceiveChat("获取不到玩家数据", common.ChatTypeSystem)
 		log.Warnln("Player Inspect id error", id)
@@ -2713,16 +2712,18 @@ func (p *Player) MagicKey(spell common.Spell, key uint8) {
 }
 
 // SwitchGroup 组队开关切换(是否允许组队)
-func (p *Player) SwitchGroup(group bool) {
-	p.Enqueue(&server.SwitchGroup{AllowGroup: group})
-	if p.AllowGroup == group {
+func (p *Player) SwitchGroup(allow bool) {
+	p.Enqueue(&server.SwitchGroup{AllowGroup: allow})
+	if p.AllowGroup == allow {
 		return
 	}
-	p.AllowGroup = group
+	p.AllowGroup = allow
 	if p.AllowGroup || p.GroupMembers == nil || p.GroupMembers.Count() == 0 {
 		return
 	}
 	p.RemoveGroupBuff()
+	p.GroupMembers.Remove(p)
+	p.Enqueue(&server.DeleteGroup{})
 	if p.GroupMembers.Count() > 1 {
 		for i := 0; i < p.GroupMembers.Count(); i++ {
 			p.GroupMembers.Get(i).Enqueue(&server.DeleteMember{Name: p.Name})
@@ -2732,6 +2733,7 @@ func (p *Player) SwitchGroup(group bool) {
 		p.GroupMembers.Get(0).GroupMembers = nil
 	}
 	p.GroupMembers = nil
+	log.Debugf("Player %s SwitchGroup. p.GroupMembers: %s\n", p.Name, p.GroupMembers)
 }
 
 // AddMember 添加别的玩家到自己小队
@@ -2744,7 +2746,7 @@ func (p *Player) AddMember(name string) {
 		p.ReceiveChat("你的队伍人数已满。", common.ChatTypeSystem)
 		return
 	}
-	player := env.GetPlayerByName(name)
+	player := env.Players.GetPlayerByName(name)
 	if player == nil {
 		p.ReceiveChat(name+"无法找到。", common.ChatTypeSystem)
 		return
@@ -2768,6 +2770,7 @@ func (p *Player) AddMember(name string) {
 	p.SwitchGroup(true)
 	player.Enqueue(&server.GroupInvite{Name: p.Name})
 	player.GroupInvitation = p
+	log.Debugf("Player %s AddMember. p.GroupMembers: %s\n", p.Name, p.GroupMembers)
 }
 
 // DelMember 删除小队里的玩家
@@ -2806,6 +2809,7 @@ func (p *Player) DelMember(name string) {
 		p.GroupMembers.Get(0).GroupMembers = nil
 	}
 	player.GroupMembers = nil
+	log.Debugf("Player %s DelMember. p.GroupMembers: %s\n", p.Name, p.GroupMembers)
 }
 
 // GroupInvite 玩家是否同意组队
@@ -2846,6 +2850,7 @@ func (p *Player) GroupInvite(accept bool) {
 	}
 	if p.GroupInvitation.GroupMembers == nil {
 		p.GroupInvitation.GroupMembers = NewPlayerList()
+		p.GroupInvitation.GroupMembers.Add(p.GroupInvitation)
 		p.GroupInvitation.Enqueue(&server.AddMember{Name: p.GroupInvitation.Name})
 	}
 	packet := &server.AddMember{Name: p.Name}
@@ -2904,6 +2909,7 @@ func (p *Player) GroupInvite(accept bool) {
 		p.Pets[j].BroadcastHealthChange()
 	}
 	p.Enqueue(packet)
+	log.Debugf("Player %s GroupInvite. p.GroupMembers: %s\n", p.Name, p.GroupMembers)
 }
 
 // TODO RemoveGroupBuff 删除组队 buff

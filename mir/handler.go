@@ -323,7 +323,8 @@ func (g *Game) SessionClosed(s cellnet.Session, msg *cellnet.SessionClosed) {
 	p := v.(*Player)
 	if p.GameStage == GAME {
 		p.StopGame(StopGameUserClosedGame)
-		env.DeletePlayer(p)
+		env.Players.Remove(p)
+		p.Map.DeleteObject(p)
 		p.SaveData()
 	}
 	pm.Delete(s.ID())
@@ -583,7 +584,8 @@ func (g *Game) StartGame(s cellnet.Session, msg *client.StartGame) {
 
 	log.Debugf("player login, AccountID(%d) Name(%s)\n", p.AccountID, p.Name)
 	p.Map = env.GetMap(int(c.CurrentMapID))
-	env.AddPlayer(p)
+	env.Players.Add(p)
+	p.Map.AddObject(p)
 	p.StartGame()
 }
 
@@ -594,7 +596,8 @@ func (g *Game) LogOut(s cellnet.Session, msg *client.LogOut) {
 	}
 	p.GameStage = SELECT
 	p.StopGame(StopGameUserReturnedToSelectChar)
-	env.DeletePlayer(p)
+	env.Players.Remove(p)
+	p.Map.DeleteObject(p)
 	s.Send(&server.LogOutSuccess{Characters: g.getAccountCharacters(p.AccountID)})
 	p.SaveData()
 }

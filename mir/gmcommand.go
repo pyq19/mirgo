@@ -10,7 +10,7 @@ import (
 
 func _gmKill(p *Player, playername string) {
 	if playername != "" {
-		o := env.GetPlayerByName(playername)
+		o := env.Players.GetPlayerByName(playername)
 		if o == nil {
 			p.ReceiveChat(fmt.Sprintf("找不到玩家(%s)", playername), common.ChatTypeSystem)
 			return
