@@ -1128,13 +1128,21 @@ type DivorceRequest struct{}
 
 type MentorRequest struct{}
 
-type TradeRequest struct{}
+type TradeRequest struct {
+	Name string
+}
 
-type TradeAccept struct{}
+type TradeAccept struct {
+	Name string
+}
 
-type TradeGold struct{}
+type TradeGold struct {
+	Amount uint32
+}
 
-type TradeItem struct{}
+type TradeItem struct {
+	TradeItems []*common.UserItem
+}
 
 type TradeConfirm struct{}
 

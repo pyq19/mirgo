@@ -114,6 +114,9 @@ type Player struct {
 	AllowGroup         bool         // 是否允许组队
 	GroupMembers       *PlayerList  // 小队成员
 	GroupInvitation    *Player      // 组队邀请人
+	AllowTrade         bool         // 是否允许交易
+	TradePartner       *Player      // 交易对象
+	TradeInvitation    *Player      // 交易邀请人（发起交易的玩家
 }
 
 type Health struct {
@@ -1643,10 +1646,12 @@ func (p *Player) ReplaceWeddingRing(id uint64) {
 
 }
 
+// DepositTradeItem 交易时，把物品从背包放入交易栏
 func (p *Player) DepositTradeItem(from int32, to int32) {
 
 }
 
+// RetrieveTradeItem 交易时，把物品从交易栏放回背包
 func (p *Player) RetrieveTradeItem(from int32, to int32) {
 
 }
@@ -3093,22 +3098,94 @@ func (p *Player) CancelMentor() {
 
 }
 
+// TradeRequest 向面前的别的玩家发出交易请求
 func (p *Player) TradeRequest() {
-
+	if p.TradePartner != nil {
+		p.ReceiveChat("你已经在交易了。", common.ChatTypeSystem)
+		return
+	}
+	target := p.GetPoint().NextPoint(p.CurrentDirection, 1)
+	cell := p.Map.GetCell(target)
+	var player *Player
+	if cell == nil || !cell.HasObject() {
+		return
+	}
+	for _, ob := range cell.objects {
+		if ob.GetRace() != common.ObjectTypePlayer {
+			continue
+		}
+		player = ob.(*Player)
+	}
+	if player == nil || p.CurrentDirection != player.CurrentDirection.NegativeDirection() {
+		p.ReceiveChat("交易时你必须和对方面对面。", common.ChatTypeSystem)
+		return
+	}
+	if player.ID == p.ID {
+		p.ReceiveChat("你不能和自己交易。", common.ChatTypeSystem)
+		return
+	}
+	if player.IsDead() || p.IsDead() {
+		p.ReceiveChat("无法和死人交易。", common.ChatTypeSystem)
+		return
+	}
+	if player.TradeInvitation != nil {
+		p.ReceiveChat(fmt.Sprintf("玩家 %s 已经收到了另一个交易邀请。", player.Name), common.ChatTypeSystem)
+		return
+	}
+	if !player.AllowTrade {
+		p.ReceiveChat(fmt.Sprintf("玩家 %s 不允许交易。", player.Name), common.ChatTypeSystem)
+		return
+	}
+	if !InRange(player.CurrentLocation, p.CurrentLocation, DataRange) || player.Map.Info.ID != p.Map.Info.ID {
+		p.ReceiveChat(fmt.Sprintf("玩家 %s 不在交易范围内。", player.Name), common.ChatTypeSystem)
+		return
+	}
+	if player.TradePartner != nil {
+		p.ReceiveChat(fmt.Sprintf("玩家 %s 已经在交易了。", player.Name), common.ChatTypeSystem)
+		return
+	}
+	player.TradeInvitation = p
+	player.Enqueue(&server.TradeRequest{Name: p.Name})
 }
 
+// TradeGold 交易时候输入交易的金币，如果交易取消则返还金币
 func (p *Player) TradeGold(amount uint32) {
 
 }
 
-func (p *Player) TradeReply(acceptInvite bool) {
-
+// TradeReply 被交易玩家是否同意交易请求（TradeRequest）
+func (p *Player) TradeReply(accept bool) {
+	if p.TradeInvitation == nil {
+		return
+	}
+	if !accept {
+		p.TradeInvitation.ReceiveChat(fmt.Sprintf("玩家 %s 拒绝交易。", p.Name), common.ChatTypeSystem)
+		p.TradeInvitation = nil
+		return
+	}
+	if p.TradePartner != nil {
+		p.ReceiveChat("你已经在交易了。", common.ChatTypeSystem)
+		p.TradeInvitation = nil
+		return
+	}
+	if p.TradeInvitation.TradePartner != nil {
+		p.ReceiveChat(fmt.Sprintf("玩家 %s 已经在交易了。", p.TradeInvitation.Name), common.ChatTypeSystem)
+		p.TradeInvitation = nil
+		return
+	}
+	p.TradePartner = p.TradeInvitation
+	p.TradeInvitation.TradePartner = p
+	p.TradeInvitation = nil
+	p.Enqueue(&server.TradeAccept{Name: p.TradePartner.Name})
+	p.TradePartner.Enqueue(&server.TradeAccept{Name: p.Name})
 }
 
+// TradeConfirm 摆好物品到交易栏后，确认交易
 func (p *Player) TradeConfirm(locked bool) {
 
 }
 
+// TradeCancel 交易双方任何一方取消交易
 func (p *Player) TradeCancel() {
 
 }

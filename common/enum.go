@@ -41,6 +41,14 @@ const (
 	MirDirectionCount                  = 8 // 方向个数
 )
 
+// NegativeDirection 反方向
+func (m MirDirection) NegativeDirection() MirDirection {
+	if m > 3 {
+		return m - 4
+	}
+	return m + 4
+}
+
 type ItemType uint8
 
 const (

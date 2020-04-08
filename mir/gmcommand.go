@@ -114,6 +114,15 @@ func _gmGiveSkill(p *Player, name string, level int) {
 	p.GiveSkill(common.Spell(info.Spell), level)
 }
 
+func _gmAllowTrade(p *Player) {
+	p.AllowTrade = !p.AllowTrade
+	if p.AllowTrade {
+		p.ReceiveChat("你现在允许交易。", common.ChatTypeSystem)
+	} else {
+		p.ReceiveChat("你现在拒绝交易。", common.ChatTypeSystem)
+	}
+}
+
 var cmd = script.NewContext()
 
 func init() {
@@ -127,4 +136,5 @@ func init() {
 	cmd.Action("GOLD", _gmGold)
 	cmd.Action("EXP", _gmExp)
 	cmd.Action("GIVESKILL", _gmGiveSkill)
+	cmd.Action("ALLOWTRADE", _gmAllowTrade)
 }
