@@ -3,8 +3,9 @@ package game
 import (
 	"errors"
 
+	"github.com/yenkeia/mirgo/game/cm"
 	"github.com/yenkeia/mirgo/game/proto/server"
-	"github.com/yenkeia/mirgo/util"
+	"github.com/yenkeia/mirgo/game/util"
 )
 
 // 技能选择类型
@@ -32,13 +33,13 @@ const (
 )
 
 // 技能额外消耗类型
-type MagicItemCost func(ctx *MagicContext) *util.UserItem
+type MagicItemCost func(ctx *MagicContext) *cm.UserItem
 
-func Cost_Amulet(ctx *MagicContext) *util.UserItem {
+func Cost_Amulet(ctx *MagicContext) *cm.UserItem {
 	return ctx.Player.GetAmulet(ctx.Config.ItemCostCount)
 }
 
-func Cost_Poison(ctx *MagicContext) *util.UserItem {
+func Cost_Poison(ctx *MagicContext) *cm.UserItem {
 	return ctx.Player.GetPoison(ctx.Config.ItemCostCount)
 }
 
@@ -71,7 +72,7 @@ func Formula_MC(ctx *MagicContext) int {
 }
 
 type MagicConfig struct {
-	Spell         util.Spell
+	Spell         cm.Spell
 	Formula       MagicDamageFormula
 	SelectType    MagicSelectType
 	TargetType    MagicTargetType
@@ -84,20 +85,20 @@ type MagicConfig struct {
 }
 
 type MagicContext struct {
-	Spell            util.Spell
+	Spell            cm.Spell
 	Target           IMapObject
-	Magic            *util.UserMagic // 当前施法
-	Player           *Player         // 施法玩家
-	Item             *util.UserItem  // 消耗的物品
-	Map              *Map            // 施法的地图
-	TargetPoint      util.Point      // 施法目标位置
-	PlayerSpellPoint util.Point      // 施法时候玩家的位置
+	Magic            *cm.UserMagic // 当前施法
+	Player           *Player       // 施法玩家
+	Item             *cm.UserItem  // 消耗的物品
+	Map              *Map          // 施法的地图
+	TargetPoint      cm.Point      // 施法目标位置
+	PlayerSpellPoint cm.Point      // 施法时候玩家的位置
 
 	Damage int
 	Config *MagicConfig
 }
 
-var configsMap = map[util.Spell]*MagicConfig{}
+var configsMap = map[cm.Spell]*MagicConfig{}
 
 func checkMagicItemCost(ctx *MagicContext) error {
 	if ctx.Config.ItemCost == nil || ctx.Config.ItemCostCount == 0 {
@@ -183,12 +184,12 @@ func completeMagic(ctx *MagicContext) {
 }
 
 // GetAmulet 获取玩家身上装备的护身符
-func (p *Player) GetAmulet(count uint32) *util.UserItem {
+func (p *Player) GetAmulet(count uint32) *cm.UserItem {
 	for _, userItem := range p.Equipment.Items {
 		if userItem == nil {
 			continue
 		}
-		if userItem.Info.Type == util.ItemTypeAmulet && userItem.Count >= count {
+		if userItem.Info.Type == cm.ItemTypeAmulet && userItem.Count >= count {
 			return userItem
 		}
 	}
@@ -196,12 +197,12 @@ func (p *Player) GetAmulet(count uint32) *util.UserItem {
 }
 
 // GetPoison 获取玩家身上装备的毒药
-func (p *Player) GetPoison(count uint32) *util.UserItem {
+func (p *Player) GetPoison(count uint32) *cm.UserItem {
 	for _, userItem := range p.Equipment.Items {
 		if userItem == nil {
 			continue
 		}
-		if userItem.Info.Type == util.ItemTypeAmulet && userItem.Count >= count {
+		if userItem.Info.Type == cm.ItemTypeAmulet && userItem.Count >= count {
 			if userItem.Info.Shape == 1 || userItem.Info.Shape == 2 {
 				return userItem
 			}
@@ -211,7 +212,7 @@ func (p *Player) GetPoison(count uint32) *util.UserItem {
 }
 
 // GetMagic ...
-func (p *Player) GetMagic(spell util.Spell) *util.UserMagic {
+func (p *Player) GetMagic(spell cm.Spell) *cm.UserMagic {
 	for i := range p.Magics {
 		userMagic := p.Magics[i]
 		if userMagic.Spell == spell {
@@ -222,7 +223,7 @@ func (p *Player) GetMagic(spell util.Spell) *util.UserMagic {
 }
 
 // LevelMagic ...
-func (p *Player) LevelMagic(magic *util.UserMagic) {
+func (p *Player) LevelMagic(magic *cm.UserMagic) {
 	exp := util.RandomNext(3) + 1
 
 	magicLevel := 0

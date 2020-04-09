@@ -17,11 +17,12 @@ import (
 	"github.com/davyxu/golog"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/sqlite"
+	"github.com/yenkeia/mirgo/game/cm"
 	_ "github.com/yenkeia/mirgo/game/mirtcp"
 	"github.com/yenkeia/mirgo/game/proto/server"
 	"github.com/yenkeia/mirgo/game/script"
+	"github.com/yenkeia/mirgo/game/util"
 	"github.com/yenkeia/mirgo/setting"
-	"github.com/yenkeia/mirgo/util"
 )
 
 var env *Environ
@@ -39,7 +40,7 @@ type Environ struct {
 	lastFrame          time.Time
 
 	DefaultNPC *NPC
-	Lights     util.LightSetting
+	Lights     cm.LightSetting
 }
 
 func (e *Environ) Loop() {
@@ -111,7 +112,7 @@ func NewEnviron() *Environ {
 	id := adb.GetObjectID()
 	if id == 0 {
 		id = 100000
-		adb.Table("basic").Create(&util.Basic{ID: 1, ObjectID: id})
+		adb.Table("basic").Create(&cm.Basic{ID: 1, ObjectID: id})
 	}
 	e.ObjectID = id
 	go func() {
@@ -125,7 +126,7 @@ func NewEnviron() *Environ {
 		settings.EnvirPath,
 	}
 
-	e.DefaultNPC = NewNPC(nil, e.NewObjectID(), &util.NpcInfo{
+	e.DefaultNPC = NewNPC(nil, e.NewObjectID(), &cm.NpcInfo{
 		Name:     "DefaultNPC",
 		Filename: "00Default",
 	})
@@ -163,8 +164,8 @@ func PrintEnviron(env *Environ) {
 	log.Debugf("共加载了 %d 张地图，%d 怪物，%d NPC\n", mapCount, monsterCount, npcCount)
 }
 
-func (e *Environ) NewUserItem(i *util.ItemInfo) *util.UserItem {
-	res := &util.UserItem{
+func (e *Environ) NewUserItem(i *cm.ItemInfo) *cm.UserItem {
+	res := &cm.UserItem{
 		ID:             uint64(e.NewObjectID()),
 		ItemID:         i.ID,
 		CurrentDura:    100,
@@ -268,14 +269,14 @@ func (e *Environ) AdjustLights() {
 	oldLights := e.Lights
 	hours := (time.Now().Hour() * 2) % 24
 	if hours == 6 || hours == 7 {
-		e.Lights = util.LightSettingDawn
+		e.Lights = cm.LightSettingDawn
 	} else if hours >= 8 && hours <= 15 {
-		e.Lights = util.LightSettingDay
+		e.Lights = cm.LightSettingDay
 	} else if hours == 16 || hours == 17 {
-		e.Lights = util.LightSettingEvening
+		e.Lights = cm.LightSettingEvening
 	} else {
-		// e.Lights = util.LightSettingNight
-		e.Lights = util.LightSettingEvening
+		// e.Lights = cm.LightSettingNight
+		e.Lights = cm.LightSettingEvening
 	}
 	if oldLights == e.Lights {
 		return

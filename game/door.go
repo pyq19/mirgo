@@ -3,8 +3,8 @@ package game
 import (
 	"time"
 
+	"github.com/yenkeia/mirgo/game/cm"
 	"github.com/yenkeia/mirgo/game/proto/server"
-	"github.com/yenkeia/mirgo/util"
 )
 
 type Door struct {
@@ -12,7 +12,7 @@ type Door struct {
 	Index    byte
 	State    int //0: closed, 1: opening, 2: open, 3: closing
 	LastTick time.Time
-	Location util.Point
+	Location cm.Point
 }
 
 func (d *Door) IsOpen() bool {
@@ -49,11 +49,11 @@ func NewGrid(w, h uint32) *Grid {
 	}
 }
 
-func (g *Grid) In(loc util.Point) bool {
+func (g *Grid) In(loc cm.Point) bool {
 	return loc.X < g.W && loc.Y < g.H
 }
 
-func (g *Grid) Set(loc util.Point, d *Door) {
+func (g *Grid) Set(loc cm.Point, d *Door) {
 	if g.In(loc) {
 		if _, ok := g.Grid[loc.X]; !ok {
 			g.Grid[loc.X] = map[uint32]*Door{}
@@ -63,7 +63,7 @@ func (g *Grid) Set(loc util.Point, d *Door) {
 	}
 }
 
-func (g *Grid) Get(loc util.Point) *Door {
+func (g *Grid) Get(loc cm.Point) *Door {
 	if _, ok := g.Grid[loc.X]; !ok {
 		return nil
 	}

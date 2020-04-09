@@ -4,10 +4,10 @@ import (
 	"time"
 
 	"github.com/davyxu/cellnet"
+	"github.com/yenkeia/mirgo/game/cm"
 	_ "github.com/yenkeia/mirgo/game/mirtcp"
 	"github.com/yenkeia/mirgo/game/proto/client"
 	"github.com/yenkeia/mirgo/game/proto/server"
-	"github.com/yenkeia/mirgo/util"
 )
 
 type Game struct {
@@ -375,7 +375,7 @@ func (g *Game) NewAccount(s cellnet.Session, msg *client.NewAccount) {
 	}
 
 	res := uint8(0)
-	ac := new(util.Account)
+	ac := new(cm.Account)
 	adb.Table("account").Where("username = ?", msg.AccountID).Find(ac)
 	if ac.ID == 0 && ac.Username == "" {
 		ac.Username = msg.AccountID
@@ -403,24 +403,24 @@ func (g *Game) ChangePassword(s cellnet.Session, msg *client.ChangePassword) {
 	}
 
 	res := uint8(5)
-	ac := new(util.Account)
+	ac := new(cm.Account)
 	adb.Table("account").Where("username = ? AND password = ?", msg.AccountID, msg.CurrentPassword).Find(ac)
 	if ac.ID != 0 {
 		ac.Password = msg.NewPassword
-		adb.Table("account").Model(ac).Updates(util.Account{Password: msg.NewPassword})
+		adb.Table("account").Model(ac).Updates(cm.Account{Password: msg.NewPassword})
 		res = 6
 	}
 	s.Send(&server.ChangePassword{Result: res})
 }
 
 func (g *Game) getAccountCharacters(AccountID int) []server.SelectInfo {
-	ac := make([]util.AccountCharacter, 3)
+	ac := make([]cm.AccountCharacter, 3)
 	adb.Table("account_character").Where("account_id = ?", AccountID).Limit(3).Find(&ac)
 	ids := make([]int, 3)
 	for _, c := range ac {
 		ids = append(ids, c.ID)
 	}
-	cs := make([]util.Character, 3)
+	cs := make([]cm.Character, 3)
 	adb.Table("character").Where("id in (?)", ids).Find(&cs)
 	si := make([]server.SelectInfo, len(cs))
 	for i, c := range cs {
@@ -442,7 +442,7 @@ func (g *Game) Login(s cellnet.Session, msg *client.Login) {
 	if !ok {
 		return
 	}
-	a := new(util.Account)
+	a := new(cm.Account)
 	adb.Table("account").Where("username = ? AND password = ?", msg.AccountID, msg.Password).Find(a)
 	if a.ID == 0 {
 		s.Send(ServerMessage{}.Login(4))
@@ -461,7 +461,7 @@ func (g *Game) NewCharacter(s cellnet.Session, msg *client.NewCharacter) {
 	if !ok {
 		return
 	}
-	acs := make([]util.AccountCharacter, 3)
+	acs := make([]cm.AccountCharacter, 3)
 	adb.Table("account_character").Where("account_id = ?", p.AccountID).Limit(3).Find(&acs)
 	if len(acs) >= 3 {
 		s.Send(ServerMessage{}.NewCharacter(4))
@@ -477,7 +477,7 @@ func (g *Game) DeleteCharacter(s cellnet.Session, msg *client.DeleteCharacter) {
 		return
 	}
 
-	c := new(util.Character)
+	c := new(cm.Character)
 	adb.Table("character").Where("id = ?", msg.CharacterIndex).Find(c)
 	if c.ID == 0 {
 		res := new(server.DeleteCharacter)
@@ -486,33 +486,33 @@ func (g *Game) DeleteCharacter(s cellnet.Session, msg *client.DeleteCharacter) {
 		return
 	}
 	adb.Table("character").Delete(c)
-	adb.Table("account_character").Where("character_id = ?", c.ID).Delete(util.Character{})
+	adb.Table("account_character").Where("character_id = ?", c.ID).Delete(cm.Character{})
 	res := new(server.DeleteCharacterSuccess)
 	res.CharacterIndex = msg.CharacterIndex
 	s.Send(res)
 }
 
-func updatePlayerInfo(g *Game, p *Player, c *util.Character) {
+func updatePlayerInfo(g *Game, p *Player, c *cm.Character) {
 	p.GameStage = GAME
 	p.ID = uint32(c.ID)
 	p.Name = c.Name
-	p.NameColor = util.Color{R: 255, G: 255, B: 255}
+	p.NameColor = cm.Color{R: 255, G: 255, B: 255}
 	p.Direction = c.Direction
-	p.CurrentLocation = util.NewPoint(int(c.CurrentLocationX), int(c.CurrentLocationY))
-	p.BindLocation = util.NewPoint(c.BindLocationX, c.BindLocationY)
+	p.CurrentLocation = cm.NewPoint(int(c.CurrentLocationX), int(c.CurrentLocationY))
+	p.BindLocation = cm.NewPoint(c.BindLocationX, c.BindLocationY)
 	p.BindMapIndex = c.BindMapID
 
-	magics := make([]*util.UserMagic, 0)
+	magics := make([]*cm.UserMagic, 0)
 	adb.Table("user_magic").Where("character_id = ?", c.ID).Find(&magics)
 	for _, v := range magics {
 		v.Info = data.GetMagicInfoByID(v.MagicID)
 	}
 
-	p.Inventory = BagLoadFromDB(p, util.UserItemTypeInventory, 46)
-	p.Equipment = BagLoadFromDB(p, util.UserItemTypeEquipment, 14)
-	p.QuestInventory = BagLoadFromDB(p, util.UserItemTypeQuestInventory, 40)
-	p.Storage = BagLoadFromDB(p, util.UserItemTypeStorage, 80)
-	p.Trade = NewBag(p, util.UserItemTypeTrade, 10)
+	p.Inventory = BagLoadFromDB(p, cm.UserItemTypeInventory, 46)
+	p.Equipment = BagLoadFromDB(p, cm.UserItemTypeEquipment, 14)
+	p.QuestInventory = BagLoadFromDB(p, cm.UserItemTypeQuestInventory, 40)
+	p.Storage = BagLoadFromDB(p, cm.UserItemTypeStorage, 80)
+	p.Trade = NewBag(p, cm.UserItemTypeTrade, 10)
 
 	healNextTime := time.Now().Add(10 * time.Second)
 	p.Dead = false
@@ -526,7 +526,7 @@ func updatePlayerInfo(g *Game, p *Player, c *util.Character) {
 	p.Class = c.Class
 	p.Gender = c.Gender
 	p.Hair = c.Hair
-	p.SendItemInfo = make([]*util.ItemInfo, 0)
+	p.SendItemInfo = make([]*cm.ItemInfo, 0)
 	p.MaxExperience = int64(data.ExpList[p.Level-1])
 	p.Magics = magics
 	p.ActionList = NewActionList()
@@ -558,12 +558,12 @@ func (g *Game) StartGame(s cellnet.Session, msg *client.StartGame) {
 		return
 	}
 
-	c := new(util.Character)
+	c := new(cm.Character)
 	adb.Table("character").Where("id = ?", msg.CharacterIndex).Find(c)
 	if c.ID == 0 {
 		return
 	}
-	ac := new(util.AccountCharacter)
+	ac := new(cm.AccountCharacter)
 	adb.Table("account_character").Where("account_id = ? and character_id = ?", p.AccountID, c.ID).Find(&ac)
 	if ac.ID == 0 {
 		s.Send(ServerMessage{}.StartGame(2, 1024))

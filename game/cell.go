@@ -3,17 +3,17 @@ package game
 import (
 	"fmt"
 
-	"github.com/yenkeia/mirgo/util"
+	"github.com/yenkeia/mirgo/game/cm"
 )
 
 // Cell 地图格子
 type Cell struct {
-	Point     util.Point
-	Attribute util.CellAttribute
+	Point     cm.Point
+	Attribute cm.CellAttribute
 	objects   map[uint32]IMapObject
 }
 
-func NewCell(attr util.CellAttribute) *Cell {
+func NewCell(attr cm.CellAttribute) *Cell {
 	return &Cell{
 		Attribute: attr,
 		objects:   map[uint32]IMapObject{},
@@ -22,7 +22,7 @@ func NewCell(attr util.CellAttribute) *Cell {
 
 // IsValid ...
 func (c *Cell) IsValid() bool {
-	return c.Attribute == util.CellAttributeWalk
+	return c.Attribute == cm.CellAttributeWalk
 }
 
 // IsEmpty ...
@@ -59,7 +59,7 @@ func (c *Cell) HasObject() bool {
 
 // CanWalk ...
 func (c *Cell) CanWalk() bool {
-	return c.Attribute == util.CellAttributeWalk
+	return c.Attribute == cm.CellAttributeWalk
 }
 
 func (c *Cell) String() string {

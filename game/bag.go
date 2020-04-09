@@ -3,31 +3,31 @@ package game
 import (
 	"fmt"
 
-	"github.com/yenkeia/mirgo/util"
+	"github.com/yenkeia/mirgo/game/cm"
 )
 
 type AnyMap map[string]interface{}
 
 type Bag struct {
-	Type   util.UserItemType
+	Type   cm.UserItemType
 	Player *Player
-	Items  []*util.UserItem
+	Items  []*cm.UserItem
 	// ItemCount int
 }
 
-func NewBag(p *Player, typ util.UserItemType, n int) *Bag {
+func NewBag(p *Player, typ cm.UserItemType, n int) *Bag {
 	b := &Bag{
 		Player: p,
 		Type:   typ,
 	}
-	b.Items = make([]*util.UserItem, n)
+	b.Items = make([]*cm.UserItem, n)
 	return b
 }
 
-func BagLoadFromDB(p *Player, typ util.UserItemType, n int) *Bag {
+func BagLoadFromDB(p *Player, typ cm.UserItemType, n int) *Bag {
 	b := NewBag(p, typ, n)
 
-	cui := []*util.CharacterUserItem{}
+	cui := []*cm.CharacterUserItem{}
 	adb.Table("character_user_item").Where("character_id = ? AND type = ?", p.ID, typ).Find(&cui)
 	ids := make([]int, n)
 
@@ -38,7 +38,7 @@ func BagLoadFromDB(p *Player, typ util.UserItemType, n int) *Bag {
 		userItemIDIndexMap[item.UserItemID] = item.Index
 	}
 
-	items := []*util.UserItem{}
+	items := []*cm.UserItem{}
 	adb.Table("user_item").Where("id in (?)", ids).Find(&items)
 
 	for _, item := range items {
@@ -83,7 +83,7 @@ func (b *Bag) Move(from int, to int) error {
 	return nil
 }
 
-func (b *Bag) Set(i int, item *util.UserItem) {
+func (b *Bag) Set(i int, item *cm.UserItem) {
 
 	if item != nil {
 		if b.Items[i] != nil {
@@ -91,7 +91,7 @@ func (b *Bag) Set(i int, item *util.UserItem) {
 		}
 
 		adb.Table("user_item").Create(item)
-		adb.Table("character_user_item").Create(&util.CharacterUserItem{
+		adb.Table("character_user_item").Create(&cm.CharacterUserItem{
 			CharacterID: int(b.Player.ID),
 			UserItemID:  int(item.ID),
 			Type:        int(b.Type),
@@ -101,8 +101,8 @@ func (b *Bag) Set(i int, item *util.UserItem) {
 	} else {
 		item = b.Items[i]
 		if item != nil {
-			adb.Table("user_item").Where("id = ?", item.ID).Delete(&util.UserItem{})
-			adb.Table("character_user_item").Where("user_item_id = ?", item.ID).Delete(&util.CharacterUserItem{})
+			adb.Table("user_item").Where("id = ?", item.ID).Delete(&cm.UserItem{})
+			adb.Table("character_user_item").Where("user_item_id = ?", item.ID).Delete(&cm.CharacterUserItem{})
 		} else {
 			log.Errorln("尝试删除空位置的物品")
 		}
@@ -110,15 +110,15 @@ func (b *Bag) Set(i int, item *util.UserItem) {
 	}
 }
 
-func (b *Bag) Get(i int) *util.UserItem {
+func (b *Bag) Get(i int) *cm.UserItem {
 	return b.Items[i]
 }
 
 func (b *Bag) SetCount(i int, c uint32) {
 	if c == 0 {
 		log.Infof("Delete UserItem %d \n", b.Items[i].ID)
-		// adb.Table("user_item").Where("id = ?", b.Items[i].ID).Delete(&util.UserItem{})
-		// adb.Table("character_user_item").Where("user_item_id = ?", b.Items[i].ID).Delete(&util.CharacterUserItem{})
+		// adb.Table("user_item").Where("id = ?", b.Items[i].ID).Delete(&cm.UserItem{})
+		// adb.Table("character_user_item").Where("user_item_id = ?", b.Items[i].ID).Delete(&cm.CharacterUserItem{})
 		b.Set(i, nil)
 	} else {
 		adb.Table("user_item").Where("id = ?", b.Items[i].ID).Update("count", c)

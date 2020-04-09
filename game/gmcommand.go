@@ -4,15 +4,15 @@ import (
 	"fmt"
 	"reflect"
 
+	"github.com/yenkeia/mirgo/game/cm"
 	"github.com/yenkeia/mirgo/game/script"
-	"github.com/yenkeia/mirgo/util"
 )
 
 func _gmKill(p *Player, playername string) {
 	if playername != "" {
 		o := env.Players.GetPlayerByName(playername)
 		if o == nil {
-			p.ReceiveChat(fmt.Sprintf("找不到玩家(%s)", playername), util.ChatTypeSystem)
+			p.ReceiveChat(fmt.Sprintf("找不到玩家(%s)", playername), cm.ChatTypeSystem)
 			return
 		}
 		o.Die()
@@ -59,7 +59,7 @@ func _gmMap(p *Player) string {
 }
 
 func _gmMove(p *Player, x, y int) {
-	p.Teleport(p.Map, util.NewPoint(x, y))
+	p.Teleport(p.Map, cm.NewPoint(x, y))
 }
 
 func _gmMob(p *Player, monstername string) string {
@@ -86,17 +86,17 @@ func _gmInfo(p *Player) {
 		return
 	}
 	for _, o := range c.objects {
-		if o.GetRace() == util.ObjectTypeMonster {
+		if o.GetRace() == cm.ObjectTypeMonster {
 			mo := o.(*Monster)
-			p.ReceiveChat("--Monster Info--", util.ChatTypeSystem2)
-			p.ReceiveChat(fmt.Sprintf("ID: %d, Name: %s, AI: %d", mo.ID, mo.Name, mo.AI), util.ChatTypeSystem2)
-			p.ReceiveChat(fmt.Sprintf("Level: %d, Pos: %s", mo.Level, mo.GetPoint()), util.ChatTypeSystem2)
-			p.ReceiveChat(fmt.Sprintf("HP: %d, MinDC: %d, MaxDC: %d", mo.HP, mo.MinDC, mo.MaxDC), util.ChatTypeSystem2)
+			p.ReceiveChat("--Monster Info--", cm.ChatTypeSystem2)
+			p.ReceiveChat(fmt.Sprintf("ID: %d, Name: %s, AI: %d", mo.ID, mo.Name, mo.AI), cm.ChatTypeSystem2)
+			p.ReceiveChat(fmt.Sprintf("Level: %d, Pos: %s", mo.Level, mo.GetPoint()), cm.ChatTypeSystem2)
+			p.ReceiveChat(fmt.Sprintf("HP: %d, MinDC: %d, MaxDC: %d", mo.HP, mo.MinDC, mo.MaxDC), cm.ChatTypeSystem2)
 		}
-		if o.GetRace() == util.ObjectTypePlayer {
+		if o.GetRace() == cm.ObjectTypePlayer {
 			po := o.(*Player)
-			p.ReceiveChat("--Player Info--", util.ChatTypeSystem2)
-			p.ReceiveChat(fmt.Sprintf("Name: %s, Level: %d, Pos: %s", po.Name, po.Level, po.GetPoint()), util.ChatTypeSystem2)
+			p.ReceiveChat("--Player Info--", cm.ChatTypeSystem2)
+			p.ReceiveChat(fmt.Sprintf("Name: %s, Level: %d, Pos: %s", po.Name, po.Level, po.GetPoint()), cm.ChatTypeSystem2)
 		}
 	}
 }
@@ -111,15 +111,15 @@ func _gmExp(p *Player, exp int) {
 
 func _gmGiveSkill(p *Player, name string, level int) {
 	info := data.GetMagicInfoByName(name)
-	p.GiveSkill(util.Spell(info.Spell), level)
+	p.GiveSkill(cm.Spell(info.Spell), level)
 }
 
 func _gmAllowTrade(p *Player) {
 	p.AllowTrade = !p.AllowTrade
 	if p.AllowTrade {
-		p.ReceiveChat("你现在允许交易。", util.ChatTypeSystem)
+		p.ReceiveChat("你现在允许交易。", cm.ChatTypeSystem)
 	} else {
-		p.ReceiveChat("你现在拒绝交易。", util.ChatTypeSystem)
+		p.ReceiveChat("你现在拒绝交易。", cm.ChatTypeSystem)
 	}
 }
 

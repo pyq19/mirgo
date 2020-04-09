@@ -2,7 +2,7 @@ package game
 
 import (
 	"github.com/jinzhu/gorm"
-	"github.com/yenkeia/mirgo/util"
+	"github.com/yenkeia/mirgo/game/cm"
 )
 
 type DB struct {
@@ -18,13 +18,13 @@ func NewAccountDB(db *gorm.DB) *DB {
 
 	db.SingularTable(true)
 	db.AutoMigrate(
-		&util.Basic{},
-		&util.Account{},
-		&util.AccountCharacter{},
-		&util.Character{},
-		&util.CharacterUserItem{},
-		&util.UserItem{},
-		&util.UserMagic{},
+		&cm.Basic{},
+		&cm.Account{},
+		&cm.AccountCharacter{},
+		&cm.Character{},
+		&cm.CharacterUserItem{},
+		&cm.UserItem{},
+		&cm.UserMagic{},
 	)
 
 	return r
@@ -53,22 +53,22 @@ func (d *DB) SyncPosition(p *Player) {
 	d.setCharacterAttr(p, "current_location_y", p.GetPoint().Y)
 }
 
-func (d *DB) SyncMagicKey(p *Player, spell util.Spell, key uint8) {
+func (d *DB) SyncMagicKey(p *Player, spell cm.Spell, key uint8) {
 	d.db.Table("user_magic").Where("spell = ?", spell).Update("magic_key", key)
 }
 
-func (d *DB) AddSkill(p *Player, magic *util.UserMagic) {
+func (d *DB) AddSkill(p *Player, magic *cm.UserMagic) {
 	d.db.Table("user_magic").Create(magic)
 }
 
 func (d *DB) GetObjectID() uint32 {
-	var basic util.Basic
+	var basic cm.Basic
 	d.db.Table("basic").First(&basic)
 	return basic.ObjectID
 }
 
 func (d *DB) SyncObjectID(id uint32) {
-	d.db.Table("basic").Where(util.Basic{ID: 1}).Update(map[string]interface{}{"object_id": id})
+	d.db.Table("basic").Where(cm.Basic{ID: 1}).Update(map[string]interface{}{"object_id": id})
 }
 
 func (d *DB) SyncAModePMode(p *Player) {

@@ -4,12 +4,12 @@ import (
 	"container/list"
 	"time"
 
-	"github.com/yenkeia/mirgo/util"
+	"github.com/yenkeia/mirgo/game/cm"
 )
 
 type Buff struct {
 	ObjectID   uint32
-	Type       util.BuffType
+	Type       cm.BuffType
 	Caster     IMapObject
 	Visible    bool      // 是否可见
 	ExpireTime time.Time // 过期时间️
@@ -18,7 +18,7 @@ type Buff struct {
 	Paused     bool
 }
 
-func NewBuff(buffType util.BuffType, caster IMapObject, expireTime int, values []int32) *Buff {
+func NewBuff(buffType cm.BuffType, caster IMapObject, expireTime int, values []int32) *Buff {
 	return &Buff{
 		Type:       buffType,
 		Caster:     caster,
@@ -58,7 +58,7 @@ func (bl *BuffList) AddBuff(b *Buff) {
 	bl.List.PushBack(b)
 }
 
-func (bl *BuffList) RemoveBuff(t util.BuffType) {
+func (bl *BuffList) RemoveBuff(t cm.BuffType) {
 	for it := bl.List.Front(); it != nil; it = it.Next() {
 		buf := it.Value.(*Buff)
 		if buf.Type != t {
