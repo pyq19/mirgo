@@ -4,8 +4,8 @@ import (
 	"time"
 
 	"github.com/yenkeia/mirgo/game"
+	"github.com/yenkeia/mirgo/game/cm"
 	"github.com/yenkeia/mirgo/game/proto/server"
-	"github.com/yenkeia/mirgo/util"
 )
 
 //
@@ -37,12 +37,12 @@ func (n *WatchAndShootNode) Visit(c *BT) {
 			const AttackRange = 10
 			m := c.Monster
 
-			if util.InRange(m.CurrentLocation, m.Target.GetPoint(), AttackRange) {
+			if cm.InRange(m.CurrentLocation, m.Target.GetPoint(), AttackRange) {
 				n.status = FAILED
 				return
 			}
 
-			m.Direction = util.DirectionFromPoint(m.CurrentLocation, m.Target.GetPoint())
+			m.Direction = cm.DirectionFromPoint(m.CurrentLocation, m.Target.GetPoint())
 			m.Broadcast(&server.ObjectRangeAttack{
 				ObjectID:  m.GetID(),
 				Direction: m.Direction,
@@ -58,11 +58,11 @@ func (n *WatchAndShootNode) Visit(c *BT) {
 			now := time.Now()
 			m.AttackTime = now.Add(time.Duration(m.AttackSpeed) * time.Millisecond)
 
-			delay := util.MaxDistance(m.CurrentLocation, m.Target.GetPoint())*50 + 500
+			delay := cm.MaxDistance(m.CurrentLocation, m.Target.GetPoint())*50 + 500
 			target := m.Target
 
 			m.ActionList.PushDelayAction(game.DelayedTypeDamage, delay, func() {
-				m.CompleteAttack(target, damage, util.DefenceTypeACAgility)
+				m.CompleteAttack(target, damage, cm.DefenceTypeACAgility)
 			})
 		} else {
 			n.status = FAILED

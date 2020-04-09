@@ -12,7 +12,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/yenkeia/mirgo/util"
+	"github.com/yenkeia/mirgo/game/util"
 )
 
 var SearchPaths = []string{}

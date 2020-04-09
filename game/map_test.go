@@ -8,7 +8,7 @@ import (
 	"testing"
 
 	"github.com/jinzhu/gorm"
-	"github.com/yenkeia/mirgo/util"
+	"github.com/yenkeia/mirgo/game/cm"
 )
 
 func TestMapAbsPath(t *testing.T) {
@@ -16,7 +16,7 @@ func TestMapAbsPath(t *testing.T) {
 	var mirDB = "/src/github.com/yenkeia/mirgo/dotnettools/mir.sqlite"
 	db, _ := gorm.Open("sqlite3", gopath+mirDB)
 
-	mp := make([]util.MapInfo, 386)
+	mp := make([]cm.MapInfo, 386)
 	db.Table("map").Find(&mp)
 
 	mapDirPath := "/src/github.com/yenkeia/mirgo/dotnettools/database/Maps/"
@@ -42,11 +42,11 @@ func TestSaveMapText(t *testing.T) {
 	for i := 0; i < int(m.Width); i++ {
 		for j := 0; j < int(m.Height); j++ {
 			c := m.GetCellXY(i, j)
-			if c.Attribute == util.CellAttributeWalk {
+			if c.Attribute == cm.CellAttributeWalk {
 				str = str + "0"
-			} else if c.Attribute == util.CellAttributeHighWall {
+			} else if c.Attribute == cm.CellAttributeHighWall {
 				str = str + "1"
-			} else if int(c.Attribute) == util.CellAttributeLowWall {
+			} else if int(c.Attribute) == cm.CellAttributeLowWall {
 				str = str + "2"
 			} else {
 				str = str + "?"
@@ -60,7 +60,7 @@ func TestSaveMapText(t *testing.T) {
 func TestMap_GetNextCell(t *testing.T) {
 	m := LoadMap(os.Getenv("GOPATH") + "/src/github.com/yenkeia/mirgo/dotnettools/database/Maps/0.map")
 	c := &Cell{
-		Point:     util.Point{100, 200},
+		Point:     cm.Point{100, 200},
 		Attribute: 0,
 		// Objects:   nil,
 	}
@@ -74,7 +74,7 @@ func TestMap_GetNextCell(t *testing.T) {
 		//MirDirectionDownLeft               = 5
 		//MirDirectionLeft                   = 6
 		//MirDirectionUpLeft                 = 7
-		nc := m.GetNextCell(c, util.MirDirection(i), 3)
+		nc := m.GetNextCell(c, cm.MirDirection(i), 3)
 		t.Log(nc.Point)
 	}
 }
@@ -106,7 +106,7 @@ func TestMapRange(t *testing.T) {
 	mapAbsPath := gopath + "/src/github.com/yenkeia/mirgo/dotnettools/database/Maps/0.map"
 	m := LoadMap(mapAbsPath)
 
-	p := util.Point{X: 1, Y: 1}
+	p := cm.Point{X: 1, Y: 1}
 
 	var printpos = func(c *Cell, _, _ int) bool {
 		if c != nil {
@@ -136,7 +136,7 @@ func TestAllMaps(t *testing.T) {
 	mark := map[byte]bool{}
 
 	for _, m := range maps {
-		bytes, _ := ioutil.ReadFile(m)
+		bytes, _ := util.ReadFile(m)
 		mark[DetectMapVersion(bytes)] = true
 	}
 

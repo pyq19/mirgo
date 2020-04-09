@@ -5,8 +5,8 @@ import (
 
 	"github.com/davyxu/cellnet"
 	"github.com/davyxu/cellnet/codec"
+	"github.com/yenkeia/mirgo/game/cm"
 	"github.com/yenkeia/mirgo/game/proto/server"
-	"github.com/yenkeia/mirgo/util"
 )
 
 func init() {
@@ -69,7 +69,7 @@ func (*MirPlayerInspectCodec) Decode(data interface{}, msgObj interface{}) error
 	pi.GuildName = reader.ReadString()
 	pi.GuildRank = reader.ReadString()
 	count := reader.ReadInt32()
-	pi.Equipment = make([]*util.UserItem, count)
+	pi.Equipment = make([]*cm.UserItem, count)
 	for i := 0; i < int(count); i++ {
 		if reader.ReadBoolean() {
 			last := reader.Last()
@@ -77,8 +77,8 @@ func (*MirPlayerInspectCodec) Decode(data interface{}, msgObj interface{}) error
 			*reader.Bytes = decodeValue(reflect.ValueOf(item), last)
 		}
 	}
-	pi.Class = util.MirClass(reader.ReadByte())
-	pi.Gender = util.MirGender(reader.ReadByte())
+	pi.Class = cm.MirClass(reader.ReadByte())
+	pi.Gender = cm.MirGender(reader.ReadByte())
 	pi.Hair = uint8(reader.ReadByte())
 	pi.Level = reader.ReadUInt16()
 	pi.LoverName = reader.ReadString()

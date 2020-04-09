@@ -1,4 +1,6 @@
-package util
+package cm
+
+import "github.com/yenkeia/mirgo/game/util"
 
 type Color struct {
 	R uint8
@@ -19,7 +21,7 @@ func (c Color) ToInt32() int32 {
 }
 
 func (c Color) ToUint32() uint32 {
-	return BytesToUint32([]uint8{c.R, c.G, c.B, 255})
+	return util.BytesToUint32([]uint8{c.R, c.G, c.B, 255})
 }
 
 var (

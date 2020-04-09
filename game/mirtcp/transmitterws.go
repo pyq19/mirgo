@@ -28,7 +28,7 @@ func (WSMessageTransmitter) OnRecvMessage(ses cellnet.Session) (msg interface{},
 	}
 
 	// if len(raw) < MsgIDSize {
-	// 	return nil, util.ErrMinPacket
+	// 	return nil, cm.ErrMinPacket
 	// }
 
 	switch messageType {

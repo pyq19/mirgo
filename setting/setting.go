@@ -6,7 +6,8 @@ import (
 	"path/filepath"
 
 	"github.com/pelletier/go-toml"
-	"github.com/yenkeia/mirgo/util"
+	"github.com/yenkeia/mirgo/game/cm"
+	"github.com/yenkeia/mirgo/game/util"
 )
 
 type Conf struct {
@@ -25,7 +26,7 @@ type Settings struct {
 	RoutePath     string
 	Acceptor      string
 
-	BaseStats         map[util.MirClass]baseStats
+	BaseStats         map[cm.MirClass]baseStats
 	MagicResistWeight int
 }
 
@@ -59,8 +60,8 @@ func New() (*Settings, error) {
 		return nil, err
 	}
 
-	BaseStats := make(map[util.MirClass]baseStats)
-	BaseStats[util.MirClassWarrior] = baseStats{
+	BaseStats := make(map[cm.MirClass]baseStats)
+	BaseStats[cm.MirClassWarrior] = baseStats{
 		HpGain:              4,
 		HpGainRate:          4.5,
 		MpGainRate:          0,
@@ -84,7 +85,7 @@ func New() (*Settings, error) {
 		CritialRateGain:     0,
 		CriticalDamageGain:  0,
 	}
-	BaseStats[util.MirClassWizard] = baseStats{
+	BaseStats[cm.MirClassWizard] = baseStats{
 		HpGain:              15,
 		HpGainRate:          1.8,
 		MpGainRate:          0,
@@ -108,7 +109,7 @@ func New() (*Settings, error) {
 		CritialRateGain:     0,
 		CriticalDamageGain:  0,
 	}
-	BaseStats[util.MirClassTaoist] = baseStats{
+	BaseStats[cm.MirClassTaoist] = baseStats{
 		HpGain:              6,
 		HpGainRate:          2.5,
 		MpGainRate:          0,

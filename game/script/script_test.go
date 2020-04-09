@@ -9,7 +9,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/yenkeia/mirgo/util"
+	"github.com/yenkeia/mirgo/game/util"
 )
 
 func Print(arr []string) {

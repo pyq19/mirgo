@@ -8,8 +8,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/yenkeia/mirgo/game/cm"
 	"github.com/yenkeia/mirgo/game/script"
-	"github.com/yenkeia/mirgo/util"
 )
 
 func _CHECKPKPOINT(npc *NPC, p *Player, op script.CompareOp, v int) bool {
@@ -35,7 +35,7 @@ func _MOVE(npc *NPC, p *Player, mapname string, x, y int) {
 	if x < 0 || y < 0 {
 		// random teleport
 	} else {
-		p.Teleport(m, util.NewPoint(x, y))
+		p.Teleport(m, cm.NewPoint(x, y))
 	}
 }
 
@@ -84,10 +84,10 @@ func _GIVEITEM(npc *NPC, p *Player, itemname string, n int) {
 }
 
 func _LINEMESSAGE(npc *NPC, p *Player, msg string, t string) {
-	p.ReceiveChat(msg, util.ChatTypeHint)
+	p.ReceiveChat(msg, cm.ChatTypeHint)
 }
 func _LOCALMESSAGE(npc *NPC, p *Player, msg string, typ string) {
-	p.ReceiveChat(msg, util.ChatTypeHint)
+	p.ReceiveChat(msg, cm.ChatTypeHint)
 }
 
 func _GIVEGOLD(npc *NPC, p *Player, v int) {
@@ -184,7 +184,7 @@ func _MONGEN(npc *NPC, p *Player, g1 string, n int) {
 
 func _GIVESKILL(npc *NPC, p *Player, name string, level int) {
 	info := data.GetMagicInfoByName(name)
-	p.GiveSkill(util.Spell(info.Spell), level)
+	p.GiveSkill(cm.Spell(info.Spell), level)
 }
 
 func _CHANGELEVEL(npc *NPC, p *Player, lv int) {

@@ -2,7 +2,7 @@ package behavior
 
 import (
 	"github.com/yenkeia/mirgo/game"
-	"github.com/yenkeia/mirgo/util"
+	"github.com/yenkeia/mirgo/game/cm"
 )
 
 func HasTarget(c *BT) bool {
@@ -28,7 +28,7 @@ func FindPlayerByPKPoints(c *BT, pkpoints int) bool {
 		}
 
 		switch o.GetRace() {
-		case util.ObjectTypePlayer:
+		case cm.ObjectTypePlayer:
 			p := o.(*game.Player)
 			if !p.IsAttackTarget(m) {
 				return true // continue

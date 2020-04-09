@@ -3,8 +3,8 @@ package game
 import (
 	"time"
 
+	"github.com/yenkeia/mirgo/game/cm"
 	"github.com/yenkeia/mirgo/game/proto/server"
-	"github.com/yenkeia/mirgo/util"
 )
 
 // 专用于大刀卫士攻击
@@ -15,14 +15,14 @@ func (m *Monster) GuardAttack() {
 
 	target := ObjectBack(m.Target)
 
-	dir := util.DirectionFromPoint(target, m.Target.GetPoint())
+	dir := cm.DirectionFromPoint(target, m.Target.GetPoint())
 
 	m.Broadcast(&server.ObjectAttack{
 		ObjectID:  m.GetID(),
 		LocationX: int32(target.X),
 		LocationY: int32(target.Y),
 		Direction: dir,
-		Spell:     util.SpellNone,
+		Spell:     cm.SpellNone,
 		Level:     uint8(0),
 		Type:      uint8(0),
 	})
@@ -38,7 +38,7 @@ func (m *Monster) GuardAttack() {
 
 	damage := m.GetAttackPower(int(m.MinDC), int(m.MaxDC))
 
-	if m.Target.GetRace() == util.ObjectTypePlayer {
+	if m.Target.GetRace() == cm.ObjectTypePlayer {
 		damage = int(^uint(0) >> 1) // INTMAX
 	}
 
@@ -46,7 +46,7 @@ func (m *Monster) GuardAttack() {
 		return
 	}
 
-	m.Target.Attacked(m, damage, util.DefenceTypeAgility, false)
+	m.Target.Attacked(m, damage, cm.DefenceTypeAgility, false)
 }
 
 func (m *Monster) SpittingSpiderAttack() {

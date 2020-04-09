@@ -7,8 +7,9 @@ import (
 	"strings"
 	"time"
 
+	"github.com/yenkeia/mirgo/game/cm"
 	"github.com/yenkeia/mirgo/game/script"
-	"github.com/yenkeia/mirgo/util"
+	"github.com/yenkeia/mirgo/game/util"
 )
 
 type NPC struct {
@@ -17,11 +18,11 @@ type NPC struct {
 	Light    uint8
 	TurnTime time.Time
 	Script   *script.Script
-	Goods    []*util.UserItem
+	Goods    []*cm.UserItem
 	BuyBack  map[uint32]*list.List
 }
 
-func NewNPC(m *Map, id uint32, ni *util.NpcInfo) *NPC {
+func NewNPC(m *Map, id uint32, ni *cm.NpcInfo) *NPC {
 	sc, err := script.LoadFile(ni.Filename + ".txt")
 	if err != nil {
 		log.Warnf("NPC [%s] [%s] 脚本加载失败: %s\n", ni.Name, ni.Filename, err.Error())
@@ -30,16 +31,16 @@ func NewNPC(m *Map, id uint32, ni *util.NpcInfo) *NPC {
 		MapObject: MapObject{
 			ID:              id,
 			Name:            ni.ChineseName,
-			NameColor:       util.ColorLime,
+			NameColor:       cm.ColorLime,
 			Map:             m,
-			CurrentLocation: util.NewPoint(ni.LocationX, ni.LocationY),
-			Direction:       util.MirDirection(util.RandomInt(0, 1)),
+			CurrentLocation: cm.NewPoint(ni.LocationX, ni.LocationY),
+			Direction:       cm.MirDirection(util.RandomInt(0, 1)),
 		},
 		Image:    ni.Image,
 		Light:    0, // TODO
 		TurnTime: time.Now(),
 		Script:   sc,
-		Goods:    []*util.UserItem{},
+		Goods:    []*cm.UserItem{},
 		BuyBack:  map[uint32]*list.List{},
 	}
 
@@ -77,7 +78,7 @@ func (p *NPC) Spawned() {
 	IMapObject_Spawned(p)
 }
 
-func (n *NPC) HasType(typ util.ItemType) bool {
+func (n *NPC) HasType(typ cm.ItemType) bool {
 	if n.Script.Types != nil {
 		for _, v := range n.Script.Types {
 			if v == int(typ) {
@@ -134,8 +135,8 @@ func (n *NPC) GetLevel() int {
 	return 0
 }
 
-func (n *NPC) GetRace() util.ObjectType {
-	return util.ObjectTypeMerchant
+func (n *NPC) GetRace() cm.ObjectType {
+	return cm.ObjectTypeMerchant
 }
 
 func (n *NPC) IsBlocking() bool {
@@ -143,7 +144,7 @@ func (n *NPC) IsBlocking() bool {
 	return false
 }
 
-func (n *NPC) GetPoint() util.Point {
+func (n *NPC) GetPoint() cm.Point {
 	return n.CurrentLocation
 }
 
@@ -151,11 +152,11 @@ func (n *NPC) GetCell() *Cell {
 	return n.Map.GetCell(n.CurrentLocation)
 }
 
-func (n *NPC) GetDirection() util.MirDirection {
+func (n *NPC) GetDirection() cm.MirDirection {
 	return n.Direction
 }
 
-func (p *NPC) Attacked(attacker IMapObject, damageFinal int, defenceType util.DefenceType, damageWeapon bool) int {
+func (p *NPC) Attacked(attacker IMapObject, damageFinal int, defenceType cm.DefenceType, damageWeapon bool) int {
 	return 0
 }
 
@@ -186,7 +187,7 @@ func (n *NPC) Broadcast(msg interface{}) {
 func (n *NPC) Process(dt time.Duration) {
 	if n.TurnTime.Before(time.Now()) {
 		n.TurnTime = time.Now().Add(time.Second * time.Duration(util.RandomInt(20, 60)))
-		n.Direction = util.MirDirection(util.RandomInt(0, 1))
+		n.Direction = cm.MirDirection(util.RandomInt(0, 1))
 		n.Broadcast(ServerMessage{}.ObjectTurn(n))
 	}
 
@@ -207,7 +208,7 @@ func (n *NPC) Process(dt time.Duration) {
 }
 
 // GetUserItemByID 获取 NPC Goods
-func (n *NPC) GetUserItemByID(id uint64) *util.UserItem {
+func (n *NPC) GetUserItemByID(id uint64) *cm.UserItem {
 	for _, v := range n.Goods {
 		if v.ID == id {
 			return v
@@ -219,7 +220,7 @@ func (n *NPC) GetUserItemByID(id uint64) *util.UserItem {
 // Buy 玩家向 NPC 购买物品
 func (n *NPC) Buy(p *Player, userItemID uint64, count uint32) {
 
-	var userItem *util.UserItem
+	var userItem *cm.UserItem
 	var iter *list.Element
 	var isBuyBack bool
 
@@ -263,10 +264,10 @@ func (n *NPC) Buy(p *Player, userItemID uint64, count uint32) {
 
 type BuyBackItem struct {
 	Expire time.Duration
-	Item   *util.UserItem
+	Item   *cm.UserItem
 }
 
-func (n *NPC) GetPlayerBuyBack(p *Player) (ret []*util.UserItem) {
+func (n *NPC) GetPlayerBuyBack(p *Player) (ret []*cm.UserItem) {
 
 	items, has := n.BuyBack[p.ID]
 	if !has {
@@ -278,7 +279,7 @@ func (n *NPC) GetPlayerBuyBack(p *Player) (ret []*util.UserItem) {
 	return
 }
 
-func (n *NPC) Sell(p *Player, item *util.UserItem) {
+func (n *NPC) Sell(p *Player, item *cm.UserItem) {
 
 	// TODO: config
 	const GoodsBuyBackMaxStored = 20

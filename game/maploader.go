@@ -4,7 +4,8 @@ import (
 	"fmt"
 	"io/ioutil"
 
-	"github.com/yenkeia/mirgo/util"
+	"github.com/yenkeia/mirgo/game/cm"
+	"github.com/yenkeia/mirgo/game/util"
 )
 
 func LoadMap(filepath string) *Map {
@@ -76,8 +77,8 @@ func DetectMapVersion(input []byte) byte {
 }
 
 var (
-	LowWallCell  = NewCell(util.CellAttributeLowWall)
-	HighWallCell = NewCell(util.CellAttributeHighWall)
+	LowWallCell  = NewCell(cm.CellAttributeLowWall)
+	HighWallCell = NewCell(cm.CellAttributeHighWall)
 )
 
 func GetMapV0(bytes []byte) *Map {
@@ -113,11 +114,11 @@ func GetMapV0(bytes []byte) *Map {
 			}
 
 			if cell == nil {
-				cell = NewCell(util.CellAttributeWalk)
+				cell = NewCell(cm.CellAttributeWalk)
 			}
 
-			point := util.NewPoint(x, y)
-			if cell.Attribute == util.CellAttributeWalk {
+			point := cm.NewPoint(x, y)
+			if cell.Attribute == cm.CellAttributeWalk {
 				cell.Point = point
 				m.SetCell(point, cell)
 			}
@@ -168,11 +169,11 @@ func GetMapV1(bytes []byte) *Map {
 			}
 
 			if cell == nil {
-				cell = NewCell(util.CellAttributeWalk)
+				cell = NewCell(cm.CellAttributeWalk)
 			}
 
-			point := util.NewPoint(x, y)
-			if cell.Attribute == util.CellAttributeWalk {
+			point := cm.NewPoint(x, y)
+			if cell.Attribute == cm.CellAttributeWalk {
 				cell.Point = point
 				m.SetCell(point, cell)
 			}
@@ -225,11 +226,11 @@ func GetMapV3(bytes []byte) *Map {
 			}
 
 			if cell == nil {
-				cell = NewCell(util.CellAttributeWalk)
+				cell = NewCell(cm.CellAttributeWalk)
 			}
 
-			point := util.NewPoint(x, y)
-			if cell.Attribute == util.CellAttributeWalk {
+			point := cm.NewPoint(x, y)
+			if cell.Attribute == cm.CellAttributeWalk {
 				cell.Point = point
 				m.SetCell(point, cell)
 			}
@@ -274,7 +275,7 @@ func GetMapV5(bytes []byte) *Map {
 			} else if (bytes[offset] & 0x02) != 2 {
 				cell = LowWallCell
 			} else {
-				cell = NewCell(util.CellAttributeWalk)
+				cell = NewCell(cm.CellAttributeWalk)
 			}
 			offset += 13
 
@@ -285,7 +286,7 @@ func GetMapV5(bytes []byte) *Map {
 
 			offset += 1
 
-			cell.Point = util.NewPoint(x, y)
+			cell.Point = cm.NewPoint(x, y)
 			m.SetCell(cell.Point, cell)
 		}
 	}

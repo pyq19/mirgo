@@ -1,6 +1,10 @@
-package util
+package cm
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/yenkeia/mirgo/game/util"
+)
 
 type Point struct {
 	X uint32
@@ -52,9 +56,9 @@ func (p Point) EqualXY(x, y int) bool {
 }
 
 func InRange(a, b Point, i int) bool {
-	return AbsInt(int(a.X)-int(b.X)) <= i && AbsInt(int(a.Y)-int(b.Y)) <= i
+	return util.AbsInt(int(a.X)-int(b.X)) <= i && util.AbsInt(int(a.Y)-int(b.Y)) <= i
 }
 
 func InRangeXY(a Point, x, y, i int) bool {
-	return AbsInt(int(a.X)-x) <= i && AbsInt(int(a.Y)-y) <= i
+	return util.AbsInt(int(a.X)-x) <= i && util.AbsInt(int(a.Y)-y) <= i
 }

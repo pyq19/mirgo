@@ -4,10 +4,11 @@ import (
 	"errors"
 	"time"
 
-	"github.com/yenkeia/mirgo/util"
+	"github.com/yenkeia/mirgo/game/cm"
+	"github.com/yenkeia/mirgo/game/util"
 )
 
-func addMagic(sp util.Spell, c *MagicConfig) {
+func addMagic(sp cm.Spell, c *MagicConfig) {
 
 	c.Spell = sp
 
@@ -24,7 +25,7 @@ func addMagic(sp util.Spell, c *MagicConfig) {
 	configsMap[sp] = c
 }
 
-func cloneMagic(spDest, spSrc util.Spell) {
+func cloneMagic(spDest, spSrc cm.Spell) {
 	configsMap[spDest] = configsMap[spSrc]
 }
 
@@ -67,7 +68,7 @@ func init() {
 	// 日闪
 
 	// 血龙剑法
-	add(util.SpellFury, &MagicConfig{
+	add(cm.SpellFury, &MagicConfig{
 		Action: Action_Fury,
 	})
 
@@ -76,7 +77,7 @@ func init() {
 	/////////////////////////////////////////////
 
 	// 火球术
-	add(util.SpellFireBall, &MagicConfig{
+	add(cm.SpellFireBall, &MagicConfig{
 		SelectType: Select_Point | Select_Enemy,
 		TargetType: Target_Enemy,
 		Action:     Action_DamageTarget,
@@ -86,7 +87,7 @@ func init() {
 	// 抗拒火环
 
 	// 诱惑之光
-	add(util.SpellElectricShock, &MagicConfig{
+	add(cm.SpellElectricShock, &MagicConfig{
 		SelectType: Select_Enemy,
 		TargetType: Target_Enemy,
 		Formula:    Formula_MC,
@@ -94,11 +95,11 @@ func init() {
 	})
 
 	// 大火球
-	clone(util.SpellGreatFireBall, util.SpellFireBall)
+	clone(cm.SpellGreatFireBall, cm.SpellFireBall)
 
 	// 地狱火
-	add(util.SpellHellFire, &MagicConfig{
-		Spell:      util.SpellHellFire,
+	add(cm.SpellHellFire, &MagicConfig{
+		Spell:      cm.SpellHellFire,
 		Formula:    Formula_MC,
 		SelectType: Select_None,
 		TargetType: Target_Enemy,
@@ -107,15 +108,15 @@ func init() {
 	})
 
 	// 雷电术
-	clone(util.SpellThunderBolt, util.SpellFireBall)
+	clone(cm.SpellThunderBolt, cm.SpellFireBall)
 
 	// 瞬息移动
-	add(util.SpellTeleport, &MagicConfig{
+	add(cm.SpellTeleport, &MagicConfig{
 		Action: Action_Teleport,
 	})
 
 	// 爆裂火焰
-	add(util.SpellFireBang, &MagicConfig{
+	add(cm.SpellFireBang, &MagicConfig{
 		SelectType: Select_Point,
 		TargetType: Target_Point,
 		Action:     Action_RangeDamage1,
@@ -127,7 +128,7 @@ func init() {
 	// 疾光电影
 
 	// 寒冰掌
-	add(util.SpellFrostCrunch, &MagicConfig{
+	add(cm.SpellFrostCrunch, &MagicConfig{
 		SelectType: Select_Point | Select_Enemy,
 		TargetType: Target_Enemy,
 		Action:     Action_FrostCrunch,
@@ -143,10 +144,10 @@ func init() {
 	// 嗜血术
 
 	// 冰咆哮
-	clone(util.SpellIceStorm, util.SpellFireBang)
+	clone(cm.SpellIceStorm, cm.SpellFireBang)
 
 	// 火龙术
-	add(util.SpellFlameDisruptor, &MagicConfig{
+	add(cm.SpellFlameDisruptor, &MagicConfig{
 		SelectType: Select_Enemy,
 		TargetType: Target_Enemy,
 		Formula:    Formula_MC,
@@ -171,7 +172,7 @@ func init() {
 	/////////////////////////////////////////////
 
 	// 治愈术
-	add(util.SpellHealing, &MagicConfig{
+	add(cm.SpellHealing, &MagicConfig{
 		SelectType: Select_Self | Select_Friend,
 		TargetType: Target_Friend | Target_Self,
 		Action:     Action_HealingTarget,
@@ -183,7 +184,7 @@ func init() {
 	// 精神力战法
 
 	// 施毒术
-	add(util.SpellPoisoning, &MagicConfig{
+	add(cm.SpellPoisoning, &MagicConfig{
 		SelectType: Select_Enemy,
 		TargetType: Select_Enemy,
 		Formula:    Formula_SC,
@@ -192,7 +193,7 @@ func init() {
 	})
 
 	// 灵魂火符
-	add(util.SpellSoulFireBall, &MagicConfig{
+	add(cm.SpellSoulFireBall, &MagicConfig{
 		SelectType: Select_Enemy | Select_Point,
 		TargetType: Target_Enemy,
 		Action:     Action_DamageTarget,
@@ -201,10 +202,10 @@ func init() {
 	})
 
 	// 召唤骷髅
-	SummonMagic(util.SpellSummonSkeleton, "BoneFamiliar", 1)
+	SummonMagic(cm.SpellSummonSkeleton, "BoneFamiliar", 1)
 
 	// 隐身术
-	add(util.SpellHiding, &MagicConfig{
+	add(cm.SpellHiding, &MagicConfig{
 		Formula: func(ctx *MagicContext) int {
 			return ctx.Player.GetAttackPower(int(ctx.Player.MinSC), int(ctx.Player.MaxSC)) + (ctx.Magic.Level+1)*5
 		},
@@ -215,7 +216,7 @@ func init() {
 	// 集体隐身术
 
 	// 幽灵盾
-	add(util.SpellSoulShield, &MagicConfig{
+	add(cm.SpellSoulShield, &MagicConfig{
 		SelectType: Select_Point,
 		TargetType: Target_Point,
 		ItemCost:   Cost_Amulet,
@@ -229,14 +230,14 @@ func init() {
 	// 心灵启示
 
 	// 神圣战甲术
-	clone(util.SpellBlessedArmour, util.SpellSoulShield)
+	clone(cm.SpellBlessedArmour, cm.SpellSoulShield)
 
 	// 气功波
 
 	// 困魔咒
 
 	// 净化术
-	add(util.SpellPurification, &MagicConfig{
+	add(cm.SpellPurification, &MagicConfig{
 		SelectType: Select_Self | Select_Friend,
 		TargetType: Target_Friend | Target_Self,
 		Action:     Action_Purification,
@@ -249,12 +250,12 @@ func init() {
 	// 无极真气
 
 	// 召唤神兽
-	SummonMagic(util.SpellSummonShinsu, "Shinsu", 5)
+	SummonMagic(cm.SpellSummonShinsu, "Shinsu", 5)
 
 	// 复活术
 
 	// 召唤月灵
-	SummonMagic(util.SpellSummonHolyDeva, "HolyDeva", 2)
+	SummonMagic(cm.SpellSummonHolyDeva, "HolyDeva", 2)
 
 	// 诅咒术
 
@@ -268,17 +269,17 @@ func init() {
 
 	// TODO: AliveTime，SetTarget
 	//
-	SummonMagic1(util.SpellSummonVampire, "VampireSpider", Select_Enemy, 0)
+	SummonMagic1(cm.SpellSummonVampire, "VampireSpider", Select_Enemy, 0)
 	//
-	SummonMagic1(util.SpellSummonToad, "SpittingToad", Select_Enemy, 0)
+	SummonMagic1(cm.SpellSummonToad, "SpittingToad", Select_Enemy, 0)
 	//
-	SummonMagic1(util.SpellSummonSnakes, "SnakeTotem", Select_Enemy, 0)
+	SummonMagic1(cm.SpellSummonSnakes, "SnakeTotem", Select_Enemy, 0)
 
 }
 
 // Action_DamageTarget 单一目标攻击
 func Action_DamageTarget(ctx *MagicContext) bool {
-	return ctx.Target.Attacked(ctx.Player, ctx.Damage, util.DefenceTypeMAC, false) > 0
+	return ctx.Target.Attacked(ctx.Player, ctx.Damage, cm.DefenceTypeMAC, false) > 0
 }
 
 // Action_ElectricShock 雷电术
@@ -355,21 +356,21 @@ func Action_ElectricShock(ctx *MagicContext) bool {
 
 func Action_SoulShield(ctx *MagicContext) bool {
 	const damageRange = 3
-	var loc util.Point
+	var loc cm.Point
 	if ctx.Target == nil {
 		loc = ctx.TargetPoint
 	} else {
 		loc = ctx.Target.GetPoint()
 	}
 
-	buffType := util.BuffTypeSoulShield
-	if ctx.Magic.Spell == util.SpellBlessedArmour {
-		buffType = util.BuffTypeBlessedArmour
+	buffType := cm.BuffTypeSoulShield
+	if ctx.Magic.Spell == cm.SpellBlessedArmour {
+		buffType = cm.BuffTypeBlessedArmour
 	}
 
 	ctx.Map.RangeObject(loc, damageRange, func(o IMapObject) bool {
 		switch o.GetRace() {
-		case util.ObjectTypePlayer, util.ObjectTypeMonster:
+		case cm.ObjectTypePlayer, cm.ObjectTypeMonster:
 			if o.IsFriendlyTarget(ctx.Player) {
 				buff := NewBuff(buffType, ctx.Player, ctx.Damage*1000, []int32{int32(o.GetLevel()/7) + 4})
 				o.AddBuff(buff)
@@ -410,7 +411,7 @@ func Action_Purification(ctx *MagicContext) bool {
 
 func Action_RangeDamage1(ctx *MagicContext) bool {
 	const damageRange = 1
-	var loc util.Point
+	var loc cm.Point
 	if ctx.Target == nil {
 		loc = ctx.TargetPoint
 	} else {
@@ -419,9 +420,9 @@ func Action_RangeDamage1(ctx *MagicContext) bool {
 
 	ctx.Map.RangeObject(loc, damageRange, func(o IMapObject) bool {
 		switch o.GetRace() {
-		case util.ObjectTypePlayer, util.ObjectTypeMonster:
+		case cm.ObjectTypePlayer, cm.ObjectTypeMonster:
 			if o.IsAttackTarget(ctx.Player) {
-				o.Attacked(ctx.Player, ctx.Damage, util.DefenceTypeMAC, false)
+				o.Attacked(ctx.Player, ctx.Damage, cm.DefenceTypeMAC, false)
 			}
 		}
 		return true
@@ -431,7 +432,7 @@ func Action_RangeDamage1(ctx *MagicContext) bool {
 }
 
 func Action_Fury(ctx *MagicContext) bool {
-	buff := NewBuff(util.BuffTypeFury, ctx.Player, 60000+ctx.Magic.Level*10000, []int32{4})
+	buff := NewBuff(cm.BuffTypeFury, ctx.Player, 60000+ctx.Magic.Level*10000, []int32{4})
 	buff.Visible = true
 	ctx.Player.AddBuff(buff)
 	return true
@@ -451,11 +452,11 @@ func Action_Hidding(ctx *MagicContext) bool {
 	p := ctx.Player
 
 	for e := p.BuffList.List.Front(); e != nil; e = e.Next() {
-		if e.Value.(*Buff).Type == util.BuffTypeHiding {
+		if e.Value.(*Buff).Type == cm.BuffTypeHiding {
 			return false
 		}
 	}
-	buff := NewBuff(util.BuffTypeHiding, p, 1000*ctx.Damage, []int32{})
+	buff := NewBuff(cm.BuffTypeHiding, p, 1000*ctx.Damage, []int32{})
 	p.AddBuff(buff)
 	return true
 }
@@ -476,11 +477,11 @@ func Action_FrostCrunch(ctx *MagicContext) bool {
 	target := ctx.Target
 	p := ctx.Player
 
-	if target.Attacked(p, ctx.Damage, util.DefenceTypeMAC, false) > 0 {
+	if target.Attacked(p, ctx.Damage, cm.DefenceTypeMAC, false) > 0 {
 		var tmp1 int
 		var tmp2 int
 		var duration int
-		if target.GetRace() == util.ObjectTypePlayer {
+		if target.GetRace() == cm.ObjectTypePlayer {
 			tmp1 = 2
 			tmp2 = 100
 			duration = 4
@@ -490,10 +491,10 @@ func Action_FrostCrunch(ctx *MagicContext) bool {
 			duration = 5 + util.RandomNext(5)
 		}
 		if int(p.Level)+tmp1 >= target.GetLevel() && util.RandomNext(tmp2) <= ctx.Magic.Level {
-			target.ApplyPoison(NewPoison(duration, p, util.PoisonTypeSlow, 1000, 0), p)
+			target.ApplyPoison(NewPoison(duration, p, cm.PoisonTypeSlow, 1000, 0), p)
 			// TODO // target.OperateTime = 0;
 		}
-		if target.GetRace() == util.ObjectTypePlayer {
+		if target.GetRace() == cm.ObjectTypePlayer {
 			tmp1 = 2
 			tmp2 = 100
 			duration = 2
@@ -503,7 +504,7 @@ func Action_FrostCrunch(ctx *MagicContext) bool {
 			duration = 5 + int(p.Freezing)
 		}
 		if int(p.Level)+tmp1 >= target.GetLevel() && util.RandomNext(tmp2) <= ctx.Magic.Level {
-			target.ApplyPoison(NewPoison(duration, p, util.PoisonTypeFrozen, 1000, 0), p)
+			target.ApplyPoison(NewPoison(duration, p, cm.PoisonTypeFrozen, 1000, 0), p)
 			// TODO // target.OperateTime = 0;
 		}
 		return true
@@ -517,9 +518,9 @@ func Action_Poisoning(ctx *MagicContext) bool {
 	value := ctx.Damage/15 + ctx.Magic.Level + 1 + util.RandomNext(int(ctx.Player.PoisonAttack))
 	switch ctx.Item.Info.Shape {
 	case 1:
-		ctx.Target.ApplyPoison(NewPoison(duration, ctx.Player, util.PoisonTypeGreen, 2000, value), ctx.Player)
+		ctx.Target.ApplyPoison(NewPoison(duration, ctx.Player, cm.PoisonTypeGreen, 2000, value), ctx.Player)
 	case 2:
-		ctx.Target.ApplyPoison(NewPoison(duration, ctx.Player, util.PoisonTypeRed, 2000, 0), ctx.Player)
+		ctx.Target.ApplyPoison(NewPoison(duration, ctx.Player, cm.PoisonTypeRed, 2000, 0), ctx.Player)
 	}
 	return true
 }
@@ -530,7 +531,7 @@ type summonData struct {
 	SpellMap    *Map
 }
 
-func SummonMagic1(sp util.Spell, sumname string, sel MagicSelectType, amuletCount uint32) {
+func SummonMagic1(sp cm.Spell, sumname string, sel MagicSelectType, amuletCount uint32) {
 	cfg := &MagicConfig{
 		SelectType:    sel,
 		TargetType:    Target_None,
@@ -550,7 +551,7 @@ func SummonMagic1(sp util.Spell, sumname string, sel MagicSelectType, amuletCoun
 	addMagic(sp, cfg)
 }
 
-func SummonMagic(sp util.Spell, sumname string, amuletCount int) {
+func SummonMagic(sp cm.Spell, sumname string, amuletCount int) {
 	SummonMagic1(sp, sumname, Select_Enemy, 0)
 }
 
@@ -582,7 +583,7 @@ func SummonMagic_BeforeAction(ctx *MagicContext) (error, uint32) {
 	if dir > 8 {
 		dir -= 8
 	}
-	monster := NewMonster(p.Map, p.GetPoint().NextPoint(util.MirDirection(dir), 1), monsterInfo)
+	monster := NewMonster(p.Map, p.GetPoint().NextPoint(cm.MirDirection(dir), 1), monsterInfo)
 	monster.PetLevel = uint16(ctx.Magic.Level)
 	monster.Master = p
 	monster.ActionTime = time.Now().Add(time.Duration(1000) * time.Millisecond)

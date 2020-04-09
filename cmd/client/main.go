@@ -12,11 +12,11 @@ import (
 	_ "github.com/davyxu/cellnet/peer/tcp"
 	"github.com/davyxu/cellnet/proc"
 	"github.com/davyxu/golog"
+	"github.com/yenkeia/mirgo/game/cm"
 	_ "github.com/yenkeia/mirgo/game/mircodec"
 	_ "github.com/yenkeia/mirgo/game/mirtcp"
 	"github.com/yenkeia/mirgo/game/proto/client"
 	"github.com/yenkeia/mirgo/game/proto/server"
-	"github.com/yenkeia/mirgo/util"
 )
 
 var log = golog.New("client")
@@ -60,8 +60,8 @@ func parse(str string) interface{} {
 	case "NewCharacter":
 		return &client.NewCharacter{
 			Name:   args[1],
-			Gender: util.MirGenderMale,
-			Class:  util.MirClassTaoist,
+			Gender: cm.MirGenderMale,
+			Class:  cm.MirClassTaoist,
 		}
 	case "DeleteCharacter":
 		i, _ := strconv.Atoi(args[1])
@@ -105,7 +105,7 @@ func parse(str string) interface{} {
 	case "Attack":
 		return &client.Attack{
 			Direction: direction(args[1]),
-			Spell:     util.SpellNone,
+			Spell:     cm.SpellNone,
 		}
 	case "RangeAttack":
 	case "Harvest":
@@ -118,45 +118,45 @@ func parse(str string) interface{} {
 	return nil
 }
 
-func direction(s string) util.MirDirection {
+func direction(s string) cm.MirDirection {
 	switch s {
 	case "up":
-		return util.MirDirectionUp
+		return cm.MirDirectionUp
 	case "upright":
-		return util.MirDirectionUpRight
+		return cm.MirDirectionUpRight
 	case "right":
-		return util.MirDirectionRight
+		return cm.MirDirectionRight
 	case "downright":
-		return util.MirDirectionDownRight
+		return cm.MirDirectionDownRight
 	case "down":
-		return util.MirDirectionDown
+		return cm.MirDirectionDown
 	case "downleft":
-		return util.MirDirectionDownLeft
+		return cm.MirDirectionDownLeft
 	case "left":
-		return util.MirDirectionLeft
+		return cm.MirDirectionLeft
 	case "upleft":
-		return util.MirDirectionUpLeft
+		return cm.MirDirectionUpLeft
 	default:
-		return util.MirDirectionUp
+		return cm.MirDirectionUp
 	}
 }
-func directionIcon(d util.MirDirection) string {
+func directionIcon(d cm.MirDirection) string {
 	switch d {
-	case util.MirDirectionUp:
+	case cm.MirDirectionUp:
 		return "↑↑↑"
-	case util.MirDirectionUpRight:
+	case cm.MirDirectionUpRight:
 		return "↗↗↗"
-	case util.MirDirectionRight:
+	case cm.MirDirectionRight:
 		return "→→→"
-	case util.MirDirectionDownRight:
+	case cm.MirDirectionDownRight:
 		return "↘↘↘"
-	case util.MirDirectionDown:
+	case cm.MirDirectionDown:
 		return "↓↓↓"
-	case util.MirDirectionDownLeft:
+	case cm.MirDirectionDownLeft:
 		return "↙↙↙"
-	case util.MirDirectionLeft:
+	case cm.MirDirectionLeft:
 		return "←←←"
-	case util.MirDirectionUpLeft:
+	case cm.MirDirectionUpLeft:
 		return "↖↖↖"
 	}
 	return fmt.Sprintf("!!! error direction: %d", d)

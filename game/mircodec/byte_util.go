@@ -3,7 +3,7 @@ package mircodec
 import (
 	"reflect"
 
-	"github.com/yenkeia/mirgo/util"
+	"github.com/yenkeia/mirgo/game/util"
 )
 
 type BytesWrapper struct {

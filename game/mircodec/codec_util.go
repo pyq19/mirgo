@@ -5,7 +5,7 @@ import (
 	"errors"
 	"reflect"
 
-	"github.com/yenkeia/mirgo/util"
+	"github.com/yenkeia/mirgo/game/util"
 )
 
 // 在指针数组元素前加一个bool值，标示该元素是否为nil

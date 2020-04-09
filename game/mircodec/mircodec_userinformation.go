@@ -5,8 +5,8 @@ import (
 
 	"github.com/davyxu/cellnet"
 	"github.com/davyxu/cellnet/codec"
+	"github.com/yenkeia/mirgo/game/cm"
 	"github.com/yenkeia/mirgo/game/proto/server"
-	"github.com/yenkeia/mirgo/util"
 )
 
 func init() {
@@ -127,7 +127,7 @@ func (*MirUserInformationCodec) Encode(msgObj interface{}, ctx cellnet.ContextSe
 	return *writer.Bytes, nil
 }
 
-func IsNull(ui *util.UserItem) bool {
+func IsNull(ui *cm.UserItem) bool {
 	if ui == nil || (ui.ID == 0 && ui.ItemID == 0) {
 		return true
 	}
@@ -145,24 +145,24 @@ func (*MirUserInformationCodec) Decode(data interface{}, msgObj interface{}) err
 	ui.GuildName = reader.ReadString()
 	ui.GuildRank = reader.ReadString()
 	ui.NameColor = reader.ReadInt32()
-	ui.Class = util.MirClass(reader.ReadByte())
-	ui.Gender = util.MirGender(reader.ReadByte())
+	ui.Class = cm.MirClass(reader.ReadByte())
+	ui.Gender = cm.MirGender(reader.ReadByte())
 	ui.Level = reader.ReadUInt16()
 	x := reader.ReadInt32()
 	y := reader.ReadInt32()
-	ui.Location = util.Point{X: uint32(x), Y: uint32(y)}
-	ui.Direction = util.MirDirection(reader.ReadByte())
+	ui.Location = cm.Point{X: uint32(x), Y: uint32(y)}
+	ui.Direction = cm.MirDirection(reader.ReadByte())
 	ui.Hair = reader.ReadUInt8()
 	ui.HP = reader.ReadUInt16()
 	ui.MP = reader.ReadUInt16()
 	ui.Experience = reader.ReadInt64()
 	ui.MaxExperience = reader.ReadInt64()
-	ui.LevelEffect = util.LevelEffects(reader.ReadUInt8())
+	ui.LevelEffect = cm.LevelEffects(reader.ReadUInt8())
 
 	// Inventory
 	if reader.ReadBoolean() {
 		count := reader.ReadInt32()
-		ui.Inventory = make([]*util.UserItem, count)
+		ui.Inventory = make([]*cm.UserItem, count)
 		for i := 0; i < int(count); i++ {
 			if reader.ReadBoolean() {
 				last := reader.Last()
@@ -176,7 +176,7 @@ func (*MirUserInformationCodec) Decode(data interface{}, msgObj interface{}) err
 	// Equipment
 	if reader.ReadBoolean() {
 		count := reader.ReadInt32()
-		ui.Equipment = make([]*util.UserItem, count)
+		ui.Equipment = make([]*cm.UserItem, count)
 		for i := 0; i < int(count); i++ {
 			if reader.ReadBoolean() {
 				last := reader.Last()
@@ -190,7 +190,7 @@ func (*MirUserInformationCodec) Decode(data interface{}, msgObj interface{}) err
 	// QuestInventory
 	if reader.ReadBoolean() {
 		count := reader.ReadInt32()
-		ui.QuestInventory = make([]*util.UserItem, count)
+		ui.QuestInventory = make([]*cm.UserItem, count)
 		for i := 0; i < int(count); i++ {
 			if reader.ReadBoolean() {
 				last := reader.Last()
@@ -206,10 +206,10 @@ func (*MirUserInformationCodec) Decode(data interface{}, msgObj interface{}) err
 	ui.ExpandedStorageExpiryTime = reader.ReadInt64()
 
 	count := reader.ReadInt32()
-	clientMagics := make([]*util.ClientMagic, 0)
+	clientMagics := make([]*cm.ClientMagic, 0)
 	for i := 0; i < int(count); i++ {
 		last := reader.Last()
-		magic := new(util.ClientMagic)
+		magic := new(cm.ClientMagic)
 		*reader.Bytes = decodeValue(reflect.ValueOf(magic), last)
 		clientMagics = append(clientMagics, magic)
 	}

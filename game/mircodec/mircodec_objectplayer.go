@@ -3,8 +3,8 @@ package mircodec
 import (
 	"github.com/davyxu/cellnet"
 	"github.com/davyxu/cellnet/codec"
+	"github.com/yenkeia/mirgo/game/cm"
 	"github.com/yenkeia/mirgo/game/proto/server"
-	"github.com/yenkeia/mirgo/util"
 )
 
 func init() {
@@ -83,20 +83,20 @@ func (*MirObjectPlayerCodec) Decode(data interface{}, msgObj interface{}) error 
 	op.GuildName = reader.ReadString()
 	op.GuildRankName = reader.ReadString()
 	op.NameColor = reader.ReadInt32()
-	op.Class = util.MirClass(reader.ReadByte())
-	op.Gender = util.MirGender(reader.ReadByte())
+	op.Class = cm.MirClass(reader.ReadByte())
+	op.Gender = cm.MirGender(reader.ReadByte())
 	op.Level = reader.ReadUInt16()
-	op.Location = util.Point{X: uint32(reader.ReadInt32()), Y: uint32(reader.ReadInt32())}
-	op.Direction = util.MirDirection(reader.ReadByte())
+	op.Location = cm.Point{X: uint32(reader.ReadInt32()), Y: uint32(reader.ReadInt32())}
+	op.Direction = cm.MirDirection(reader.ReadByte())
 	op.Hair = uint8(reader.ReadByte())
 	op.Light = uint8(reader.ReadByte())
 	op.Weapon = reader.ReadInt16()
 	op.WeaponEffect = reader.ReadInt16()
 	op.Armour = reader.ReadInt16()
-	op.Poison = util.PoisonType(reader.ReadUInt16())
+	op.Poison = cm.PoisonType(reader.ReadUInt16())
 	op.Dead = reader.ReadBoolean()
 	op.Hidden = reader.ReadBoolean()
-	op.Effect = util.SpellEffect(reader.ReadByte())
+	op.Effect = cm.SpellEffect(reader.ReadByte())
 	op.WingEffect = uint8(reader.ReadByte())
 	op.Extra = reader.ReadBoolean()
 	op.MountType = reader.ReadInt16()
@@ -108,11 +108,11 @@ func (*MirObjectPlayerCodec) Decode(data interface{}, msgObj interface{}) error 
 	op.ElementOrbMax = reader.ReadUInt32()
 
 	bc := reader.ReadInt32()
-	op.Buffs = make([]util.BuffType, bc)
+	op.Buffs = make([]cm.BuffType, bc)
 	for i := 0; i < int(bc); i++ {
-		op.Buffs[i] = util.BuffType(reader.ReadByte())
+		op.Buffs[i] = cm.BuffType(reader.ReadByte())
 	}
 
-	op.LevelEffects = util.LevelEffects(reader.ReadByte())
+	op.LevelEffects = cm.LevelEffects(reader.ReadByte())
 	return nil
 }

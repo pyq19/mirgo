@@ -1,12 +1,14 @@
-package util
+package cm
+
+import "github.com/yenkeia/mirgo/game/util"
 
 // 随机方向
 func RandomDirection() MirDirection {
-	return MirDirection(RandomInt(0, MirDirectionCount))
+	return MirDirection(util.RandomInt(0, MirDirectionCount))
 }
 
 func MaxDistance(p1, p2 Point) int {
-	return MaxInt(AbsInt(int(p1.X)-int(p2.X)), AbsInt(int(p1.Y)-int(p2.Y)))
+	return util.MaxInt(util.AbsInt(int(p1.X)-int(p2.X)), util.AbsInt(int(p1.Y)-int(p2.Y)))
 }
 
 func NextDirection(d MirDirection) MirDirection {

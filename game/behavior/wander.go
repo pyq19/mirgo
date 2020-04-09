@@ -3,7 +3,8 @@ package behavior
 import (
 	"time"
 
-	"github.com/yenkeia/mirgo/util"
+	"github.com/yenkeia/mirgo/game/cm"
+	"github.com/yenkeia/mirgo/game/util"
 )
 
 // 游荡
@@ -40,7 +41,7 @@ func (n *WanderNode) PickNewDirection(c *BT) {
 
 	switch util.RandomNext(3) {
 	case 0:
-		c.Monster.Turn(util.RandomDirection())
+		c.Monster.Turn(cm.RandomDirection())
 	default:
 		c.Monster.Walk(c.Monster.Direction)
 	}

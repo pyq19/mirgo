@@ -1,8 +1,10 @@
-package util
+package cm
 
 import (
 	"fmt"
 	"math"
+
+	"github.com/yenkeia/mirgo/game/util"
 )
 
 type DropInfo struct {
@@ -438,14 +440,14 @@ func (um *UserMagic) GetPower1(power int) int {
 
 func (um *UserMagic) MPower() int {
 	if um.Info.MPowerBonus > 0 {
-		return RandomNext2(um.Info.MPowerBase, um.Info.MPowerBonus+um.Info.MPowerBase)
+		return util.RandomNext2(um.Info.MPowerBase, um.Info.MPowerBonus+um.Info.MPowerBase)
 	} else {
 		return um.Info.MPowerBase
 	}
 }
 func (um *UserMagic) DefPower() int {
 	if um.Info.MPowerBonus > 0 {
-		return RandomNext2(um.Info.PowerBase, um.Info.PowerBonus+um.Info.PowerBase)
+		return util.RandomNext2(um.Info.PowerBase, um.Info.PowerBonus+um.Info.PowerBase)
 	} else {
 		return um.Info.MPowerBase
 	}

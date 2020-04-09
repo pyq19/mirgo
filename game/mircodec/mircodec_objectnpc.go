@@ -3,8 +3,8 @@ package mircodec
 import (
 	"github.com/davyxu/cellnet"
 	"github.com/davyxu/cellnet/codec"
+	"github.com/yenkeia/mirgo/game/cm"
 	"github.com/yenkeia/mirgo/game/proto/server"
-	"github.com/yenkeia/mirgo/util"
 )
 
 func init() {
@@ -57,8 +57,8 @@ func (*MirObjectNPCCodec) Decode(data interface{}, msgObj interface{}) error {
 	on.NameColor = reader.ReadInt32()
 	on.Image = reader.ReadUInt16()
 	on.Color = reader.ReadInt32()
-	on.Location = util.Point{X: uint32(reader.ReadInt32()), Y: uint32(reader.ReadInt32())}
-	on.Direction = util.MirDirection(reader.ReadByte())
+	on.Location = cm.Point{X: uint32(reader.ReadInt32()), Y: uint32(reader.ReadInt32())}
+	on.Direction = cm.MirDirection(reader.ReadByte())
 
 	nc := reader.ReadInt32()
 	on.QuestIDs = make([]int32, nc)

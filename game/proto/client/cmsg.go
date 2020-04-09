@@ -2,7 +2,7 @@ package client
 
 import (
 	_ "github.com/davyxu/cellnet/codec/binary"
-	"github.com/yenkeia/mirgo/util"
+	"github.com/yenkeia/mirgo/game/cm"
 )
 
 const (
@@ -174,8 +174,8 @@ type Login struct {
 
 type NewCharacter struct {
 	Name   string
-	Gender util.MirGender
-	Class  util.MirClass
+	Gender cm.MirGender
+	Class  cm.MirClass
 }
 
 type DeleteCharacter struct {
@@ -189,15 +189,15 @@ type StartGame struct {
 type LogOut struct{}
 
 type Turn struct {
-	Direction util.MirDirection
+	Direction cm.MirDirection
 }
 
 type Walk struct {
-	Direction util.MirDirection
+	Direction cm.MirDirection
 }
 
 type Run struct {
-	Direction util.MirDirection
+	Direction cm.MirDirection
 }
 
 type Chat struct {
@@ -205,7 +205,7 @@ type Chat struct {
 }
 
 type MoveItem struct {
-	Grid util.MirGridType
+	Grid cm.MirGridType
 	From int32
 	To   int32
 }
@@ -221,33 +221,33 @@ type TakeBackItem struct {
 }
 
 type MergeItem struct {
-	GridFrom util.MirGridType
-	GridTo   util.MirGridType
+	GridFrom cm.MirGridType
+	GridTo   cm.MirGridType
 	IDFrom   uint64
 	IDTo     uint64
 }
 
 type EquipItem struct {
-	Grid     util.MirGridType
+	Grid     cm.MirGridType
 	UniqueID uint64
 	To       int32
 }
 
 type RemoveItem struct {
-	Grid     util.MirGridType
+	Grid     cm.MirGridType
 	UniqueID uint64
 	To       int32
 }
 
 type RemoveSlotItem struct {
-	Grid     util.MirGridType
-	GridTo   util.MirGridType
+	Grid     cm.MirGridType
+	GridTo   cm.MirGridType
 	UniqueID uint64
 	To       int32
 }
 
 type SplitItem struct {
-	Grid     util.MirGridType
+	Grid     cm.MirGridType
 	UniqueID uint64
 	Count    uint32
 }
@@ -307,11 +307,11 @@ type Inspect struct {
 }
 
 type ChangeAMode struct {
-	Mode util.AttackMode
+	Mode cm.AttackMode
 }
 
 type ChangePMode struct {
-	Mode util.PetMode
+	Mode cm.PetMode
 }
 
 type ChangeTrade struct {
@@ -319,19 +319,19 @@ type ChangeTrade struct {
 }
 
 type Attack struct {
-	Direction util.MirDirection
-	Spell     util.Spell
+	Direction cm.MirDirection
+	Spell     cm.Spell
 }
 
 type RangeAttack struct {
-	Direction      util.MirDirection
-	Location       util.Point
+	Direction      cm.MirDirection
+	Location       cm.Point
 	TargetID       uint32
-	TargetLocation util.Point
+	TargetLocation cm.Point
 }
 
 type Harvest struct {
-	Direction util.MirDirection
+	Direction cm.MirDirection
 }
 
 type CallNPC struct {
@@ -346,7 +346,7 @@ type TalkMonsterNPC struct {
 type BuyItem struct {
 	ItemIndex uint64
 	Count     uint32
-	Type      util.PanelType
+	Type      cm.PanelType
 }
 
 type SellItem struct {
@@ -375,15 +375,15 @@ type SRepairItem struct {
 }
 
 type MagicKey struct {
-	Spell util.Spell
+	Spell cm.Spell
 	Key   uint8
 }
 
 type Magic struct {
-	Spell     util.Spell
-	Direction util.MirDirection
+	Spell     cm.Spell
+	Direction cm.MirDirection
 	TargetID  uint32
-	Location  util.Point
+	Location  cm.Point
 }
 
 type SwitchGroup struct {
@@ -405,7 +405,7 @@ type GroupInvite struct {
 type TownRevive struct{}
 
 type SpellToggle struct {
-	Spell  util.Spell
+	Spell  cm.Spell
 	CanUse bool
 }
 
@@ -521,10 +521,10 @@ type TradeConfirm struct {
 type TradeCancel struct{}
 
 type EquipSlotItem struct {
-	Grid     util.MirGridType
+	Grid     cm.MirGridType
 	UniqueID uint64
 	To       int32
-	GridTo   util.MirGridType
+	GridTo   cm.MirGridType
 }
 
 type FishingCast struct {

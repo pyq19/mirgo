@@ -6,7 +6,7 @@ import (
 	// 使用binary协议，因此匿名引用这个包，底层会自动注册
 
 	_ "github.com/davyxu/cellnet/codec/binary"
-	"github.com/yenkeia/mirgo/util"
+	"github.com/yenkeia/mirgo/game/cm"
 )
 
 const (
@@ -298,8 +298,8 @@ type SelectInfo struct {
 	Index      uint32
 	Name       string
 	Level      uint16
-	Class      util.MirClass
-	Gender     util.MirGender
+	Class      cm.MirClass
+	Gender     cm.MirGender
 	LastAccess int64
 }
 
@@ -353,7 +353,7 @@ type MapInformation struct {
 	Title        string
 	MiniMap      uint16
 	BigMap       uint16
-	Lights       util.LightSetting
+	Lights       cm.LightSetting
 	Lightning    bool
 	MapDarkLight uint8
 	Music        uint16
@@ -366,25 +366,25 @@ type UserInformation struct {
 	GuildName                 string
 	GuildRank                 string
 	NameColor                 int32
-	Class                     util.MirClass
-	Gender                    util.MirGender
+	Class                     cm.MirClass
+	Gender                    cm.MirGender
 	Level                     uint16
-	Location                  util.Point
-	Direction                 util.MirDirection
+	Location                  cm.Point
+	Direction                 cm.MirDirection
 	Hair                      uint8
 	HP                        uint16
 	MP                        uint16
 	Experience                int64
 	MaxExperience             int64
-	LevelEffect               util.LevelEffects
-	Inventory                 []*util.UserItem
-	Equipment                 []*util.UserItem
-	QuestInventory            []*util.UserItem
+	LevelEffect               cm.LevelEffects
+	Inventory                 []*cm.UserItem
+	Equipment                 []*cm.UserItem
+	QuestInventory            []*cm.UserItem
 	Gold                      uint32
 	Credit                    uint32
 	HasExpandedStorage        bool
 	ExpandedStorageExpiryTime int64
-	ClientMagics              []*util.ClientMagic
+	ClientMagics              []*cm.ClientMagic
 }
 
 func (msg *UserInformation) String() string {
@@ -392,8 +392,8 @@ func (msg *UserInformation) String() string {
 }
 
 type UserLocation struct {
-	Location  util.Point
-	Direction util.MirDirection
+	Location  cm.Point
+	Direction cm.MirDirection
 }
 
 type ObjectPlayer struct {
@@ -402,20 +402,20 @@ type ObjectPlayer struct {
 	GuildName        string
 	GuildRankName    string
 	NameColor        int32 // = Color.FromArgb(reader.ReadInt32());
-	Class            util.MirClass
-	Gender           util.MirGender
+	Class            cm.MirClass
+	Gender           cm.MirGender
 	Level            uint16
-	Location         util.Point
-	Direction        util.MirDirection
+	Location         cm.Point
+	Direction        cm.MirDirection
 	Hair             uint8
 	Light            uint8
 	Weapon           int16
 	WeaponEffect     int16
 	Armour           int16
-	Poison           util.PoisonType // = (PoisonType)reader.ReadUInt16()
+	Poison           cm.PoisonType // = (PoisonType)reader.ReadUInt16()
 	Dead             bool
 	Hidden           bool
-	Effect           util.SpellEffect // = (SpellEffect)reader.ReadByte()
+	Effect           cm.SpellEffect // = (SpellEffect)reader.ReadByte()
 	WingEffect       uint8
 	Extra            bool
 	MountType        int16
@@ -425,8 +425,8 @@ type ObjectPlayer struct {
 	ElementOrbEffect uint32
 	ElementOrbLvl    uint32
 	ElementOrbMax    uint32
-	Buffs            []util.BuffType
-	LevelEffects     util.LevelEffects
+	Buffs            []cm.BuffType
+	LevelEffects     cm.LevelEffects
 }
 
 func (msg *ObjectPlayer) String() string {
@@ -439,69 +439,69 @@ type ObjectRemove struct {
 
 type ObjectTurn struct {
 	ObjectID  uint32
-	Location  util.Point
-	Direction util.MirDirection
+	Location  cm.Point
+	Direction cm.MirDirection
 }
 
 type ObjectWalk struct {
 	ObjectID  uint32
-	Location  util.Point
-	Direction util.MirDirection
+	Location  cm.Point
+	Direction cm.MirDirection
 }
 
 type ObjectRun struct {
 	ObjectID  uint32
-	Location  util.Point
-	Direction util.MirDirection
+	Location  cm.Point
+	Direction cm.MirDirection
 }
 
 type Chat struct {
 	Message string
-	Type    util.ChatType
+	Type    cm.ChatType
 }
 
 type ObjectChat struct {
 	ObjectID uint32
 	Text     string
-	Type     util.ChatType
+	Type     cm.ChatType
 }
 
 type NewItemInfo struct {
-	Info *util.ItemInfo
+	Info *cm.ItemInfo
 }
 
 type MoveItem struct {
-	Grid    util.MirGridType
+	Grid    cm.MirGridType
 	From    int32
 	To      int32
 	Success bool
 }
 
 type EquipItem struct {
-	Grid     util.MirGridType
+	Grid     cm.MirGridType
 	UniqueID uint64
 	To       int32
 	Success  bool
 }
 
 type MergeItem struct {
-	GridFrom util.MirGridType
-	GridTo   util.MirGridType
+	GridFrom cm.MirGridType
+	GridTo   cm.MirGridType
 	IDFrom   uint64
 	IDTo     uint64
 	Success  bool
 }
 
 type RemoveItem struct {
-	Grid     util.MirGridType
+	Grid     cm.MirGridType
 	UniqueID uint64
 	To       int32
 	Success  bool
 }
 
 type RemoveSlotItem struct {
-	Grid     util.MirGridType
-	GridTo   util.MirGridType
+	Grid     cm.MirGridType
+	GridTo   cm.MirGridType
 	UniqueID uint64
 	To       int32
 	Success  bool
@@ -520,12 +520,12 @@ type StoreItem struct {
 }
 
 type SplitItem struct {
-	Item *util.UserItem
-	Grid util.MirGridType
+	Item *cm.UserItem
+	Grid cm.MirGridType
 }
 
 type SplitItem1 struct {
-	Grid     util.MirGridType
+	Grid     cm.MirGridType
 	UniqueID uint64
 	Count    uint32
 	Success  bool
@@ -587,9 +587,9 @@ type PlayerInspect struct {
 	Name      string
 	GuildName string
 	GuildRank string
-	Equipment []*util.UserItem
-	Class     util.MirClass
-	Gender    util.MirGender
+	Equipment []*cm.UserItem
+	Class     cm.MirClass
+	Gender    cm.MirGender
 	Hair      uint8
 	Level     uint16
 	LoverName string
@@ -604,15 +604,15 @@ type LogOutFailed struct {
 }
 
 type TimeOfDay struct {
-	Lights util.LightSetting
+	Lights cm.LightSetting
 }
 
 type ChangeAMode struct {
-	Mode util.AttackMode
+	Mode cm.AttackMode
 }
 
 type ChangePMode struct {
-	Mode util.PetMode
+	Mode cm.PetMode
 }
 
 type ObjectItem struct {
@@ -622,7 +622,7 @@ type ObjectItem struct {
 	LocationX int32
 	LocationY int32
 	Image     uint16
-	Grade     util.ItemGrade
+	Grade     cm.ItemGrade
 }
 
 type ObjectGold struct {
@@ -633,7 +633,7 @@ type ObjectGold struct {
 }
 
 type GainedItem struct {
-	Item *util.UserItem
+	Item *cm.UserItem
 }
 
 type GainedGold struct {
@@ -656,15 +656,15 @@ type ObjectMonster struct {
 	ObjectID          uint32
 	Name              string
 	NameColor         int32
-	Location          util.Point
-	Image             util.Monster
-	Direction         util.MirDirection
+	Location          cm.Point
+	Image             cm.Monster
+	Direction         cm.MirDirection
 	Effect            uint8
 	AI                uint8
 	Light             uint8
 	Dead              bool
 	Skeleton          bool
-	Poison            util.PoisonType
+	Poison            cm.PoisonType
 	Hidden            bool
 	ShockTime         int64
 	BindingShotCenter bool
@@ -680,8 +680,8 @@ type ObjectAttack struct {
 	ObjectID  uint32
 	LocationX int32
 	LocationY int32
-	Direction util.MirDirection
-	Spell     util.Spell
+	Direction cm.MirDirection
+	Spell     cm.Spell
 	Level     uint8
 	Type      uint8
 }
@@ -695,12 +695,12 @@ type ObjectStruck struct {
 	AttackerID uint32
 	LocationX  int32
 	LocationY  int32
-	Direction  util.MirDirection
+	Direction  cm.MirDirection
 }
 
 type DamageIndicator struct {
 	Damage   int32
-	Type     util.DamageType
+	Type     cm.DamageType
 	ObjectID uint32
 }
 
@@ -722,24 +722,24 @@ type DeleteItem struct {
 type Death struct {
 	LocationX int32
 	LocationY int32
-	Direction util.MirDirection
+	Direction cm.MirDirection
 }
 
 type ObjectDied struct {
 	ObjectID  uint32
 	LocationX int32
 	LocationY int32
-	Direction util.MirDirection
+	Direction cm.MirDirection
 	Type      uint8
 }
 
 type ColourChanged struct {
-	NameColor util.Color
+	NameColor cm.Color
 }
 
 type ObjectColourChanged struct {
 	ObjectID  uint32
-	NameColor util.Color
+	NameColor cm.Color
 }
 
 type ObjectGuildNameChanged struct {
@@ -763,14 +763,14 @@ type ObjectLeveled struct {
 
 type ObjectHarvest struct {
 	ObjectID  uint32
-	Location  util.Point
-	Direction util.MirDirection
+	Location  cm.Point
+	Direction cm.MirDirection
 }
 
 type ObjectHarvested struct {
 	ObjectID  uint32
-	Location  util.Point
-	Direction util.MirDirection
+	Location  cm.Point
+	Direction cm.MirDirection
 }
 
 type ObjectNPC struct {
@@ -779,8 +779,8 @@ type ObjectNPC struct {
 	NameColor int32
 	Image     uint16
 	Color     int32
-	Location  util.Point
-	Direction util.MirDirection
+	Location  cm.Point
+	Direction cm.MirDirection
 	QuestIDs  []int32
 }
 
@@ -802,12 +802,12 @@ type ObjectShow struct {
 }
 
 type Poisoned struct {
-	Poison util.PoisonType
+	Poison cm.PoisonType
 }
 
 type ObjectPoisoned struct {
 	ObjectID uint32
-	Poison   util.PoisonType
+	Poison   cm.PoisonType
 }
 
 type MapChanged struct {
@@ -815,9 +815,9 @@ type MapChanged struct {
 	Title        string
 	MiniMap      uint16
 	BigMap       uint16
-	Lights       util.LightSetting
-	Location     util.Point
-	Direction    util.MirDirection
+	Lights       cm.LightSetting
+	Location     cm.Point
+	Direction    cm.MirDirection
 	MapDarkLight uint8
 	Music        uint16
 }
@@ -835,9 +835,9 @@ type ObjectTeleportIn struct {
 type TeleportIn struct{}
 
 type NPCGoods struct {
-	Goods []*util.UserItem
+	Goods []*cm.UserItem
 	Rate  float32
-	Type  util.PanelType
+	Type  cm.PanelType
 }
 
 func (n *NPCGoods) String() string {
@@ -892,7 +892,7 @@ type ItemRepaired struct {
 }
 
 type NewMagic struct {
-	Magic *util.ClientMagic
+	Magic *cm.ClientMagic
 }
 
 type RemoveMagic struct {
@@ -900,13 +900,13 @@ type RemoveMagic struct {
 }
 
 type MagicLeveled struct {
-	Spell      util.Spell
+	Spell      cm.Spell
 	Level      uint8
 	Experience uint16
 }
 
 type Magic struct {
-	Spell    util.Spell
+	Spell    cm.Spell
 	TargetID uint32
 	TargetX  int32
 	TargetY  int32
@@ -915,20 +915,20 @@ type Magic struct {
 }
 
 type MagicDelay struct {
-	Spell util.Spell
+	Spell cm.Spell
 	Delay int64
 }
 
 type MagicCast struct {
-	Spell util.Spell
+	Spell cm.Spell
 }
 
 type ObjectMagic struct {
 	ObjectID      uint32
 	LocationX     int32
 	LocationY     int32
-	Direction     util.MirDirection
-	Spell         util.Spell
+	Direction     cm.MirDirection
+	Spell         cm.Spell
 	TargetID      uint32
 	TargetX       int32
 	TargetY       int32
@@ -939,7 +939,7 @@ type ObjectMagic struct {
 
 type ObjectEffect struct {
 	ObjectID   uint32
-	Effect     util.SpellEffect
+	Effect     cm.SpellEffect
 	EffectType uint32
 	DelayTime  uint32
 	Time       uint32
@@ -947,19 +947,19 @@ type ObjectEffect struct {
 
 type RangeAttack struct {
 	TargetID uint32
-	Target   util.Point
-	Spell    util.Spell
+	Target   cm.Point
+	Spell    cm.Spell
 }
 
 type Pushed struct {
-	Location  util.Point
-	Direction util.MirDirection
+	Location  cm.Point
+	Direction cm.MirDirection
 }
 
 type ObjectPushed struct {
 	ObjectID  uint32
-	Location  util.Point
-	Direction util.MirDirection
+	Location  cm.Point
+	Direction cm.MirDirection
 }
 
 type ObjectName struct {
@@ -968,7 +968,7 @@ type ObjectName struct {
 }
 
 type UserStorage struct {
-	Storage []*util.UserItem `codec:"emptyflag"`
+	Storage []*cm.UserItem `codec:"emptyflag"`
 }
 
 type SwitchGroup struct {
@@ -997,7 +997,7 @@ type ObjectRevived struct {
 }
 
 type SpellToggle struct {
-	Spell  util.Spell
+	Spell  cm.Spell
 	CanUse bool
 }
 
@@ -1008,23 +1008,23 @@ type ObjectHealth struct {
 }
 
 type MapEffect struct {
-	Location util.Point
-	Effect   util.SpellEffect
+	Location cm.Point
+	Effect   cm.SpellEffect
 	Value    uint8
 }
 
 type ObjectRangeAttack struct {
 	ObjectID  uint32
-	Location  util.Point
-	Direction util.MirDirection
+	Location  cm.Point
+	Direction cm.MirDirection
 	TargetID  uint32
-	Target    util.Point
+	Target    cm.Point
 	Type      uint8
-	Spell     util.Spell
+	Spell     cm.Spell
 }
 
 type AddBuff struct {
-	Type     util.BuffType
+	Type     cm.BuffType
 	Caster   string
 	ObjectID uint32
 	Visible  bool
@@ -1034,7 +1034,7 @@ type AddBuff struct {
 }
 
 type RemoveBuff struct {
-	Type     util.BuffType
+	Type     cm.BuffType
 	ObjectID uint32
 }
 
@@ -1044,37 +1044,37 @@ type ObjectHidden struct {
 }
 
 type RefreshItem struct {
-	Item util.UserItem
+	Item cm.UserItem
 }
 
 type ObjectSpell struct {
 	ObjectID  uint32
-	Location  util.Point
-	Spell     util.Spell
-	Direction util.MirDirection
+	Location  cm.Point
+	Spell     cm.Spell
+	Direction cm.MirDirection
 	Param     bool
 }
 
 type UserDash struct {
-	Location  util.Point
-	Direction util.MirDirection
+	Location  cm.Point
+	Direction cm.MirDirection
 }
 
 type ObjectDash struct {
 	ObjectID  uint32
-	Location  util.Point
-	Direction util.MirDirection
+	Location  cm.Point
+	Direction cm.MirDirection
 }
 
 type UserDashFail struct {
-	Location  util.Point
-	Direction util.MirDirection
+	Location  cm.Point
+	Direction cm.MirDirection
 }
 
 type ObjectDashFail struct {
 	ObjectID  uint32
-	Location  util.Point
-	Direction util.MirDirection
+	Location  cm.Point
+	Direction cm.MirDirection
 }
 
 // TODO
@@ -1149,7 +1149,7 @@ type TradeGold struct {
 }
 
 type TradeItem struct {
-	TradeItems []*util.UserItem
+	TradeItems []*cm.UserItem
 }
 
 type TradeConfirm struct{}

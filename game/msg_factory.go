@@ -1,8 +1,8 @@
 package game
 
 import (
+	"github.com/yenkeia/mirgo/game/cm"
 	"github.com/yenkeia/mirgo/game/proto/server"
-	"github.com/yenkeia/mirgo/util"
 )
 
 type ServerMessage struct{}
@@ -40,21 +40,21 @@ func (ServerMessage) ObjectPlayer(p *Player) (res *server.ObjectPlayer) {
 		Weapon:           int16(p.LooksWeapon),
 		WeaponEffect:     int16(p.LooksWeaponEffect),
 		Armour:           int16(p.LooksArmour),
-		Poison:           util.PoisonTypeNone, // TODO
+		Poison:           cm.PoisonTypeNone, // TODO
 		Dead:             p.IsDead(),
 		Hidden:           p.IsHidden(),
-		Effect:           util.SpellEffectNone, // TODO
+		Effect:           cm.SpellEffectNone, // TODO
 		WingEffect:       uint8(p.LooksWings),
-		Extra:            false,                    // TODO
-		MountType:        -1,                       // TODO
-		RidingMount:      false,                    // TODO
-		Fishing:          false,                    // TODO
-		TransformType:    -1,                       // TODO
-		ElementOrbEffect: 0,                        // TODO
-		ElementOrbLvl:    0,                        // TODO
-		ElementOrbMax:    200,                      // TODO
-		Buffs:            make([]util.BuffType, 0), // TODO
-		LevelEffects:     util.LevelEffectsNone,    // TODO
+		Extra:            false,                  // TODO
+		MountType:        -1,                     // TODO
+		RidingMount:      false,                  // TODO
+		Fishing:          false,                  // TODO
+		TransformType:    -1,                     // TODO
+		ElementOrbEffect: 0,                      // TODO
+		ElementOrbLvl:    0,                      // TODO
+		ElementOrbMax:    200,                    // TODO
+		Buffs:            make([]cm.BuffType, 0), // TODO
+		LevelEffects:     cm.LevelEffectsNone,    // TODO
 	}
 }
 
@@ -97,7 +97,7 @@ func (ServerMessage) ObjectItem(i *Item) *server.ObjectItem {
 		LocationX: int32(i.GetPoint().X),
 		LocationY: int32(i.GetPoint().Y),
 		Image:     i.GetImage(),
-		Grade:     util.ItemGradeNone, // TODO
+		Grade:     cm.ItemGradeNone, // TODO
 	}
 }
 
@@ -114,14 +114,14 @@ func (ServerMessage) ObjectNPC(n *NPC) *server.ObjectNPC {
 	}
 }
 
-func (ServerMessage) MapInformation(info *util.MapInfo) *server.MapInformation {
+func (ServerMessage) MapInformation(info *cm.MapInfo) *server.MapInformation {
 	mi := new(server.MapInformation)
 	mi.FileName = info.Filename
 	mi.Title = info.Title
 	mi.MiniMap = uint16(info.MiniMap)
 	mi.BigMap = uint16(info.BigMap)
 	mi.Music = uint16(info.Music)
-	mi.Lights = util.LightSetting(info.Light)
+	mi.Lights = cm.LightSetting(info.Light)
 	mi.Lightning = true
 	mi.MapDarkLight = 0
 	return mi
@@ -148,7 +148,7 @@ func (ServerMessage) UserInformation(p *Player) *server.UserInformation {
 	ui.Name = p.Name
 	ui.GuildName = p.GuildName
 	ui.GuildRank = p.GuildRankName
-	ui.NameColor = util.Color{R: 255, G: 255, B: 255}.ToInt32()
+	ui.NameColor = cm.Color{R: 255, G: 255, B: 255}.ToInt32()
 	ui.Class = p.Class
 	ui.Gender = p.Gender
 	ui.Level = p.Level
@@ -159,7 +159,7 @@ func (ServerMessage) UserInformation(p *Player) *server.UserInformation {
 	ui.MP = p.MP
 	ui.Experience = p.Experience
 	ui.MaxExperience = int64(data.ExpList[p.Level-1])
-	ui.LevelEffect = util.LevelEffectsNone // TODO
+	ui.LevelEffect = cm.LevelEffectsNone // TODO
 	ui.Gold = uint32(p.Gold)
 	ui.Credit = 100 // TODO
 	ui.Inventory = p.Inventory.Items
@@ -171,8 +171,8 @@ func (ServerMessage) UserInformation(p *Player) *server.UserInformation {
 	return ui
 }
 
-func (p *Player) GetClientMagics() []*util.ClientMagic {
-	res := make([]*util.ClientMagic, 0)
+func (p *Player) GetClientMagics() []*cm.ClientMagic {
+	res := make([]*cm.ClientMagic, 0)
 	for i := range p.Magics {
 		userMagic := p.Magics[i]
 		res = append(res, userMagic.GetClientMagic(userMagic.Info))
@@ -215,7 +215,7 @@ func (ServerMessage) ObjectRemove(o IMapObject) *server.ObjectRemove {
 	return &server.ObjectRemove{ObjectID: o.GetID()}
 }
 
-func (ServerMessage) ObjectChat(p *Player, message string, chatType util.ChatType) *server.ObjectChat {
+func (ServerMessage) ObjectChat(p *Player, message string, chatType cm.ChatType) *server.ObjectChat {
 	text := p.Name + ":" + message
 	return &server.ObjectChat{
 		ObjectID: p.ID,
@@ -261,8 +261,8 @@ func (ServerMessage) NewCharacter(result int) interface{} {
 	return &server.NewCharacter{Result: uint8(result)}
 }
 
-func (ServerMessage) NewCharacterSuccess(g *Game, AccountID int, name string, class util.MirClass, gender util.MirGender) *server.NewCharacterSuccess {
-	c := new(util.Character)
+func (ServerMessage) NewCharacterSuccess(g *Game, AccountID int, name string, class cm.MirClass, gender cm.MirGender) *server.NewCharacterSuccess {
+	c := new(cm.Character)
 	c.Name = name
 	c.Level = 0
 	c.Class = class
@@ -277,15 +277,15 @@ func (ServerMessage) NewCharacterSuccess(g *Game, AccountID int, name string, cl
 	c.BindLocationX = startPoint.LocationX
 	c.BindLocationY = startPoint.LocationY
 
-	c.Direction = util.MirDirectionDown
+	c.Direction = cm.MirDirectionDown
 	c.HP = 15
 	c.MP = 17
 	c.Experience = 0
-	c.AttackMode = util.AttackModeAll
-	c.PetMode = util.PetModeBoth
+	c.AttackMode = cm.AttackModeAll
+	c.PetMode = cm.PetModeBoth
 	adb.Table("character").Create(c)
 	adb.Table("character").Where("name = ?", name).Last(c)
-	ac := new(util.AccountCharacter)
+	ac := new(cm.AccountCharacter)
 	ac.AccountID = AccountID
 	ac.CharacterID = int(c.ID)
 	adb.Table("account_character").Create(ac)
@@ -324,7 +324,7 @@ func (m ServerMessage) Object(obj IMapObject) interface{} {
 	}
 }
 
-func (ServerMessage) GainedItem(ui *util.UserItem) *server.GainedItem {
+func (ServerMessage) GainedItem(ui *cm.UserItem) *server.GainedItem {
 	return &server.GainedItem{Item: ui}
 }
 
@@ -343,7 +343,7 @@ func (ServerMessage) PlayerUpdate(p *Player) *server.PlayerUpdate {
 	}
 }
 
-func (ServerMessage) ObjectAttack(obj IMapObject, spell util.Spell, level int, typ int) *server.ObjectAttack {
+func (ServerMessage) ObjectAttack(obj IMapObject, spell cm.Spell, level int, typ int) *server.ObjectAttack {
 	return &server.ObjectAttack{
 		ObjectID:  obj.GetID(),
 		LocationX: int32(obj.GetPoint().X),
@@ -355,7 +355,7 @@ func (ServerMessage) ObjectAttack(obj IMapObject, spell util.Spell, level int, t
 	}
 }
 
-func (ServerMessage) DamageIndicator(dmg int32, typ util.DamageType, id uint32) *server.DamageIndicator {
+func (ServerMessage) DamageIndicator(dmg int32, typ cm.DamageType, id uint32) *server.DamageIndicator {
 	return &server.DamageIndicator{
 		Damage:   dmg,
 		Type:     typ,
@@ -381,7 +381,7 @@ func (ServerMessage) ObjectHealth(id uint32, percent, expire uint8) *server.Obje
 	}
 }
 
-func (ServerMessage) ObjectDied(id uint32, direction util.MirDirection, location util.Point) *server.ObjectDied {
+func (ServerMessage) ObjectDied(id uint32, direction cm.MirDirection, location cm.Point) *server.ObjectDied {
 	return &server.ObjectDied{
 		ObjectID:  id,
 		LocationX: int32(location.X),

@@ -7,11 +7,12 @@ import (
 	"strings"
 	"time"
 
-	"github.com/yenkeia/mirgo/util"
+	"github.com/yenkeia/mirgo/game/cm"
+	"github.com/yenkeia/mirgo/game/util"
 )
 
 type RouteInfo struct {
-	Location util.Point
+	Location cm.Point
 	Delay    int
 }
 
@@ -38,12 +39,12 @@ func RouteInfoFromText(text string) (*RouteInfo, error) {
 		}
 	}
 
-	return &RouteInfo{Location: util.NewPoint(x, y), Delay: delay}, nil
+	return &RouteInfo{Location: cm.NewPoint(x, y), Delay: delay}, nil
 }
 
 type Respawn struct {
-	Info     *util.RespawnInfo
-	Monster  *util.MonsterInfo
+	Info     *cm.RespawnInfo
+	Monster  *cm.MonsterInfo
 	Routes   []*RouteInfo
 	Count    int
 	Map      *Map
@@ -51,7 +52,7 @@ type Respawn struct {
 	Elapsed  time.Duration
 }
 
-func NewRespawn(m *Map, info *util.RespawnInfo) (*Respawn, error) {
+func NewRespawn(m *Map, info *cm.RespawnInfo) (*Respawn, error) {
 	r := &Respawn{}
 	r.Map = m
 	r.Info = info
@@ -118,8 +119,8 @@ func (r *Respawn) SpawnOne() bool {
 			continue
 		}
 
-		m := NewMonster(r.Map, util.NewPoint(x, y), r.Monster)
-		m.Direction = util.MirDirection(r.Info.Direction)
+		m := NewMonster(r.Map, cm.NewPoint(x, y), r.Monster)
+		m.Direction = cm.MirDirection(r.Info.Direction)
 		r.Map.AddObject(m)
 
 		m.BroadcastInfo()

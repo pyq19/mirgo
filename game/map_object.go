@@ -3,8 +3,8 @@ package game
 import (
 	"time"
 
+	"github.com/yenkeia/mirgo/game/cm"
 	"github.com/yenkeia/mirgo/game/proto/server"
-	"github.com/yenkeia/mirgo/util"
 )
 
 type BaseStats struct {
@@ -29,7 +29,7 @@ type IDObject interface {
 type ISimpleMapObject interface {
 	IDObject
 	GetMap() *Map
-	GetRace() util.ObjectType
+	GetRace() cm.ObjectType
 	Broadcast(interface{})
 }
 
@@ -42,12 +42,12 @@ type IMapObject interface {
 	ISimpleMapObject
 	GetName() string
 	GetLevel() int
-	GetPoint() util.Point
+	GetPoint() cm.Point
 	GetCell() *Cell
 	BroadcastHealthChange()
 	BroadcastInfo()
 	Spawned()
-	GetDirection() util.MirDirection
+	GetDirection() cm.MirDirection
 	GetBaseStats() BaseStats
 	IsAttackTarget(IMapObject) bool
 	IsFriendlyTarget(IMapObject) bool
@@ -58,7 +58,7 @@ type IMapObject interface {
 	ApplyPoison(*Poison, IMapObject)
 	AddPlayerCount(n int)
 	GetPlayerCount() int
-	Attacked(attacker IMapObject, damage int, dtype util.DefenceType, damageWeapon bool) int
+	Attacked(attacker IMapObject, damage int, dtype cm.DefenceType, damageWeapon bool) int
 	GetMapObject() *MapObject
 }
 
@@ -73,10 +73,10 @@ type ILifeObject interface {
 type MapObject struct {
 	ID              uint32
 	Name            string
-	NameColor       util.Color
+	NameColor       cm.Color
 	Map             *Map
-	CurrentLocation util.Point
-	Direction       util.MirDirection
+	CurrentLocation cm.Point
+	Direction       cm.MirDirection
 	Dead            bool
 	PlayerCount     int // 记录在DataRange内有多少个玩家
 	InSafeZone      bool
@@ -100,7 +100,7 @@ func IMapObject_Spawned(m IMapObject) {
 }
 
 func IMapObject_BroadcastHealthChange(m ILifeObject) {
-	if m.GetRace() != util.ObjectTypePlayer && m.GetRace() != util.ObjectTypeMonster {
+	if m.GetRace() != cm.ObjectTypePlayer && m.GetRace() != cm.ObjectTypeMonster {
 		return
 	}
 

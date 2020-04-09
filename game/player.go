@@ -7,8 +7,9 @@ import (
 	"time"
 
 	"github.com/davyxu/cellnet"
+	"github.com/yenkeia/mirgo/game/cm"
 	"github.com/yenkeia/mirgo/game/proto/server"
-	"github.com/yenkeia/mirgo/util"
+	"github.com/yenkeia/mirgo/game/util"
 )
 
 const (
@@ -32,21 +33,21 @@ type Player struct {
 	Gold               uint64
 	GuildName          string
 	GuildRankName      string
-	Class              util.MirClass
-	Gender             util.MirGender
+	Class              cm.MirClass
+	Gender             cm.MirGender
 	Hair               uint8
 	Light              uint8
-	Inventory          *Bag             // 46
-	Equipment          *Bag             // 14
-	QuestInventory     *Bag             // 40
-	Storage            *Bag             // 80
-	Trade              *Bag             // 10
-	Refine             []*util.UserItem // 16	TODO 合成？提炼？
+	Inventory          *Bag           // 46
+	Equipment          *Bag           // 14
+	QuestInventory     *Bag           // 40
+	Storage            *Bag           // 80
+	Trade              *Bag           // 10
+	Refine             []*cm.UserItem // 16	TODO 合成？提炼？
 	LooksArmour        int
 	LooksWings         int
 	LooksWeapon        int
 	LooksWeaponEffect  int
-	SendItemInfo       []*util.ItemInfo
+	SendItemInfo       []*cm.ItemInfo
 	CurrentBagWeight   int
 	MaxHP              uint16
 	MaxMP              uint16
@@ -88,22 +89,22 @@ type Player struct {
 	CraftRate          uint8
 	GoldDropRateOffset float32
 	AttackBonus        uint8
-	Magics             []*util.UserMagic
+	Magics             []*cm.UserMagic
 	ActionList         *ActionList
 	PoisonList         *PoisonList
 	BuffList           *BuffList
 	Health             Health // 状态恢复
 	Pets               []*Monster
 	PKPoints           int
-	AMode              util.AttackMode
-	PMode              util.PetMode
+	AMode              cm.AttackMode
+	PMode              cm.PetMode
 	CallingNPC         *NPC
 	CallingNPCPage     string
 	Slaying            bool        // TODO
 	FlamingSword       bool        // TODO
 	TwinDrakeBlade     bool        // TODO
 	BindMapIndex       int         // 绑定的地图 死亡时复活用
-	BindLocation       util.Point  // 绑定的坐标 死亡时复活用
+	BindLocation       cm.Point    // 绑定的坐标 死亡时复活用
 	MagicShield        bool        // TODO 是否有魔法盾
 	MagicShieldLv      int         // TODO 魔法盾等级
 	ArmourRate         float32     // 防御
@@ -163,12 +164,12 @@ func (p *Player) GetMaxHP() int {
 	return int(p.MaxHP)
 }
 
-func (p *Player) Point() util.Point {
+func (p *Player) Point() cm.Point {
 	return p.GetPoint()
 }
 
 // GetFrontPoint 获取玩家面前的点
-func (p *Player) GetFrontPoint() util.Point {
+func (p *Player) GetFrontPoint() cm.Point {
 	return p.Point().NextPoint(p.Direction, 1)
 }
 
@@ -202,11 +203,11 @@ func (m *Player) GetPlayerCount() int {
 	return m.PlayerCount
 }
 
-func (p *Player) GetRace() util.ObjectType {
-	return util.ObjectTypePlayer
+func (p *Player) GetRace() cm.ObjectType {
+	return cm.ObjectTypePlayer
 }
 
-func (p *Player) GetPoint() util.Point {
+func (p *Player) GetPoint() cm.Point {
 	return p.CurrentLocation
 }
 func (p *Player) IsBlocking() bool {
@@ -217,7 +218,7 @@ func (p *Player) GetCell() *Cell {
 	return p.Map.GetCell(p.CurrentLocation)
 }
 
-func (p *Player) GetDirection() util.MirDirection {
+func (p *Player) GetDirection() cm.MirDirection {
 	return p.Direction
 }
 
@@ -235,8 +236,8 @@ func (p *Player) IsAttackTarget(attacker IMapObject) bool {
 		return false
 	}
 	switch attacker.GetRace() {
-	case util.ObjectTypePlayer:
-	case util.ObjectTypeMonster:
+	case cm.ObjectTypePlayer:
+	case cm.ObjectTypeMonster:
 		monster := attacker.(*Monster)
 		monsterInfo := data.GetMonsterInfoByName(monster.Name)
 		if monsterInfo.AI == 6 || monsterInfo.AI == 58 {
@@ -249,17 +250,17 @@ func (p *Player) IsAttackTarget(attacker IMapObject) bool {
 			return false
 		}
 		switch monster.Master.AMode {
-		case util.AttackModeAll:
+		case cm.AttackModeAll:
 			return true
-		case util.AttackModeGroup:
+		case cm.AttackModeGroup:
 			// return GroupMembers == null || !GroupMembers.Contains(attacker.Master)
-		case util.AttackModeGuild:
+		case cm.AttackModeGuild:
 			return true
-		case util.AttackModeEnemyGuild:
+		case cm.AttackModeEnemyGuild:
 			return false
-		case util.AttackModePeace:
+		case cm.AttackModePeace:
 			return false
-		case util.AttackModeRedBrown:
+		case cm.AttackModeRedBrown:
 			return p.PKPoints >= 200 //|| Envir.Time < BrownTime
 		}
 	}
@@ -268,23 +269,23 @@ func (p *Player) IsAttackTarget(attacker IMapObject) bool {
 
 func (p *Player) IsFriendlyTarget(obj IMapObject) bool {
 	switch obj.GetRace() {
-	case util.ObjectTypePlayer:
+	case cm.ObjectTypePlayer:
 		ally := obj.(*Player)
 		if ally.GetID() == p.GetID() {
 			return true
 		}
 		switch ally.AMode {
-		case util.AttackModeGroup:
+		case cm.AttackModeGroup:
 			// return GroupMembers != null && GroupMembers.Contains(ally)
-		case util.AttackModeRedBrown:
+		case cm.AttackModeRedBrown:
 			return p.PKPoints < 200 // &Envir.Time > BrownTime
-		case util.AttackModeGuild:
+		case cm.AttackModeGuild:
 			// return MyGuild != null && MyGuild == ally.MyGuild
-		case util.AttackModeEnemyGuild:
+		case cm.AttackModeEnemyGuild:
 			return true
 		}
 		return true
-	case util.ObjectTypeMonster:
+	case cm.ObjectTypeMonster:
 		ally := obj.(*Monster)
 		if ally.Master == nil {
 			return false
@@ -397,7 +398,7 @@ func (p *Player) CanCast() bool {
 	return true
 }
 
-func (p *Player) CanUseItem(item *util.UserItem) bool {
+func (p *Player) CanUseItem(item *cm.UserItem) bool {
 	return true
 }
 
@@ -409,14 +410,14 @@ func (p *Player) Enqueue(msg interface{}) {
 	(*p.Session).Send(msg)
 }
 
-func (p *Player) ReceiveChat(text string, ct util.ChatType) {
+func (p *Player) ReceiveChat(text string, ct cm.ChatType) {
 	p.Enqueue(&server.Chat{
 		Message: text,
 		Type:    ct,
 	})
 }
 
-func (p *Player) BroadcastDamageIndicator(typ util.DamageType, dmg int) {
+func (p *Player) BroadcastDamageIndicator(typ cm.DamageType, dmg int) {
 	msg := ServerMessage{}.DamageIndicator(int32(dmg), typ, p.GetID())
 	p.Enqueue(msg)
 	p.Broadcast(msg)
@@ -475,7 +476,7 @@ func (p *Player) ProcessBuffs() {
 			p.Broadcast(&server.RemoveBuff{Type: buff.Type, ObjectID: p.GetID()})
 		}
 		// switch buff.Type {
-		// case util.BuffTypeHiding:
+		// case cm.BuffTypeHiding:
 		// }
 		refresh = true
 	}
@@ -524,7 +525,7 @@ func (p *Player) SaveData() {
 
 func (p *Player) EnqueueItemInfos() {
 	gdb := data
-	itemInfos := make([]*util.ItemInfo, 0)
+	itemInfos := make([]*cm.ItemInfo, 0)
 	for _, v := range p.Inventory.Items {
 		if v != nil {
 			itemID := int(v.ItemID)
@@ -548,7 +549,7 @@ func (p *Player) EnqueueItemInfos() {
 	}
 }
 
-func (p *Player) CheckItem(u *util.UserItem) {
+func (p *Player) CheckItem(u *cm.UserItem) {
 	p.EnqueueItemInfo(u.ItemID)
 }
 
@@ -648,12 +649,12 @@ func (p *Player) RefreshLevelStats() {
 	p.MaxWearWeight = uint16(15.0 + float32(p.Level)/baseStats.WearWeightGain*float32(p.Level))
 	p.MaxHandWeight = uint16(12.0 + float32(p.Level)/baseStats.HandWeightGain*float32(p.Level))
 	switch p.Class {
-	case util.MirClassWarrior:
+	case cm.MirClassWarrior:
 		p.MaxHP = uint16(14.0 + (float32(p.Level)/baseStats.HpGain+baseStats.HpGainRate+float32(p.Level)/20.0)*float32(p.Level))
 		p.MaxMP = uint16(11.0 + (float32(p.Level) * 3.5) + (float32(p.Level) * baseStats.MpGainRate))
-	case util.MirClassWizard:
+	case cm.MirClassWizard:
 		p.MaxMP = uint16(13.0 + (float32(p.Level/5.0+2.0) * 2.2 * float32(p.Level)) + (float32(p.Level) * baseStats.MpGainRate))
-	case util.MirClassTaoist:
+	case cm.MirClassTaoist:
 		p.MaxMP = uint16((13 + float32(p.Level)/8.0*2.2*float32(p.Level)) + (float32(p.Level) * baseStats.MpGainRate))
 	}
 }
@@ -729,10 +730,10 @@ func (p *Player) RefreshEquipmentStats() {
 		p.HpDrainRate = util.Uint8(int(p.HpDrainRate) + int(RealItem.HpDrainRate))
 
 		switch RealItem.Type {
-		case util.ItemTypeArmour:
+		case cm.ItemTypeArmour:
 			p.LooksArmour = int(RealItem.Shape)
 			p.LooksWings = int(RealItem.Effect)
-		case util.ItemTypeWeapon:
+		case cm.ItemTypeWeapon:
 			p.LooksWeapon = int(RealItem.Shape)
 			p.LooksWeaponEffect = int(RealItem.Effect)
 		}
@@ -799,11 +800,11 @@ func (p *Player) RefreshSkills() {
 	// 这些技能只是用来加属性
 	for _, magic := range p.Magics {
 		switch magic.Spell {
-		case util.SpellFencing: // 基本剑术
+		case cm.SpellFencing: // 基本剑术
 			p.Accuracy = util.Uint8(int(p.Accuracy) + magic.Level*3)
 			p.MaxAC = util.Uint16(int(p.MaxAC) + (magic.Level+1)*3)
-		case util.SpellFatalSword: // 刺客的技能 忽略
-		case util.SpellSpiritSword: // 精神力战法
+		case cm.SpellFatalSword: // 刺客的技能 忽略
+		case cm.SpellSpiritSword: // 精神力战法
 			p.Accuracy = util.Uint8(int(p.Accuracy) + magic.Level)
 			p.MaxAC = util.Uint16(int(p.MaxDC) + int(float32(p.MaxSC)*float32(magic.Level+1)*0.1))
 		}
@@ -842,14 +843,14 @@ func (p *Player) RefreshGuildBuffs() {
 }
 
 // GetUserItemByID 获取物品，返回该物品在容器的索引和是否成功
-func (p *Player) GetUserItemByID(mirGridType util.MirGridType, id uint64) (index int, item *util.UserItem) {
-	var arr []*util.UserItem
+func (p *Player) GetUserItemByID(mirGridType cm.MirGridType, id uint64) (index int, item *cm.UserItem) {
+	var arr []*cm.UserItem
 	switch mirGridType {
-	case util.MirGridTypeInventory:
+	case cm.MirGridTypeInventory:
 		arr = p.Inventory.Items
-	case util.MirGridTypeEquipment:
+	case cm.MirGridTypeEquipment:
 		arr = p.Equipment.Items
-	case util.MirGridTypeStorage:
+	case cm.MirGridTypeStorage:
 		arr = p.Storage.Items
 	default:
 		panic("error mirGridType")
@@ -863,13 +864,13 @@ func (p *Player) GetUserItemByID(mirGridType util.MirGridType, id uint64) (index
 }
 
 // ConsumeItem 减少物品数量
-func (p *Player) ConsumeItem(userItem *util.UserItem, count uint32) {
+func (p *Player) ConsumeItem(userItem *cm.UserItem, count uint32) {
 
 	bag := p.Equipment
-	idx, item := p.GetUserItemByID(util.MirGridTypeEquipment, userItem.ID)
+	idx, item := p.GetUserItemByID(cm.MirGridTypeEquipment, userItem.ID)
 	if idx == -1 || item != userItem {
 		bag = p.Inventory
-		idx, item = p.GetUserItemByID(util.MirGridTypeInventory, userItem.ID)
+		idx, item = p.GetUserItemByID(cm.MirGridTypeInventory, userItem.ID)
 	}
 
 	if idx == -1 || item != userItem {
@@ -883,9 +884,9 @@ func (p *Player) ConsumeItem(userItem *util.UserItem, count uint32) {
 }
 
 // CanGainItem 是否可以增加物品
-func (p *Player) CanGainItem(item *util.UserItem) bool {
+func (p *Player) CanGainItem(item *cm.UserItem) bool {
 	useWeight := true
-	if item.Info.Type == util.ItemTypeAmulet {
+	if item.Info.Type == cm.ItemTypeAmulet {
 		if p.FreeSpace(p.Inventory) > 0 && (p.CurrentBagWeight+int(item.Info.Weight) <= int(p.MaxBagWeight) || !useWeight) {
 			return true
 		}
@@ -962,7 +963,7 @@ func (p *Player) CanGainItems(bag *Bag) bool {
 }
 
 // GainItem 为玩家增加物品，增加成功返回 true
-func (p *Player) GainItem(item *util.UserItem) (res bool) {
+func (p *Player) GainItem(item *cm.UserItem) (res bool) {
 	item.SoulBoundId = p.GetID()
 
 	if item.Info.StackSize > 1 {
@@ -981,12 +982,12 @@ func (p *Player) GainItem(item *util.UserItem) (res bool) {
 	}
 
 	i, j := 0, 46
-	if item.Info.Type == util.ItemTypePotion ||
-		item.Info.Type == util.ItemTypeScroll ||
-		(item.Info.Type == util.ItemTypeScript && item.Info.Effect == 1) {
+	if item.Info.Type == cm.ItemTypePotion ||
+		item.Info.Type == cm.ItemTypeScroll ||
+		(item.Info.Type == cm.ItemTypeScript && item.Info.Effect == 1) {
 		i = 0
 		j = 4
-	} else if item.Info.Type == util.ItemTypeAmulet {
+	} else if item.Info.Type == cm.ItemTypeAmulet {
 		i = 4
 		j = 6
 	} else {
@@ -1018,12 +1019,12 @@ func (p *Player) GainItem(item *util.UserItem) (res bool) {
 		p.RefreshBagWeight()
 		return true
 	}
-	p.ReceiveChat("没有合适的格子放置物品", util.ChatTypeSystem)
+	p.ReceiveChat("没有合适的格子放置物品", cm.ChatTypeSystem)
 	return false
 }
 
 // GainItemMail TODO 往玩家邮箱里发送物品
-func (p *Player) GainItemMail(item *util.UserItem, count int) {
+func (p *Player) GainItemMail(item *cm.UserItem, count int) {
 
 }
 
@@ -1069,42 +1070,42 @@ func (p *Player) GetAttackPower(min, max int) int {
 	return util.RandomInt(min, max)
 }
 
-func (p *Player) Attacked(attacker IMapObject, damage int, typ util.DefenceType, damageWeapon bool) int {
+func (p *Player) Attacked(attacker IMapObject, damage int, typ cm.DefenceType, damageWeapon bool) int {
 	armour := 0
 	switch attacker := attacker.(type) {
 	case *Player:
 		// TODO
 	case *Monster:
 		switch typ {
-		case util.DefenceTypeACAgility:
+		case cm.DefenceTypeACAgility:
 			if util.RandomNext(int(p.Agility)+1) > int(attacker.Accuracy) {
-				p.BroadcastDamageIndicator(util.DamageTypeMiss, 0)
+				p.BroadcastDamageIndicator(cm.DamageTypeMiss, 0)
 				return 0
 			}
 			armour = p.GetDefencePower(p.MinAC, p.MaxAC)
-		case util.DefenceTypeAC:
+		case cm.DefenceTypeAC:
 			armour = p.GetDefencePower(p.MinAC, p.MaxAC)
-		case util.DefenceTypeMACAgility:
+		case cm.DefenceTypeMACAgility:
 			if util.RandomNext(settings.MagicResistWeight) < int(p.MagicResist) {
-				p.BroadcastDamageIndicator(util.DamageTypeMiss, 0)
+				p.BroadcastDamageIndicator(cm.DamageTypeMiss, 0)
 				return 0
 			}
 			if util.RandomNext(int(p.Agility)+1) > int(attacker.Accuracy) {
 				return 0
 			}
 			armour = p.GetDefencePower(p.MinMAC, p.MaxMAC)
-		case util.DefenceTypeMAC:
+		case cm.DefenceTypeMAC:
 			if util.RandomNext(settings.MagicResistWeight) < int(p.MagicResist) {
-				p.BroadcastDamageIndicator(util.DamageTypeMiss, 0)
+				p.BroadcastDamageIndicator(cm.DamageTypeMiss, 0)
 				return 0
 			}
 			armour = p.GetDefencePower(p.MinMAC, p.MaxMAC)
-		case util.DefenceTypeAgility:
+		case cm.DefenceTypeAgility:
 			if util.RandomNext(int(p.Agility)+1) > int(attacker.Accuracy) {
 				log.Debugln("Player attacked DefenceTypeAgility")
 				log.Debugf("p.Agility: %d, attacker.Accuracy: %d\n", p.Agility, attacker.Accuracy)
 				log.Debugf("util.RandomNext(int(p.Agility)+1): %d\n", util.RandomNext(int(p.Agility)+1))
-				p.BroadcastDamageIndicator(util.DamageTypeMiss, 0)
+				p.BroadcastDamageIndicator(cm.DamageTypeMiss, 0)
 				return 0
 			}
 		}
@@ -1112,7 +1113,7 @@ func (p *Player) Attacked(attacker IMapObject, damage int, typ util.DefenceType,
 			if attacker.IsAttackTarget(p) {
 				attacker.Attacked(p, damage, typ, false)
 				// CurrentMap.Broadcast(new S.ObjectEffect { ObjectID = ObjectID, Effect = SpellEffect.Reflect }, CurrentLocation);
-				p.Broadcast(&server.ObjectEffect{ObjectID: p.GetID(), Effect: util.SpellEffectReflect, EffectType: 0, DelayTime: 0, Time: 0})
+				p.Broadcast(&server.ObjectEffect{ObjectID: p.GetID(), Effect: cm.SpellEffectReflect, EffectType: 0, DelayTime: 0, Time: 0})
 			}
 			return 0
 		}
@@ -1125,7 +1126,7 @@ func (p *Player) Attacked(attacker IMapObject, damage int, typ util.DefenceType,
 		}
 		if armour >= damage {
 			log.Debugf("Player %s armour >= damage. armour: %d, damage: %d\n", p.Name, armour, damage)
-			p.BroadcastDamageIndicator(util.DamageTypeMiss, 0)
+			p.BroadcastDamageIndicator(cm.DamageTypeMiss, 0)
 			return 0
 		}
 		// TODO
@@ -1164,7 +1165,7 @@ func (p *Player) Attacked(attacker IMapObject, damage int, typ util.DefenceType,
 		}
 		log.Debugf("Player %s attacked, armour: %d, damage: %d. armour - damage: %d\n", p.Name, armour, damage, armour-damage)
 		log.Debugf("Player %s HP: %d, MP: %d, MaxHP: %d, MaxMP: %d\n", p.Name, p.HP, p.MP, p.MaxHP, p.MaxMP)
-		p.BroadcastDamageIndicator(util.DamageTypeHit, armour-damage)
+		p.BroadcastDamageIndicator(cm.DamageTypeHit, armour-damage)
 		p.ChangeHP(armour - damage)
 		log.Debugf("Player %s ChangeHP: %d\n", p.Name, armour-damage)
 		log.Debugf("Player %s HP: %d, MP: %d, MaxHP: %d, MaxMP: %d\n", p.Name, p.HP, p.MP, p.MaxHP, p.MaxMP)
@@ -1302,7 +1303,7 @@ func (p *Player) Die() {
 	p.CallDefaultNPC(DefaultNPCTypeDie)
 }
 
-func (p *Player) Teleport(m *Map, pt util.Point) bool {
+func (p *Player) Teleport(m *Map, pt cm.Point) bool {
 	oldMap := p.Map
 
 	{ // MapObject Teleport
@@ -1331,7 +1332,7 @@ func (p *Player) Teleport(m *Map, pt util.Point) bool {
 		Title:        m.Info.Title,
 		MiniMap:      uint16(m.Info.MiniMap),
 		BigMap:       uint16(m.Info.BigMap),
-		Lights:       util.LightSetting(m.Info.Light),
+		Lights:       cm.LightSetting(m.Info.Light),
 		Location:     p.CurrentLocation,
 		Direction:    p.Direction,
 		MapDarkLight: uint8(m.Info.MapDarkLight),
@@ -1427,7 +1428,7 @@ func (p *Player) EnqueueAreaObjects(oldCell, newCell *Cell) {
 func (p *Player) CompleteAttack(args ...interface{}) {
 	target := args[0].(IMapObject)
 	damage := args[1].(int)
-	defence := args[2].(util.DefenceType)
+	defence := args[2].(cm.DefenceType)
 	damageWeapon := args[3].(bool)
 
 	if target == nil || !target.IsAttackTarget(p) { // || target.CurrentMap != CurrentMap || target.Node == nil) {
@@ -1441,7 +1442,7 @@ func (p *Player) CompleteAttack(args ...interface{}) {
 	//Level Fencing / SpiritSword
 	for _, magic := range p.Magics {
 		switch magic.Spell {
-		case util.SpellFencing, util.SpellSpiritSword:
+		case cm.SpellFencing, cm.SpellSpiritSword:
 			p.LevelMagic(magic)
 			break
 		}
@@ -1455,7 +1456,7 @@ func (p *Player) CompletePoison(args ...interface{})          {}
 func (p *Player) CompleteDamageIndicator(args ...interface{}) {}
 
 func (p *Player) StartGame() {
-	p.ReceiveChat("[欢迎进入游戏，如有任何建议、疑问欢迎交流。联系QQ群：32309474]", util.ChatTypeHint)
+	p.ReceiveChat("[欢迎进入游戏，如有任何建议、疑问欢迎交流。联系QQ群：32309474]", cm.ChatTypeHint)
 	p.EnqueueItemInfos()
 	p.RefreshStats()
 	p.EnqueueQuestInfo()
@@ -1475,7 +1476,7 @@ func (p *Player) StopGame(reason int) {
 	p.Broadcast(ServerMessage{}.ObjectRemove(p))
 }
 
-func (p *Player) Turn(direction util.MirDirection) {
+func (p *Player) Turn(direction cm.MirDirection) {
 	if !p.CanMove() {
 		p.Enqueue(ServerMessage{}.UserLocation(p))
 		return
@@ -1487,7 +1488,7 @@ func (p *Player) Turn(direction util.MirDirection) {
 	p.Broadcast(ServerMessage{}.ObjectTurn(p))
 }
 
-func (p *Player) Walk(direction util.MirDirection) {
+func (p *Player) Walk(direction cm.MirDirection) {
 	if !p.CanMove() || !p.CanWalk() {
 		p.Enqueue(ServerMessage{}.UserLocation(p))
 		return
@@ -1511,10 +1512,10 @@ func (p *Player) Walk(direction util.MirDirection) {
 	p.Broadcast(ServerMessage{}.ObjectWalk(p))
 }
 
-func (p *Player) Run(direction util.MirDirection) {
+func (p *Player) Run(direction cm.MirDirection) {
 	steps := 2
 
-	var loc util.Point
+	var loc cm.Point
 	for i := 1; i <= steps; i++ {
 		loc = p.CurrentLocation.NextPoint(direction, uint32(i))
 		if !p.Map.ValidPoint(loc) {
@@ -1572,19 +1573,19 @@ func (p *Player) Chat(message string) {
 	if strings.HasPrefix(message, "@") {
 		msg, err := cmd.Exec(message[1:], p)
 		if err != nil {
-			p.ReceiveChat(fmt.Sprintf("执行失败(%s)", err), util.ChatTypeSystem)
+			p.ReceiveChat(fmt.Sprintf("执行失败(%s)", err), cm.ChatTypeSystem)
 		}
 		if msg != nil && msg.(string) != "" {
-			p.ReceiveChat(msg.(string), util.ChatTypeSystem)
+			p.ReceiveChat(msg.(string), cm.ChatTypeSystem)
 		}
 		return
 	}
-	msg := ServerMessage{}.ObjectChat(p, message, util.ChatTypeNormal)
+	msg := ServerMessage{}.ObjectChat(p, message, cm.ChatTypeNormal)
 	p.Enqueue(msg)
 	p.Broadcast(msg)
 }
 
-func (p *Player) MoveItem(mirGridType util.MirGridType, from int32, to int32) {
+func (p *Player) MoveItem(mirGridType cm.MirGridType, from int32, to int32) {
 	msg := &server.MoveItem{
 		Grid:    mirGridType,
 		From:    from,
@@ -1595,18 +1596,18 @@ func (p *Player) MoveItem(mirGridType util.MirGridType, from int32, to int32) {
 	var err error
 
 	switch mirGridType {
-	case util.MirGridTypeInventory:
+	case cm.MirGridTypeInventory:
 		err = p.Inventory.Move(int(from), int(to))
-	case util.MirGridTypeStorage:
+	case cm.MirGridTypeStorage:
 		err = p.Storage.Move(int(from), int(to))
-	case util.MirGridTypeTrade:
+	case cm.MirGridTypeTrade:
 		// TODO
-	case util.MirGridTypeRefine:
+	case cm.MirGridTypeRefine:
 		// TODO
 	}
 
 	if err != nil {
-		p.ReceiveChat(err.Error(), util.ChatTypeSystem)
+		p.ReceiveChat(err.Error(), cm.ChatTypeSystem)
 	} else {
 		msg.Success = true
 	}
@@ -1617,7 +1618,7 @@ func (p *Player) MoveItem(mirGridType util.MirGridType, from int32, to int32) {
 func (p *Player) TakeBackItem(from int32, to int32) {
 	msg := &server.TakeBackItem{From: from, To: to, Success: false}
 
-	if p.CallingNPC == nil || !util.StringEqualFold(p.CallingNPCPage, StorageKey) || !util.InRange(p.CurrentLocation, p.CallingNPC.GetPoint(), DataRange) {
+	if p.CallingNPC == nil || !util.StringEqualFold(p.CallingNPCPage, StorageKey) || !cm.InRange(p.CurrentLocation, p.CallingNPC.GetPoint(), DataRange) {
 		p.Enqueue(msg)
 		return
 	}
@@ -1629,7 +1630,7 @@ func (p *Player) TakeBackItem(from int32, to int32) {
 
 	// item := p.Inventory.Get(int(from))
 	// if item.Info.Weight+p.CurrentBagWeight > MaxBagWeight {
-	// 	p.ReceiveChat("Too heavy to get back.", util.ChatTypeSystem)
+	// 	p.ReceiveChat("Too heavy to get back.", cm.ChatTypeSystem)
 	// 	p.Enqueue(p)
 	// }
 	err := p.Storage.MoveTo(int(from), int(to), p.Inventory)
@@ -1682,7 +1683,7 @@ func (p *Player) StoreItem(from int32, to int32) {
 		Success: false,
 	}
 
-	if p.CallingNPC == nil || !util.StringEqualFold(p.CallingNPCPage, StorageKey) || !util.InRange(p.CurrentLocation, p.CallingNPC.GetPoint(), DataRange) {
+	if p.CallingNPC == nil || !util.StringEqualFold(p.CallingNPCPage, StorageKey) || !cm.InRange(p.CurrentLocation, p.CallingNPC.GetPoint(), DataRange) {
 		p.Enqueue(msg)
 		return
 	}
@@ -1693,7 +1694,7 @@ func (p *Player) StoreItem(from int32, to int32) {
 	}
 
 	item := p.Inventory.Get(int(from))
-	if util.HasFlagUint16(item.Info.Bind, util.BindModeDontStore) {
+	if util.HasFlagUint16(item.Info.Bind, cm.BindModeDontStore) {
 		p.Enqueue(msg)
 		return
 	}
@@ -1739,7 +1740,7 @@ func (p *Player) ReplaceWeddingRing(id uint64) {
 
 }
 
-func (p *Player) MergeItem(gridFrom util.MirGridType, gridTo util.MirGridType, fromID uint64, toID uint64) {
+func (p *Player) MergeItem(gridFrom cm.MirGridType, gridTo cm.MirGridType, fromID uint64, toID uint64) {
 	msg := &server.MergeItem{
 		GridFrom: gridFrom,
 		GridTo:   gridTo,
@@ -1747,39 +1748,39 @@ func (p *Player) MergeItem(gridFrom util.MirGridType, gridTo util.MirGridType, f
 		IDTo:     toID,
 		Success:  false,
 	}
-	var arrayFrom []*util.UserItem
+	var arrayFrom []*cm.UserItem
 	var bagFrom *Bag
 	switch gridFrom {
-	case util.MirGridTypeInventory:
+	case cm.MirGridTypeInventory:
 		bagFrom = p.Inventory
-	case util.MirGridTypeStorage:
+	case cm.MirGridTypeStorage:
 		bagFrom = p.Storage
-	case util.MirGridTypeEquipment:
+	case cm.MirGridTypeEquipment:
 		bagFrom = p.Equipment
-	// case util.MirGridTypeFishing:
+	// case cm.MirGridTypeFishing:
 	default:
 		p.Enqueue(msg)
 		return
 	}
 	arrayFrom = bagFrom.Items
 
-	var arrayTo []*util.UserItem
+	var arrayTo []*cm.UserItem
 	var bagTo *Bag
 	switch gridTo {
-	case util.MirGridTypeInventory:
+	case cm.MirGridTypeInventory:
 		bagTo = p.Inventory
-	case util.MirGridTypeStorage:
+	case cm.MirGridTypeStorage:
 		bagTo = p.Storage
-	case util.MirGridTypeEquipment:
+	case cm.MirGridTypeEquipment:
 		bagTo = p.Equipment
-	// case util.MirGridTypeFishing:
+	// case cm.MirGridTypeFishing:
 	default:
 		p.Enqueue(msg)
 		return
 	}
 	arrayTo = bagTo.Items
 
-	var tempFrom *util.UserItem
+	var tempFrom *cm.UserItem
 	var indexFrom int
 	index := -1
 	for i := 0; i < len(arrayFrom); i++ {
@@ -1796,7 +1797,7 @@ func (p *Player) MergeItem(gridFrom util.MirGridType, gridTo util.MirGridType, f
 		return
 	}
 
-	var tempTo *util.UserItem
+	var tempTo *cm.UserItem
 	var indexTo int
 	for i := 0; i < len(arrayTo); i++ {
 		if arrayTo[i] == nil || arrayTo[i].ID != toID {
@@ -1810,11 +1811,11 @@ func (p *Player) MergeItem(gridFrom util.MirGridType, gridTo util.MirGridType, f
 		p.Enqueue(msg)
 		return
 	}
-	if tempTo.Info.Type != util.ItemTypeAmulet && (gridFrom == util.MirGridTypeEquipment || gridTo == util.MirGridTypeEquipment) {
+	if tempTo.Info.Type != cm.ItemTypeAmulet && (gridFrom == cm.MirGridTypeEquipment || gridTo == cm.MirGridTypeEquipment) {
 		p.Enqueue(msg)
 		return
 	}
-	if tempTo.Info.Type != util.ItemTypeBait && (gridFrom == util.MirGridTypeFishing || gridTo == util.MirGridTypeFishing) {
+	if tempTo.Info.Type != cm.ItemTypeBait && (gridFrom == cm.MirGridTypeFishing || gridTo == cm.MirGridTypeFishing) {
 		p.Enqueue(msg)
 		return
 	}
@@ -1834,7 +1835,7 @@ func (p *Player) MergeItem(gridFrom util.MirGridType, gridTo util.MirGridType, f
 	p.RefreshStats()
 }
 
-func (p *Player) EquipItem(mirGridType util.MirGridType, id uint64, to int32) {
+func (p *Player) EquipItem(mirGridType cm.MirGridType, id uint64, to int32) {
 	var msg = &server.EquipItem{
 		Grid:     mirGridType,
 		UniqueID: id,
@@ -1851,9 +1852,9 @@ func (p *Player) EquipItem(mirGridType util.MirGridType, id uint64, to int32) {
 	var err error
 
 	switch mirGridType {
-	case util.MirGridTypeInventory:
+	case cm.MirGridTypeInventory:
 		err = p.Inventory.MoveTo(index, int(to), p.Equipment)
-	case util.MirGridTypeStorage:
+	case cm.MirGridTypeStorage:
 		err = p.Inventory.MoveTo(index, int(to), p.Storage)
 	}
 
@@ -1869,7 +1870,7 @@ func (p *Player) EquipItem(mirGridType util.MirGridType, id uint64, to int32) {
 	p.Broadcast(ServerMessage{}.PlayerUpdate(p))
 }
 
-func (p *Player) RemoveItem(mirGridType util.MirGridType, id uint64, to int32) {
+func (p *Player) RemoveItem(mirGridType cm.MirGridType, id uint64, to int32) {
 	msg := &server.RemoveItem{
 		Grid:     mirGridType,
 		UniqueID: id,
@@ -1877,16 +1878,16 @@ func (p *Player) RemoveItem(mirGridType util.MirGridType, id uint64, to int32) {
 		Success:  false,
 	}
 
-	index, item := p.GetUserItemByID(util.MirGridTypeEquipment, id)
+	index, item := p.GetUserItemByID(cm.MirGridTypeEquipment, id)
 	if item == nil {
 		p.Enqueue(msg)
 		return
 	}
 
 	switch mirGridType {
-	case util.MirGridTypeInventory:
+	case cm.MirGridTypeInventory:
 		p.Equipment.MoveTo(index, int(msg.To), p.Inventory)
-	case util.MirGridTypeStorage:
+	case cm.MirGridTypeStorage:
 
 		if !util.StringEqualFold(p.CallingNPCPage, StorageKey) {
 			p.Enqueue(msg)
@@ -1902,11 +1903,11 @@ func (p *Player) RemoveItem(mirGridType util.MirGridType, id uint64, to int32) {
 	p.Broadcast(ServerMessage{}.PlayerUpdate(p))
 }
 
-func (p *Player) RemoveSlotItem(grid util.MirGridType, id uint64, to int32, to2 util.MirGridType) {
+func (p *Player) RemoveSlotItem(grid cm.MirGridType, id uint64, to int32, to2 cm.MirGridType) {
 
 }
 
-func (p *Player) SplitItem(grid util.MirGridType, id uint64, count uint32) {
+func (p *Player) SplitItem(grid cm.MirGridType, id uint64, count uint32) {
 	msg := &server.SplitItem1{
 		Grid:     grid,
 		UniqueID: id,
@@ -1915,9 +1916,9 @@ func (p *Player) SplitItem(grid util.MirGridType, id uint64, count uint32) {
 	}
 	var bag *Bag
 	switch grid {
-	case util.MirGridTypeInventory:
+	case cm.MirGridTypeInventory:
 		bag = p.Inventory
-	case util.MirGridTypeStorage:
+	case cm.MirGridTypeStorage:
 		bag = p.Storage
 	default:
 		p.Enqueue(msg)
@@ -1941,8 +1942,8 @@ func (p *Player) SplitItem(grid util.MirGridType, id uint64, count uint32) {
 
 	temp := newItem
 	array := bag.Items
-	if grid == util.MirGridTypeInventory && (temp.Info.Type == util.ItemTypePotion || temp.Info.Type == util.ItemTypeScroll || temp.Info.Type == util.ItemTypeAmulet || (temp.Info.Type == util.ItemTypeScript && temp.Info.Effect == 1)) {
-		if temp.Info.Type == util.ItemTypePotion || temp.Info.Type == util.ItemTypeScroll || (temp.Info.Type == util.ItemTypeScript && temp.Info.Effect == 1) {
+	if grid == cm.MirGridTypeInventory && (temp.Info.Type == cm.ItemTypePotion || temp.Info.Type == cm.ItemTypeScroll || temp.Info.Type == cm.ItemTypeAmulet || (temp.Info.Type == cm.ItemTypeScript && temp.Info.Effect == 1)) {
+		if temp.Info.Type == cm.ItemTypePotion || temp.Info.Type == cm.ItemTypeScroll || (temp.Info.Type == cm.ItemTypeScript && temp.Info.Effect == 1) {
 			for i := 0; i < 4; i++ {
 				if array[i] != nil {
 					continue
@@ -1952,7 +1953,7 @@ func (p *Player) SplitItem(grid util.MirGridType, id uint64, count uint32) {
 				p.RefreshBagWeight()
 				return
 			}
-		} else if temp.Info.Type == util.ItemTypeAmulet {
+		} else if temp.Info.Type == cm.ItemTypeAmulet {
 			for i := 4; i < 6; i++ {
 				if array[i] != nil {
 					continue
@@ -2001,7 +2002,7 @@ func (p *Player) TeleportRandom(attempts int, distance uint16, m *Map) bool {
 	}
 
 	for i := 0; i < attempts; i++ {
-		loc := util.NewPoint(util.RandomNext(m.Width), util.RandomNext(m.Height))
+		loc := cm.NewPoint(util.RandomNext(m.Width), util.RandomNext(m.Height))
 		if p.Teleport(m, loc) {
 			return true
 		}
@@ -2025,14 +2026,14 @@ func (p *Player) TeleportRandom(attempts int, distance uint16, m *Map) bool {
 // Server Shout Scroll	9					Allows a single special shout across the server.
 // Guild Skill Scroll	10		Effect		Adds a skill to the players guild. Only usable by guild leaders. Skill chosen by effect number.
 
-func (p *Player) UseItemScroll(item *util.UserItem) bool {
+func (p *Player) UseItemScroll(item *cm.UserItem) bool {
 	switch item.Info.Shape {
 	case 0: //DE
 		temp := env.GetMap(p.BindMapIndex)
 		for i := 0; i < 20; i++ {
 			x := int(p.BindLocation.X) + util.RandomInt(-100, 100)
 			y := int(p.BindLocation.Y) + util.RandomInt(-100, 100)
-			loc := util.NewPoint(x, y)
+			loc := cm.NewPoint(x, y)
 			if p.Teleport(temp, loc) {
 				return true
 			}
@@ -2151,7 +2152,7 @@ func (p *Player) UseItemScroll(item *util.UserItem) bool {
 
 // Exp Potion		4		Luck/Durability			Increases players percent of exp gain through the luck stat. Length of buff depends on potions durability. 1 dura = 1 minute.
 
-func (p *Player) UserItemPotion(item *util.UserItem) bool {
+func (p *Player) UserItemPotion(item *cm.UserItem) bool {
 	info := item.Info
 	switch info.Shape {
 	case 0: // NormalPotion 一般药水
@@ -2178,32 +2179,32 @@ func (p *Player) UserItemPotion(item *util.UserItem) bool {
 	case 3: // Buff
 		expireTime := int(info.Durability)
 		if info.MaxDC+item.DC > 0 {
-			p.AddBuff(NewBuff(util.BuffTypeImpact, p, expireTime, []int32{int32(info.MaxDC + item.DC)}))
+			p.AddBuff(NewBuff(cm.BuffTypeImpact, p, expireTime, []int32{int32(info.MaxDC + item.DC)}))
 		}
 		if info.MaxMC+item.MC > 0 {
-			p.AddBuff(NewBuff(util.BuffTypeMagic, p, expireTime, []int32{int32(info.MaxMC + item.MC)}))
+			p.AddBuff(NewBuff(cm.BuffTypeMagic, p, expireTime, []int32{int32(info.MaxMC + item.MC)}))
 		}
 		if info.MaxSC+item.SC > 0 {
-			p.AddBuff(NewBuff(util.BuffTypeTaoist, p, expireTime, []int32{int32(info.MaxSC + item.SC)}))
+			p.AddBuff(NewBuff(cm.BuffTypeTaoist, p, expireTime, []int32{int32(info.MaxSC + item.SC)}))
 		}
 		if (info.AttackSpeed + item.AttackSpeed) > 0 {
-			p.AddBuff(NewBuff(util.BuffTypeStorm, p, expireTime, []int32{int32(info.AttackSpeed + item.AttackSpeed)}))
+			p.AddBuff(NewBuff(cm.BuffTypeStorm, p, expireTime, []int32{int32(info.AttackSpeed + item.AttackSpeed)}))
 		}
 		if (info.HP + uint16(item.HP)) > 0 {
-			p.AddBuff(NewBuff(util.BuffTypeHealthAid, p, expireTime, []int32{int32(info.HP + uint16(item.HP))}))
+			p.AddBuff(NewBuff(cm.BuffTypeHealthAid, p, expireTime, []int32{int32(info.HP + uint16(item.HP))}))
 		}
 		if (info.MP + uint16(item.MP)) > 0 {
-			p.AddBuff(NewBuff(util.BuffTypeManaAid, p, expireTime, []int32{int32(info.MP + uint16(item.MP))}))
+			p.AddBuff(NewBuff(cm.BuffTypeManaAid, p, expireTime, []int32{int32(info.MP + uint16(item.MP))}))
 		}
 		if (info.MaxAC + item.AC) > 0 {
-			p.AddBuff(NewBuff(util.BuffTypeDefence, p, expireTime, []int32{int32(info.MaxAC + item.AC)}))
+			p.AddBuff(NewBuff(cm.BuffTypeDefence, p, expireTime, []int32{int32(info.MaxAC + item.AC)}))
 		}
 		if (info.MaxMAC + item.MAC) > 0 {
-			p.AddBuff(NewBuff(util.BuffTypeMagicDefence, p, expireTime, []int32{int32(info.MaxMAC + item.MAC)}))
+			p.AddBuff(NewBuff(cm.BuffTypeMagicDefence, p, expireTime, []int32{int32(info.MaxMAC + item.MAC)}))
 		}
 	case 4: // Exp 经验
 		expireTime := int(info.Durability)
-		p.AddBuff(NewBuff(util.BuffTypeExp, p, expireTime, []int32{int32(info.Luck + item.Luck)}))
+		p.AddBuff(NewBuff(cm.BuffTypeExp, p, expireTime, []int32{int32(info.Luck + item.Luck)}))
 	}
 	return true
 }
@@ -2214,7 +2215,7 @@ func (p *Player) UseItem(id uint64) {
 		p.Enqueue(msg)
 		return
 	}
-	index, item := p.GetUserItemByID(util.MirGridTypeInventory, id)
+	index, item := p.GetUserItemByID(cm.MirGridTypeInventory, id)
 
 	if item == nil || item.ID == 0 || !p.CanUseItem(item) {
 		p.Enqueue(msg)
@@ -2223,19 +2224,19 @@ func (p *Player) UseItem(id uint64) {
 	info := item.Info
 
 	switch info.Type {
-	case util.ItemTypePotion:
+	case cm.ItemTypePotion:
 		msg.Success = p.UserItemPotion(item)
-	case util.ItemTypeScroll:
+	case cm.ItemTypeScroll:
 		msg.Success = p.UseItemScroll(item)
-	case util.ItemTypeBook:
-		msg.Success = p.GiveSkill(util.Spell(info.Shape), 1)
+	case cm.ItemTypeBook:
+		msg.Success = p.GiveSkill(cm.Spell(info.Shape), 1)
 
-	case util.ItemTypeScript:
+	case cm.ItemTypeScript:
 		p.CallDefaultNPC(DefaultNPCTypeUseItem, info.Shape)
 		msg.Success = true
-	case util.ItemTypeFood:
-	case util.ItemTypePets:
-	case util.ItemTypeTransform: //Transforms
+	case cm.ItemTypeFood:
+	case cm.ItemTypePets:
+	case cm.ItemTypeTransform: //Transforms
 	}
 
 	if msg.Success {
@@ -2251,18 +2252,18 @@ func (p *Player) UseItem(id uint64) {
 	p.Enqueue(msg)
 }
 
-func (p *Player) GiveSkill(spell util.Spell, level int) bool {
+func (p *Player) GiveSkill(spell cm.Spell, level int) bool {
 
 	info := data.GetMagicInfoBySpell(spell)
 
 	if info != nil {
 		for _, v := range p.Magics {
 			if v.Spell == spell {
-				p.ReceiveChat("你已经学习该技能", util.ChatTypeSystem)
+				p.ReceiveChat("你已经学习该技能", cm.ChatTypeSystem)
 				return true
 			}
 		}
-		magic := &util.UserMagic{Info: info, Level: level, CharacterID: int(p.ID), MagicID: info.ID, Spell: spell}
+		magic := &cm.UserMagic{Info: info, Level: level, CharacterID: int(p.ID), MagicID: info.ID, Spell: spell}
 		adb.AddSkill(p, magic)
 		p.Magics = append(p.Magics, magic)
 		p.Enqueue(&server.NewMagic{Magic: magic.GetClientMagic(magic.Info)})
@@ -2296,14 +2297,14 @@ func (p *Player) DropItem(id uint64, count uint32) {
 		Count:    count,
 		Success:  false,
 	}
-	index, userItem := p.GetUserItemByID(util.MirGridTypeInventory, id)
+	index, userItem := p.GetUserItemByID(cm.MirGridTypeInventory, id)
 	if userItem == nil || userItem.ID == 0 {
 		p.Enqueue(msg)
 		return
 	}
 	obj := NewItem(p, userItem)
 	if dropMsg, ok := obj.Drop(p.GetPoint(), 1); !ok {
-		p.ReceiveChat(dropMsg, util.ChatTypeSystem)
+		p.ReceiveChat(dropMsg, cm.ChatTypeSystem)
 		p.Enqueue(msg)
 		return
 	}
@@ -2325,7 +2326,7 @@ func (p *Player) DropGold(gold uint64) {
 	}
 	obj := NewGold(p, gold)
 	if dropMsg, ok := obj.Drop(p.GetPoint(), 3); !ok {
-		p.ReceiveChat(dropMsg, util.ChatTypeSystem)
+		p.ReceiveChat(dropMsg, cm.ChatTypeSystem)
 		return
 	}
 
@@ -2363,7 +2364,7 @@ func (p *Player) PickUp() {
 func (p *Player) Inspect(id uint32) {
 	o := env.Players.GetPlayerByID(id)
 	if o == nil {
-		p.ReceiveChat("获取不到玩家数据", util.ChatTypeSystem)
+		p.ReceiveChat("获取不到玩家数据", cm.ChatTypeSystem)
 		log.Warnln("Player Inspect id error", id)
 		return
 	}
@@ -2379,12 +2380,12 @@ func (p *Player) Inspect(id uint32) {
 	p.Enqueue(ServerMessage{}.PlayerInspect(o))
 }
 
-func (p *Player) ChangeAMode(mode util.AttackMode) {
+func (p *Player) ChangeAMode(mode cm.AttackMode) {
 	p.AMode = mode
 	p.Enqueue(&server.ChangeAMode{Mode: p.AMode})
 }
 
-func (p *Player) ChangePMode(mode util.PetMode) {
+func (p *Player) ChangePMode(mode cm.PetMode) {
 	p.PMode = mode
 	p.Enqueue(&server.ChangePMode{Mode: p.PMode})
 }
@@ -2393,60 +2394,60 @@ func (p *Player) ChangeTrade(trade bool) {
 
 }
 
-func (p *Player) Attack(direction util.MirDirection, spell util.Spell) {
+func (p *Player) Attack(direction cm.MirDirection, spell cm.Spell) {
 	if !p.CanAttack() {
 		p.Enqueue(ServerMessage{}.UserLocation(p))
 		return
 	}
 	level := 0
 	switch spell {
-	case util.SpellSlaying:
+	case cm.SpellSlaying:
 		if !p.Slaying {
-			spell = util.SpellNone
+			spell = cm.SpellNone
 		} else {
-			magic := p.GetMagic(util.SpellSlaying)
+			magic := p.GetMagic(cm.SpellSlaying)
 			level = magic.Level
 		}
 		p.Slaying = false
-	case util.SpellDoubleSlash:
+	case cm.SpellDoubleSlash:
 		magic := p.GetMagic(spell)
 		if magic == nil || magic.Info.BaseCost+(magic.Level*magic.Info.LevelCost) > int(p.MP) {
-			spell = util.SpellNone
+			spell = cm.SpellNone
 			break
 		}
 		level = magic.Level
 		p.ChangeMP(-(magic.Info.BaseCost + magic.Level*magic.Info.LevelCost))
-	case util.SpellThrusting, util.SpellFlamingSword:
+	case cm.SpellThrusting, cm.SpellFlamingSword:
 		magic := p.GetMagic(spell)
-		if (magic == nil) || (!p.FlamingSword && (spell == util.SpellFlamingSword)) {
-			spell = util.SpellNone
+		if (magic == nil) || (!p.FlamingSword && (spell == cm.SpellFlamingSword)) {
+			spell = cm.SpellNone
 			break
 		}
 		level = magic.Level
-	case util.SpellHalfMoon, util.SpellCrossHalfMoon:
+	case cm.SpellHalfMoon, cm.SpellCrossHalfMoon:
 		magic := p.GetMagic(spell)
 		if magic == nil || magic.Info.BaseCost+(magic.Level*magic.Info.LevelCost) > int(p.MP) {
-			spell = util.SpellNone
+			spell = cm.SpellNone
 			break
 		}
 		level = magic.Level
 		p.ChangeMP(-(magic.Info.BaseCost + magic.Level*magic.Info.LevelCost))
-	case util.SpellTwinDrakeBlade:
+	case cm.SpellTwinDrakeBlade:
 		magic := p.GetMagic(spell)
 		if !p.TwinDrakeBlade || magic == nil || magic.Info.BaseCost+magic.Level*magic.Info.LevelCost > int(p.MP) {
-			spell = util.SpellNone
+			spell = cm.SpellNone
 			break
 		}
 		level = magic.Level
 		p.ChangeMP(-(magic.Info.BaseCost + magic.Level*magic.Info.LevelCost))
 	default:
-		spell = util.SpellNone
+		spell = cm.SpellNone
 	}
 	if !p.Slaying {
-		magic := p.GetMagic(util.SpellSlaying)
+		magic := p.GetMagic(cm.SpellSlaying)
 		if magic != nil && util.RandomNext(12) <= magic.Level {
 			p.Slaying = true
-			p.Enqueue(&server.SpellToggle{Spell: util.SpellSlaying, CanUse: p.Slaying})
+			p.Enqueue(&server.SpellToggle{Spell: cm.SpellSlaying, CanUse: p.Slaying})
 		}
 	}
 	_ = level // TODO
@@ -2460,7 +2461,7 @@ func (p *Player) Attack(direction util.MirDirection, spell util.Spell) {
 		return
 	}
 	for _, o := range cell.objects {
-		if o.GetRace() != util.ObjectTypePlayer && o.GetRace() != util.ObjectTypeMonster {
+		if o.GetRace() != cm.ObjectTypePlayer && o.GetRace() != cm.ObjectTypeMonster {
 			continue
 		}
 		if !o.IsAttackTarget(p) {
@@ -2474,29 +2475,29 @@ func (p *Player) Attack(direction util.MirDirection, spell util.Spell) {
 		// #region FatalSword	// TODO
 		// #region MPEater		// TODO
 		// #region Hemorrhage	// TODO
-		defence := util.DefenceTypeACAgility
+		defence := cm.DefenceTypeACAgility
 		damageFinal := damageBase
 		switch spell {
-		case util.SpellSlaying: // 攻杀剑术
-			magic := p.GetMagic(util.SpellSlaying)
+		case cm.SpellSlaying: // 攻杀剑术
+			magic := p.GetMagic(cm.SpellSlaying)
 			damageFinal = magic.GetDamage(damageBase)
 			p.LevelMagic(magic)
-		// case util.SpellDoubleSlash:
-		case util.SpellThrusting: // 刺杀剑术
-			magic := p.GetMagic(util.SpellThrusting)
+		// case cm.SpellDoubleSlash:
+		case cm.SpellThrusting: // 刺杀剑术
+			magic := p.GetMagic(cm.SpellThrusting)
 			p.LevelMagic(magic)
-		case util.SpellHalfMoon: // 半月弯刀
-			magic := p.GetMagic(util.SpellHalfMoon)
+		case cm.SpellHalfMoon: // 半月弯刀
+			magic := p.GetMagic(cm.SpellHalfMoon)
 			p.LevelMagic(magic)
-		case util.SpellCrossHalfMoon: // 圆月弯刀
-			magic := p.GetMagic(util.SpellCrossHalfMoon)
+		case cm.SpellCrossHalfMoon: // 圆月弯刀
+			magic := p.GetMagic(cm.SpellCrossHalfMoon)
 			p.LevelMagic(magic)
-		case util.SpellTwinDrakeBlade: // 双龙斩
-			magic := p.GetMagic(util.SpellTwinDrakeBlade)
+		case cm.SpellTwinDrakeBlade: // 双龙斩
+			magic := p.GetMagic(cm.SpellTwinDrakeBlade)
 			damageFinal = magic.GetDamage(damageBase)
 			p.TwinDrakeBlade = false
 			//   action = new DelayedAction(DelayedType.Damage, Envir.Time + 400, ob, damageFinal, DefenceType.Agility, false);
-			p.ActionList.PushDelayAction(DelayedTypeDamage, 400, func() { p.CompleteAttack(o, damageFinal, util.DefenceTypeAgility, false) })
+			p.ActionList.PushDelayAction(DelayedTypeDamage, 400, func() { p.CompleteAttack(o, damageFinal, cm.DefenceTypeAgility, false) })
 			p.LevelMagic(magic)
 			// TODO
 			//   if ((((ob.Race != ObjectType.Player) || Settings.PvpCanResistPoison) && (Envir.Random.Next(Settings.PoisonAttackWeight) >= ob.PoisonResist)) && (ob.Level < Level + 10 && Envir.Random.Next(ob.Race == ObjectType.Player ? 40 : 20) <= magic.Level + 1))
@@ -2504,22 +2505,22 @@ func (p *Player) Attack(direction util.MirDirection, spell util.Spell) {
 			//       ob.ApplyPoison(new Poison { PType = PoisonType.Stun, Duration = ob.Race == ObjectType.Player ? 2 : 2 + magic.Level, TickSpeed = 1000 }, this);
 			//       ob.Broadcast(new S.ObjectEffect { ObjectID = ob.ObjectID, Effect = SpellEffect.TwinDrakeBlade });
 			//   }
-		case util.SpellFlamingSword: // 烈火剑法
-			magic := p.GetMagic(util.SpellFlamingSword)
+		case cm.SpellFlamingSword: // 烈火剑法
+			magic := p.GetMagic(cm.SpellFlamingSword)
 			damageFinal = magic.GetDamage(damageBase)
 			p.FlamingSword = false
-			defence = util.DefenceTypeAC
+			defence = cm.DefenceTypeAC
 			p.LevelMagic(magic)
 		}
 		p.ActionList.PushDelayAction(DelayedTypeDamage, 300, func() { p.CompleteAttack(o, damageFinal, defence, true) })
 	}
 }
 
-func (p *Player) RangeAttack(direction util.MirDirection, location util.Point, id uint32) {
+func (p *Player) RangeAttack(direction cm.MirDirection, location cm.Point, id uint32) {
 
 }
 
-func (p *Player) Harvest(direction util.MirDirection) {
+func (p *Player) Harvest(direction cm.MirDirection) {
 
 }
 
@@ -2609,7 +2610,7 @@ func sendNpcGoods(p *Player, npc *NPC) {
 	}
 
 	if len(goods) != 0 {
-		p.Enqueue(&server.NPCGoods{Goods: goods, Rate: 1.0, Type: util.PanelTypeBuy})
+		p.Enqueue(&server.NPCGoods{Goods: goods, Rate: 1.0, Type: cm.PanelTypeBuy})
 		return
 	}
 }
@@ -2618,7 +2619,7 @@ func (p *Player) TalkMonsterNPC(id uint32) {
 
 }
 
-func (p *Player) BuyItem(index uint64, count uint32, panelType util.PanelType) {
+func (p *Player) BuyItem(index uint64, count uint32, panelType cm.PanelType) {
 	if p.IsDead() {
 		return
 	}
@@ -2658,7 +2659,7 @@ func (p *Player) SellItem(id uint64, count uint32) {
 	}
 
 	var index = -1
-	var temp *util.UserItem
+	var temp *cm.UserItem
 	for i, v := range p.Inventory.Items {
 		if v == nil || v.ID != id {
 			continue
@@ -2674,7 +2675,7 @@ func (p *Player) SellItem(id uint64, count uint32) {
 		return
 	}
 
-	if util.HasFlagUint16(temp.Info.Bind, util.BindModeDontSell) {
+	if util.HasFlagUint16(temp.Info.Bind, cm.BindModeDontSell) {
 		p.Enqueue(msg)
 		return
 	}
@@ -2686,7 +2687,7 @@ func (p *Player) SellItem(id uint64, count uint32) {
 	log.Debugf("SellItem Info.Type: %d\n", temp.Info.Type)
 	log.Debugf("CallingNPC.Script.Types: %s\n", p.CallingNPC.Script.Types)
 	if !p.CallingNPC.HasType(temp.Info.Type) {
-		p.ReceiveChat("不能在这里卖这类商品", util.ChatTypeSystem)
+		p.ReceiveChat("不能在这里卖这类商品", cm.ChatTypeSystem)
 		p.Enqueue(msg)
 		return
 	}
@@ -2725,7 +2726,7 @@ func (p *Player) SRepairItem(id uint64) {
 
 }
 
-func (p *Player) Magic(spell util.Spell, direction util.MirDirection, targetID uint32, targetLocation util.Point) {
+func (p *Player) Magic(spell cm.Spell, direction cm.MirDirection, targetID uint32, targetLocation cm.Point) {
 	if !p.CanCast() {
 		p.Enqueue(ServerMessage{}.UserLocation(p))
 		return
@@ -2747,7 +2748,7 @@ func (p *Player) Magic(spell util.Spell, direction util.MirDirection, targetID u
 
 	_, ok := configsMap[spell]
 	if !ok {
-		p.ReceiveChat("技能还没实现。。。", util.ChatTypeSystem)
+		p.ReceiveChat("技能还没实现。。。", cm.ChatTypeSystem)
 		return
 	}
 
@@ -2762,7 +2763,7 @@ func (p *Player) Magic(spell util.Spell, direction util.MirDirection, targetID u
 	cast := true
 	if err != nil {
 		cast = false
-		p.ReceiveChat(err.Error(), util.ChatTypeSystem)
+		p.ReceiveChat(err.Error(), cm.ChatTypeSystem)
 	}
 
 	p.Enqueue(ServerMessage{}.UserLocation(p))
@@ -2789,7 +2790,7 @@ func (p *Player) Magic(spell util.Spell, direction util.MirDirection, targetID u
 	})
 }
 
-func (p *Player) MagicKey(spell util.Spell, key uint8) {
+func (p *Player) MagicKey(spell cm.Spell, key uint8) {
 	for _, m := range p.Magics {
 		if m.Spell == spell {
 			m.Key = int(key)
@@ -2827,32 +2828,32 @@ func (p *Player) SwitchGroup(allow bool) {
 // AddMember 添加别的玩家到自己小队
 func (p *Player) AddMember(name string) {
 	if p.GroupMembers != nil && p.GroupMembers.Get(0) != nil {
-		p.ReceiveChat("你不是队长。", util.ChatTypeSystem)
+		p.ReceiveChat("你不是队长。", cm.ChatTypeSystem)
 		return
 	}
 	if p.GroupMembers != nil && p.GroupMembers.Count() >= MaxGroup {
-		p.ReceiveChat("你的队伍人数已满。", util.ChatTypeSystem)
+		p.ReceiveChat("你的队伍人数已满。", cm.ChatTypeSystem)
 		return
 	}
 	player := env.Players.GetPlayerByName(name)
 	if player == nil {
-		p.ReceiveChat(name+"无法找到。", util.ChatTypeSystem)
+		p.ReceiveChat(name+"无法找到。", cm.ChatTypeSystem)
 		return
 	}
 	if player.ID == p.ID {
-		p.ReceiveChat("你无法添加你自己。", util.ChatTypeSystem)
+		p.ReceiveChat("你无法添加你自己。", cm.ChatTypeSystem)
 		return
 	}
 	if !player.AllowGroup {
-		p.ReceiveChat(name+"不允许组队。", util.ChatTypeSystem)
+		p.ReceiveChat(name+"不允许组队。", cm.ChatTypeSystem)
 		return
 	}
 	if player.GroupMembers != nil {
-		p.ReceiveChat(name+"已经在另一个队伍。", util.ChatTypeSystem)
+		p.ReceiveChat(name+"已经在另一个队伍。", cm.ChatTypeSystem)
 		return
 	}
 	if player.GroupInvitation != nil {
-		p.ReceiveChat(name+"已经收到了另一个玩家的邀请。", util.ChatTypeSystem)
+		p.ReceiveChat(name+"已经收到了另一个玩家的邀请。", cm.ChatTypeSystem)
 		return
 	}
 	p.SwitchGroup(true)
@@ -2864,11 +2865,11 @@ func (p *Player) AddMember(name string) {
 // DelMember 删除小队里的玩家
 func (p *Player) DelMember(name string) {
 	if p.GroupMembers == nil {
-		p.ReceiveChat("你不在队伍中。", util.ChatTypeSystem)
+		p.ReceiveChat("你不在队伍中。", cm.ChatTypeSystem)
 		return
 	}
 	if p.GroupMembers.Get(0) != p {
-		p.ReceiveChat("你不是队长。", util.ChatTypeSystem)
+		p.ReceiveChat("你不是队长。", cm.ChatTypeSystem)
 		return
 	}
 	var player *Player
@@ -2880,7 +2881,7 @@ func (p *Player) DelMember(name string) {
 		break
 	}
 	if player == nil {
-		p.ReceiveChat(name+"不在你的队伍中。", util.ChatTypeSystem)
+		p.ReceiveChat(name+"不在你的队伍中。", cm.ChatTypeSystem)
 		return
 	}
 	player.RemoveGroupBuff()
@@ -2903,36 +2904,36 @@ func (p *Player) DelMember(name string) {
 // GroupInvite 玩家是否同意组队
 func (p *Player) GroupInvite(accept bool) {
 	if p.GroupInvitation == nil {
-		p.ReceiveChat("你没有收到邀请或邀请已过期。", util.ChatTypeSystem)
+		p.ReceiveChat("你没有收到邀请或邀请已过期。", cm.ChatTypeSystem)
 		return
 	}
 	if !accept {
-		p.GroupInvitation.ReceiveChat(p.Name+"拒绝了你的组队邀请。", util.ChatTypeSystem)
+		p.GroupInvitation.ReceiveChat(p.Name+"拒绝了你的组队邀请。", cm.ChatTypeSystem)
 		p.GroupInvitation = nil
 		return
 	}
 	if p.GroupMembers != nil {
-		p.ReceiveChat(fmt.Sprintf("你无法再加入%s的队伍。", p.GroupInvitation.Name), util.ChatTypeSystem)
+		p.ReceiveChat(fmt.Sprintf("你无法再加入%s的队伍。", p.GroupInvitation.Name), cm.ChatTypeSystem)
 		p.GroupInvitation = nil
 		return
 	}
 	if p.GroupInvitation.GroupMembers != nil && p.GroupInvitation.GroupMembers.Get(0) != p.GroupInvitation {
-		p.ReceiveChat(p.GroupInvitation.Name+"不再是队长。", util.ChatTypeSystem)
+		p.ReceiveChat(p.GroupInvitation.Name+"不再是队长。", cm.ChatTypeSystem)
 		p.GroupInvitation = nil
 		return
 	}
 	if p.GroupInvitation.GroupMembers != nil && p.GroupInvitation.GroupMembers.Count() >= MaxGroup {
-		p.ReceiveChat(p.GroupInvitation.Name+"的队伍人数已满。", util.ChatTypeSystem)
+		p.ReceiveChat(p.GroupInvitation.Name+"的队伍人数已满。", cm.ChatTypeSystem)
 		p.GroupInvitation = nil
 		return
 	}
 	if !p.GroupInvitation.AllowGroup {
-		p.ReceiveChat(p.GroupInvitation.Name+"不允许组队。", util.ChatTypeSystem)
+		p.ReceiveChat(p.GroupInvitation.Name+"不允许组队。", cm.ChatTypeSystem)
 		p.GroupInvitation = nil
 		return
 	}
 	if p.GroupInvitation == nil {
-		p.ReceiveChat(p.GroupInvitation.Name+"不在线。", util.ChatTypeSystem)
+		p.ReceiveChat(p.GroupInvitation.Name+"不在线。", cm.ChatTypeSystem)
 		p.GroupInvitation = nil
 		return
 	}
@@ -2948,7 +2949,7 @@ func (p *Player) GroupInvite(accept bool) {
 		member := p.GroupMembers.Get(i)
 		member.Enqueue(packet)
 		p.Enqueue(&server.AddMember{Name: member.Name})
-		if p.Map.Info.ID != member.Map.Info.ID || !util.InRange(p.CurrentLocation, member.CurrentLocation, DataRange) {
+		if p.Map.Info.ID != member.Map.Info.ID || !cm.InRange(p.CurrentLocation, member.CurrentLocation, DataRange) {
 			continue
 		}
 
@@ -3037,7 +3038,7 @@ func (p *Player) TownRevive() {
 		Title:        p.Map.Info.Title,
 		MiniMap:      uint16(p.Map.Info.MiniMap),
 		BigMap:       uint16(p.Map.Info.BigMap),
-		Lights:       util.LightSetting(p.Map.Info.Light),
+		Lights:       cm.LightSetting(p.Map.Info.Light),
 		Location:     p.CurrentLocation,
 		Direction:    p.Direction,
 		MapDarkLight: uint8(p.Map.Info.MapDarkLight),
@@ -3051,7 +3052,7 @@ func (p *Player) TownRevive() {
 	// Enqueue(GetFishInfo());
 }
 
-func (p *Player) SpellToggle(spell util.Spell, use bool) {
+func (p *Player) SpellToggle(spell cm.Spell, use bool) {
 
 }
 
@@ -3091,7 +3092,7 @@ func (p *Player) EditGuildMember(name string, name2 string, index uint8, changeT
 
 }
 
-func (p *Player) CheckMovement(pos util.Point) bool {
+func (p *Player) CheckMovement(pos cm.Point) bool {
 
 	// TODO: 优化效率
 	for _, v := range data.MovementInfos {
@@ -3101,7 +3102,7 @@ func (p *Player) CheckMovement(pos util.Point) bool {
 				if m == nil {
 					log.Infoln("no map id=", v.DestinationMap)
 				}
-				p.Teleport(m, util.NewPoint(v.DestinationX, v.DestinationY))
+				p.Teleport(m, cm.NewPoint(v.DestinationX, v.DestinationY))
 				return true
 			}
 		}
@@ -3243,7 +3244,7 @@ func (p *Player) RetrieveTradeItem(f int32, t int32) {
 		return
 	}
 	if uint16(int(temp.Info.Weight)+p.CurrentBagWeight) > p.MaxBagWeight {
-		p.ReceiveChat("负重不足,无法取回。", util.ChatTypeSystem)
+		p.ReceiveChat("负重不足,无法取回。", cm.ChatTypeSystem)
 		p.Enqueue(msg)
 		return
 	}
@@ -3261,7 +3262,7 @@ func (p *Player) RetrieveTradeItem(f int32, t int32) {
 // TradeRequest 向面前的别的玩家发出交易请求
 func (p *Player) TradeRequest() {
 	if p.TradePartner != nil {
-		p.ReceiveChat("你已经在交易了。", util.ChatTypeSystem)
+		p.ReceiveChat("你已经在交易了。", cm.ChatTypeSystem)
 		return
 	}
 	target := p.GetPoint().NextPoint(p.Direction, 1)
@@ -3271,37 +3272,37 @@ func (p *Player) TradeRequest() {
 		return
 	}
 	for _, ob := range cell.objects {
-		if ob.GetRace() != util.ObjectTypePlayer {
+		if ob.GetRace() != cm.ObjectTypePlayer {
 			continue
 		}
 		player = ob.(*Player)
 	}
 	if player == nil || p.Direction != player.Direction.NegativeDirection() {
-		p.ReceiveChat("交易时你必须和对方面对面。", util.ChatTypeSystem)
+		p.ReceiveChat("交易时你必须和对方面对面。", cm.ChatTypeSystem)
 		return
 	}
 	if player.ID == p.ID {
-		p.ReceiveChat("你不能和自己交易。", util.ChatTypeSystem)
+		p.ReceiveChat("你不能和自己交易。", cm.ChatTypeSystem)
 		return
 	}
 	if player.IsDead() || p.IsDead() {
-		p.ReceiveChat("无法和死人交易。", util.ChatTypeSystem)
+		p.ReceiveChat("无法和死人交易。", cm.ChatTypeSystem)
 		return
 	}
 	if player.TradeInvitation != nil {
-		p.ReceiveChat(fmt.Sprintf("玩家 %s 已经收到了另一个交易邀请。", player.Name), util.ChatTypeSystem)
+		p.ReceiveChat(fmt.Sprintf("玩家 %s 已经收到了另一个交易邀请。", player.Name), cm.ChatTypeSystem)
 		return
 	}
 	if !player.AllowTrade {
-		p.ReceiveChat(fmt.Sprintf("玩家 %s 不允许交易。", player.Name), util.ChatTypeSystem)
+		p.ReceiveChat(fmt.Sprintf("玩家 %s 不允许交易。", player.Name), cm.ChatTypeSystem)
 		return
 	}
-	if !util.InRange(player.CurrentLocation, p.CurrentLocation, DataRange) || player.Map.Info.ID != p.Map.Info.ID {
-		p.ReceiveChat(fmt.Sprintf("玩家 %s 不在交易范围内。", player.Name), util.ChatTypeSystem)
+	if !cm.InRange(player.CurrentLocation, p.CurrentLocation, DataRange) || player.Map.Info.ID != p.Map.Info.ID {
+		p.ReceiveChat(fmt.Sprintf("玩家 %s 不在交易范围内。", player.Name), cm.ChatTypeSystem)
 		return
 	}
 	if player.TradePartner != nil {
-		p.ReceiveChat(fmt.Sprintf("玩家 %s 已经在交易了。", player.Name), util.ChatTypeSystem)
+		p.ReceiveChat(fmt.Sprintf("玩家 %s 已经在交易了。", player.Name), cm.ChatTypeSystem)
 		return
 	}
 	player.TradeInvitation = p
@@ -3329,17 +3330,17 @@ func (p *Player) TradeReply(accept bool) {
 		return
 	}
 	if !accept {
-		p.TradeInvitation.ReceiveChat(fmt.Sprintf("玩家 %s 拒绝交易。", p.Name), util.ChatTypeSystem)
+		p.TradeInvitation.ReceiveChat(fmt.Sprintf("玩家 %s 拒绝交易。", p.Name), cm.ChatTypeSystem)
 		p.TradeInvitation = nil
 		return
 	}
 	if p.TradePartner != nil {
-		p.ReceiveChat("你已经在交易了。", util.ChatTypeSystem)
+		p.ReceiveChat("你已经在交易了。", cm.ChatTypeSystem)
 		p.TradeInvitation = nil
 		return
 	}
 	if p.TradeInvitation.TradePartner != nil {
-		p.ReceiveChat(fmt.Sprintf("玩家 %s 已经在交易了。", p.TradeInvitation.Name), util.ChatTypeSystem)
+		p.ReceiveChat(fmt.Sprintf("玩家 %s 已经在交易了。", p.TradeInvitation.Name), cm.ChatTypeSystem)
 		p.TradeInvitation = nil
 		return
 	}
@@ -3384,14 +3385,14 @@ func (p *Player) TradeConfirm(confirm bool) {
 		p.TradeCancel()
 		return
 	}
-	if !util.InRange(p.TradePartner.CurrentLocation, p.CurrentLocation, DataRange) || p.TradePartner.Map.Info.ID != p.Map.Info.ID ||
-		!util.FacingEachOther(p.Direction, p.CurrentLocation, p.TradePartner.Direction, p.TradePartner.CurrentLocation) {
+	if !cm.InRange(p.TradePartner.CurrentLocation, p.CurrentLocation, DataRange) || p.TradePartner.Map.Info.ID != p.Map.Info.ID ||
+		!cm.FacingEachOther(p.Direction, p.CurrentLocation, p.TradePartner.Direction, p.TradePartner.CurrentLocation) {
 		p.TradeCancel()
 		return
 	}
 	p.TradeLocked = true
 	if p.TradeLocked && !p.TradePartner.TradeLocked {
-		p.TradePartner.ReceiveChat(fmt.Sprintf("玩家 %s 正在等待你确认交易。", p.Name), util.ChatTypeSystem)
+		p.TradePartner.ReceiveChat(fmt.Sprintf("玩家 %s 正在等待你确认交易。", p.Name), cm.ChatTypeSystem)
 	}
 	if !p.TradeLocked || !p.TradePartner.TradeLocked {
 		return
@@ -3399,7 +3400,7 @@ func (p *Player) TradeConfirm(confirm bool) {
 
 	tradePair := [2]*Player{p.TradePartner, p}
 	canTrade := true
-	var u *util.UserItem
+	var u *cm.UserItem
 
 	//check if both people can accept the others items
 	for x := 0; x < 2; x++ { // p -> x
@@ -3409,19 +3410,19 @@ func (p *Player) TradeConfirm(confirm bool) {
 		}
 		if !tradePair[o].CanGainItems(tradePair[x].Trade) {
 			canTrade = false
-			tradePair[x].ReceiveChat("对方物品已满。", util.ChatTypeSystem)
+			tradePair[x].ReceiveChat("对方物品已满。", cm.ChatTypeSystem)
 			tradePair[x].Enqueue(&server.TradeCancel{Unlock: true})
 
-			tradePair[o].ReceiveChat("物品已满。", util.ChatTypeSystem)
+			tradePair[o].ReceiveChat("物品已满。", cm.ChatTypeSystem)
 			tradePair[o].Enqueue(&server.TradeCancel{Unlock: true})
 			return
 		}
 		if !tradePair[o].CanGainGold(uint64(tradePair[x].TradeGoldAmount)) {
 			canTrade = false
-			tradePair[x].ReceiveChat("对方金币已满。", util.ChatTypeSystem)
+			tradePair[x].ReceiveChat("对方金币已满。", cm.ChatTypeSystem)
 			tradePair[x].Enqueue(&server.TradeCancel{Unlock: true})
 
-			tradePair[o].ReceiveChat("金币已满。", util.ChatTypeSystem)
+			tradePair[o].ReceiveChat("金币已满。", cm.ChatTypeSystem)
 			tradePair[o].Enqueue(&server.TradeCancel{Unlock: true})
 			return
 		}
@@ -3449,7 +3450,7 @@ func (p *Player) TradeConfirm(confirm bool) {
 			tradePair[o].GainGold(uint64(tradePair[x].TradeGoldAmount))
 			tradePair[x].TradeGoldAmount = 0
 		}
-		tradePair[x].ReceiveChat("交易成功。", util.ChatTypeSystem)
+		tradePair[x].ReceiveChat("交易成功。", cm.ChatTypeSystem)
 		tradePair[x].Enqueue(&server.TradeConfirm{})
 		tradePair[x].TradeLocked = false
 		tradePair[x].TradePartner = nil
@@ -3516,7 +3517,7 @@ func (p *Player) TradeCancel() {
 	}
 }
 
-func (p *Player) EquipSlotItem(grid util.MirGridType, uniqueID uint64, to int32, gridTo util.MirGridType) {
+func (p *Player) EquipSlotItem(grid cm.MirGridType, uniqueID uint64, to int32, gridTo cm.MirGridType) {
 
 }
 

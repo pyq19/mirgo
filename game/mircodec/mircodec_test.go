@@ -5,9 +5,9 @@ import (
 	"testing"
 
 	"github.com/davyxu/cellnet"
+	"github.com/yenkeia/mirgo/game/cm"
 	"github.com/yenkeia/mirgo/game/proto/client"
 	"github.com/yenkeia/mirgo/game/proto/server"
-	"github.com/yenkeia/mirgo/util"
 )
 
 func i(obj interface{}) interface{} {
@@ -226,18 +226,18 @@ func TestSetConcentration(t *testing.T) {
 func newLoginSuccessStruct() *server.LoginSuccess {
 	res := new(server.LoginSuccess)
 
-	c1 := new(util.SelectInfo)
+	c1 := new(cm.SelectInfo)
 	c1.Name = "测试登陆1"
 	c1.Index = 1
-	c1.Gender = util.MirGenderFemale
-	c1.Class = util.MirClassArcher
+	c1.Gender = cm.MirGenderFemale
+	c1.Class = cm.MirClassArcher
 	res.Characters = append(res.Characters, *c1)
 
-	c2 := new(util.SelectInfo)
+	c2 := new(cm.SelectInfo)
 	c2.Name = "测试登陆2"
 	c2.Index = 2
-	c2.Gender = util.MirGenderFemale
-	c2.Class = util.MirClassAssassin
+	c2.Gender = cm.MirGenderFemale
+	c2.Class = cm.MirClassAssassin
 	res.Characters = append(res.Characters, *c2)
 	return res
 }
@@ -414,7 +414,7 @@ func TestUserInformation(t *testing.T) {
 }
 
 func TestEmptySlice(t *testing.T) {
-	slice := make([]*util.UserItem, 5)
+	slice := make([]*cm.UserItem, 5)
 	slice[0].ItemID = 1
 	t.Log(len(slice))
 	t.Log(slice[0])
@@ -498,9 +498,9 @@ func TestEncodeDecodePlayerInspect(t *testing.T) {
 		Name:      "testName",
 		GuildName: "testGuildName",
 		GuildRank: "testGuildRank",
-		Equipment: make([]*util.UserItem, 14),
-		Class:     util.MirClassTaoist,
-		Gender:    util.MirGenderFemale,
+		Equipment: make([]*cm.UserItem, 14),
+		Class:     cm.MirClassTaoist,
+		Gender:    cm.MirGenderFemale,
 		Hair:      1,
 		Level:     10,
 		LoverName: "testLoverName",
