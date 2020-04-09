@@ -53,8 +53,8 @@ database
 *.swp
 dotnettools/mysql2sqlite
 smain
-server/server
-server/__debug_bin
+cmd/server/server
+cmd/server/__debug_bin
 account.sqlite
 .vscode
 
