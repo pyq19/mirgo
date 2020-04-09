@@ -42,8 +42,8 @@ type Player struct {
 	Equipment          *Bag               // 14
 	QuestInventory     *Bag               // 40
 	Storage            *Bag               // 80
-	Trade              []*common.UserItem // 10
-	Refine             []*common.UserItem // 16
+	Trade              *Bag               // 10
+	Refine             []*common.UserItem // 16	TODO 合成？提炼？
 	LooksArmour        int
 	LooksWings         int
 	LooksWeapon        int
@@ -116,7 +116,9 @@ type Player struct {
 	GroupInvitation    *Player      // 组队邀请人
 	AllowTrade         bool         // 是否允许交易
 	TradePartner       *Player      // 交易对象
-	TradeInvitation    *Player      // 交易邀请人（发起交易的玩家
+	TradeInvitation    *Player      // 发起交易的玩家
+	TradeLocked        bool         // 是否确认交易
+	TradeGoldAmount    uint32       // 摆到交易框的金币
 }
 
 type Health struct {
@@ -1646,16 +1648,6 @@ func (p *Player) ReplaceWeddingRing(id uint64) {
 
 }
 
-// DepositTradeItem 交易时，把物品从背包放入交易栏
-func (p *Player) DepositTradeItem(from int32, to int32) {
-
-}
-
-// RetrieveTradeItem 交易时，把物品从交易栏放回背包
-func (p *Player) RetrieveTradeItem(from int32, to int32) {
-
-}
-
 func (p *Player) MergeItem(gridFrom common.MirGridType, gridTo common.MirGridType, fromID uint64, toID uint64) {
 	msg := &server.MergeItem{
 		GridFrom: gridFrom,
@@ -3098,6 +3090,16 @@ func (p *Player) CancelMentor() {
 
 }
 
+// DepositTradeItem 交易时，把物品从背包放入交易栏
+func (p *Player) DepositTradeItem(from int32, to int32) {
+
+}
+
+// RetrieveTradeItem 交易时，把物品从交易栏放回背包
+func (p *Player) RetrieveTradeItem(from int32, to int32) {
+
+}
+
 // TradeRequest 向面前的别的玩家发出交易请求
 func (p *Player) TradeRequest() {
 	if p.TradePartner != nil {
@@ -3148,9 +3150,19 @@ func (p *Player) TradeRequest() {
 	player.Enqueue(&server.TradeRequest{Name: p.Name})
 }
 
-// TradeGold 交易时候输入交易的金币，如果交易取消则返还金币
+// TradeGold 交易时候摆到交易框的金币，如果交易取消则返还金币
 func (p *Player) TradeGold(amount uint32) {
-
+	p.TradeUnlock()
+	if p.TradePartner == nil {
+		return
+	}
+	if p.Gold < uint64(amount) {
+		return
+	}
+	p.TradeGoldAmount += amount
+	p.Gold -= uint64(amount)
+	p.Enqueue(&server.LoseGold{Gold: amount})
+	p.TradePartner.Enqueue(&server.TradeGold{Amount: p.TradeGoldAmount})
 }
 
 // TradeReply 被交易玩家是否同意交易请求（TradeRequest）
@@ -3178,6 +3190,14 @@ func (p *Player) TradeReply(accept bool) {
 	p.TradeInvitation = nil
 	p.Enqueue(&server.TradeAccept{Name: p.TradePartner.Name})
 	p.TradePartner.Enqueue(&server.TradeAccept{Name: p.Name})
+}
+
+// TradeUnlock 取消确认交易
+func (p *Player) TradeUnlock() {
+	p.TradeLocked = false
+	if p.TradePartner != nil {
+		p.TradePartner.TradeLocked = false
+	}
 }
 
 // TradeConfirm 摆好物品到交易栏后，确认交易

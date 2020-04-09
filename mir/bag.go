@@ -14,12 +14,17 @@ type Bag struct {
 	Items  []*common.UserItem
 }
 
-func BagLoadFromDB(p *Player, typ common.UserItemType, n int) *Bag {
+func NewBag(p *Player, typ common.UserItemType, n int) *Bag {
 	b := &Bag{
 		Player: p,
 		Type:   typ,
 	}
 	b.Items = make([]*common.UserItem, n)
+	return b
+}
+
+func BagLoadFromDB(p *Player, typ common.UserItemType, n int) *Bag {
+	b := NewBag(p, typ, n)
 
 	cui := []*common.CharacterUserItem{}
 	adb.Table("character_user_item").Where("character_id = ? AND type = ?", p.ID, typ).Find(&cui)
