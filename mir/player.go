@@ -550,6 +550,10 @@ func (p *Player) EnqueueItemInfos() {
 	}
 }
 
+func (p *Player) CheckItem(u *common.UserItem) {
+	p.EnqueueItemInfo(u.ItemID)
+}
+
 func (p *Player) EnqueueItemInfo(itemID int32) {
 	for m := range p.SendItemInfo {
 		s := p.SendItemInfo[m]
@@ -3151,13 +3155,11 @@ func (p *Player) RetrieveTradeItem(f int32, t int32) {
 		p.Enqueue(msg)
 		return
 	}
-	/*	TODO 物品负重
-		if (temp.Weight + p.CurrentBagWeight > p.MaxBagWeight){
-			p.ReceiveChat("负重不足,无法取回。", common.ChatTypeSystem);
-			p.Enqueue(msg);
-			return;
-		}
-	*/
+	if uint16(int(temp.Info.Weight)+p.CurrentBagWeight) > p.MaxBagWeight {
+		p.ReceiveChat("负重不足,无法取回。", common.ChatTypeSystem)
+		p.Enqueue(msg)
+		return
+	}
 	if p.Inventory.Get(to) == nil {
 		p.Inventory.Set(to, temp)
 		p.Trade.Set(from, nil)
@@ -3264,21 +3266,16 @@ func (p *Player) TradeReply(accept bool) {
 // TradeItem 发送给交易对象所要交易的物品
 func (p *Player) TradeItem() {
 	p.TradeUnlock()
-
 	if p.TradePartner == nil {
 		return
 	}
-	// TODO
-	/*
-		for (int i = 0; i < Info.Trade.Length; i++)
-		{
-			UserItem u = Info.Trade[i];
-			if (u == null) continue;
-
-			//TradePartner.CheckItemInfo(u.Info);
-			TradePartner.CheckItem(u);
+	for i := 0; i < p.Trade.Length(); i++ {
+		u := p.Trade.Get(i)
+		if u == nil {
+			continue
 		}
-	*/
+		p.TradePartner.CheckItem(u)
+	}
 	p.TradePartner.Enqueue(&server.TradeItem{TradeItems: p.Trade.Items})
 }
 
@@ -3291,7 +3288,7 @@ func (p *Player) TradeUnlock() {
 }
 
 // TradeConfirm 摆好物品到交易栏后，确认交易
-func (p *Player) TradeConfirm(locked bool) {
+func (p *Player) TradeConfirm(confirm bool) {
 
 }
 
