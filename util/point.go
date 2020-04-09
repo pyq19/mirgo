@@ -50,3 +50,11 @@ func (p Point) Equal(other Point) bool {
 func (p Point) EqualXY(x, y int) bool {
 	return p.X == uint32(x) && p.Y == uint32(y)
 }
+
+func InRange(a, b Point, i int) bool {
+	return AbsInt(int(a.X)-int(b.X)) <= i && AbsInt(int(a.Y)-int(b.Y)) <= i
+}
+
+func InRangeXY(a Point, x, y, i int) bool {
+	return AbsInt(int(a.X)-x) <= i && AbsInt(int(a.Y)-y) <= i
+}

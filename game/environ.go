@@ -3,7 +3,6 @@ package game
 import (
 	"fmt"
 	"path/filepath"
-	"strconv"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -263,28 +262,6 @@ func (e *Environ) Broadcast(msg interface{}) {
 		ses.Send(msg)
 		return true
 	})
-}
-
-func (e *Environ) SystemBroadcast(...interface{}) {
-	envPlayerCount := e.Players.Count()
-	text := "当前在线玩家人数: " + strconv.Itoa(envPlayerCount)
-	e.Broadcast(&server.Chat{
-		Message: text,
-		Type:    util.ChatTypeSystem,
-	})
-}
-
-func (e *Environ) Debug() {
-	envPlayerCount := e.Players.Count()
-	nplayers := 0
-	for _, m := range e.Maps {
-		nplayers += len(m.GetAllPlayers())
-	}
-	if nplayers != envPlayerCount {
-		log.Errorf("!!! warning envPlayerCount: %d != map allPlayer: %d\n", envPlayerCount, nplayers)
-	} else {
-		// log.Debugf("envPlayerCount: %d, map allPlayer: %d\n", envPlayerCount, len(allPlayer))
-	}
 }
 
 func (e *Environ) AdjustLights() {
