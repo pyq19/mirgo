@@ -14,7 +14,7 @@
 
 编译运行
 --------------------
-  * 进入目录 mirgo/server
+  * 进入目录 mirgo/cmd/server
   * 新建 config.toml, 文件内容 DataPath="服务端资源绝对路径(mir2ServerRelease)"
   * go mod vendor 
   * go build 

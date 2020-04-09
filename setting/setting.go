@@ -6,8 +6,7 @@ import (
 	"path/filepath"
 
 	"github.com/pelletier/go-toml"
-	"github.com/yenkeia/mirgo/common"
-	"github.com/yenkeia/mirgo/ut"
+	"github.com/yenkeia/mirgo/util"
 )
 
 type Conf struct {
@@ -26,7 +25,7 @@ type Settings struct {
 	RoutePath     string
 	Acceptor      string
 
-	BaseStats         map[common.MirClass]baseStats
+	BaseStats         map[util.MirClass]baseStats
 	MagicResistWeight int
 }
 
@@ -50,7 +49,7 @@ func New() (*Settings, error) {
 			return nil, errors.New("没有配置")
 		}
 
-		if ut.IsDir(checkdir) {
+		if util.IsDir(checkdir) {
 			conf.DataPath = checkdir
 		}
 	}
@@ -60,8 +59,8 @@ func New() (*Settings, error) {
 		return nil, err
 	}
 
-	BaseStats := make(map[common.MirClass]baseStats)
-	BaseStats[common.MirClassWarrior] = baseStats{
+	BaseStats := make(map[util.MirClass]baseStats)
+	BaseStats[util.MirClassWarrior] = baseStats{
 		HpGain:              4,
 		HpGainRate:          4.5,
 		MpGainRate:          0,
@@ -85,7 +84,7 @@ func New() (*Settings, error) {
 		CritialRateGain:     0,
 		CriticalDamageGain:  0,
 	}
-	BaseStats[common.MirClassWizard] = baseStats{
+	BaseStats[util.MirClassWizard] = baseStats{
 		HpGain:              15,
 		HpGainRate:          1.8,
 		MpGainRate:          0,
@@ -109,7 +108,7 @@ func New() (*Settings, error) {
 		CritialRateGain:     0,
 		CriticalDamageGain:  0,
 	}
-	BaseStats[common.MirClassTaoist] = baseStats{
+	BaseStats[util.MirClassTaoist] = baseStats{
 		HpGain:              6,
 		HpGainRate:          2.5,
 		MpGainRate:          0,
