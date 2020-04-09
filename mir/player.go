@@ -884,56 +884,82 @@ func (p *Player) ConsumeItem(userItem *common.UserItem, count uint32) {
 	bag.UseCount(idx, count)
 }
 
-// CanGainItem TODO 是否可以增加物品
+// CanGainItem 是否可以增加物品
 func (p *Player) CanGainItem(item *common.UserItem) bool {
-	/*
-	   if (item.Info.Type == ItemType.Amulet)
-	   {
-	       if (FreeSpace(Info.Inventory) > 0 && (CurrentBagWeight + item.Weight <= MaxBagWeight || !useWeight)) return true;
-
-	       uint count = item.Count;
-
-	       for (int i = 0; i < Info.Inventory.Length; i++)
-	       {
-	           UserItem bagItem = Info.Inventory[i];
-
-	           if (bagItem == null || bagItem.Info != item.Info) continue;
-
-	           if (bagItem.Count + count <= bagItem.Info.StackSize) return true;
-
-	           count -= bagItem.Info.StackSize - bagItem.Count;
-	       }
-
-	       return false;
-	   }
-
-	   if (useWeight && CurrentBagWeight + (item.Weight) > MaxBagWeight) return false;
-
-	   if (FreeSpace(Info.Inventory) > 0) return true;
-
-	   if (item.Info.StackSize > 1)
-	   {
-	       uint count = item.Count;
-
-	       for (int i = 0; i < Info.Inventory.Length; i++)
-	       {
-	           UserItem bagItem = Info.Inventory[i];
-
-	           if (bagItem.Info != item.Info) continue;
-
-	           if (bagItem.Count + count <= bagItem.Info.StackSize) return true;
-
-	           count -= bagItem.Info.StackSize - bagItem.Count;
-	       }
-	   }
-
-	   return false;
-	*/
-	return true
+	useWeight := true
+	if item.Info.Type == common.ItemTypeAmulet {
+		if p.FreeSpace(p.Inventory) > 0 && (p.CurrentBagWeight+int(item.Info.Weight) <= int(p.MaxBagWeight) || !useWeight) {
+			return true
+		}
+		count := item.Count
+		for i := 0; i < p.Inventory.Length(); i++ {
+			bagItem := p.Inventory.Get(i)
+			if bagItem == nil || bagItem.Info != item.Info {
+				continue
+			}
+			if bagItem.Count+count <= bagItem.Info.StackSize {
+				return true
+			}
+			count -= bagItem.Info.StackSize - bagItem.Count
+		}
+		return false
+	}
+	if useWeight && p.CurrentBagWeight+int(item.Info.Weight) > int(p.MaxBagWeight) {
+		return false
+	}
+	if p.FreeSpace(p.Inventory) > 0 {
+		return true
+	}
+	if item.Info.StackSize > 1 {
+		count := item.Count
+		for i := 0; i < p.Inventory.Length(); i++ {
+			bagItem := p.Inventory.Get(i)
+			if bagItem.Info != item.Info {
+				continue
+			}
+			if bagItem.Count+count <= bagItem.Info.StackSize {
+				return true
+			}
+			count -= bagItem.Info.StackSize - bagItem.Count
+		}
+	}
+	return false
 }
 
 // CanGainItems 是否可以增加很多物品
-func (p *Player) CanGainItems(items []*common.UserItem) bool {
+func (p *Player) CanGainItems(bag *Bag) bool {
+	items := bag.Items
+	itemCount := bag.ItemCount()
+	itemWeight := 0
+	stackOffset := 0
+	if itemCount < 1 {
+		return true
+	}
+	for i := 0; i < len(items); i++ {
+		if items[i] == nil {
+			continue
+		}
+		itemWeight += int(items[i].Info.Weight)
+		if items[i].Info.StackSize > 1 {
+			count := items[i].Count
+			for u := 0; u < p.Inventory.Length(); u++ {
+				bagItem := p.Inventory.Get(u)
+				if bagItem == nil || bagItem.Info.ID != items[i].Info.ID {
+					continue
+				}
+				if bagItem.Count+count > bagItem.Info.StackSize {
+					stackOffset++
+				}
+				break
+			}
+		}
+	}
+	if p.CurrentBagWeight+(itemWeight) > int(p.MaxBagWeight) {
+		return false
+	}
+	if p.FreeSpace(p.Inventory) < itemCount+stackOffset {
+		return false
+	}
 	return true
 }
 
@@ -1003,9 +1029,9 @@ func (p *Player) GainItemMail(item *common.UserItem, count int) {
 
 }
 
-// CanGainGold TODO 是否可以增加金币
+// CanGainGold 是否可以增加金币
 func (p *Player) CanGainGold(gold uint64) bool {
-	return true
+	return gold+p.Gold <= math.MaxUint64
 }
 
 // GainGold 为玩家增加金币
@@ -3383,7 +3409,7 @@ func (p *Player) TradeConfirm(confirm bool) {
 		if x == 0 {
 			o = 1
 		}
-		if !tradePair[o].CanGainItems(tradePair[x].Trade.Items) {
+		if !tradePair[o].CanGainItems(tradePair[x].Trade) {
 			canTrade = false
 			tradePair[x].ReceiveChat("对方物品已满。", common.ChatTypeSystem)
 			tradePair[x].Enqueue(&server.TradeCancel{Unlock: true})

@@ -12,6 +12,7 @@ type Bag struct {
 	Type   common.UserItemType
 	Player *Player
 	Items  []*common.UserItem
+	// ItemCount int
 }
 
 func NewBag(p *Player, typ common.UserItemType, n int) *Bag {
@@ -46,6 +47,18 @@ func BagLoadFromDB(p *Player, typ common.UserItemType, n int) *Bag {
 	}
 
 	return b
+}
+
+func (b *Bag) ItemCount() int {
+	cnt := 0
+	for i := 0; i < len(b.Items); i++ {
+		tmp := b.Items[i]
+		if tmp == nil {
+			continue
+		}
+		cnt++
+	}
+	return cnt
 }
 
 func (b *Bag) Length() int {
