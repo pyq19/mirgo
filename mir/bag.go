@@ -48,6 +48,10 @@ func BagLoadFromDB(p *Player, typ common.UserItemType, n int) *Bag {
 	return b
 }
 
+func (b *Bag) Length() int {
+	return len(b.Items)
+}
+
 func (b *Bag) Move(from int, to int) error {
 	if from < 0 || to < 0 || from > len(b.Items) || to > len(b.Items) {
 		return fmt.Errorf("Move: 位置不存在 from=%d to=%d", from, to)

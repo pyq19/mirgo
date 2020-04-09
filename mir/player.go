@@ -3091,13 +3091,82 @@ func (p *Player) CancelMentor() {
 }
 
 // DepositTradeItem 交易时，把物品从背包放入交易栏
-func (p *Player) DepositTradeItem(from int32, to int32) {
-
+func (p *Player) DepositTradeItem(f int32, t int32) {
+	from := int(f)
+	to := int(t)
+	msg := &server.DepositTradeItem{From: f, To: t, Success: false}
+	if from < 0 || from >= p.Inventory.Length() {
+		p.Enqueue(msg)
+		return
+	}
+	if to < 0 || to >= p.Trade.Length() {
+		p.Enqueue(msg)
+		return
+	}
+	temp := p.Inventory.Get(from)
+	if temp == nil {
+		p.Enqueue(msg)
+		return
+	}
+	/*	TODO 物品绑定相关
+		if (temp.Info.Bind.HasFlag(BindMode.DontTrade))
+		{
+			Enqueue(p);
+			return;
+		}
+		if (temp.RentalInformation != null && temp.RentalInformation.BindingFlags.HasFlag(BindMode.DontTrade))
+		{
+			Enqueue(p);
+			return;
+		}
+	*/
+	if p.Trade.Get(to) == nil {
+		p.Trade.Set(to, temp)
+		p.Inventory.Set(from, nil)
+		p.RefreshBagWeight()
+		p.TradeItem()
+		// 记录交易信息 Report.ItemMoved("DepositTradeItem", temp, MirGridType.Inventory, MirGridType.Trade, from, to)
+		msg.Success = true
+		p.Enqueue(msg)
+		return
+	}
+	p.Enqueue(msg)
 }
 
 // RetrieveTradeItem 交易时，把物品从交易栏放回背包
-func (p *Player) RetrieveTradeItem(from int32, to int32) {
-
+func (p *Player) RetrieveTradeItem(f int32, t int32) {
+	from := int(f)
+	to := int(t)
+	msg := &server.RetrieveTradeItem{From: f, To: t, Success: false}
+	if from < 0 || from >= p.Trade.Length() {
+		p.Enqueue(msg)
+		return
+	}
+	if to < 0 || to >= p.Inventory.Length() {
+		p.Enqueue(msg)
+		return
+	}
+	temp := p.Trade.Get(from)
+	if temp == nil {
+		p.Enqueue(msg)
+		return
+	}
+	/*	TODO 物品负重
+		if (temp.Weight + p.CurrentBagWeight > p.MaxBagWeight){
+			p.ReceiveChat("负重不足,无法取回。", common.ChatTypeSystem);
+			p.Enqueue(msg);
+			return;
+		}
+	*/
+	if p.Inventory.Get(to) == nil {
+		p.Inventory.Set(to, temp)
+		p.Trade.Set(from, nil)
+		msg.Success = true
+		p.RefreshBagWeight()
+		p.TradeItem()
+		// 记录交易信息 Report.ItemMoved("RetrieveTradeItem", temp, MirGridType.Trade, MirGridType.Inventory, from, to)
+	}
+	p.Enqueue(msg)
 }
 
 // TradeRequest 向面前的别的玩家发出交易请求
@@ -3190,6 +3259,27 @@ func (p *Player) TradeReply(accept bool) {
 	p.TradeInvitation = nil
 	p.Enqueue(&server.TradeAccept{Name: p.TradePartner.Name})
 	p.TradePartner.Enqueue(&server.TradeAccept{Name: p.Name})
+}
+
+// TradeItem 发送给交易对象所要交易的物品
+func (p *Player) TradeItem() {
+	p.TradeUnlock()
+
+	if p.TradePartner == nil {
+		return
+	}
+	// TODO
+	/*
+		for (int i = 0; i < Info.Trade.Length; i++)
+		{
+			UserItem u = Info.Trade[i];
+			if (u == null) continue;
+
+			//TradePartner.CheckItemInfo(u.Info);
+			TradePartner.CheckItem(u);
+		}
+	*/
+	p.TradePartner.Enqueue(&server.TradeItem{TradeItems: p.Trade.Items})
 }
 
 // TradeUnlock 取消确认交易
