@@ -84,7 +84,7 @@ func NewMonster(mp *Map, p common.Point, mi *common.MonsterInfo) (m *Monster) {
 	m.Target = nil
 	m.Poison = common.PoisonTypeNone
 	m.CurrentLocation = p
-	m.CurrentDirection = RandomDirection()
+	m.Direction = RandomDirection()
 	m.Dead = false
 	m.Level = uint16(mi.Level)
 	m.PetLevel = 0
@@ -161,7 +161,7 @@ func (m *Monster) GetCell() *Cell {
 }
 
 func (m *Monster) GetDirection() common.MirDirection {
-	return m.CurrentDirection
+	return m.Direction
 }
 
 func (m *Monster) GetHP() int {
@@ -717,7 +717,7 @@ func (m *Monster) Walk(dir common.MirDirection) bool {
 
 	oldpos := m.CurrentLocation
 
-	m.CurrentDirection = dir
+	m.Direction = dir
 	m.CurrentLocation = dest
 	m.UpdateInSafeZone()
 
@@ -762,7 +762,7 @@ func (m *Monster) Turn(dir common.MirDirection) {
 	if !m.CanMove() {
 		return
 	}
-	m.CurrentDirection = dir
+	m.Direction = dir
 
 	m.Broadcast(&server.ObjectTurn{
 		ObjectID:  m.GetID(),
@@ -797,7 +797,7 @@ func (m *Monster) Attack() {
 		return
 	}
 	log.Debugf("Monster[%s]AI[%d] Attack\n", m.Name, m.AI)
-	m.CurrentDirection = DirectionFromPoint(m.CurrentLocation, m.Target.GetPoint())
+	m.Direction = DirectionFromPoint(m.CurrentLocation, m.Target.GetPoint())
 	m.Broadcast(ServerMessage{}.ObjectAttack(m, common.SpellNone, 0, 0))
 	now := time.Now()
 	// ActionTime = Envir.Time + 300;

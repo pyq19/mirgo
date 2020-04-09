@@ -153,7 +153,7 @@ func (ServerMessage) UserInformation(p *Player) *server.UserInformation {
 	ui.Gender = p.Gender
 	ui.Level = p.Level
 	ui.Location = p.CurrentLocation
-	ui.Direction = p.CurrentDirection
+	ui.Direction = p.Direction
 	ui.Hair = p.Hair
 	ui.HP = p.HP
 	ui.MP = p.MP
@@ -183,7 +183,7 @@ func (p *Player) GetClientMagics() []*common.ClientMagic {
 func (ServerMessage) UserLocation(p *Player) *server.UserLocation {
 	return &server.UserLocation{
 		Location:  p.Point(),
-		Direction: p.CurrentDirection,
+		Direction: p.Direction,
 	}
 }
 

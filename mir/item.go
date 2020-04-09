@@ -132,7 +132,7 @@ func (i *Item) Broadcast(msg interface{}) {
 }
 
 func (i *Item) GetDirection() common.MirDirection {
-	return i.CurrentDirection
+	return i.Direction
 }
 
 func (i *Item) IsAttackTarget(attacker IMapObject) bool {

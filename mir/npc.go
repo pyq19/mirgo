@@ -29,12 +29,12 @@ func NewNPC(m *Map, id uint32, ni *common.NpcInfo) *NPC {
 	}
 	npc := &NPC{
 		MapObject: MapObject{
-			ID:               id,
-			Name:             ni.ChineseName,
-			NameColor:        common.ColorLime,
-			Map:              m,
-			CurrentLocation:  common.NewPoint(ni.LocationX, ni.LocationY),
-			CurrentDirection: common.MirDirection(ut.RandomInt(0, 1)),
+			ID:              id,
+			Name:            ni.ChineseName,
+			NameColor:       common.ColorLime,
+			Map:             m,
+			CurrentLocation: common.NewPoint(ni.LocationX, ni.LocationY),
+			Direction:       common.MirDirection(ut.RandomInt(0, 1)),
 		},
 		Image:    ni.Image,
 		Light:    0, // TODO
@@ -153,7 +153,7 @@ func (n *NPC) GetCell() *Cell {
 }
 
 func (n *NPC) GetDirection() common.MirDirection {
-	return n.CurrentDirection
+	return n.Direction
 }
 
 func (p *NPC) Attacked(attacker IMapObject, damageFinal int, defenceType common.DefenceType, damageWeapon bool) int {
@@ -187,7 +187,7 @@ func (n *NPC) Broadcast(msg interface{}) {
 func (n *NPC) Process(dt time.Duration) {
 	if n.TurnTime.Before(time.Now()) {
 		n.TurnTime = time.Now().Add(time.Second * time.Duration(ut.RandomInt(20, 60)))
-		n.CurrentDirection = common.MirDirection(ut.RandomInt(0, 1))
+		n.Direction = common.MirDirection(ut.RandomInt(0, 1))
 		n.Broadcast(ServerMessage{}.ObjectTurn(n))
 	}
 

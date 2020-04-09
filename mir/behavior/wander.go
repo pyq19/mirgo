@@ -43,6 +43,6 @@ func (n *WanderNode) PickNewDirection(c *BT) {
 	case 0:
 		c.Monster.Turn(mir.RandomDirection())
 	default:
-		c.Monster.Walk(c.Monster.CurrentDirection)
+		c.Monster.Walk(c.Monster.Direction)
 	}
 }

@@ -498,7 +498,7 @@ func updatePlayerInfo(g *Game, p *Player, c *common.Character) {
 	p.ID = uint32(c.ID)
 	p.Name = c.Name
 	p.NameColor = common.Color{R: 255, G: 255, B: 255}
-	p.CurrentDirection = c.Direction
+	p.Direction = c.Direction
 	p.CurrentLocation = common.NewPoint(int(c.CurrentLocationX), int(c.CurrentLocationY))
 	p.BindLocation = common.NewPoint(c.BindLocationX, c.BindLocationY)
 	p.BindMapIndex = c.BindMapID

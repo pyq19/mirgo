@@ -71,15 +71,15 @@ type ILifeObject interface {
 }
 
 type MapObject struct {
-	ID               uint32
-	Name             string
-	NameColor        common.Color
-	Map              *Map
-	CurrentLocation  common.Point
-	CurrentDirection common.MirDirection
-	Dead             bool
-	PlayerCount      int // 记录在DataRange内有多少个玩家
-	InSafeZone       bool
+	ID              uint32
+	Name            string
+	NameColor       common.Color
+	Map             *Map
+	CurrentLocation common.Point
+	Direction       common.MirDirection
+	Dead            bool
+	PlayerCount     int // 记录在DataRange内有多少个玩家
+	InSafeZone      bool
 }
 
 func (m *MapObject) GetMapObject() *MapObject {

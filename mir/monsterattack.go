@@ -28,7 +28,7 @@ func (m *Monster) GuardAttack() {
 	})
 	m.Broadcast(&server.ObjectTurn{
 		ObjectID:  m.GetID(),
-		Direction: m.CurrentDirection,
+		Direction: m.Direction,
 		Location:  m.CurrentLocation,
 	})
 

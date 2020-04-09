@@ -579,7 +579,7 @@ func SummonMagic_BeforeAction(ctx *MagicContext) (error, uint32) {
 
 	monsterInfo := data.GetMonsterInfoByName(sumdata.MonsterName)
 
-	dir := int(p.CurrentDirection) + 4
+	dir := int(p.Direction) + 4
 	if dir > 8 {
 		dir -= 8
 	}

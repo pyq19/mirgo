@@ -171,7 +171,7 @@ func (p *Player) Point() common.Point {
 
 // GetFrontPoint 获取玩家面前的点
 func (p *Player) GetFrontPoint() common.Point {
-	return p.Point().NextPoint(p.CurrentDirection, 1)
+	return p.Point().NextPoint(p.Direction, 1)
 }
 
 func (m *Player) AddPlayerCount(n int) {
@@ -220,7 +220,7 @@ func (p *Player) GetCell() *Cell {
 }
 
 func (p *Player) GetDirection() common.MirDirection {
-	return p.CurrentDirection
+	return p.Direction
 }
 
 // func (p *Player) GetCurrentGrid() *Grid {
@@ -1335,7 +1335,7 @@ func (p *Player) Teleport(m *Map, pt common.Point) bool {
 		BigMap:       uint16(m.Info.BigMap),
 		Lights:       common.LightSetting(m.Info.Light),
 		Location:     p.CurrentLocation,
-		Direction:    p.CurrentDirection,
+		Direction:    p.Direction,
 		MapDarkLight: uint8(m.Info.MapDarkLight),
 		Music:        uint16(m.Info.Music),
 	})
@@ -1482,7 +1482,7 @@ func (p *Player) Turn(direction common.MirDirection) {
 		p.Enqueue(ServerMessage{}.UserLocation(p))
 		return
 	}
-	p.CurrentDirection = direction
+	p.Direction = direction
 	p.UpdateInSafeZone()
 
 	p.Enqueue(ServerMessage{}.UserLocation(p))
@@ -1505,7 +1505,7 @@ func (p *Player) Walk(direction common.MirDirection) {
 		p.Enqueue(ServerMessage{}.UserLocation(p))
 		return
 	}
-	p.CurrentDirection = direction
+	p.Direction = direction
 	p.CurrentLocation = n
 	p.UpdateInSafeZone()
 
@@ -1553,7 +1553,7 @@ func (p *Player) Run(direction common.MirDirection) {
 		p.Enqueue(ServerMessage{}.UserLocation(p))
 		return
 	}
-	p.CurrentDirection = direction
+	p.Direction = direction
 	p.CurrentLocation = loc
 	p.UpdateInSafeZone()
 
@@ -2452,7 +2452,7 @@ func (p *Player) Attack(direction common.MirDirection, spell common.Spell) {
 		}
 	}
 	_ = level // TODO
-	p.CurrentDirection = direction
+	p.Direction = direction
 	p.Enqueue(ServerMessage{}.UserLocation(p))
 	p.Broadcast(ServerMessage{}.ObjectAttack(p, spell, 0, 0))
 	target := p.GetPoint().NextPoint(p.GetDirection(), 1)
@@ -2743,7 +2743,7 @@ func (p *Player) Magic(spell common.Spell, direction common.MirDirection, target
 		p.Enqueue(ServerMessage{}.UserLocation(p))
 		return
 	}
-	p.CurrentDirection = direction
+	p.Direction = direction
 	p.ChangeMP(-cost)
 	target := p.Map.GetObjectInAreaByID(targetID, targetLocation)
 
@@ -3041,7 +3041,7 @@ func (p *Player) TownRevive() {
 		BigMap:       uint16(p.Map.Info.BigMap),
 		Lights:       common.LightSetting(p.Map.Info.Light),
 		Location:     p.CurrentLocation,
-		Direction:    p.CurrentDirection,
+		Direction:    p.Direction,
 		MapDarkLight: uint8(p.Map.Info.MapDarkLight),
 		Music:        uint16(p.Map.Info.Music),
 	})
@@ -3266,7 +3266,7 @@ func (p *Player) TradeRequest() {
 		p.ReceiveChat("你已经在交易了。", common.ChatTypeSystem)
 		return
 	}
-	target := p.GetPoint().NextPoint(p.CurrentDirection, 1)
+	target := p.GetPoint().NextPoint(p.Direction, 1)
 	cell := p.Map.GetCell(target)
 	var player *Player
 	if cell == nil || !cell.HasObject() {
@@ -3278,7 +3278,7 @@ func (p *Player) TradeRequest() {
 		}
 		player = ob.(*Player)
 	}
-	if player == nil || p.CurrentDirection != player.CurrentDirection.NegativeDirection() {
+	if player == nil || p.Direction != player.Direction.NegativeDirection() {
 		p.ReceiveChat("交易时你必须和对方面对面。", common.ChatTypeSystem)
 		return
 	}
@@ -3387,7 +3387,7 @@ func (p *Player) TradeConfirm(confirm bool) {
 		return
 	}
 	if !InRange(p.TradePartner.CurrentLocation, p.CurrentLocation, DataRange) || p.TradePartner.Map.Info.ID != p.Map.Info.ID ||
-		!FacingEachOther(p.CurrentDirection, p.CurrentLocation, p.TradePartner.CurrentDirection, p.TradePartner.CurrentLocation) {
+		!FacingEachOther(p.Direction, p.CurrentLocation, p.TradePartner.Direction, p.TradePartner.CurrentLocation) {
 		p.TradeCancel()
 		return
 	}

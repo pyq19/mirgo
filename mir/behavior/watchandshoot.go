@@ -42,10 +42,10 @@ func (n *WatchAndShootNode) Visit(c *BT) {
 				return
 			}
 
-			m.CurrentDirection = mir.DirectionFromPoint(m.CurrentLocation, m.Target.GetPoint())
+			m.Direction = mir.DirectionFromPoint(m.CurrentLocation, m.Target.GetPoint())
 			m.Broadcast(&server.ObjectRangeAttack{
 				ObjectID:  m.GetID(),
-				Direction: m.CurrentDirection,
+				Direction: m.Direction,
 				Location:  m.CurrentLocation,
 				TargetID:  m.Target.GetID(),
 			})
