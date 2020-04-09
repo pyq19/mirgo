@@ -884,6 +884,54 @@ func (p *Player) ConsumeItem(userItem *common.UserItem, count uint32) {
 	bag.UseCount(idx, count)
 }
 
+// CanGainItem TODO 是否可以增加物品
+func (p *Player) CanGainItem(item *common.UserItem) bool {
+	/*
+	   if (item.Info.Type == ItemType.Amulet)
+	   {
+	       if (FreeSpace(Info.Inventory) > 0 && (CurrentBagWeight + item.Weight <= MaxBagWeight || !useWeight)) return true;
+
+	       uint count = item.Count;
+
+	       for (int i = 0; i < Info.Inventory.Length; i++)
+	       {
+	           UserItem bagItem = Info.Inventory[i];
+
+	           if (bagItem == null || bagItem.Info != item.Info) continue;
+
+	           if (bagItem.Count + count <= bagItem.Info.StackSize) return true;
+
+	           count -= bagItem.Info.StackSize - bagItem.Count;
+	       }
+
+	       return false;
+	   }
+
+	   if (useWeight && CurrentBagWeight + (item.Weight) > MaxBagWeight) return false;
+
+	   if (FreeSpace(Info.Inventory) > 0) return true;
+
+	   if (item.Info.StackSize > 1)
+	   {
+	       uint count = item.Count;
+
+	       for (int i = 0; i < Info.Inventory.Length; i++)
+	       {
+	           UserItem bagItem = Info.Inventory[i];
+
+	           if (bagItem.Info != item.Info) continue;
+
+	           if (bagItem.Count + count <= bagItem.Info.StackSize) return true;
+
+	           count -= bagItem.Info.StackSize - bagItem.Count;
+	       }
+	   }
+
+	   return false;
+	*/
+	return true
+}
+
 // GainItem 为玩家增加物品，增加成功返回 true
 func (p *Player) GainItem(item *common.UserItem) (res bool) {
 	item.SoulBoundId = p.GetID()
@@ -943,6 +991,11 @@ func (p *Player) GainItem(item *common.UserItem) (res bool) {
 	}
 	p.ReceiveChat("没有合适的格子放置物品", common.ChatTypeSystem)
 	return false
+}
+
+// GainItemMail TODO 往玩家邮箱里发送物品
+func (p *Player) GainItemMail(item *common.UserItem, count int) {
+
 }
 
 // GainGold 为玩家增加金币
@@ -3287,14 +3340,149 @@ func (p *Player) TradeUnlock() {
 	}
 }
 
-// TradeConfirm 摆好物品到交易栏后，确认交易
+// TradeConfirm TODO 摆好物品到交易栏后，确认交易
 func (p *Player) TradeConfirm(confirm bool) {
+	if !confirm {
+		p.TradeLocked = false
+		return
+	}
+	if p.TradePartner == nil {
+		p.TradeCancel()
+		return
+	}
+	if !InRange(p.TradePartner.CurrentLocation, p.CurrentLocation, DataRange) || p.TradePartner.Map.Info.ID != p.Map.Info.ID ||
+		!FacingEachOther(p.CurrentDirection, p.CurrentLocation, p.TradePartner.CurrentDirection, p.TradePartner.CurrentLocation) {
+		p.TradeCancel()
+		return
+	}
+	p.TradeLocked = true
+	if p.TradeLocked && !p.TradePartner.TradeLocked {
+		p.TradePartner.ReceiveChat(fmt.Sprintf("玩家 %s 正在等待你确认交易。", p.Name), common.ChatTypeSystem)
+	}
+	if !p.TradeLocked || !p.TradePartner.TradeLocked {
+		return
+	}
+	/* TODO
+		tradePair := [2]*Player{p.TradePartner, p}
+		bool CanTrade = true;
+		UserItem u;
+
+		//check if both people can accept the others items
+		for (int p = 0; p < 2; p++)
+		{
+			int o = p == 0 ? 1 : 0;
+
+			if (!TradePair[o].CanGainItems(TradePair[p].Info.Trade))
+			{
+				CanTrade = false;
+				TradePair[p].ReceiveChat("对方物品已满。", ChatType.System);
+				TradePair[p].Enqueue(new S.TradeCancel { Unlock = true });
+
+				TradePair[o].ReceiveChat("物品已满。", ChatType.System);
+				TradePair[o].Enqueue(new S.TradeCancel { Unlock = true });
+
+				return;
+			}
+
+			if (!TradePair[o].CanGainGold(TradePair[p].TradeGoldAmount))
+			{
+				CanTrade = false;
+				TradePair[p].ReceiveChat("对方金币已满。", ChatType.System);
+				TradePair[p].Enqueue(new S.TradeCancel { Unlock = true });
+
+				TradePair[o].ReceiveChat("金币已满。", ChatType.System);
+				TradePair[o].Enqueue(new S.TradeCancel { Unlock = true });
+
+				return;
+			}
+		}
+
+		//swap items
+	    if (CanTrade)
+	    {
+	        for (int p = 0; p < 2; p++)
+	        {
+	            int o = p == 0 ? 1 : 0;
+
+	            for (int i = 0; i < TradePair[p].Info.Trade.Length; i++)
+	            {
+	                u = TradePair[p].Info.Trade[i];
+
+	                if (u == null) continue;
+
+	                TradePair[o].GainItem(u);
+	                TradePair[p].Info.Trade[i] = null;
+
+	                Report.ItemMoved("TradeConfirm", u, MirGridType.Trade, MirGridType.Inventory, i, -99, string.Format("Trade from {0} to {1}", TradePair[p].Name, TradePair[o].Name));
+	            }
+
+	            if (TradePair[p].TradeGoldAmount > 0)
+	            {
+	                Report.GoldChanged("TradeConfirm", TradePair[p].TradeGoldAmount, true, string.Format("Trade from {0} to {1}", TradePair[p].Name, TradePair[o].Name));
+
+	                TradePair[o].GainGold(TradePair[p].TradeGoldAmount);
+	                TradePair[p].TradeGoldAmount = 0;
+	            }
+
+	            TradePair[p].ReceiveChat("交易成功。", ChatType.System);
+	            TradePair[p].Enqueue(new S.TradeConfirm());
+
+	            TradePair[p].TradeLocked = false;
+	            TradePair[p].TradePartner = null;
+	        }
+	    }
+	*/
 
 }
 
 // TradeCancel 交易双方任何一方取消交易
 func (p *Player) TradeCancel() {
-
+	p.TradeUnlock()
+	if p.TradePartner == nil {
+		return
+	}
+	tradePair := [2]*Player{p.TradePartner, p}
+	for k := 0; k < 2; k++ { // p -> k
+		if tradePair[k] != nil {
+			for t := 0; t < tradePair[k].Trade.Length(); t++ {
+				temp := tradePair[k].Trade.Get(t)
+				if temp == nil {
+					continue
+				}
+				if p.FreeSpace(tradePair[k].Inventory) < 1 {
+					tradePair[k].GainItemMail(temp, 1)
+					// Report.ItemMailed("TradeCancel", temp, temp.Count, 1);
+					tradePair[k].Enqueue(&server.DeleteItem{UniqueID: temp.ID, Count: temp.Count})
+					tradePair[k].Trade.Set(t, nil)
+					continue
+				}
+				for i := 0; i < tradePair[k].Inventory.Length(); i++ {
+					if tradePair[k].Inventory.Get(i) != nil {
+						continue
+					}
+					//Put item back in inventory
+					if tradePair[k].CanGainItem(temp) {
+						tradePair[k].RetrieveTradeItem(int32(t), int32(i))
+					} else { //Send item to mailbox if it can no longer be stored
+						tradePair[k].GainItemMail(temp, 1)
+						// Report.ItemMailed("TradeCancel", temp, temp.Count, 1);
+						tradePair[k].Enqueue(&server.DeleteItem{UniqueID: temp.ID, Count: temp.Count})
+					}
+					tradePair[k].Trade.Set(t, nil)
+					break
+				}
+			}
+			// 返还放入交易栏的金币
+			if tradePair[k].TradeGoldAmount > 0 {
+				// Report.GoldChanged("TradeCancel", TradePair[p].TradeGoldAmount, false);
+				tradePair[k].GainGold(uint64(tradePair[k].TradeGoldAmount))
+				tradePair[k].TradeGoldAmount = 0
+			}
+			tradePair[k].TradeLocked = false
+			tradePair[k].TradePartner = nil
+			tradePair[k].Enqueue(&server.TradeCancel{Unlock: false})
+		}
+	}
 }
 
 func (p *Player) EquipSlotItem(grid common.MirGridType, uniqueID uint64, to int32, gridTo common.MirGridType) {

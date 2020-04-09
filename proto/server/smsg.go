@@ -1146,7 +1146,9 @@ type TradeItem struct {
 
 type TradeConfirm struct{}
 
-type TradeCancel struct{}
+type TradeCancel struct {
+	Unlock bool
+}
 
 type MountUpdate struct{}
 

@@ -69,6 +69,19 @@ func InRangeXY(a common.Point, x, y, i int) bool {
 	return ut.AbsInt(int(a.X)-x) <= i && ut.AbsInt(int(a.Y)-y) <= i
 }
 
+// FacingEachOther 判断两个玩家是否面对面
+func FacingEachOther(ad common.MirDirection, ap common.Point, bd common.MirDirection, bp common.Point) bool {
+	if !ap.Equal(bp) {
+		return false
+	}
+	if ad > 3 {
+		ad -= 4
+	} else {
+		ad += 4
+	}
+	return ad == bd
+}
+
 func DirectionFromPoint(source, dest common.Point) common.MirDirection {
 	if source.X < dest.X {
 		if source.Y < dest.Y {
