@@ -932,6 +932,11 @@ func (p *Player) CanGainItem(item *common.UserItem) bool {
 	return true
 }
 
+// CanGainItems 是否可以增加很多物品
+func (p *Player) CanGainItems(items []*common.UserItem) bool {
+	return true
+}
+
 // GainItem 为玩家增加物品，增加成功返回 true
 func (p *Player) GainItem(item *common.UserItem) (res bool) {
 	item.SoulBoundId = p.GetID()
@@ -996,6 +1001,11 @@ func (p *Player) GainItem(item *common.UserItem) (res bool) {
 // GainItemMail TODO 往玩家邮箱里发送物品
 func (p *Player) GainItemMail(item *common.UserItem, count int) {
 
+}
+
+// CanGainGold TODO 是否可以增加金币
+func (p *Player) CanGainGold(gold uint64) bool {
+	return true
 }
 
 // GainGold 为玩家增加金币
@@ -3362,77 +3372,64 @@ func (p *Player) TradeConfirm(confirm bool) {
 	if !p.TradeLocked || !p.TradePartner.TradeLocked {
 		return
 	}
-	/* TODO
-		tradePair := [2]*Player{p.TradePartner, p}
-		bool CanTrade = true;
-		UserItem u;
 
-		//check if both people can accept the others items
-		for (int p = 0; p < 2; p++)
-		{
-			int o = p == 0 ? 1 : 0;
+	tradePair := [2]*Player{p.TradePartner, p}
+	canTrade := true
+	var u *common.UserItem
 
-			if (!TradePair[o].CanGainItems(TradePair[p].Info.Trade))
-			{
-				CanTrade = false;
-				TradePair[p].ReceiveChat("对方物品已满。", ChatType.System);
-				TradePair[p].Enqueue(new S.TradeCancel { Unlock = true });
-
-				TradePair[o].ReceiveChat("物品已满。", ChatType.System);
-				TradePair[o].Enqueue(new S.TradeCancel { Unlock = true });
-
-				return;
-			}
-
-			if (!TradePair[o].CanGainGold(TradePair[p].TradeGoldAmount))
-			{
-				CanTrade = false;
-				TradePair[p].ReceiveChat("对方金币已满。", ChatType.System);
-				TradePair[p].Enqueue(new S.TradeCancel { Unlock = true });
-
-				TradePair[o].ReceiveChat("金币已满。", ChatType.System);
-				TradePair[o].Enqueue(new S.TradeCancel { Unlock = true });
-
-				return;
-			}
+	//check if both people can accept the others items
+	for x := 0; x < 2; x++ { // p -> x
+		o := 0
+		if x == 0 {
+			o = 1
 		}
+		if !tradePair[o].CanGainItems(tradePair[x].Trade.Items) {
+			canTrade = false
+			tradePair[x].ReceiveChat("对方物品已满。", common.ChatTypeSystem)
+			tradePair[x].Enqueue(&server.TradeCancel{Unlock: true})
 
-		//swap items
-	    if (CanTrade)
-	    {
-	        for (int p = 0; p < 2; p++)
-	        {
-	            int o = p == 0 ? 1 : 0;
+			tradePair[o].ReceiveChat("物品已满。", common.ChatTypeSystem)
+			tradePair[o].Enqueue(&server.TradeCancel{Unlock: true})
+			return
+		}
+		if !tradePair[o].CanGainGold(uint64(tradePair[x].TradeGoldAmount)) {
+			canTrade = false
+			tradePair[x].ReceiveChat("对方金币已满。", common.ChatTypeSystem)
+			tradePair[x].Enqueue(&server.TradeCancel{Unlock: true})
 
-	            for (int i = 0; i < TradePair[p].Info.Trade.Length; i++)
-	            {
-	                u = TradePair[p].Info.Trade[i];
-
-	                if (u == null) continue;
-
-	                TradePair[o].GainItem(u);
-	                TradePair[p].Info.Trade[i] = null;
-
-	                Report.ItemMoved("TradeConfirm", u, MirGridType.Trade, MirGridType.Inventory, i, -99, string.Format("Trade from {0} to {1}", TradePair[p].Name, TradePair[o].Name));
-	            }
-
-	            if (TradePair[p].TradeGoldAmount > 0)
-	            {
-	                Report.GoldChanged("TradeConfirm", TradePair[p].TradeGoldAmount, true, string.Format("Trade from {0} to {1}", TradePair[p].Name, TradePair[o].Name));
-
-	                TradePair[o].GainGold(TradePair[p].TradeGoldAmount);
-	                TradePair[p].TradeGoldAmount = 0;
-	            }
-
-	            TradePair[p].ReceiveChat("交易成功。", ChatType.System);
-	            TradePair[p].Enqueue(new S.TradeConfirm());
-
-	            TradePair[p].TradeLocked = false;
-	            TradePair[p].TradePartner = null;
-	        }
-	    }
-	*/
-
+			tradePair[o].ReceiveChat("金币已满。", common.ChatTypeSystem)
+			tradePair[o].Enqueue(&server.TradeCancel{Unlock: true})
+			return
+		}
+	}
+	if !canTrade {
+		return
+	}
+	// 交换物品
+	for x := 0; x < 2; x++ { // p -> x
+		o := 0
+		if x == 0 {
+			x = 1
+		}
+		for i := 0; i < tradePair[x].Trade.Length(); i++ {
+			u = tradePair[x].Trade.Get(i)
+			if u == nil {
+				continue
+			}
+			tradePair[o].GainItem(u)
+			tradePair[x].Trade.Set(i, nil)
+			// 记录交易信息 Report.ItemMoved("TradeConfirm", u, MirGridType.Trade, MirGridType.Inventory, i, -99, string.Format("Trade from {0} to {1}", TradePair[p].Name, TradePair[o].Name));
+		}
+		if tradePair[x].TradeGoldAmount > 0 {
+			// Report.GoldChanged("TradeConfirm", TradePair[p].TradeGoldAmount, true, string.Format("Trade from {0} to {1}", TradePair[p].Name, TradePair[o].Name));
+			tradePair[o].GainGold(uint64(tradePair[x].TradeGoldAmount))
+			tradePair[x].TradeGoldAmount = 0
+		}
+		tradePair[x].ReceiveChat("交易成功。", common.ChatTypeSystem)
+		tradePair[x].Enqueue(&server.TradeConfirm{})
+		tradePair[x].TradeLocked = false
+		tradePair[x].TradePartner = nil
+	}
 }
 
 // TradeCancel 交易双方任何一方取消交易
@@ -3460,13 +3457,23 @@ func (p *Player) TradeCancel() {
 					if tradePair[k].Inventory.Get(i) != nil {
 						continue
 					}
-					//Put item back in inventory
+					// 把物品放回玩家背包
 					if tradePair[k].CanGainItem(temp) {
 						tradePair[k].RetrieveTradeItem(int32(t), int32(i))
-					} else { //Send item to mailbox if it can no longer be stored
-						tradePair[k].GainItemMail(temp, 1)
-						// Report.ItemMailed("TradeCancel", temp, temp.Count, 1);
-						tradePair[k].Enqueue(&server.DeleteItem{UniqueID: temp.ID, Count: temp.Count})
+					} else {
+						// FIXME 背包放不下的情况
+						// 这里原来的 C# 是发送物品到玩家邮箱
+						// 但是 mirgo 还没有实现邮箱
+						// 临时解决方法:
+						// 1. 弄个遗失的物品管理 NPC
+						// 2. 存到玩家仓库（玩家仓库 Storage 也有装不下的问题）
+						// 3. 简单粗暴 直接丢地上
+						/*
+							tradePair[k].GainItemMail(temp, 1)
+							// Report.ItemMailed("TradeCancel", temp, temp.Count, 1);
+							tradePair[k].Enqueue(&server.DeleteItem{UniqueID: temp.ID, Count: temp.Count})
+						*/
+						log.Warnln("还没有实现的功能: 背包放不下交易取消退回的物品")
 					}
 					tradePair[k].Trade.Set(t, nil)
 					break
