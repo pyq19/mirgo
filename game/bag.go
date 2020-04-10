@@ -66,21 +66,7 @@ func (b *Bag) Length() int {
 }
 
 func (b *Bag) Move(from int, to int) error {
-	if from < 0 || to < 0 || from > len(b.Items) || to > len(b.Items) {
-		return fmt.Errorf("Move: 位置不存在 from=%d to=%d", from, to)
-	}
-	fromItem := b.Items[from]
-	if fromItem == nil {
-		return fmt.Errorf("格子 %d 没有物品", from)
-	}
-	toItem := b.Items[to]
-	if toItem != nil {
-		adb.Table("character_user_item").Where("user_item_id = ?", toItem.ID).Update("index", from)
-	}
-	adb.Table("character_user_item").Where("user_item_id = ?", fromItem.ID).Update("index", to)
-
-	b.Items[from], b.Items[to] = b.Items[to], b.Items[from]
-	return nil
+	return b.MoveTo(from, to, b)
 }
 
 func (b *Bag) Set(i int, item *cm.UserItem) {

@@ -3081,7 +3081,10 @@ func (p *Player) MarketGetBack(id uint64) {
 }
 
 func (p *Player) RequestUserName(id uint32) {
-
+	player := env.Players.GetPlayerByID(id)
+	if player != nil {
+		p.Enqueue(&server.UserName{ID: player.ID, Name: player.Name})
+	}
 }
 
 func (p *Player) RequestChatItem(id uint64) {
@@ -3213,8 +3216,9 @@ func (p *Player) DepositTradeItem(f int32, t int32) {
 		}
 	*/
 	if p.Trade.Get(to) == nil {
-		p.Trade.Set(to, temp)
-		p.Inventory.Set(from, nil)
+		// p.Trade.Set(to, temp)
+		// p.Inventory.Set(from, nil)
+		p.Inventory.MoveTo(from, to, p.Trade)
 		p.RefreshBagWeight()
 		p.TradeItem()
 		// 记录交易信息 Report.ItemMoved("DepositTradeItem", temp, MirGridType.Inventory, MirGridType.Trade, from, to)

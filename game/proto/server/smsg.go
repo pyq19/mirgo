@@ -1098,7 +1098,10 @@ type InTrapRock struct{}
 
 type BaseStatsInfo struct{}
 
-type UserName struct{}
+type UserName struct {
+	ID   uint32
+	Name string
+}
 
 type ChatItemStats struct{}
 
