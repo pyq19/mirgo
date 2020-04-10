@@ -9,6 +9,7 @@ import (
 
 	"github.com/jinzhu/gorm"
 	"github.com/yenkeia/mirgo/game/cm"
+	"github.com/yenkeia/mirgo/game/util"
 )
 
 func TestMapAbsPath(t *testing.T) {
@@ -136,7 +137,7 @@ func TestAllMaps(t *testing.T) {
 	mark := map[byte]bool{}
 
 	for _, m := range maps {
-		bytes, _ := util.ReadFile(m)
+		bytes, _ := ioutil.ReadFile(m)
 		mark[DetectMapVersion(bytes)] = true
 	}
 
