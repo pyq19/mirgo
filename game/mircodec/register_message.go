@@ -686,12 +686,6 @@ func initClientMessage() {
 func initServerMessage() {
 
 	mirCodec := new(MirCodec)
-	mirUserInformationCodec := new(MirUserInformationCodec)
-	mirPlayerInspectCodec := new(MirPlayerInspectCodec)
-	mirObjectPlayerCodec := new(MirObjectPlayerCodec)
-	mirObjectNPCCodec := new(MirObjectNPCCodec)
-	mirNPCResponseCodec := new(MirNPCResponseCodec)
-	mirSplitItemCodec := new(MirSplitItemCodec)
 
 	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
 		Codec: mirCodec,
@@ -784,7 +778,7 @@ func initServerMessage() {
 		ID:    server.MAP_INFORMATION,
 	})
 	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
-		Codec: mirUserInformationCodec,
+		Codec: mirCodec,
 		Type:  reflect.TypeOf((*server.UserInformation)(nil)).Elem(),
 		ID:    server.USER_INFORMATION,
 	})
@@ -794,7 +788,7 @@ func initServerMessage() {
 		ID:    server.USER_LOCATION,
 	})
 	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
-		Codec: mirObjectPlayerCodec,
+		Codec: mirCodec,
 		Type:  reflect.TypeOf((*server.ObjectPlayer)(nil)).Elem(),
 		ID:    server.OBJECT_PLAYER,
 	})
@@ -869,7 +863,7 @@ func initServerMessage() {
 		ID:    server.STORE_ITEM,
 	})
 	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
-		Codec: mirSplitItemCodec,
+		Codec: mirCodec,
 		Type:  reflect.TypeOf((*server.SplitItem)(nil)).Elem(),
 		ID:    server.SPLIT_ITEM,
 	})
@@ -924,7 +918,7 @@ func initServerMessage() {
 		ID:    server.PLAYER_UPDATE,
 	})
 	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
-		Codec: mirPlayerInspectCodec,
+		Codec: mirCodec,
 		Type:  reflect.TypeOf((*server.PlayerInspect)(nil)).Elem(),
 		ID:    server.PLAYER_INSPECT,
 	})
@@ -1079,12 +1073,12 @@ func initServerMessage() {
 		ID:    server.OBJECT_HARVESTED,
 	})
 	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
-		Codec: mirObjectNPCCodec,
+		Codec: mirCodec,
 		Type:  reflect.TypeOf((*server.ObjectNPC)(nil)).Elem(),
 		ID:    server.OBJECT_NPC,
 	})
 	cellnet.RegisterMessageMeta(&cellnet.MessageMeta{
-		Codec: mirNPCResponseCodec,
+		Codec: mirCodec,
 		Type:  reflect.TypeOf((*server.NPCResponse)(nil)).Elem(),
 		ID:    server.NPC_RESPONSE,
 	})
