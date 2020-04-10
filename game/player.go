@@ -41,7 +41,7 @@ type Player struct {
 	Equipment          *Bag           // 14
 	QuestInventory     *Bag           // 40
 	Storage            *Bag           // 80
-	Trade              *Bag           // 10
+	Trade              *Bag           // 10	交易框的索引是从上到下的，背包是从左到右
 	Refine             []*cm.UserItem // 16	TODO 合成？提炼？
 	LooksArmour        int
 	LooksWings         int
@@ -1601,7 +1601,8 @@ func (p *Player) MoveItem(mirGridType cm.MirGridType, from int32, to int32) {
 	case cm.MirGridTypeStorage:
 		err = p.Storage.Move(int(from), int(to))
 	case cm.MirGridTypeTrade:
-		// TODO
+		err = p.Trade.Move(int(from), int(to))
+		p.TradeItem()
 	case cm.MirGridTypeRefine:
 		// TODO
 	}
@@ -3216,15 +3217,12 @@ func (p *Player) DepositTradeItem(f int32, t int32) {
 		}
 	*/
 	if p.Trade.Get(to) == nil {
-		// p.Trade.Set(to, temp)
-		// p.Inventory.Set(from, nil)
-		p.Inventory.MoveTo(from, to, p.Trade)
-		p.RefreshBagWeight()
-		p.TradeItem()
-		// 记录交易信息 Report.ItemMoved("DepositTradeItem", temp, MirGridType.Inventory, MirGridType.Trade, from, to)
-		msg.Success = true
-		p.Enqueue(msg)
-		return
+		if err := p.Inventory.MoveTo(from, to, p.Trade); err == nil {
+			p.RefreshBagWeight()
+			p.TradeItem()
+			// 记录交易信息 Report.ItemMoved("DepositTradeItem", temp, MirGridType.Inventory, MirGridType.Trade, from, to)
+			msg.Success = true
+		}
 	}
 	p.Enqueue(msg)
 }
@@ -3253,12 +3251,12 @@ func (p *Player) RetrieveTradeItem(f int32, t int32) {
 		return
 	}
 	if p.Inventory.Get(to) == nil {
-		p.Inventory.Set(to, temp)
-		p.Trade.Set(from, nil)
-		msg.Success = true
-		p.RefreshBagWeight()
-		p.TradeItem()
-		// 记录交易信息 Report.ItemMoved("RetrieveTradeItem", temp, MirGridType.Trade, MirGridType.Inventory, from, to)
+		if err := p.Trade.MoveTo(from, to, p.Inventory); err == nil {
+			p.RefreshBagWeight()
+			p.TradeItem()
+			// 记录交易信息 Report.ItemMoved("RetrieveTradeItem", temp, MirGridType.Trade, MirGridType.Inventory, from, to)
+			msg.Success = true
+		}
 	}
 	p.Enqueue(msg)
 }
