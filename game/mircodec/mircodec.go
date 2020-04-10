@@ -44,9 +44,28 @@ func (*MirCodec) Encode(msgObj interface{}, ctx cellnet.ContextSet) (data interf
 		return encodeObjectNPC(res)
 	case *server.NPCResponse:
 		return encodeNPCResponse(res)
+	case *server.TradeItem:
+		return encodeTradeItem(res)
 	default:
 		return encode(msgObj)
 	}
+}
+
+func encodeTradeItem(msgObj *server.TradeItem) (data interface{}, err error) {
+	var bytes []byte
+	writer := &BytesWrapper{Bytes: &bytes}
+	length := len(msgObj.TradeItems)
+	writer.Write(length)
+	for i := 0; i < length; i++ {
+		ui := msgObj.TradeItems[i]
+		if ui == nil {
+			writer.Write(false)
+		} else {
+			writer.Write(true)
+			writer.Write(ui)
+		}
+	}
+	return *writer.Bytes, nil
 }
 
 func encodeSplitItem(msgObj *server.SplitItem) (data interface{}, err error) {
