@@ -60,15 +60,15 @@ func PreviousDirection(d MirDirection) MirDirection {
 
 // FacingEachOther 判断两个玩家是否面对面
 func FacingEachOther(ad MirDirection, ap Point, bd MirDirection, bp Point) bool {
-	if !ap.Equal(bp) {
+	if bd > 3 {
+		bd -= 4
+	} else {
+		bd += 4
+	}
+	if ad != bd {
 		return false
 	}
-	if ad > 3 {
-		ad -= 4
-	} else {
-		ad += 4
-	}
-	return ad == bd
+	return ap.NextPoint(ad, 1).Equal(bp)
 }
 
 func DirectionFromPoint(source, dest Point) MirDirection {

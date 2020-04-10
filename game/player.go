@@ -1025,7 +1025,7 @@ func (p *Player) GainItem(item *cm.UserItem) (res bool) {
 
 // GainItemMail TODO 往玩家邮箱里发送物品
 func (p *Player) GainItemMail(item *cm.UserItem, count int) {
-
+	log.Warnln("还没有实现的功能: 往玩家邮箱里发送物品")
 }
 
 // CanGainGold 是否可以增加金币
@@ -3377,7 +3377,7 @@ func (p *Player) TradeUnlock() {
 	}
 }
 
-// TradeConfirm TODO 摆好物品到交易栏后，确认交易
+// TradeConfirm 摆好物品到交易栏后，确认交易
 func (p *Player) TradeConfirm(confirm bool) {
 	if !confirm {
 		p.TradeLocked = false
@@ -3436,16 +3436,18 @@ func (p *Player) TradeConfirm(confirm bool) {
 	for x := 0; x < 2; x++ { // p -> x
 		o := 0
 		if x == 0 {
-			x = 1
+			o = 1
 		}
+		log.Debugf("交换物品 (%s x %d), (%s o %d)\n", tradePair[x].Name, x, tradePair[o].Name, o)
 		for i := 0; i < tradePair[x].Trade.Length(); i++ {
 			u = tradePair[x].Trade.Get(i)
 			if u == nil {
 				continue
 			}
-			tradePair[o].GainItem(u)
+			tradePair[o].GainItem(u.Clone(env.NewObjectID()))
 			tradePair[x].Trade.Set(i, nil)
 			// 记录交易信息 Report.ItemMoved("TradeConfirm", u, MirGridType.Trade, MirGridType.Inventory, i, -99, string.Format("Trade from {0} to {1}", TradePair[p].Name, TradePair[o].Name));
+			log.Debugf("(%s o %d) 交出 %s 给 (%s x %d)\n", tradePair[o].Name, o, u.Info.Name, tradePair[x].Name, x)
 		}
 		if tradePair[x].TradeGoldAmount > 0 {
 			// Report.GoldChanged("TradeConfirm", TradePair[p].TradeGoldAmount, true, string.Format("Trade from {0} to {1}", TradePair[p].Name, TradePair[o].Name));
@@ -3467,55 +3469,53 @@ func (p *Player) TradeCancel() {
 	}
 	tradePair := [2]*Player{p.TradePartner, p}
 	for k := 0; k < 2; k++ { // p -> k
-		if tradePair[k] != nil {
-			for t := 0; t < tradePair[k].Trade.Length(); t++ {
-				temp := tradePair[k].Trade.Get(t)
-				if temp == nil {
+		if tradePair[k] == nil {
+			continue
+		}
+		for t := 0; t < tradePair[k].Trade.Length(); t++ {
+			temp := tradePair[k].Trade.Get(t)
+			if temp == nil {
+				continue
+			}
+			if p.FreeSpace(tradePair[k].Inventory) < 1 {
+				tradePair[k].GainItemMail(temp, 1)
+				// Report.ItemMailed("TradeCancel", temp, temp.Count, 1);
+				tradePair[k].Enqueue(&server.DeleteItem{UniqueID: temp.ID, Count: temp.Count})
+				tradePair[k].Trade.Set(t, nil)
+				continue
+			}
+			for i := 0; i < tradePair[k].Inventory.Length(); i++ {
+				if tradePair[k].Inventory.Get(i) != nil {
 					continue
 				}
-				if p.FreeSpace(tradePair[k].Inventory) < 1 {
+				// 把物品放回玩家背包
+				if tradePair[k].CanGainItem(temp) {
+					tradePair[k].RetrieveTradeItem(int32(t), int32(i))
+				} else {
+					// FIXME 背包放不下的情况
+					// 这里原来的 C# 是发送物品到玩家邮箱
+					// 但是 mirgo 还没有实现邮箱
+					// 临时解决方法:
+					// 1. 弄个遗失的物品管理 NPC
+					// 2. 存到玩家仓库（玩家仓库 Storage 也有装不下的问题）
+					// 3. 简单粗暴 直接丢地上
 					tradePair[k].GainItemMail(temp, 1)
 					// Report.ItemMailed("TradeCancel", temp, temp.Count, 1);
 					tradePair[k].Enqueue(&server.DeleteItem{UniqueID: temp.ID, Count: temp.Count})
-					tradePair[k].Trade.Set(t, nil)
-					continue
 				}
-				for i := 0; i < tradePair[k].Inventory.Length(); i++ {
-					if tradePair[k].Inventory.Get(i) != nil {
-						continue
-					}
-					// 把物品放回玩家背包
-					if tradePair[k].CanGainItem(temp) {
-						tradePair[k].RetrieveTradeItem(int32(t), int32(i))
-					} else {
-						// FIXME 背包放不下的情况
-						// 这里原来的 C# 是发送物品到玩家邮箱
-						// 但是 mirgo 还没有实现邮箱
-						// 临时解决方法:
-						// 1. 弄个遗失的物品管理 NPC
-						// 2. 存到玩家仓库（玩家仓库 Storage 也有装不下的问题）
-						// 3. 简单粗暴 直接丢地上
-						/*
-							tradePair[k].GainItemMail(temp, 1)
-							// Report.ItemMailed("TradeCancel", temp, temp.Count, 1);
-							tradePair[k].Enqueue(&server.DeleteItem{UniqueID: temp.ID, Count: temp.Count})
-						*/
-						log.Warnln("还没有实现的功能: 背包放不下交易取消退回的物品")
-					}
-					tradePair[k].Trade.Set(t, nil)
-					break
-				}
+				// tradePair[k].Trade.Set(t, nil)
+				break
 			}
-			// 返还放入交易栏的金币
-			if tradePair[k].TradeGoldAmount > 0 {
-				// Report.GoldChanged("TradeCancel", TradePair[p].TradeGoldAmount, false);
-				tradePair[k].GainGold(uint64(tradePair[k].TradeGoldAmount))
-				tradePair[k].TradeGoldAmount = 0
-			}
-			tradePair[k].TradeLocked = false
-			tradePair[k].TradePartner = nil
-			tradePair[k].Enqueue(&server.TradeCancel{Unlock: false})
 		}
+		// 返还放入交易栏的金币
+		if tradePair[k].TradeGoldAmount > 0 {
+			// Report.GoldChanged("TradeCancel", TradePair[p].TradeGoldAmount, false);
+			tradePair[k].GainGold(uint64(tradePair[k].TradeGoldAmount))
+			tradePair[k].TradeGoldAmount = 0
+		}
+		tradePair[k].TradeLocked = false
+		tradePair[k].TradePartner = nil
+		tradePair[k].Enqueue(&server.TradeCancel{Unlock: false})
 	}
 }
 

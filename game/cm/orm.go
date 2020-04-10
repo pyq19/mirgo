@@ -410,6 +410,40 @@ func (u *UserItem) Price() uint64 {
 	return uint64(p * (float64(v)*0.1 + 1))
 }
 
+func (u *UserItem) Clone(id uint32) *UserItem {
+	return &UserItem{
+		ID:             uint64(id),
+		ItemID:         u.ItemID,
+		CurrentDura:    u.CurrentDura,
+		MaxDura:        u.MaxDura,
+		Count:          u.Count,
+		AC:             u.AC,
+		MAC:            u.MAC,
+		DC:             u.DC,
+		MC:             u.MC,
+		SC:             u.SC,
+		Accuracy:       u.Accuracy,
+		Agility:        u.Agility,
+		HP:             u.HP,
+		MP:             u.MP,
+		AttackSpeed:    u.AttackSpeed,
+		Luck:           u.Luck,
+		SoulBoundId:    u.SoulBoundId,
+		Bools:          u.Bools,
+		Strong:         u.Strong,
+		MagicResist:    u.MagicResist,
+		PoisonResist:   u.PoisonResist,
+		HealthRecovery: u.HealthRecovery,
+		ManaRecovery:   u.ManaRecovery,
+		PoisonRecovery: u.PoisonRecovery,
+		CriticalRate:   u.CriticalRate,
+		CriticalDamage: u.CriticalDamage,
+		Freezing:       u.Freezing,
+		PoisonAttack:   u.PoisonAttack,
+		Info:           u.Info,
+	}
+}
+
 func (u UserItem) String() string {
 	return fmt.Sprintf("UserItem ID: %d, ItemID: %d, Count: %d", u.ID, u.ItemID, u.Count)
 }
