@@ -26,7 +26,7 @@ func (n *GuardAttackNode) Visit(c *BT) {
 			c.Monster.Target = nil
 		} else if c.Monster.CanAttack() {
 			c.Monster.GuardAttack()
-			if c.Monster.Target.IsDead() {
+			if c.Monster.Target == nil || c.Monster.Target.IsDead() {
 				c.Monster.Target = nil
 			}
 		} else {

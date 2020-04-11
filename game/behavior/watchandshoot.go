@@ -37,7 +37,7 @@ func (n *WatchAndShootNode) Visit(c *BT) {
 			const AttackRange = 10
 			m := c.Monster
 
-			if cm.InRange(m.CurrentLocation, m.Target.GetPoint(), AttackRange) {
+			if c.Monster.Target == nil || cm.InRange(m.CurrentLocation, m.Target.GetPoint(), AttackRange) {
 				n.status = FAILED
 				return
 			}

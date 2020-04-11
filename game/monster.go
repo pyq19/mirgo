@@ -792,6 +792,9 @@ func ObjectBack(m IMapObject) cm.Point {
 }
 
 func (m *Monster) Attack() {
+	if m.Target == nil {
+		return
+	}
 	if !m.Target.IsAttackTarget(m) {
 		m.Target = nil
 		return

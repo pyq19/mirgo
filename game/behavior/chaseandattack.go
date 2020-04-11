@@ -34,7 +34,7 @@ func (n *ChaseAndAttackNode) Visit(c *BT) {
 					c.Monster.Attack()
 				}
 
-				if c.Monster.Target.IsDead() {
+				if c.Monster.Target == nil || c.Monster.Target.IsDead() {
 					c.Monster.Target = nil
 				}
 			} else {
