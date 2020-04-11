@@ -796,6 +796,11 @@ func (m *Monster) Attack() {
 		m.Target = nil
 		return
 	}
+	if p, ok := m.Target.(*Player); ok && p.GameStage != GAME {
+		log.Debugf("monster[%s] lose target[%s]\n", m.Name, p.Name)
+		m.Target = nil
+		return
+	}
 	log.Debugf("Monster[%s]AI[%d] Attack [%s]\n", m.Name, m.AI, m.Target.GetName())
 	m.Direction = cm.DirectionFromPoint(m.CurrentLocation, m.Target.GetPoint())
 	m.Broadcast(ServerMessage{}.ObjectAttack(m, cm.SpellNone, 0, 0))

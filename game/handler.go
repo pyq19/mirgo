@@ -320,11 +320,14 @@ func (g *Game) SessionClosed(s cellnet.Session, msg *cellnet.SessionClosed) {
 		return
 	}
 	p := v.(*Player)
+	log.Debugln("SessionClosed")
 	if p.GameStage == GAME {
+		p.GameStage = DISCONNECTED
 		p.StopGame(StopGameUserClosedGame)
 		env.Players.Remove(p)
 		p.Map.DeleteObject(p)
 		p.SaveData()
+		log.Debugf("删除玩家: %s\n", p.Name)
 	}
 	pm.Delete(s.ID())
 }
