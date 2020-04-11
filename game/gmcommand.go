@@ -123,6 +123,10 @@ func _gmAllowTrade(p *Player) {
 	}
 }
 
+func _gmDie(p *Player) {
+	p.Die()
+}
+
 var cmd = script.NewContext()
 
 func init() {
@@ -137,4 +141,5 @@ func init() {
 	cmd.Action("EXP", _gmExp)
 	cmd.Action("GIVESKILL", _gmGiveSkill)
 	cmd.Action("ALLOWTRADE", _gmAllowTrade)
+	cmd.Action("DIE", _gmDie)
 }

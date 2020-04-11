@@ -3046,6 +3046,7 @@ func (p *Player) TownRevive() {
 		Music:        uint16(p.Map.Info.Music),
 	})
 	p.EnqueueAreaObjects(nil, p.GetCell())
+	p.Broadcast(ServerMessage{}.ObjectPlayer(p))
 	p.Enqueue(&server.Revived{})
 	p.Broadcast(&server.ObjectRevived{ObjectID: p.GetID(), Effect: true})
 	// InSafeZone = true;
