@@ -751,7 +751,7 @@ func (g *Game) SellItem(p *Player, msg *client.SellItem) {
 }
 
 func (g *Game) RepairItem(p *Player, msg *client.RepairItem) {
-	p.RepairItem(msg.UniqueID)
+	p.RepairItem(msg.UniqueID, false)
 }
 
 func (g *Game) BuyItemBack(p *Player, msg *client.BuyItemBack) {
@@ -759,7 +759,7 @@ func (g *Game) BuyItemBack(p *Player, msg *client.BuyItemBack) {
 }
 
 func (g *Game) SRepairItem(p *Player, msg *client.SRepairItem) {
-	p.SRepairItem(msg.UniqueID)
+	p.RepairItem(msg.UniqueID, true)
 }
 
 func (g *Game) MagicKey(p *Player, msg *client.MagicKey) {

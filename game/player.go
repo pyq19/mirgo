@@ -2556,7 +2556,7 @@ func (p *Player) CallNPC1(npc *NPC, key string) {
 
 	// ProcessSpecial
 	key = strings.ToUpper(key)
-	fmt.Println("call npc", npc.Name, key)
+	log.Debugln("call npc", npc.Name, key)
 
 	switch key {
 	case BuyKey:
@@ -2571,7 +2571,8 @@ func (p *Player) CallNPC1(npc *NPC, key string) {
 		p.Enqueue(&server.NPCStorage{})
 	case BuyBackKey:
 		sendBuyBackGoods(p, npc, true)
-
+	case RepairKey:
+		p.Enqueue(&server.NPCRepair{Rate: p.CallingNPC.PriceRate(p, false)})
 	default:
 		// TODO
 	}
@@ -2715,15 +2716,63 @@ func (p *Player) SellItem(id uint64, count uint32) {
 	p.RefreshBagWeight()
 }
 
-func (p *Player) RepairItem(id uint64) {
-
+func (p *Player) RepairItem(uniqueID uint64, special bool) {
+	p.Enqueue(&server.RepairItem{UniqueID: uniqueID})
+	if p.IsDead() {
+		return
+	}
+	if p.CallingNPC == nil ||
+		(!util.StringEqualFold(p.CallingNPCPage, RepairKey) && !special) ||
+		(!util.StringEqualFold(p.CallingNPCPage, SRepairKey) && special) {
+		return
+	}
+	ob := p.CallingNPC
+	// 找到要修理物品temp和物品在背包里的索引index
+	var temp *cm.UserItem
+	index := -1
+	for i := 0; i < p.Inventory.Length(); i++ {
+		temp = p.Inventory.Get(i)
+		if temp == nil || temp.ID != uniqueID {
+			continue
+		}
+		index = i
+		break
+	}
+	if temp == nil || index == -1 {
+		return
+	}
+	/* FIXME
+	if ((temp.Info.Bind.HasFlag(BindMode.DontRepair)) || (temp.Info.Bind.HasFlag(BindMode.NoSRepair) && special)){
+		ReceiveChat("你不能修理这个物品。", ChatType.System);
+		return;
+	}
+	*/
+	if !ob.HasType(temp.Info.Type) {
+		p.ReceiveChat("你不能在这里修理这个物品。", cm.ChatTypeSystem)
+		return
+	}
+	cost := uint32(float32(temp.RepairPrice()) * ob.PriceRate(p, false))
+	// baseCost := uint32(float32(temp.RepairPrice()) * ob.PriceRate(p, true))
+	if uint64(cost) > p.Gold {
+		return
+	}
+	p.Gold -= uint64(cost)
+	p.Enqueue(&server.LoseGold{Gold: cost})
+	/* FIXME
+	if (ob.Conq != null) {
+		ob.Conq.GoldStorage += (cost - baseCost)
+	}
+	*/
+	if !special {
+		// temp.MaxDura = (ushort)Math.Max(0, temp.MaxDura - (temp.MaxDura - temp.CurrentDura) / 30)
+		temp.MaxDura = util.Uint16(int(temp.MaxDura - (temp.MaxDura-temp.CurrentDura)/30))
+	}
+	temp.CurrentDura = temp.MaxDura
+	temp.DuraChanged = false
+	p.Enqueue(&server.ItemRepaired{UniqueID: uniqueID, MaxDura: temp.MaxDura, CurrentDura: temp.CurrentDura})
 }
 
 func (p *Player) BuyItemBack(id uint64, count uint32) {
-
-}
-
-func (p *Player) SRepairItem(id uint64) {
 
 }
 

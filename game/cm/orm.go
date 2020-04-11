@@ -356,6 +356,7 @@ type UserItem struct {
 	ID             uint64 `gorm:"primary_key"` // UniqueID
 	ItemID         int32
 	CurrentDura    uint16
+	DuraChanged    bool `gorm:"-" codec:"-"`
 	MaxDura        uint16
 	Count          uint32
 	AC             uint8
@@ -442,6 +443,26 @@ func (u *UserItem) Clone(id uint32) *UserItem {
 		PoisonAttack:   u.PoisonAttack,
 		Info:           u.Info,
 	}
+}
+
+// RepairPrice 计算修理费
+func (u *UserItem) RepairPrice() uint32 {
+	if u.Info == nil || u.Info.Durability == 0 {
+		return 0
+	}
+	p := u.Info.Price
+	if u.Info.Durability > 0 {
+		// TODO p = (uint)Math.Floor(MaxDura * ((Info.Price / 2F) / Info.Durability) + Info.Price / 2F);
+		// FIXME AttackSpeed 和 Luck 都是 int8 类型，转成 uint8 可能会有溢出问题
+		p = uint32(float32(p) * (float32(u.AC+u.MAC+u.DC+u.MC+u.SC+u.Accuracy+u.Agility+u.HP+u.MP+uint8(u.AttackSpeed)+uint8(u.Luck)+u.Strong+u.MagicResist+u.PoisonResist+u.HealthRecovery+u.ManaRecovery+u.PoisonRecovery+u.CriticalRate+u.CriticalDamage+u.Freezing+u.PoisonAttack)*0.1 + 1.0))
+	}
+	cost := p*u.Count - uint32(u.Price())
+	/* FIXME
+	if u.RentalInformation == nil {
+		return cost
+	}
+	*/
+	return cost * 2
 }
 
 func (u UserItem) String() string {

@@ -20,6 +20,7 @@ type NPC struct {
 	Script   *script.Script
 	Goods    []*cm.UserItem
 	BuyBack  map[uint32]*list.List
+	Info     *cm.NpcInfo
 }
 
 func NewNPC(m *Map, id uint32, ni *cm.NpcInfo) *NPC {
@@ -302,4 +303,18 @@ func (n *NPC) Sell(p *Player, item *cm.UserItem) {
 }
 
 func (n *NPC) Craft(p *Player, index uint64, count uint32, slots []int) {
+}
+
+func (n *NPC) PriceRate(player *Player, baseRate bool) float32 {
+	/* FIXME
+	if n.Conq == nil || baseRate {
+		return n.Info.Rate / 100.0
+	}
+	if player.MyGuild != nil && player.MyGuild.Guildindex == n.Conq.Owner {
+		return n.Info.Rate / 100.0
+	} else {
+		return (((Info.Rate / 100.0) * Conq.npcRate) + Info.Rate) / 100.0
+	}
+	*/
+	return float32(n.Info.Rate) / 100
 }

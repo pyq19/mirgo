@@ -231,6 +231,7 @@ func (m *Map) InitAll() error {
 		ni := ni
 		if ni.MapID == m.Info.ID {
 			n := NewNPC(m, env.NewObjectID(), ni)
+			n.Info = ni
 			m.AddObject(n)
 		}
 	}
