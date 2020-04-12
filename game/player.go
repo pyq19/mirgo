@@ -1561,15 +1561,35 @@ func (p *Player) Run(direction cm.MirDirection) {
 }
 
 func (p *Player) Chat(message string) {
-	// private message
+	// private message 私聊
 	if strings.HasPrefix(message, "/") {
 		return
 	}
-	// group
+	// group 小队
 	if strings.HasPrefix(message, "!!") {
 		return
 	}
-
+	// guild 行会
+	if strings.HasPrefix(message, "!~") {
+		return
+	}
+	// mentor 师徒
+	if strings.HasPrefix(message, "!#") {
+		return
+	}
+	// shout 喊话
+	if strings.HasPrefix(message, "!") {
+		return
+	}
+	// relationship message 夫妻
+	if strings.HasPrefix(message, ":)") {
+		return
+	}
+	// GM 喊话
+	if strings.HasPrefix(message, "@!") {
+		return
+	}
+	// command 命令
 	if strings.HasPrefix(message, "@") {
 		msg, err := cmd.Exec(message[1:], p)
 		if err != nil {
