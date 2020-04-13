@@ -995,3 +995,17 @@ const (
 	BindModeUnableToDisassemble = 8192
 	BindModeNoMail              = 16384
 )
+
+// RankOptions 所在行会里的权限
+type RankOptions uint8 // byte
+
+const (
+	RankOptionsCanChangeRank    RankOptions = 1
+	RankOptionsCanRecruit                   = 2
+	RankOptionsCanKick                      = 4
+	RankOptionsCanStoreItem                 = 8
+	RankOptionsCanRetrieveItem              = 16
+	RankOptionsCanAlterAlliance             = 32
+	RankOptionsCanChangeNotice              = 64
+	RankOptionsCanActivateBuff              = 128
+)

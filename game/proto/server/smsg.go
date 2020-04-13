@@ -1111,7 +1111,9 @@ type GuildMemberChange struct{}
 
 type GuildStatus struct{}
 
-type GuildInvite struct{}
+type GuildInvite struct {
+	Name string
+}
 
 type GuildExpGain struct{}
 

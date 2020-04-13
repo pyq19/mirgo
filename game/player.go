@@ -118,6 +118,11 @@ type Player struct {
 	TradeInvitation    *Player     // 发起交易的玩家
 	TradeLocked        bool        // 是否确认交易
 	TradeGoldAmount    uint32      // 摆到交易框的金币
+	MyGuild            *Guild      // 加入的行会
+	MyGuildRank        *Rank       // 所在工会的头衔/职位
+	GuildID            int         // 加入的行会的ID(没必要但方便读C#的代码)
+	EnableGuildInvite  bool        // 允许加入行会邀请
+	PendingGuildInvite *Guild      // 被邀请加入的行会
 }
 
 type Health struct {
@@ -3162,10 +3167,6 @@ func (p *Player) RequestChatItem(id uint64) {
 
 }
 
-func (p *Player) EditGuildMember(name string, name2 string, index uint8, changeType uint8) {
-
-}
-
 func (p *Player) CheckMovement(pos cm.Point) bool {
 
 	// TODO: 优化效率
@@ -3190,34 +3191,6 @@ func (p *Player) OpenDoor(doorIndex byte) {
 		p.Enqueue(&server.Opendoor{DoorIndex: doorIndex})
 		p.Broadcast(&server.Opendoor{DoorIndex: doorIndex})
 	}
-}
-
-func (p *Player) EditGuildNotice(notice []string) {
-
-}
-
-func (p *Player) GuildInvite(acceptInvite bool) {
-
-}
-
-func (p *Player) RequestGuildInfo(tpy uint8) {
-
-}
-
-func (p *Player) GuildNameReturn(name string) {
-
-}
-
-func (p *Player) GuildStorageGoldChange(tpy uint8, amount uint32) {
-
-}
-
-func (p *Player) GuildStorageItemChange(tpy uint8, from int32, to int32) {
-
-}
-
-func (p *Player) GuildWarReturn(name string) {
-
 }
 
 func (p *Player) MarriageRequest() {
@@ -3630,5 +3603,213 @@ func (p *Player) CombineItem(idFrom uint64, idTo uint64) {
 }
 
 func (p *Player) SetConcentration(objectID uint32, enabled bool, interrupted bool) {
+
+}
+
+func (p *Player) CreateGuild(name string) bool {
+	if (p.MyGuild != nil) || (p.GuildID != -1) {
+		return false
+	}
+	if env.GetGuild(name) != nil {
+		return false
+	}
+	if p.Level < uint16(settings.Guild_RequiredLevel) {
+		p.ReceiveChat(fmt.Sprintf("你的等级不够,无法创建行会,需要: %d", settings.Guild_RequiredLevel), cm.ChatTypeSystem)
+		return false
+	}
+
+	//check if we have the required items 检查是否有创建行会所需要的物品
+	// for (int i = 0; i < Settings.Guild_CreationCostList.Count; i++)
+	//take the required items 从创建人拿走创建行会所需的物品
+	// for (int i = 0; i < Settings.Guild_CreationCostList.Count; i++)
+
+	p.RefreshStats()
+
+	//make the guild
+	guild := NewGuild(p, name)
+	guild.ID = int(env.NewObjectID()) // FIXME 溢出
+	env.GuildList.Add(guild)
+	p.GuildID = guild.ID
+	p.MyGuild = guild
+
+	/* FIXME
+	MyGuildRank = guild.FindRank(Name)
+	GuildMembersChanged = true
+	GuildNoticeChanged = true
+	GuildCanRequestItems = true
+	*/
+
+	//tell us we now have a guild
+	p.BroadcastInfo()
+	p.MyGuild.SendGuildStatus(p)
+	return true
+}
+
+func (p *Player) EditGuildMember(name string, rankName string, rankIndex uint8, changeType uint8) {
+	if (p.MyGuild == nil) || (p.MyGuildRank == nil) {
+		p.ReceiveChat("你不在行会里。", cm.ChatTypeSystem)
+		return
+	}
+	switch changeType {
+	case 0: //add member
+		if util.HasFlagUint8(uint8(p.MyGuildRank.Options), cm.RankOptionsCanRecruit) {
+			p.ReceiveChat("你没有招募新成员的权限。", cm.ChatTypeSystem)
+			return
+		}
+		if name == "" {
+			return
+		}
+		player := env.GetPlayer(name)
+		if player == nil {
+			p.ReceiveChat(fmt.Sprintf("%s 不在线。", name), cm.ChatTypeSystem)
+			return
+		}
+		if (player.MyGuild != nil) || (player.MyGuildRank != nil) || (player.GuildID != -1) {
+			p.ReceiveChat(fmt.Sprintf("%s 已经在一个行会里了。", name), cm.ChatTypeSystem)
+			return
+		}
+		if !player.EnableGuildInvite {
+			p.ReceiveChat(fmt.Sprintf("%s 不接受行会邀请。", name), cm.ChatTypeSystem)
+			return
+		}
+		if player.PendingGuildInvite != nil {
+			p.ReceiveChat(fmt.Sprintf("%s 已经接到了一个行会的邀请。", name), cm.ChatTypeSystem)
+			return
+		}
+
+		if p.MyGuild.IsAtWar() {
+			p.ReceiveChat("在行会战争期间不能招募成员。", cm.ChatTypeSystem)
+			return
+		}
+
+		player.Enqueue(&server.GuildInvite{Name: p.MyGuild.Name})
+		player.PendingGuildInvite = p.MyGuild
+	case 1: //delete member
+		if !util.HasFlagUint8(uint8(p.MyGuildRank.Options), cm.RankOptionsCanKick) {
+			p.ReceiveChat("你没有移除成员的权限。", cm.ChatTypeSystem)
+			return
+		}
+		if name == "" {
+			return
+		}
+
+		if !p.MyGuild.DeleteMember(p, name) {
+			return
+		}
+	case 2: //promote member (and it'll auto create a new rank at bottom if the index > total ranks!)
+		if !util.HasFlagUint8(uint8(p.MyGuildRank.Options), uint8(cm.RankOptionsCanChangeRank)) {
+			p.ReceiveChat("你没有更改其他成员行会职位的权限。", cm.ChatTypeSystem)
+			return
+		}
+		if name == "" {
+			return
+		}
+		p.MyGuild.ChangeRank(p, name, rankIndex, rankName)
+	case 3: //change rank name
+		if !util.HasFlagUint8(uint8(p.MyGuildRank.Options), uint8(cm.RankOptionsCanChangeRank)) {
+			p.ReceiveChat("你没有更改其他成员行会职位的权限。", cm.ChatTypeSystem)
+			return
+		}
+		if (rankName == "") || len(rankName) < 3 {
+			p.ReceiveChat("行会职位名称太短。", cm.ChatTypeSystem)
+			return
+		}
+		// FIXME 判断行会名格式是否合法
+		// if RankName.Contains("\\") || RankName.Length > 20 {
+		// 	return
+		// }
+		if !p.MyGuild.ChangeRankName(p, rankName, rankIndex) {
+			return
+		}
+	case 4: //new rank
+		if !util.HasFlagUint8(uint8(p.MyGuildRank.Options), uint8(cm.RankOptionsCanChangeRank)) {
+			p.ReceiveChat("你没有更改行会职位的权限。", cm.ChatTypeSystem)
+			return
+		}
+		if len(p.MyGuild.Ranks) > 254 {
+			p.ReceiveChat("没有更多的行会职位位置可用。", cm.ChatTypeSystem)
+			return
+		}
+		p.MyGuild.NewRank(p)
+	case 5: //change rank setting
+		if !util.HasFlagUint8(uint8(p.MyGuildRank.Options), uint8(cm.RankOptionsCanChangeRank)) {
+			p.ReceiveChat("你没有更改行会职位的权限。", cm.ChatTypeSystem)
+			return
+		}
+		/* FIXME
+		int temp;
+		if (!int.TryParse(RankName, out temp)){
+			return;
+		}
+		*/
+		temp := 0
+		p.MyGuild.ChangeRankOption(p, rankIndex, temp, name)
+	}
+}
+
+func (p *Player) EditGuildNotice(notice []string) {
+
+}
+
+func (p *Player) GuildInvite(acceptInvite bool) {
+
+}
+
+func (p *Player) RequestGuildInfo(tpy uint8) {
+
+}
+
+func (p *Player) GuildNameReturn(name string) {
+	/*
+		if (Name == "") CanCreateGuild = false;
+		if (!CanCreateGuild) return;
+		if ((Name.Length < 3) || (Name.Length > 20))
+		{
+			ReceiveChat("行会名字过长。", ChatType.System);
+			CanCreateGuild = false;
+			return;
+		}
+		if (Name.Contains('\\'))
+		{
+			CanCreateGuild = false;
+			return;
+		}
+		if (MyGuild != null)
+		{
+			ReceiveChat("你已经是行会的一员了。", ChatType.System);
+			CanCreateGuild = false;
+			return;
+		}
+		GuildObject guild = Envir.GetGuild(Name);
+		if (guild != null)
+		{
+			ReceiveChat(string.Format("行会{0}已存在。", Name), ChatType.System);
+			CanCreateGuild = false;
+			return;
+		}
+	*/
+	p.CreateGuild(name)
+	/*
+		CanCreateGuild = false;
+	*/
+}
+
+func (p *Player) GuildStorageGoldChange(tpy uint8, amount uint32) {
+
+}
+
+func (p *Player) GuildStorageItemChange(tpy uint8, from int32, to int32) {
+
+}
+
+func (p *Player) GuildWarReturn(name string) {
+
+}
+
+func (p *Player) AtWar(attacker *Player) {
+
+}
+
+func (p *Player) GuildBuffUpdate(typ byte, id int) {
 
 }

@@ -38,6 +38,10 @@ func Clamp(value, min, max int) int {
 	}
 }
 
+func HasFlagUint8(a, b uint8) bool {
+	return a&b != 0
+}
+
 func HasFlagUint16(a, b uint16) bool {
 	return a&b != 0
 }

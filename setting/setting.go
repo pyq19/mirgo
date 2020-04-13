@@ -26,8 +26,9 @@ type Settings struct {
 	RoutePath     string
 	Acceptor      string
 
-	BaseStats         map[cm.MirClass]baseStats
-	MagicResistWeight int
+	BaseStats           map[cm.MirClass]baseStats
+	MagicResistWeight   int
+	Guild_RequiredLevel int // 创建行会需要的等级
 }
 
 func Must() *Settings {

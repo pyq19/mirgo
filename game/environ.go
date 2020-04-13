@@ -41,6 +41,7 @@ type Environ struct {
 
 	DefaultNPC *NPC
 	Lights     cm.LightSetting
+	GuildList  *GuildList
 }
 
 func (e *Environ) Loop() {
@@ -282,4 +283,19 @@ func (e *Environ) AdjustLights() {
 		return
 	}
 	// e.Broadcast(&server.TimeOfDay{Lights: e.Lights})
+}
+
+// GetGuild 通过工会名称获取工会
+func (e *Environ) GetGuild(name string) *Guild {
+	for e := e.GuildList.List.Front(); e != nil; e = e.Next() {
+		guild := e.Value.(*Guild)
+		if guild.Name == name {
+			return guild
+		}
+	}
+	return nil
+}
+
+func (e *Environ) GetPlayer(name string) *Player {
+	return e.Players.GetPlayerByName(name)
 }
