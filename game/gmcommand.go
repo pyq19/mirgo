@@ -127,6 +127,45 @@ func _gmDie(p *Player) {
 	p.Die()
 }
 
+func _gmLeaveGuild(p *Player) {
+	if p.MyGuild == nil {
+		return
+	}
+	if p.MyGuildRank == nil {
+		return
+	}
+	if p.MyGuild.IsAtWar() {
+		p.ReceiveChat("在战争中不能离开行会。", cm.ChatTypeSystem)
+		return
+	}
+	p.MyGuild.DeleteMember(p, p.Name)
+}
+
+func _gmCreateGuild(p *Player, guildname string) {
+	player := p
+	gName := guildname
+	if player.MyGuild != nil {
+		p.ReceiveChat(fmt.Sprintf("玩家 %s 已经在一个行会中了。", player.Name), cm.ChatTypeSystem)
+		return
+	}
+	if (len(gName) < 3) || (len(gName) > 20) {
+		p.ReceiveChat("行会名字必须在3-20字符之间。", cm.ChatTypeSystem)
+		return
+	}
+	guild := env.GetGuild(gName)
+	if guild != nil {
+		p.ReceiveChat(fmt.Sprintf("行会 %s 已存在。", gName), cm.ChatTypeSystem)
+		return
+	}
+	player.CanCreateGuild = true
+	if player.CreateGuild(gName) {
+		p.ReceiveChat(fmt.Sprintf("成功创建行会 %s 。", gName), cm.ChatTypeSystem)
+	} else {
+		p.ReceiveChat("创建行会失败。", cm.ChatTypeSystem)
+	}
+	player.CanCreateGuild = false
+}
+
 var cmd = script.NewContext()
 
 func init() {
@@ -142,4 +181,6 @@ func init() {
 	cmd.Action("GIVESKILL", _gmGiveSkill)
 	cmd.Action("ALLOWTRADE", _gmAllowTrade)
 	cmd.Action("DIE", _gmDie)
+	cmd.Action("LEAVEGUILD", _gmLeaveGuild)
+	cmd.Action("CREATEGUILD", _gmCreateGuild)
 }

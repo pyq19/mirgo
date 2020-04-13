@@ -25,107 +25,108 @@ type Player struct {
 	GameStage int
 	Session   *cellnet.Session
 	MapObject
-	HP                  uint16
-	MP                  uint16
-	Level               uint16
-	Experience          int64
-	MaxExperience       int64
-	Gold                uint64
-	GuildName           string
-	GuildRankName       string
-	Class               cm.MirClass
-	Gender              cm.MirGender
-	Hair                uint8
-	Light               uint8
-	Inventory           *Bag           // 46
-	Equipment           *Bag           // 14
-	QuestInventory      *Bag           // 40
-	Storage             *Bag           // 80
-	Trade               *Bag           // 10	交易框的索引是从上到下的，背包是从左到右
-	Refine              []*cm.UserItem // 16	TODO 合成？提炼？
-	LooksArmour         int
-	LooksWings          int
-	LooksWeapon         int
-	LooksWeaponEffect   int
-	SendItemInfo        []*cm.ItemInfo
-	CurrentBagWeight    int
-	MaxHP               uint16
-	MaxMP               uint16
-	MinAC               uint16 // 物理防御力
-	MaxAC               uint16
-	MinMAC              uint16 // 魔法防御力
-	MaxMAC              uint16
-	MinDC               uint16 // 攻击力
-	MaxDC               uint16
-	MinMC               uint16 // 魔法力
-	MaxMC               uint16
-	MinSC               uint16 // 道术力
-	MaxSC               uint16
-	Accuracy            uint8
-	Agility             uint8
-	CriticalRate        uint8
-	CriticalDamage      uint8
-	MaxBagWeight        uint16 //Other Stats;
-	MaxWearWeight       uint16
-	MaxHandWeight       uint16
-	ASpeed              int8
-	Luck                int8
-	LifeOnHit           uint8
-	HpDrainRate         uint8
-	Reflect             uint8 // TODO
-	MagicResist         uint8
-	PoisonResist        uint8
-	HealthRecovery      uint8
-	SpellRecovery       uint8
-	PoisonRecovery      uint8
-	Holy                uint8
-	Freezing            uint8
-	PoisonAttack        uint8
-	ExpRateOffset       float32
-	ItemDropRateOffset  float32
-	MineRate            uint8
-	GemRate             uint8
-	FishRate            uint8
-	CraftRate           uint8
-	GoldDropRateOffset  float32
-	AttackBonus         uint8
-	Magics              []*cm.UserMagic
-	ActionList          *ActionList
-	PoisonList          *PoisonList
-	BuffList            *BuffList
-	Health              Health // 状态恢复
-	Pets                []*Monster
-	PKPoints            int
-	AMode               cm.AttackMode
-	PMode               cm.PetMode
-	CallingNPC          *NPC
-	CallingNPCPage      string
-	Slaying             bool        // TODO
-	FlamingSword        bool        // TODO
-	TwinDrakeBlade      bool        // TODO
-	BindMapIndex        int         // 绑定的地图 死亡时复活用
-	BindLocation        cm.Point    // 绑定的坐标 死亡时复活用
-	MagicShield         bool        // TODO 是否有魔法盾
-	MagicShieldLv       int         // TODO 魔法盾等级
-	ArmourRate          float32     // 防御
-	DamageRate          float32     // 伤害
-	StruckTime          time.Time   // 被攻击硬直时间
-	AllowGroup          bool        // 是否允许组队
-	GroupMembers        *PlayerList // 小队成员
-	GroupInvitation     *Player     // 组队邀请人
-	AllowTrade          bool        // 是否允许交易
-	TradePartner        *Player     // 交易对象
-	TradeInvitation     *Player     // 发起交易的玩家
-	TradeLocked         bool        // 是否确认交易
-	TradeGoldAmount     uint32      // 摆到交易框的金币
-	MyGuild             *Guild      // 加入的行会
-	MyGuildRank         *cm.Rank    // 所在工会的头衔/职位
-	PendingGuildInvite  *Guild      // 被邀请加入的行会
-	GuildID             int         // 加入的行会的ID(没必要但方便读C#的代码)
-	EnableGuildInvite   bool        // 允许加入行会邀请
-	GuildNoticeChanged  bool        // 是否有行会公告改变
-	GuildMembersChanged bool        // 是否有行会成员改变
-	CanCreateGuild      bool        // 是否可以创建行会
+	HP                   uint16
+	MP                   uint16
+	Level                uint16
+	Experience           int64
+	MaxExperience        int64
+	Gold                 uint64
+	GuildName            string
+	GuildRankName        string
+	Class                cm.MirClass
+	Gender               cm.MirGender
+	Hair                 uint8
+	Light                uint8
+	Inventory            *Bag           // 46
+	Equipment            *Bag           // 14
+	QuestInventory       *Bag           // 40
+	Storage              *Bag           // 80
+	Trade                *Bag           // 10	交易框的索引是从上到下的，背包是从左到右
+	Refine               []*cm.UserItem // 16	TODO 合成？提炼？
+	LooksArmour          int
+	LooksWings           int
+	LooksWeapon          int
+	LooksWeaponEffect    int
+	SendItemInfo         []*cm.ItemInfo
+	CurrentBagWeight     int
+	MaxHP                uint16
+	MaxMP                uint16
+	MinAC                uint16 // 物理防御力
+	MaxAC                uint16
+	MinMAC               uint16 // 魔法防御力
+	MaxMAC               uint16
+	MinDC                uint16 // 攻击力
+	MaxDC                uint16
+	MinMC                uint16 // 魔法力
+	MaxMC                uint16
+	MinSC                uint16 // 道术力
+	MaxSC                uint16
+	Accuracy             uint8
+	Agility              uint8
+	CriticalRate         uint8
+	CriticalDamage       uint8
+	MaxBagWeight         uint16 //Other Stats;
+	MaxWearWeight        uint16
+	MaxHandWeight        uint16
+	ASpeed               int8
+	Luck                 int8
+	LifeOnHit            uint8
+	HpDrainRate          uint8
+	Reflect              uint8 // TODO
+	MagicResist          uint8
+	PoisonResist         uint8
+	HealthRecovery       uint8
+	SpellRecovery        uint8
+	PoisonRecovery       uint8
+	Holy                 uint8
+	Freezing             uint8
+	PoisonAttack         uint8
+	ExpRateOffset        float32
+	ItemDropRateOffset   float32
+	MineRate             uint8
+	GemRate              uint8
+	FishRate             uint8
+	CraftRate            uint8
+	GoldDropRateOffset   float32
+	AttackBonus          uint8
+	Magics               []*cm.UserMagic
+	ActionList           *ActionList
+	PoisonList           *PoisonList
+	BuffList             *BuffList
+	Health               Health // 状态恢复
+	Pets                 []*Monster
+	PKPoints             int
+	AMode                cm.AttackMode
+	PMode                cm.PetMode
+	CallingNPC           *NPC
+	CallingNPCPage       string
+	Slaying              bool        // TODO
+	FlamingSword         bool        // TODO
+	TwinDrakeBlade       bool        // TODO
+	BindMapIndex         int         // 绑定的地图 死亡时复活用
+	BindLocation         cm.Point    // 绑定的坐标 死亡时复活用
+	MagicShield          bool        // TODO 是否有魔法盾
+	MagicShieldLv        int         // TODO 魔法盾等级
+	ArmourRate           float32     // 防御
+	DamageRate           float32     // 伤害
+	StruckTime           time.Time   // 被攻击硬直时间
+	AllowGroup           bool        // 是否允许组队
+	GroupMembers         *PlayerList // 小队成员
+	GroupInvitation      *Player     // 组队邀请人
+	AllowTrade           bool        // 是否允许交易
+	TradePartner         *Player     // 交易对象
+	TradeInvitation      *Player     // 发起交易的玩家
+	TradeLocked          bool        // 是否确认交易
+	TradeGoldAmount      uint32      // 摆到交易框的金币
+	MyGuild              *Guild      // 加入的行会
+	MyGuildRank          *cm.Rank    // 所在工会的头衔/职位
+	PendingGuildInvite   *Guild      // 被邀请加入的行会
+	GuildID              int         // 加入的行会的ID(没必要但方便读C#的代码)
+	EnableGuildInvite    bool        // 允许加入行会邀请
+	GuildNoticeChanged   bool        // 是否有行会公告改变
+	GuildCanRequestItems bool        // ??? 不确定干什么的
+	GuildMembersChanged  bool        // 是否有行会成员改变
+	CanCreateGuild       bool        // 是否可以创建行会
 }
 
 type Health struct {
@@ -3638,7 +3639,7 @@ func (p *Player) CreateGuild(name string) bool {
 	p.MyGuildRank = guild.FindRank(name)
 	p.GuildMembersChanged = true
 	p.GuildNoticeChanged = true
-	// FIXME p.GuildCanRequestItems = true
+	p.GuildCanRequestItems = true
 
 	//tell us we now have a guild
 	p.BroadcastInfo()
@@ -3787,7 +3788,7 @@ func (p *Player) GuildInvite(accept bool) {
 	p.MyGuild.SendGuildStatus(p)
 	p.PendingGuildInvite = nil
 	p.EnableGuildInvite = false
-	// FIXME p.GuildCanRequestItems = true;
+	p.GuildCanRequestItems = true
 	//refresh guildbuffs
 	p.RefreshStats()
 	// FIXME 工会 BUFF
