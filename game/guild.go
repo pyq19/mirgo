@@ -6,11 +6,12 @@ import (
 	"github.com/yenkeia/mirgo/game/cm"
 )
 
-// Guild 对应 C# 里的 GuildObject, 工会
+// Guild 对应 C# 里的 GuildObject, 行会
 type Guild struct {
-	ID    int     // GuildIndex
-	Name  string  // 工会名称
-	Ranks []*Rank // 工会所有职务(头衔)
+	ID     int        // GuildIndex
+	Name   string     // 行会名称
+	Ranks  []*cm.Rank // 行会所有职务(头衔)
+	Notice []string   // 行会公告
 }
 
 func NewGuild(player *Player, name string) *Guild {
@@ -75,6 +76,22 @@ func (g *Guild) ChangeRankName(self *Player, rankName string, rankIndex byte) bo
 	return true
 }
 
+func (g *Guild) NewNotice(notes []string) {
+
+}
+
+func (g *Guild) HasRoom() bool {
+	return true
+}
+
+func (g *Guild) NewMember(newmember *Player) {
+
+}
+
+func (g *Guild) FindRank(name string) *cm.Rank {
+	return nil
+}
+
 type GuildList struct {
 	List *list.List
 }
@@ -85,9 +102,4 @@ func NewGuildList() *GuildList {
 
 func (l *GuildList) Add(guild *Guild) {
 
-}
-
-// Rank 行会职务(头衔)
-type Rank struct {
-	Options cm.RankOptions
 }

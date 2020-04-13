@@ -1105,9 +1105,17 @@ type UserName struct {
 
 type ChatItemStats struct{}
 
-type GuildNoticeChange struct{}
+type GuildNoticeChange struct {
+	Update int32
+	Notice []string
+}
 
-type GuildMemberChange struct{}
+type GuildMemberChange struct {
+	Name      string
+	Status    uint8
+	RankIndex uint8
+	Ranks     []*cm.Rank
+}
 
 type GuildStatus struct{}
 
