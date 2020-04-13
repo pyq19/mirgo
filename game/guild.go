@@ -8,14 +8,40 @@ import (
 
 // Guild 对应 C# 里的 GuildObject, 行会
 type Guild struct {
-	ID     int        // GuildIndex
-	Name   string     // 行会名称
-	Ranks  []*cm.Rank // 行会所有职务(头衔)
-	Notice []string   // 行会公告
+	GuildIndex  int
+	Name        string     // 行会名称
+	Ranks       []*cm.Rank // 行会所有职务(头衔)
+	Notice      []string   // 行会公告
+	Membercount int        // 行会人数
+	NeedSave    bool
+	FlagColour  cm.Color
 }
 
 func NewGuild(player *Player, name string) *Guild {
-	return nil
+	g := &Guild{}
+	leader := &cm.GuildMember{
+		Name:      player.Name,
+		PlayerID:  player.ID,
+		LastLogin: 0,
+		Online:    true,
+	}
+	rank := &cm.Rank{
+		Name:    "会长", // Leader
+		Options: cm.RankOptions(255),
+		Index:   0,
+	}
+	rank.Members = []*cm.GuildMember{leader}
+	g.Ranks = []*cm.Rank{rank}
+	g.Membercount++
+	g.NeedSave = true
+	/* FIXME
+	if (Level < Settings.Guild_ExperienceList.Count)
+		MaxExperience = Settings.Guild_ExperienceList[Level];
+	if (Level < Settings.Guild_MembercapList.Count)
+		MemberCap = Settings.Guild_MembercapList[Level];
+	*/
+	g.FlagColour = cm.ColorWhite
+	return g
 }
 
 // SendGuildStatus ...
@@ -56,6 +82,52 @@ func (g *Guild) IsAtWar() bool {
 
 // DeleteMember 行会删除成员
 func (g *Guild) DeleteMember(kicker *Player, membername string) bool {
+	var member *cm.GuildMember
+	var memberRank *cm.Rank
+	if (kicker.MyGuild.GuildIndex != g.GuildIndex) || (kicker.MyGuildRank == nil) {
+		return false
+	}
+	for i := 0; i < len(g.Ranks); i++ {
+		for j := 0; j < len(g.Ranks[i].Members); j++ {
+			if g.Ranks[i].Members[j].Name == membername {
+				member = g.Ranks[i].Members[j]
+				memberRank = g.Ranks[i]
+				goto FOUND
+			}
+		}
+	}
+FOUND:
+	if member == nil {
+		return false
+	}
+	if ((kicker.MyGuildRank.Index >= memberRank.Index) && (kicker.MyGuildRank.Index != 0)) && (kicker.Name != membername) {
+		kicker.ReceiveChat("你的职位权限不够。", cm.ChatTypeSystem)
+		return false
+	}
+	if memberRank.Index == 0 {
+		if len(memberRank.Members) < 2 {
+			kicker.ReceiveChat("你不能离开行会，因为你是领导者。", cm.ChatTypeSystem)
+			return false
+		}
+		for i := 0; i < len(memberRank.Members); i++ {
+			if (memberRank.Members[i].Online) && (memberRank.Members[i].PlayerID != member.PlayerID) {
+				goto AllOk
+			}
+		}
+		kicker.ReceiveChat("需要至少1个行会领导在线。", cm.ChatTypeSystem)
+		return false
+	}
+AllOk:
+	// FIXME
+	// g.MemberDeleted(membername, member.PlayerID, member.Name == kicker.Name)
+	if member.PlayerID != 0 {
+		leavingMember := env.Players.GetPlayerByID(member.PlayerID)
+		leavingMember.RefreshStats()
+	}
+	// FIXME
+	// memberRank.Members.Remove(Member)
+	g.NeedSave = true
+	g.Membercount--
 	return true
 }
 

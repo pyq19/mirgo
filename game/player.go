@@ -121,7 +121,7 @@ type Player struct {
 	MyGuild              *Guild      // 加入的行会
 	MyGuildRank          *cm.Rank    // 所在工会的头衔/职位
 	PendingGuildInvite   *Guild      // 被邀请加入的行会
-	GuildID              int         // 加入的行会的ID(没必要但方便读C#的代码)
+	GuildIndex           int         // 加入的行会Index
 	EnableGuildInvite    bool        // 允许加入行会邀请
 	GuildNoticeChanged   bool        // 是否有行会公告改变
 	GuildCanRequestItems bool        // ??? 不确定干什么的
@@ -3611,7 +3611,7 @@ func (p *Player) SetConcentration(objectID uint32, enabled bool, interrupted boo
 }
 
 func (p *Player) CreateGuild(name string) bool {
-	if (p.MyGuild != nil) || (p.GuildID != -1) {
+	if (p.MyGuild != nil) || (p.GuildIndex != -1) {
 		return false
 	}
 	if env.GetGuild(name) != nil {
@@ -3631,9 +3631,9 @@ func (p *Player) CreateGuild(name string) bool {
 
 	//make the guild
 	guild := NewGuild(p, name)
-	guild.ID = int(env.NewObjectID()) // FIXME 溢出
+	guild.GuildIndex = int(env.NewObjectID()) // FIXME 溢出
 	env.GuildList.Add(guild)
-	p.GuildID = guild.ID
+	p.GuildIndex = guild.GuildIndex
 	p.MyGuild = guild
 
 	p.MyGuildRank = guild.FindRank(name)
@@ -3666,7 +3666,7 @@ func (p *Player) EditGuildMember(name string, rankName string, rankIndex uint8, 
 			p.ReceiveChat(fmt.Sprintf("%s 不在线。", name), cm.ChatTypeSystem)
 			return
 		}
-		if (player.MyGuild != nil) || (player.MyGuildRank != nil) || (player.GuildID != -1) {
+		if (player.MyGuild != nil) || (player.MyGuildRank != nil) || (player.GuildIndex != -1) {
 			p.ReceiveChat(fmt.Sprintf("%s 已经在一个行会里了。", name), cm.ChatTypeSystem)
 			return
 		}
@@ -3778,7 +3778,7 @@ func (p *Player) GuildInvite(accept bool) {
 		return
 	}
 	p.PendingGuildInvite.NewMember(p)
-	p.GuildID = p.PendingGuildInvite.ID
+	p.GuildIndex = p.PendingGuildInvite.GuildIndex
 	p.MyGuild = p.PendingGuildInvite
 	p.MyGuildRank = p.PendingGuildInvite.FindRank(p.Name)
 	p.GuildMembersChanged = true
