@@ -264,7 +264,7 @@ func (ServerMessage) NewCharacter(result int) interface{} {
 func (ServerMessage) NewCharacterSuccess(g *Game, AccountID int, name string, class cm.MirClass, gender cm.MirGender) *server.NewCharacterSuccess {
 	c := new(cm.Character)
 	c.Name = name
-	c.Level = 0
+	c.Level = 1
 	c.Class = class
 	c.Gender = gender
 	c.Hair = 1
