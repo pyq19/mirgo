@@ -2,6 +2,7 @@ package gametcp
 
 import (
 	"bytes"
+	"math"
 
 	"github.com/davyxu/cellnet"
 	"github.com/gorilla/websocket"
@@ -34,7 +35,7 @@ func (WSMessageTransmitter) OnRecvMessage(ses cellnet.Session) (msg interface{},
 	switch messageType {
 	case websocket.BinaryMessage:
 		reader := bytes.NewReader(raw)
-		msg, err = ServerRecvLTVPacket(reader, 1024*1024)
+		msg, err = ServerRecvLTVPacket(reader, math.MaxUint8)
 	}
 
 	return
