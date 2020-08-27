@@ -29,6 +29,7 @@
 --------------------
   * [客户端代码](https://gitee.com/wrq2/mir2.git)，感谢 https://github.com/cjlaaa/mir2 的汉化
   * [客户端资源](https://pan.baidu.com/s/1ELI8pO278v9JRyt6lS-A8Q) 提取码: 0nc3
+  * 注意，客户端我为了方便开发改了一些代码，如果你不想编译一遍客户端，就用我上面提到的群里面我编译好的 client.7z 解压覆盖到你下载好的客户端资源上，然后改 host 把 mir.impyq.com 指向 127.0.0.1 就行
 
 感谢贡献者
 --------------------
