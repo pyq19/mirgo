@@ -10,8 +10,9 @@
 --------------------
   * [安装golang环境](http://docscn.studygolang.com/doc/install)
   * [设置拉取依赖代理](https://goproxy.io/zh/)
-  * 获取服务端资源 git clone https://gitee.com/wrq2/mir2ServerRelease.git
+  * 获取服务端资源 git clone https://gitee.com/yenkeia/mir2ServerRelease.git
   * 获取服务端代码 git clone https://github.com/yenkeia/mirgo.git
+  * 因为我很久以前把一个很大且没用的文件加到代码仓库了导致代码仓库很大，如果你觉得拉代码的速度慢可以把 https://github.com 换成 https://gitee.com 后面地址不变，速度会快很多
 
 编译运行
 --------------------
@@ -27,7 +28,7 @@
 
 客户端
 --------------------
-  * [客户端代码](https://gitee.com/wrq2/mir2.git)，感谢 https://github.com/cjlaaa/mir2 的汉化
+  * [客户端代码](https://gitee.com/yenkeia/mir2.git)，感谢 https://github.com/cjlaaa/mir2 的汉化
   * [客户端资源](https://pan.baidu.com/s/1ELI8pO278v9JRyt6lS-A8Q) 提取码: 0nc3
   * 注意，客户端我为了方便开发改了一些代码，如果你不想编译一遍客户端，就用我上面提到的群里面我编译好的 client.7z 解压覆盖到你下载好的客户端资源上，然后改 host 把 mir.impyq.com 指向 127.0.0.1 就行
 
