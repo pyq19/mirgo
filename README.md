@@ -4,7 +4,7 @@ TODO
 
 # 传奇服务端 go 语言实现
 
-参照 [Suprcode/mir2] (https://github.com/Suprcode/mir2), 用 go 语言**翻译**了该项目的**服务端**部分
+参照 [Suprcode/mir2](https://github.com/Suprcode/mir2), 用 go 语言**翻译**了该项目的**服务端**部分
 
 **这份代码就是写着自娱自乐的玩具, 功能很不完善, 无法开服赚钱**
 

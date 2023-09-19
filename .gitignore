@@ -64,3 +64,4 @@ dotnettools/account.sqlite-journal
 client
 
 /server
+/config.toml
