@@ -3,7 +3,7 @@ package game
 import (
 	"container/list"
 
-	"github.com/yenkeia/mirgo/game/cm"
+	"github.com/pyq19/mirgo/game/cm"
 )
 
 // Guild 对应 C# 里的 GuildObject, 行会

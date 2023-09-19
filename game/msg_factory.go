@@ -1,8 +1,8 @@
 package game
 
 import (
-	"github.com/yenkeia/mirgo/game/cm"
-	"github.com/yenkeia/mirgo/game/proto/server"
+	"github.com/pyq19/mirgo/game/cm"
+	"github.com/pyq19/mirgo/game/proto/server"
 )
 
 type ServerMessage struct{}

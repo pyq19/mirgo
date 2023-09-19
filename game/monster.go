@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/yenkeia/mirgo/game/cm"
-	"github.com/yenkeia/mirgo/game/proto/server"
-	"github.com/yenkeia/mirgo/game/util"
+	"github.com/pyq19/mirgo/game/cm"
+	"github.com/pyq19/mirgo/game/proto/server"
+	"github.com/pyq19/mirgo/game/util"
 )
 
 type IBehavior interface {

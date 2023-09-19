@@ -1,8 +1,8 @@
 package behavior
 
 import (
-	"github.com/yenkeia/mirgo/game"
-	"github.com/yenkeia/mirgo/game/cm"
+	"github.com/pyq19/mirgo/game"
+	"github.com/pyq19/mirgo/game/cm"
 )
 
 func HasTarget(c *BT) bool {

@@ -17,12 +17,12 @@ import (
 	"github.com/davyxu/golog"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/sqlite"
-	"github.com/yenkeia/mirgo/game/cm"
-	_ "github.com/yenkeia/mirgo/game/mirtcp"
-	"github.com/yenkeia/mirgo/game/proto/server"
-	"github.com/yenkeia/mirgo/game/script"
-	"github.com/yenkeia/mirgo/game/util"
-	"github.com/yenkeia/mirgo/setting"
+	"github.com/pyq19/mirgo/game/cm"
+	_ "github.com/pyq19/mirgo/game/mirtcp"
+	"github.com/pyq19/mirgo/game/proto/server"
+	"github.com/pyq19/mirgo/game/script"
+	"github.com/pyq19/mirgo/game/util"
+	"github.com/pyq19/mirgo/setting"
 )
 
 var env *Environ

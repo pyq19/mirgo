@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/davyxu/cellnet"
-	"github.com/yenkeia/mirgo/game/proto/server"
+	"github.com/pyq19/mirgo/game/proto/server"
 )
 
 func i(obj interface{}) interface{} {

@@ -4,7 +4,7 @@ import (
 	"container/list"
 	"time"
 
-	"github.com/yenkeia/mirgo/game/cm"
+	"github.com/pyq19/mirgo/game/cm"
 )
 
 type PoisonList struct {

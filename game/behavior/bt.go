@@ -3,7 +3,7 @@ package behavior
 import (
 	"time"
 
-	"github.com/yenkeia/mirgo/game"
+	"github.com/pyq19/mirgo/game"
 )
 
 type Status uint8

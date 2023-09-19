@@ -9,7 +9,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/yenkeia/mirgo/game/util"
+	"github.com/pyq19/mirgo/game/util"
 )
 
 func Print(arr []string) {
@@ -26,7 +26,7 @@ func PrintJson(v interface{}) {
 
 func setpath() {
 	gopath := os.Getenv("GOPATH")
-	SearchPaths = []string{filepath.Join(gopath, "src/github.com/yenkeia/mirgo/dotnettools/database/Envir")}
+	SearchPaths = []string{filepath.Join(gopath, "src/github.com/pyq19/mirgo/dotnettools/database/Envir")}
 }
 
 func TestXXX(X *testing.T) {

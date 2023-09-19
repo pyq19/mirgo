@@ -2,7 +2,7 @@ package game
 
 import (
 	"github.com/jinzhu/gorm"
-	"github.com/yenkeia/mirgo/game/cm"
+	"github.com/pyq19/mirgo/game/cm"
 )
 
 type DB struct {

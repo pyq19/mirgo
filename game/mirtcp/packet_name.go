@@ -1,8 +1,8 @@
 package gametcp
 
 import (
-	"github.com/yenkeia/mirgo/game/proto/client"
-	"github.com/yenkeia/mirgo/game/proto/server"
+	"github.com/pyq19/mirgo/game/proto/client"
+	"github.com/pyq19/mirgo/game/proto/server"
 )
 
 var PacketNameMap = make(map[int]string)

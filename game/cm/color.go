@@ -1,6 +1,6 @@
 package cm
 
-import "github.com/yenkeia/mirgo/game/util"
+import "github.com/pyq19/mirgo/game/util"
 
 type Color struct {
 	R uint8

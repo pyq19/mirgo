@@ -3,9 +3,9 @@ package game
 import (
 	"errors"
 
-	"github.com/yenkeia/mirgo/game/cm"
-	"github.com/yenkeia/mirgo/game/proto/server"
-	"github.com/yenkeia/mirgo/game/util"
+	"github.com/pyq19/mirgo/game/cm"
+	"github.com/pyq19/mirgo/game/proto/server"
+	"github.com/pyq19/mirgo/game/util"
 )
 
 // 技能选择类型
@@ -54,7 +54,6 @@ func DelayAt_Player(ctx *MagicContext, f func()) {
 	ctx.Player.ActionList.PushAction(DelayedTypeMagic, f)
 }
 
-//
 type MagicBeforeAction func(ctx *MagicContext) (error, uint32)
 
 // 技能最终作用函数

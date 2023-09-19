@@ -8,8 +8,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/yenkeia/mirgo/game/cm"
-	"github.com/yenkeia/mirgo/game/script"
+	"github.com/pyq19/mirgo/game/cm"
+	"github.com/pyq19/mirgo/game/script"
 )
 
 func _CHECKPKPOINT(npc *NPC, p *Player, op script.CompareOp, v int) bool {
@@ -252,7 +252,6 @@ func init() {
 	script.Action("GIVEITEM", _GIVEITEM)
 }
 
-//
 type Flag int
 
 // [888]

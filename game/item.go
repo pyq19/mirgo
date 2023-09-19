@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/yenkeia/mirgo/game/cm"
+	"github.com/pyq19/mirgo/game/cm"
 )
 
 type Item struct {

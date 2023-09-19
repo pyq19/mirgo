@@ -3,7 +3,7 @@ package cm
 import (
 	"fmt"
 
-	"github.com/yenkeia/mirgo/game/util"
+	"github.com/pyq19/mirgo/game/util"
 )
 
 type Point struct {

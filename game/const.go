@@ -1,7 +1,7 @@
 package game
 
 import (
-	"github.com/yenkeia/mirgo/setting"
+	"github.com/pyq19/mirgo/setting"
 )
 
 var settings *setting.Settings

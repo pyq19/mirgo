@@ -1,9 +1,9 @@
 package main
 
 import (
-	"github.com/yenkeia/mirgo/game"
-	_ "github.com/yenkeia/mirgo/game/behavior"
-	_ "github.com/yenkeia/mirgo/game/mircodec"
+	"github.com/pyq19/mirgo/game"
+	_ "github.com/pyq19/mirgo/game/behavior"
+	_ "github.com/pyq19/mirgo/game/mircodec"
 )
 
 func main() {

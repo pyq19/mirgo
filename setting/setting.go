@@ -6,8 +6,8 @@ import (
 	"path/filepath"
 
 	"github.com/pelletier/go-toml"
-	"github.com/yenkeia/mirgo/game/cm"
-	"github.com/yenkeia/mirgo/game/util"
+	"github.com/pyq19/mirgo/game/cm"
+	"github.com/pyq19/mirgo/game/util"
 )
 
 type Conf struct {

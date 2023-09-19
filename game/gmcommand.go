@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"reflect"
 
-	"github.com/yenkeia/mirgo/game/cm"
-	"github.com/yenkeia/mirgo/game/script"
+	"github.com/pyq19/mirgo/game/cm"
+	"github.com/pyq19/mirgo/game/script"
 )
 
 func _gmKill(p *Player, playername string) {

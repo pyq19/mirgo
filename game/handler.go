@@ -4,10 +4,10 @@ import (
 	"time"
 
 	"github.com/davyxu/cellnet"
-	"github.com/yenkeia/mirgo/game/cm"
-	_ "github.com/yenkeia/mirgo/game/mirtcp"
-	"github.com/yenkeia/mirgo/game/proto/client"
-	"github.com/yenkeia/mirgo/game/proto/server"
+	"github.com/pyq19/mirgo/game/cm"
+	_ "github.com/pyq19/mirgo/game/mirtcp"
+	"github.com/pyq19/mirgo/game/proto/client"
+	"github.com/pyq19/mirgo/game/proto/server"
 )
 
 type Game struct {

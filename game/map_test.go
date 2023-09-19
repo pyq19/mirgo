@@ -8,19 +8,19 @@ import (
 	"testing"
 
 	"github.com/jinzhu/gorm"
-	"github.com/yenkeia/mirgo/game/cm"
-	"github.com/yenkeia/mirgo/game/util"
+	"github.com/pyq19/mirgo/game/cm"
+	"github.com/pyq19/mirgo/game/util"
 )
 
 func TestMapAbsPath(t *testing.T) {
 	gopath := os.Getenv("GOPATH")
-	var mirDB = "/src/github.com/yenkeia/mirgo/dotnettools/mir.sqlite"
+	var mirDB = "/src/github.com/pyq19/mirgo/dotnettools/mir.sqlite"
 	db, _ := gorm.Open("sqlite3", gopath+mirDB)
 
 	mp := make([]cm.MapInfo, 386)
 	db.Table("map").Find(&mp)
 
-	mapDirPath := "/src/github.com/yenkeia/mirgo/dotnettools/database/Maps/"
+	mapDirPath := "/src/github.com/pyq19/mirgo/dotnettools/database/Maps/"
 	fileName := mp[0].Filename
 	mapAbsPath := gopath + mapDirPath + fileName + ".map"
 	t.Log(mapAbsPath)
@@ -28,15 +28,15 @@ func TestMapAbsPath(t *testing.T) {
 
 func TestLoadMap(t *testing.T) {
 	gopath := os.Getenv("GOPATH")
-	mapPath := "/src/github.com/yenkeia/mirgo/dotnettools/database/Maps/0.map"
+	mapPath := "/src/github.com/pyq19/mirgo/dotnettools/database/Maps/0.map"
 	mapAbsPath := gopath + mapPath
 	t.Log(mapAbsPath)
 }
 
 func TestSaveMapText(t *testing.T) {
 	gopath := os.Getenv("GOPATH")
-	filePath := gopath + "/src/github.com/yenkeia/mirgo/01.txt"
-	mapAbsPath := gopath + "/src/github.com/yenkeia/mirgo/dotnettools/database/Maps/0.map"
+	filePath := gopath + "/src/github.com/pyq19/mirgo/01.txt"
+	mapAbsPath := gopath + "/src/github.com/pyq19/mirgo/dotnettools/database/Maps/0.map"
 	m := LoadMap(mapAbsPath)
 	// t.Log(m)
 	str := ""
@@ -59,7 +59,7 @@ func TestSaveMapText(t *testing.T) {
 }
 
 func TestMap_GetNextCell(t *testing.T) {
-	m := LoadMap(os.Getenv("GOPATH") + "/src/github.com/yenkeia/mirgo/dotnettools/database/Maps/0.map")
+	m := LoadMap(os.Getenv("GOPATH") + "/src/github.com/pyq19/mirgo/dotnettools/database/Maps/0.map")
 	c := &Cell{
 		Point:     cm.Point{100, 200},
 		Attribute: 0,
@@ -81,7 +81,7 @@ func TestMap_GetNextCell(t *testing.T) {
 }
 
 func TestEnviron_LoadAllMap(t *testing.T) {
-	mapDirPath := os.Getenv("GOPATH") + "/src/github.com/yenkeia/mirgo/dotnettools/database/Maps/"
+	mapDirPath := os.Getenv("GOPATH") + "/src/github.com/pyq19/mirgo/dotnettools/database/Maps/"
 	uppercaseNameRealNameMap := make(map[string]string) // 目录下的文件名大写与该文件的真实文件名对应关系
 	f, err := os.OpenFile(mapDirPath, os.O_RDONLY, os.ModeDir)
 	if err != nil {
@@ -104,7 +104,7 @@ func TestEnviron_LoadAllMap(t *testing.T) {
 
 func TestMapRange(t *testing.T) {
 	gopath := os.Getenv("GOPATH")
-	mapAbsPath := gopath + "/src/github.com/yenkeia/mirgo/dotnettools/database/Maps/0.map"
+	mapAbsPath := gopath + "/src/github.com/pyq19/mirgo/dotnettools/database/Maps/0.map"
 	m := LoadMap(mapAbsPath)
 
 	p := cm.Point{X: 1, Y: 1}
@@ -130,7 +130,7 @@ func TestMapRange(t *testing.T) {
 
 func TestAllMaps(t *testing.T) {
 	gopath := os.Getenv("GOPATH")
-	mappath := gopath + "/src/github.com/yenkeia/mirgo/dotnettools/database/Maps/"
+	mappath := gopath + "/src/github.com/pyq19/mirgo/dotnettools/database/Maps/"
 
 	maps := util.GetFiles(mappath, []string{".map"})
 

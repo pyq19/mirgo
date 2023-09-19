@@ -6,8 +6,8 @@ import (
 	"github.com/davyxu/cellnet"
 	"github.com/davyxu/cellnet/codec"
 	"github.com/davyxu/golog"
-	"github.com/yenkeia/mirgo/game/cm"
-	"github.com/yenkeia/mirgo/game/proto/server"
+	"github.com/pyq19/mirgo/game/cm"
+	"github.com/pyq19/mirgo/game/proto/server"
 )
 
 var log = golog.New("codec.mircodec")

@@ -9,8 +9,8 @@ import (
 
 	"github.com/jinzhu/gorm"
 	"github.com/pelletier/go-toml"
-	"github.com/yenkeia/mirgo/game/cm"
-	"github.com/yenkeia/mirgo/game/util"
+	"github.com/pyq19/mirgo/game/cm"
+	"github.com/pyq19/mirgo/game/util"
 )
 
 // GameDB 服务端数据，启动时加载

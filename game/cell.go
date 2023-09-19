@@ -3,7 +3,7 @@ package game
 import (
 	"fmt"
 
-	"github.com/yenkeia/mirgo/game/cm"
+	"github.com/pyq19/mirgo/game/cm"
 )
 
 // Cell 地图格子

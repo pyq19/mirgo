@@ -4,8 +4,8 @@ import (
 	"errors"
 	"time"
 
-	"github.com/yenkeia/mirgo/game/cm"
-	"github.com/yenkeia/mirgo/game/util"
+	"github.com/pyq19/mirgo/game/cm"
+	"github.com/pyq19/mirgo/game/util"
 )
 
 func addMagic(sp cm.Spell, c *MagicConfig) {
