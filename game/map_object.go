@@ -2,9 +2,6 @@ package game
 
 import (
 	"time"
-
-	"github.com/pyq19/mirgo/game/cm"
-	"github.com/pyq19/mirgo/game/proto/server"
 )
 
 type BaseStats struct {
@@ -29,7 +26,7 @@ type IDObject interface {
 type ISimpleMapObject interface {
 	IDObject
 	GetMap() *Map
-	GetRace() cm.ObjectType
+	GetRace() ObjectType
 	Broadcast(interface{})
 }
 
@@ -42,12 +39,12 @@ type IMapObject interface {
 	ISimpleMapObject
 	GetName() string
 	GetLevel() int
-	GetPoint() cm.Point
+	GetPoint() Point
 	GetCell() *Cell
 	BroadcastHealthChange()
 	BroadcastInfo()
 	Spawned()
-	GetDirection() cm.MirDirection
+	GetDirection() MirDirection
 	GetBaseStats() BaseStats
 	IsAttackTarget(IMapObject) bool
 	IsFriendlyTarget(IMapObject) bool
@@ -58,7 +55,7 @@ type IMapObject interface {
 	ApplyPoison(*Poison, IMapObject)
 	AddPlayerCount(n int)
 	GetPlayerCount() int
-	Attacked(attacker IMapObject, damage int, dtype cm.DefenceType, damageWeapon bool) int
+	Attacked(attacker IMapObject, damage int, dtype DefenceType, damageWeapon bool) int
 	GetMapObject() *MapObject
 }
 
@@ -73,10 +70,10 @@ type ILifeObject interface {
 type MapObject struct {
 	ID              uint32
 	Name            string
-	NameColor       cm.Color
+	NameColor       Color
 	Map             *Map
-	CurrentLocation cm.Point
-	Direction       cm.MirDirection
+	CurrentLocation Point
+	Direction       MirDirection
 	Dead            bool
 	PlayerCount     int // 记录在DataRange内有多少个玩家
 	InSafeZone      bool
@@ -100,7 +97,7 @@ func IMapObject_Spawned(m IMapObject) {
 }
 
 func IMapObject_BroadcastHealthChange(m ILifeObject) {
-	if m.GetRace() != cm.ObjectTypePlayer && m.GetRace() != cm.ObjectTypeMonster {
+	if m.GetRace() != ObjectTypePlayer && m.GetRace() != ObjectTypeMonster {
 		return
 	}
 
@@ -108,7 +105,7 @@ func IMapObject_BroadcastHealthChange(m ILifeObject) {
 
 	percent := byte(float32(m.GetHP()) / float32(m.GetMaxHP()) * 100)
 
-	msg := &server.ObjectHealth{
+	msg := &SM_ObjectHealth{
 		ObjectID: m.GetID(),
 		Percent:  percent,
 		Expire:   5,

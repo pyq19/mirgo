@@ -3,13 +3,11 @@ package game
 import (
 	"container/list"
 	"time"
-
-	"github.com/pyq19/mirgo/game/cm"
 )
 
 type Buff struct {
 	ObjectID   uint32
-	Type       cm.BuffType
+	Type       BuffType
 	Caster     IMapObject
 	Visible    bool      // 是否可见
 	ExpireTime time.Time // 过期时间️
@@ -18,7 +16,7 @@ type Buff struct {
 	Paused     bool
 }
 
-func NewBuff(buffType cm.BuffType, caster IMapObject, expireTime int, values []int32) *Buff {
+func NewBuff(buffType BuffType, caster IMapObject, expireTime int, values []int32) *Buff {
 	return &Buff{
 		Type:       buffType,
 		Caster:     caster,
@@ -58,7 +56,7 @@ func (bl *BuffList) AddBuff(b *Buff) {
 	bl.List.PushBack(b)
 }
 
-func (bl *BuffList) RemoveBuff(t cm.BuffType) {
+func (bl *BuffList) RemoveBuff(t BuffType) {
 	for it := bl.List.Front(); it != nil; it = it.Next() {
 		buf := it.Value.(*Buff)
 		if buf.Type != t {

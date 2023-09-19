@@ -3,9 +3,6 @@ package game
 import (
 	"fmt"
 	"time"
-
-	"github.com/pyq19/mirgo/game/cm"
-	"github.com/pyq19/mirgo/game/util"
 )
 
 // Map ...
@@ -13,8 +10,8 @@ type Map struct {
 	Width          int
 	Height         int
 	Version        int
-	Info           *cm.MapInfo
-	SafeZoneInfos  []*cm.SafeZoneInfo
+	Info           *MapInfo
+	SafeZoneInfos  []*SafeZoneInfo
 	Respawns       []*Respawn
 	cells          []*Cell
 	doors          map[byte]*Door
@@ -85,7 +82,7 @@ func (m *Map) Frame(dt time.Duration) {
 	// }
 }
 
-func (m *Map) GetCell(p cm.Point) *Cell {
+func (m *Map) GetCell(p Point) *Cell {
 	return m.GetCellXY(int(p.X), int(p.Y))
 }
 func (m *Map) GetCellXY(x, y int) *Cell {
@@ -104,12 +101,12 @@ func (m *Map) ValidPointXY(x, y int) bool {
 	c := m.GetCellXY(x, y)
 	return c != nil && c.IsValid()
 }
-func (m *Map) ValidPoint(p cm.Point) bool {
+func (m *Map) ValidPoint(p Point) bool {
 	c := m.GetCell(p)
 	return c != nil && c.IsValid()
 }
 
-func (m *Map) SetCell(p cm.Point, c *Cell) {
+func (m *Map) SetCell(p Point, c *Cell) {
 	m.SetCellXY(int(p.X), int(p.Y), c)
 }
 func (m *Map) SetCellXY(x, y int, c *Cell) {
@@ -135,10 +132,10 @@ func (m *Map) Broadcast(msg interface{}) {
 }
 
 // 位置，消息，跳过玩家
-func (m *Map) BroadcastP(pos cm.Point, msg interface{}, me *Player) {
+func (m *Map) BroadcastP(pos Point, msg interface{}, me *Player) {
 	// m.Submit(NewTask(func(args ...interface{}) {
 	for _, plr := range m.players {
-		if cm.InRange(pos, plr.CurrentLocation, DataRange) {
+		if InRange(pos, plr.CurrentLocation, DataRange) {
 			if plr != me {
 				plr.Enqueue(msg)
 			}
@@ -193,7 +190,7 @@ func (m *Map) DeleteObject(obj IMapObject) {
 }
 
 // UpdateObject 更新对象在 Cells, AOI 中的数据, 如果更新成功返回 true
-func (m *Map) UpdateObject(obj IMapObject, point cm.Point) bool {
+func (m *Map) UpdateObject(obj IMapObject, point Point) bool {
 	destcell := m.GetCell(point)
 	if destcell == nil || !destcell.CanWalk() {
 		return false
@@ -212,11 +209,11 @@ func (m *Map) UpdateObject(obj IMapObject, point cm.Point) bool {
 	destcell.AddObject(obj)
 
 	switch obj.GetRace() {
-	case cm.ObjectTypePlayer:
+	case ObjectTypePlayer:
 		p := obj.(*Player)
 		p.Broadcast(ServerMessage{}.ObjectPlayer(p))
 		p.EnqueueAreaObjects(sourcecell, destcell)
-	case cm.ObjectTypeMonster:
+	case ObjectTypeMonster:
 		m := obj.(*Monster)
 		m.Broadcast(ServerMessage{}.ObjectMonster(m))
 	}
@@ -253,7 +250,7 @@ func (m *Map) InitAll() error {
 	}
 
 	// init safe zones
-	m.SafeZoneInfos = []*cm.SafeZoneInfo{}
+	m.SafeZoneInfos = []*SafeZoneInfo{}
 	for _, s := range data.SafeZoneInfos {
 		if s.MapID == m.Info.ID {
 			m.SafeZoneInfos = append(m.SafeZoneInfos, s)
@@ -262,16 +259,16 @@ func (m *Map) InitAll() error {
 	return nil
 }
 
-func (m *Map) GetSafeZone(loc cm.Point) *cm.SafeZoneInfo {
+func (m *Map) GetSafeZone(loc Point) *SafeZoneInfo {
 	for _, s := range m.SafeZoneInfos {
-		if cm.InRangeXY(loc, s.LocationX, s.LocationY, s.Size) {
+		if InRangeXY(loc, s.LocationX, s.LocationY, s.Size) {
 			return s
 		}
 	}
 	return nil
 }
 
-func (m *Map) AddDoor(doorindex byte, loc cm.Point) *Door {
+func (m *Map) AddDoor(doorindex byte, loc Point) *Door {
 	for _, d := range m.doors {
 		if d.Index == doorindex {
 			return d
@@ -303,7 +300,7 @@ func (m *Map) OpenDoor(doorindex byte) bool {
 	return true
 }
 
-func (m *Map) CheckDoorOpen(loc cm.Point) bool {
+func (m *Map) CheckDoorOpen(loc Point) bool {
 
 	door := m.doorsMap.Get(loc)
 	if door == nil {
@@ -314,19 +311,19 @@ func (m *Map) CheckDoorOpen(loc cm.Point) bool {
 }
 
 // GetValidPoint ...
-func (m *Map) GetValidPoint(x int, y int, spread int) (cm.Point, error) {
+func (m *Map) GetValidPoint(x int, y int, spread int) (Point, error) {
 	if spread == 0 {
 		c := m.GetCellXY(x, y)
 		if c != nil && c.CanWalk() && !c.HasObject() {
 			return c.Point, nil
 		}
-		return cm.Point{}, fmt.Errorf("GetValidPoint: (x: %d, y: %d), spread: %d\n", x, y, spread)
+		return Point{}, fmt.Errorf("GetValidPoint: (x: %d, y: %d), spread: %d\n", x, y, spread)
 	}
 
 	for i := 0; i < 500; i++ {
-		p := cm.Point{
-			X: uint32(util.AbsInt(x + util.RandomInt(-spread, spread))),
-			Y: uint32(util.AbsInt(y + util.RandomInt(-spread, spread))),
+		p := Point{
+			X: uint32(AbsInt(x + RandomInt(-spread, spread))),
+			Y: uint32(AbsInt(y + RandomInt(-spread, spread))),
 		}
 		c := m.GetCell(p)
 		if c == nil || !c.CanWalk() {
@@ -334,15 +331,15 @@ func (m *Map) GetValidPoint(x int, y int, spread int) (cm.Point, error) {
 		}
 		return p, nil
 	}
-	return cm.Point{}, fmt.Errorf("map(%v) no valid point in (%d,%d) spread: %d", m, x, y, spread)
+	return Point{}, fmt.Errorf("map(%v) no valid point in (%d,%d) spread: %d", m, x, y, spread)
 }
 
-func (m *Map) GetNextCell(cell *Cell, direction cm.MirDirection, step uint32) *Cell {
+func (m *Map) GetNextCell(cell *Cell, direction MirDirection, step uint32) *Cell {
 	p := cell.Point.NextPoint(direction, step)
 	return m.GetCell(p)
 }
 
-func (m *Map) GetObjectInAreaByID(id uint32, p cm.Point) IMapObject {
+func (m *Map) GetObjectInAreaByID(id uint32, p Point) IMapObject {
 	var ret IMapObject
 	m.RangeObject(p, 1, func(o IMapObject) bool {
 		if o.GetID() == id {
@@ -356,7 +353,7 @@ func (m *Map) GetObjectInAreaByID(id uint32, p cm.Point) IMapObject {
 }
 
 // 从p点开始（包含P），由内至外向周围遍历cell。回调函数返回false，停止遍历
-func (m *Map) RangeCell(p cm.Point, depth int, fun func(c *Cell, x, y int) bool) {
+func (m *Map) RangeCell(p Point, depth int, fun func(c *Cell, x, y int) bool) {
 
 	px, py := int(p.X), int(p.Y)
 
@@ -391,7 +388,7 @@ func (m *Map) RangeCell(p cm.Point, depth int, fun func(c *Cell, x, y int) bool)
 	}
 }
 
-func (m *Map) RangeObject(p cm.Point, depth int, fun func(IMapObject) bool) {
+func (m *Map) RangeObject(p Point, depth int, fun func(IMapObject) bool) {
 	var ret = true
 	m.RangeCell(p, depth, func(c *Cell, _, _ int) bool {
 		if c != nil && c.objects != nil {
@@ -424,7 +421,7 @@ func (c *CellSet) Add(m *Map, x, y int, b bool) {
 }
 
 // 根据两个点，求出 远离datarange内的cell，和新加的cell
-func (m *Map) CalcDiff(from, to cm.Point, datarange int) *CellSet {
+func (m *Map) CalcDiff(from, to Point, datarange int) *CellSet {
 	fx, fy, tx, ty := int(from.X), int(from.Y), int(to.X), int(to.Y)
 
 	xChange, yChange := tx-fx, ty-fy

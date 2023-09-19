@@ -1,10 +1,6 @@
 package game
 
-import (
-	"github.com/pyq19/mirgo/setting"
-)
-
-var settings *setting.Settings
+var settings *Settings
 
 const DataRange = 20
 

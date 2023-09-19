@@ -2,9 +2,6 @@ package game
 
 import (
 	"time"
-
-	"github.com/pyq19/mirgo/game/cm"
-	"github.com/pyq19/mirgo/game/proto/server"
 )
 
 // 专用于大刀卫士攻击
@@ -15,18 +12,18 @@ func (m *Monster) GuardAttack() {
 
 	target := ObjectBack(m.Target)
 
-	dir := cm.DirectionFromPoint(target, m.Target.GetPoint())
+	dir := DirectionFromPoint(target, m.Target.GetPoint())
 
-	m.Broadcast(&server.ObjectAttack{
+	m.Broadcast(&SM_ObjectAttack{
 		ObjectID:  m.GetID(),
 		LocationX: int32(target.X),
 		LocationY: int32(target.Y),
 		Direction: dir,
-		Spell:     cm.SpellNone,
+		Spell:     SpellNone,
 		Level:     uint8(0),
 		Type:      uint8(0),
 	})
-	m.Broadcast(&server.ObjectTurn{
+	m.Broadcast(&SM_ObjectTurn{
 		ObjectID:  m.GetID(),
 		Direction: m.Direction,
 		Location:  m.CurrentLocation,
@@ -38,7 +35,7 @@ func (m *Monster) GuardAttack() {
 
 	damage := m.GetAttackPower(int(m.MinDC), int(m.MaxDC))
 
-	if m.Target.GetRace() == cm.ObjectTypePlayer {
+	if m.Target.GetRace() == ObjectTypePlayer {
 		damage = int(^uint(0) >> 1) // INTMAX
 	}
 
@@ -46,7 +43,7 @@ func (m *Monster) GuardAttack() {
 		return
 	}
 
-	m.Target.Attacked(m, damage, cm.DefenceTypeAgility, false)
+	m.Target.Attacked(m, damage, DefenceTypeAgility, false)
 }
 
 func (m *Monster) SpittingSpiderAttack() {

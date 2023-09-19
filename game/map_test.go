@@ -2,14 +2,11 @@ package game
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"strings"
 	"testing"
 
 	"github.com/jinzhu/gorm"
-	"github.com/pyq19/mirgo/game/cm"
-	"github.com/pyq19/mirgo/game/util"
 )
 
 func TestMapAbsPath(t *testing.T) {
@@ -17,7 +14,7 @@ func TestMapAbsPath(t *testing.T) {
 	var mirDB = "/src/github.com/pyq19/mirgo/dotnettools/mir.sqlite"
 	db, _ := gorm.Open("sqlite3", gopath+mirDB)
 
-	mp := make([]cm.MapInfo, 386)
+	mp := make([]MapInfo, 386)
 	db.Table("map").Find(&mp)
 
 	mapDirPath := "/src/github.com/pyq19/mirgo/dotnettools/database/Maps/"
@@ -43,11 +40,11 @@ func TestSaveMapText(t *testing.T) {
 	for i := 0; i < int(m.Width); i++ {
 		for j := 0; j < int(m.Height); j++ {
 			c := m.GetCellXY(i, j)
-			if c.Attribute == cm.CellAttributeWalk {
+			if c.Attribute == CellAttributeWalk {
 				str = str + "0"
-			} else if c.Attribute == cm.CellAttributeHighWall {
+			} else if c.Attribute == CellAttributeHighWall {
 				str = str + "1"
-			} else if int(c.Attribute) == cm.CellAttributeLowWall {
+			} else if int(c.Attribute) == CellAttributeLowWall {
 				str = str + "2"
 			} else {
 				str = str + "?"
@@ -55,13 +52,13 @@ func TestSaveMapText(t *testing.T) {
 		}
 		str = str + "\n"
 	}
-	ioutil.WriteFile(filePath, []byte(str), 0644)
+	os.WriteFile(filePath, []byte(str), 0644)
 }
 
 func TestMap_GetNextCell(t *testing.T) {
 	m := LoadMap(os.Getenv("GOPATH") + "/src/github.com/pyq19/mirgo/dotnettools/database/Maps/0.map")
 	c := &Cell{
-		Point:     cm.Point{100, 200},
+		Point:     Point{100, 200},
 		Attribute: 0,
 		// Objects:   nil,
 	}
@@ -75,7 +72,7 @@ func TestMap_GetNextCell(t *testing.T) {
 		//MirDirectionDownLeft               = 5
 		//MirDirectionLeft                   = 6
 		//MirDirectionUpLeft                 = 7
-		nc := m.GetNextCell(c, cm.MirDirection(i), 3)
+		nc := m.GetNextCell(c, MirDirection(i), 3)
 		t.Log(nc.Point)
 	}
 }
@@ -107,7 +104,7 @@ func TestMapRange(t *testing.T) {
 	mapAbsPath := gopath + "/src/github.com/pyq19/mirgo/dotnettools/database/Maps/0.map"
 	m := LoadMap(mapAbsPath)
 
-	p := cm.Point{X: 1, Y: 1}
+	p := Point{X: 1, Y: 1}
 
 	var printpos = func(c *Cell, _, _ int) bool {
 		if c != nil {
@@ -132,12 +129,12 @@ func TestAllMaps(t *testing.T) {
 	gopath := os.Getenv("GOPATH")
 	mappath := gopath + "/src/github.com/pyq19/mirgo/dotnettools/database/Maps/"
 
-	maps := util.GetFiles(mappath, []string{".map"})
+	maps := GetFiles(mappath, []string{".map"})
 
 	mark := map[byte]bool{}
 
 	for _, m := range maps {
-		bytes, _ := ioutil.ReadFile(m)
+		bytes, _ := os.ReadFile(m)
 		mark[DetectMapVersion(bytes)] = true
 	}
 

@@ -6,13 +6,10 @@ import (
 	"strconv"
 	"strings"
 	"time"
-
-	"github.com/pyq19/mirgo/game/cm"
-	"github.com/pyq19/mirgo/game/util"
 )
 
 type RouteInfo struct {
-	Location cm.Point
+	Location Point
 	Delay    int
 }
 
@@ -39,12 +36,12 @@ func RouteInfoFromText(text string) (*RouteInfo, error) {
 		}
 	}
 
-	return &RouteInfo{Location: cm.NewPoint(x, y), Delay: delay}, nil
+	return &RouteInfo{Location: NewPoint(x, y), Delay: delay}, nil
 }
 
 type Respawn struct {
-	Info     *cm.RespawnInfo
-	Monster  *cm.MonsterInfo
+	Info     *RespawnInfo
+	Monster  *MonsterInfo
 	Routes   []*RouteInfo
 	Count    int
 	Map      *Map
@@ -52,7 +49,7 @@ type Respawn struct {
 	Elapsed  time.Duration
 }
 
-func NewRespawn(m *Map, info *cm.RespawnInfo) (*Respawn, error) {
+func NewRespawn(m *Map, info *RespawnInfo) (*Respawn, error) {
 	r := &Respawn{}
 	r.Map = m
 	r.Info = info
@@ -73,11 +70,11 @@ func (r *Respawn) LoadRoutes() error {
 	}
 
 	filename := filepath.Join(settings.RoutePath, r.Info.RoutePath+".txt")
-	if !util.IsFile(filename) {
+	if !IsFile(filename) {
 		return errors.New("Route文件不存在:" + r.Info.RoutePath)
 	}
 
-	lines, err := util.ReadLines(filename)
+	lines, err := ReadLines(filename)
 	if err != nil {
 		return errors.New("Route文件读取失败:" + err.Error())
 	}
@@ -112,15 +109,15 @@ func (r *Respawn) Spawn() {
 
 func (r *Respawn) SpawnOne() bool {
 	for i := 0; i < 10; i++ {
-		x := r.Info.LocationX + util.RandomInt(-r.Info.Spread, r.Info.Spread)
-		y := r.Info.LocationY + util.RandomInt(-r.Info.Spread, r.Info.Spread)
+		x := r.Info.LocationX + RandomInt(-r.Info.Spread, r.Info.Spread)
+		y := r.Info.LocationY + RandomInt(-r.Info.Spread, r.Info.Spread)
 
 		if !r.Map.ValidPointXY(x, y) {
 			continue
 		}
 
-		m := NewMonster(r.Map, cm.NewPoint(x, y), r.Monster)
-		m.Direction = cm.MirDirection(r.Info.Direction)
+		m := NewMonster(r.Map, NewPoint(x, y), r.Monster)
+		m.Direction = MirDirection(r.Info.Direction)
 		r.Map.AddObject(m)
 
 		m.BroadcastInfo()

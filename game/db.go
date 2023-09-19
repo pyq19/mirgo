@@ -2,7 +2,6 @@ package game
 
 import (
 	"github.com/jinzhu/gorm"
-	"github.com/pyq19/mirgo/game/cm"
 )
 
 type DB struct {
@@ -18,13 +17,13 @@ func NewAccountDB(db *gorm.DB) *DB {
 
 	db.SingularTable(true)
 	db.AutoMigrate(
-		&cm.Basic{},
-		&cm.Account{},
-		&cm.AccountCharacter{},
-		&cm.Character{},
-		&cm.CharacterUserItem{},
-		&cm.UserItem{},
-		&cm.UserMagic{},
+		&Basic{},
+		&Account{},
+		&AccountCharacter{},
+		&Character{},
+		&CharacterUserItem{},
+		&UserItem{},
+		&UserMagic{},
 	)
 
 	return r
@@ -53,22 +52,22 @@ func (d *DB) SyncPosition(p *Player) {
 	d.setCharacterAttr(p, "current_location_y", p.GetPoint().Y)
 }
 
-func (d *DB) SyncMagicKey(p *Player, spell cm.Spell, key uint8) {
+func (d *DB) SyncMagicKey(p *Player, spell Spell, key uint8) {
 	d.db.Table("user_magic").Where("spell = ?", spell).Update("magic_key", key)
 }
 
-func (d *DB) AddSkill(p *Player, magic *cm.UserMagic) {
+func (d *DB) AddSkill(p *Player, magic *UserMagic) {
 	d.db.Table("user_magic").Create(magic)
 }
 
 func (d *DB) GetObjectID() uint32 {
-	var basic cm.Basic
+	var basic Basic
 	d.db.Table("basic").First(&basic)
 	return basic.ObjectID
 }
 
 func (d *DB) SyncObjectID(id uint32) {
-	d.db.Table("basic").Where(cm.Basic{ID: 1}).Update(map[string]interface{}{"object_id": id})
+	d.db.Table("basic").Where(Basic{ID: 1}).Update(map[string]interface{}{"object_id": id})
 }
 
 func (d *DB) SyncAModePMode(p *Player) {

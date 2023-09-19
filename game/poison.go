@@ -3,8 +3,6 @@ package game
 import (
 	"container/list"
 	"time"
-
-	"github.com/pyq19/mirgo/game/cm"
 )
 
 type PoisonList struct {
@@ -13,7 +11,7 @@ type PoisonList struct {
 
 type Poison struct {
 	Owner     IMapObject
-	PType     cm.PoisonType
+	PType     PoisonType
 	Value     int           // 效果总数
 	Duration  time.Duration // 持续多久（秒）
 	TickSpeed time.Duration // 两次间隔多少毫秒
@@ -22,7 +20,7 @@ type Poison struct {
 	TickTime  time.Time     // 下次生效时间
 }
 
-func NewPoison(duration int, owner IMapObject, ptype cm.PoisonType, tickSpeed int, value int) *Poison {
+func NewPoison(duration int, owner IMapObject, ptype PoisonType, tickSpeed int, value int) *Poison {
 	d := time.Duration(duration) * time.Second       // 持续多少秒
 	t := time.Duration(tickSpeed) * time.Millisecond // 两次间隔多少毫秒
 	tickNum := int(d / t)                            // 总共跳几次

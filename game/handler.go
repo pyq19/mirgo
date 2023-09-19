@@ -4,10 +4,6 @@ import (
 	"time"
 
 	"github.com/davyxu/cellnet"
-	"github.com/pyq19/mirgo/game/cm"
-	_ "github.com/pyq19/mirgo/game/mirtcp"
-	"github.com/pyq19/mirgo/game/proto/client"
-	"github.com/pyq19/mirgo/game/proto/server"
 )
 
 type Game struct {
@@ -23,23 +19,23 @@ func (g *Game) HandleEvent(ev cellnet.Event) {
 		g.SessionAccepted(s, msg)
 	case *cellnet.SessionClosed: // 有连接断开
 		g.SessionClosed(s, msg)
-	case *client.ClientVersion:
+	case *CM_ClientVersion:
 		g.ClientVersion(s, msg)
-	case *client.KeepAlive:
+	case *CM_KeepAlive:
 		g.KeepAlive(s, msg)
-	case *client.NewAccount:
+	case *CM_NewAccount:
 		g.NewAccount(s, msg)
-	case *client.ChangePassword:
+	case *CM_ChangePassword:
 		g.ChangePassword(s, msg)
-	case *client.Login:
+	case *CM_Login:
 		g.Login(s, msg)
-	case *client.NewCharacter:
+	case *CM_NewCharacter:
 		g.NewCharacter(s, msg)
-	case *client.DeleteCharacter:
+	case *CM_DeleteCharacter:
 		g.DeleteCharacter(s, msg)
-	case *client.StartGame:
+	case *CM_StartGame:
 		g.StartGame(s, msg)
-	case *client.LogOut:
+	case *CM_LogOut:
 		g.LogOut(s, msg)
 
 	default:
@@ -55,251 +51,251 @@ func (g *Game) HandleEvent(ev cellnet.Event) {
 func _HandleEvent(p *Player, g *Game, ev cellnet.Event, s cellnet.Session) {
 
 	switch msg := ev.Message().(type) {
-	case *client.Turn:
+	case *CM_Turn:
 		g.Turn(p, msg)
-	case *client.Walk:
+	case *CM_Walk:
 		g.Walk(p, msg)
-	case *client.Run:
+	case *CM_Run:
 		g.Run(p, msg)
-	case *client.Chat:
+	case *CM_Chat:
 		g.Chat(p, msg)
-	case *client.MoveItem:
+	case *CM_MoveItem:
 		g.MoveItem(p, msg)
-	case *client.StoreItem:
+	case *CM_StoreItem:
 		g.StoreItem(p, msg)
-	case *client.DepositRefineItem:
+	case *CM_DepositRefineItem:
 		g.DepositRefineItem(p, msg)
-	case *client.RetrieveRefineItem:
+	case *CM_RetrieveRefineItem:
 		g.RetrieveRefineItem(p, msg)
-	case *client.RefineCancel:
+	case *CM_RefineCancel:
 		g.RefineCancel(p, msg)
-	case *client.RefineItem:
+	case *CM_RefineItem:
 		g.RefineItem(p, msg)
-	case *client.CheckRefine:
+	case *CM_CheckRefine:
 		g.CheckRefine(p, msg)
-	case *client.ReplaceWedRing:
+	case *CM_ReplaceWedRing:
 		g.ReplaceWedRing(p, msg)
-	case *client.DepositTradeItem:
+	case *CM_DepositTradeItem:
 		g.DepositTradeItem(p, msg)
-	case *client.RetrieveTradeItem:
+	case *CM_RetrieveTradeItem:
 		g.RetrieveTradeItem(p, msg)
-	case *client.TakeBackItem:
+	case *CM_TakeBackItem:
 		g.TakeBackItem(p, msg)
-	case *client.MergeItem:
+	case *CM_MergeItem:
 		g.MergeItem(p, msg)
-	case *client.EquipItem:
+	case *CM_EquipItem:
 		g.EquipItem(p, msg)
-	case *client.RemoveItem:
+	case *CM_RemoveItem:
 		g.RemoveItem(p, msg)
-	case *client.RemoveSlotItem:
+	case *CM_RemoveSlotItem:
 		g.RemoveSlotItem(p, msg)
-	case *client.SplitItem:
+	case *CM_SplitItem:
 		g.SplitItem(p, msg)
-	case *client.UseItem:
+	case *CM_UseItem:
 		g.UseItem(p, msg)
-	case *client.DropItem:
+	case *CM_DropItem:
 		g.DropItem(p, msg)
-	case *client.DropGold:
+	case *CM_DropGold:
 		g.DropGold(p, msg)
-	case *client.PickUp:
+	case *CM_PickUp:
 		g.PickUp(p, msg)
-	case *client.Inspect:
+	case *CM_Inspect:
 		g.Inspect(p, msg)
-	case *client.ChangeAMode:
+	case *CM_ChangeAMode:
 		g.ChangeAMode(p, msg)
-	case *client.ChangePMode:
+	case *CM_ChangePMode:
 		g.ChangePMode(p, msg)
-	case *client.ChangeTrade:
+	case *CM_ChangeTrade:
 		g.ChangeTrade(p, msg)
-	case *client.Attack:
+	case *CM_Attack:
 		g.Attack(p, msg)
-	case *client.RangeAttack:
+	case *CM_RangeAttack:
 		g.RangeAttack(p, msg)
-	case *client.Harvest:
+	case *CM_Harvest:
 		g.Harvest(p, msg)
-	case *client.CallNPC:
+	case *CM_CallNPC:
 		g.CallNPC(p, msg)
-	case *client.TalkMonsterNPC:
+	case *CM_TalkMonsterNPC:
 		g.TalkMonsterNPC(p, msg)
-	case *client.BuyItem:
+	case *CM_BuyItem:
 		g.BuyItem(p, msg)
-	case *client.CraftItem:
+	case *CM_CraftItem:
 		g.CraftItem(p, msg)
-	case *client.SellItem:
+	case *CM_SellItem:
 		g.SellItem(p, msg)
-	case *client.RepairItem:
+	case *CM_RepairItem:
 		g.RepairItem(p, msg)
-	case *client.BuyItemBack:
+	case *CM_BuyItemBack:
 		g.BuyItemBack(p, msg)
-	case *client.SRepairItem:
+	case *CM_SRepairItem:
 		g.SRepairItem(p, msg)
-	case *client.MagicKey:
+	case *CM_MagicKey:
 		g.MagicKey(p, msg)
-	case *client.Magic:
+	case *CM_Magic:
 		g.Magic(p, msg)
-	case *client.SwitchGroup:
+	case *CM_SwitchGroup:
 		g.SwitchGroup(p, msg)
-	case *client.AddMember:
+	case *CM_AddMember:
 		g.AddMember(p, msg)
-	case *client.DelMember:
+	case *CM_DelMember:
 		g.DelMember(p, msg)
-	case *client.GroupInvite:
+	case *CM_GroupInvite:
 		g.GroupInvite(p, msg)
-	case *client.TownRevive:
+	case *CM_TownRevive:
 		g.TownRevive(p, msg)
-	case *client.SpellToggle:
+	case *CM_SpellToggle:
 		g.SpellToggle(p, msg)
-	case *client.ConsignItem:
+	case *CM_ConsignItem:
 		g.ConsignItem(p, msg)
-	case *client.MarketSearch:
+	case *CM_MarketSearch:
 		g.MarketSearch(p, msg)
-	case *client.MarketRefresh:
+	case *CM_MarketRefresh:
 		g.MarketRefresh(p, msg)
-	case *client.MarketPage:
+	case *CM_MarketPage:
 		g.MarketPage(p, msg)
-	case *client.MarketBuy:
+	case *CM_MarketBuy:
 		g.MarketBuy(p, msg)
-	case *client.MarketGetBack:
+	case *CM_MarketGetBack:
 		g.MarketGetBack(p, msg)
-	case *client.RequestUserName:
+	case *CM_RequestUserName:
 		g.RequestUserName(p, msg)
-	case *client.RequestChatItem:
+	case *CM_RequestChatItem:
 		g.RequestChatItem(p, msg)
-	case *client.EditGuildMember:
+	case *CM_EditGuildMember:
 		g.EditGuildMember(p, msg)
-	case *client.EditGuildNotice:
+	case *CM_EditGuildNotice:
 		g.EditGuildNotice(p, msg)
-	case *client.GuildInvite:
+	case *CM_GuildInvite:
 		g.GuildInvite(p, msg)
-	case *client.RequestGuildInfo:
+	case *CM_RequestGuildInfo:
 		g.RequestGuildInfo(p, msg)
-	case *client.GuildNameReturn:
+	case *CM_GuildNameReturn:
 		g.GuildNameReturn(p, msg)
-	case *client.GuildStorageGoldChange:
+	case *CM_GuildStorageGoldChange:
 		g.GuildStorageGoldChange(p, msg)
-	case *client.GuildStorageItemChange:
+	case *CM_GuildStorageItemChange:
 		g.GuildStorageItemChange(p, msg)
-	case *client.GuildWarReturn:
+	case *CM_GuildWarReturn:
 		g.GuildWarReturn(p, msg)
-	case *client.MarriageRequest:
+	case *CM_MarriageRequest:
 		g.MarriageRequest(p, msg)
-	case *client.MarriageReply:
+	case *CM_MarriageReply:
 		g.MarriageReply(p, msg)
-	case *client.ChangeMarriage:
+	case *CM_ChangeMarriage:
 		g.ChangeMarriage(p, msg)
-	case *client.DivorceRequest:
+	case *CM_DivorceRequest:
 		g.DivorceRequest(p, msg)
-	case *client.DivorceReply:
+	case *CM_DivorceReply:
 		g.DivorceReply(p, msg)
-	case *client.AddMentor:
+	case *CM_AddMentor:
 		g.AddMentor(p, msg)
-	case *client.MentorReply:
+	case *CM_MentorReply:
 		g.MentorReply(p, msg)
-	case *client.AllowMentor:
+	case *CM_AllowMentor:
 		g.AllowMentor(p, msg)
-	case *client.CancelMentor:
+	case *CM_CancelMentor:
 		g.CancelMentor(p, msg)
-	case *client.TradeRequest:
+	case *CM_TradeRequest:
 		g.TradeRequest(p, msg)
-	case *client.TradeGold:
+	case *CM_TradeGold:
 		g.TradeGold(p, msg)
-	case *client.TradeReply:
+	case *CM_TradeReply:
 		g.TradeReply(p, msg)
-	case *client.TradeConfirm:
+	case *CM_TradeConfirm:
 		g.TradeConfirm(p, msg)
-	case *client.TradeCancel:
+	case *CM_TradeCancel:
 		g.TradeCancel(p, msg)
-	case *client.EquipSlotItem:
+	case *CM_EquipSlotItem:
 		g.EquipSlotItem(p, msg)
-	case *client.FishingCast:
+	case *CM_FishingCast:
 		g.FishingCast(p, msg)
-	case *client.FishingChangeAutocast:
+	case *CM_FishingChangeAutocast:
 		g.FishingChangeAutocast(p, msg)
-	case *client.AcceptQuest:
+	case *CM_AcceptQuest:
 		g.AcceptQuest(p, msg)
-	case *client.FinishQuest:
+	case *CM_FinishQuest:
 		g.FinishQuest(p, msg)
-	case *client.AbandonQuest:
+	case *CM_AbandonQuest:
 		g.AbandonQuest(p, msg)
-	case *client.ShareQuest:
+	case *CM_ShareQuest:
 		g.ShareQuest(p, msg)
-	case *client.AcceptReincarnation:
+	case *CM_AcceptReincarnation:
 		g.AcceptReincarnation(p, msg)
-	case *client.CancelReincarnation:
+	case *CM_CancelReincarnation:
 		g.CancelReincarnation(p, msg)
-	case *client.CombineItem:
+	case *CM_CombineItem:
 		g.CombineItem(p, msg)
-	case *client.SetConcentration:
+	case *CM_SetConcentration:
 		g.SetConcentration(p, msg)
-	case *client.AwakeningNeedMaterials:
+	case *CM_AwakeningNeedMaterials:
 		g.AwakeningNeedMaterials(p, msg)
-	case *client.AwakeningLockedItem:
+	case *CM_AwakeningLockedItem:
 		g.AwakeningLockedItem(p, msg)
-	case *client.Awakening:
+	case *CM_Awakening:
 		g.Awakening(p, msg)
-	case *client.DisassembleItem:
+	case *CM_DisassembleItem:
 		g.DisassembleItem(p, msg)
-	case *client.DowngradeAwakening:
+	case *CM_DowngradeAwakening:
 		g.DowngradeAwakening(p, msg)
-	case *client.ResetAddedItem:
+	case *CM_ResetAddedItem:
 		g.ResetAddedItem(p, msg)
-	case *client.SendMail:
+	case *CM_SendMail:
 		g.SendMail(p, msg)
-	case *client.ReadMail:
+	case *CM_ReadMail:
 		g.ReadMail(p, msg)
-	case *client.CollectParcel:
+	case *CM_CollectParcel:
 		g.CollectParcel(p, msg)
-	case *client.DeleteMail:
+	case *CM_DeleteMail:
 		g.DeleteMail(p, msg)
-	case *client.LockMail:
+	case *CM_LockMail:
 		g.LockMail(p, msg)
-	case *client.MailLockedItem:
+	case *CM_MailLockedItem:
 		g.MailLockedItem(p, msg)
-	case *client.MailCost:
+	case *CM_MailCost:
 		g.MailCost(p, msg)
-	case *client.UpdateIntelligentCreature: //IntelligentCreature
+	case *CM_UpdateIntelligentCreature: //IntelligentCreature
 		g.UpdateIntelligentCreature(p, msg)
-	case *client.IntelligentCreaturePickup: //IntelligentCreature
+	case *CM_IntelligentCreaturePickup: //IntelligentCreature
 		g.IntelligentCreaturePickup(p, msg)
-	case *client.AddFriend:
+	case *CM_AddFriend:
 		g.AddFriend(p, msg)
-	case *client.RemoveFriend:
+	case *CM_RemoveFriend:
 		g.RemoveFriend(p, msg)
-	case *client.RefreshFriends:
+	case *CM_RefreshFriends:
 		g.RefreshFriends(p, msg)
-	case *client.AddMemo:
+	case *CM_AddMemo:
 		g.AddMemo(p, msg)
-	case *client.GuildBuffUpdate:
+	case *CM_GuildBuffUpdate:
 		g.GuildBuffUpdate(p, msg)
-	case *client.GameshopBuy:
+	case *CM_GameshopBuy:
 		g.GameshopBuy(p, msg)
-	case *client.NPCConfirmInput:
+	case *CM_NPCConfirmInput:
 		g.NPCConfirmInput(p, msg)
-	case *client.ReportIssue:
+	case *CM_ReportIssue:
 		g.ReportIssue(p, msg)
-	case *client.GetRanking:
+	case *CM_GetRanking:
 		g.GetRanking(p, msg)
-	case *client.Opendoor:
+	case *CM_Opendoor:
 		g.Opendoor(p, msg)
-	case *client.GetRentedItems:
+	case *CM_GetRentedItems:
 		g.GetRentedItems(p, msg)
-	case *client.ItemRentalRequest:
+	case *CM_ItemRentalRequest:
 		g.ItemRentalRequest(p, msg)
-	case *client.ItemRentalFee:
+	case *CM_ItemRentalFee:
 		g.ItemRentalFee(p, msg)
-	case *client.ItemRentalPeriod:
+	case *CM_ItemRentalPeriod:
 		g.ItemRentalPeriod(p, msg)
-	case *client.DepositRentalItem:
+	case *CM_DepositRentalItem:
 		g.DepositRentalItem(p, msg)
-	case *client.RetrieveRentalItem:
+	case *CM_RetrieveRentalItem:
 		g.RetrieveRentalItem(p, msg)
-	case *client.CancelItemRental:
+	case *CM_CancelItemRental:
 		g.CancelItemRental(p, msg)
-	case *client.ItemRentalLockFee:
+	case *CM_ItemRentalLockFee:
 		g.ItemRentalLockFee(p, msg)
-	case *client.ItemRentalLockItem:
+	case *CM_ItemRentalLockItem:
 		g.ItemRentalLockItem(p, msg)
-	case *client.ConfirmItemRental:
+	case *CM_ConfirmItemRental:
 		g.ConfirmItemRental(p, msg)
 	default:
 		log.Debugln("default:", msg)
@@ -309,7 +305,7 @@ func _HandleEvent(p *Player, g *Game, ev cellnet.Event, s cellnet.Session) {
 
 // SessionAccepted ...
 func (g *Game) SessionAccepted(s cellnet.Session, msg *cellnet.SessionAccepted) {
-	s.Send(&server.Connected{})
+	s.Send(&SM_Connected{})
 }
 
 // SessionClosed ...
@@ -333,8 +329,8 @@ func (g *Game) SessionClosed(s cellnet.Session, msg *cellnet.SessionClosed) {
 }
 
 // ClientVersion ...
-func (g *Game) ClientVersion(s cellnet.Session, msg *client.ClientVersion) {
-	clientVersion := server.ClientVersion{Result: 1}
+func (g *Game) ClientVersion(s cellnet.Session, msg *CM_ClientVersion) {
+	clientVersion := SM_ClientVersion{Result: 1}
 	p := new(Player)
 	p.GameStage = LOGIN
 	p.Session = &s
@@ -355,12 +351,12 @@ func (g *Game) GetPlayer(s cellnet.Session, gameStage int) (p *Player, ok bool) 
 }
 
 // KeepAlive ...
-func (g *Game) KeepAlive(s cellnet.Session, msg *client.KeepAlive) {
-	s.Send(server.KeepAlive{Time: 0})
+func (g *Game) KeepAlive(s cellnet.Session, msg *CM_KeepAlive) {
+	s.Send(SM_KeepAlive{Time: 0})
 }
 
 // NewAccount 保存新账号
-func (g *Game) NewAccount(s cellnet.Session, msg *client.NewAccount) {
+func (g *Game) NewAccount(s cellnet.Session, msg *CM_NewAccount) {
 	/*
 	 * 0: Disabled
 	 * 1: Bad AccountID
@@ -378,7 +374,7 @@ func (g *Game) NewAccount(s cellnet.Session, msg *client.NewAccount) {
 	}
 
 	res := uint8(0)
-	ac := new(cm.Account)
+	ac := new(Account)
 	adb.Table("account").Where("username = ?", msg.AccountID).Find(ac)
 	if ac.ID == 0 && ac.Username == "" {
 		ac.Username = msg.AccountID
@@ -386,11 +382,11 @@ func (g *Game) NewAccount(s cellnet.Session, msg *client.NewAccount) {
 		adb.Table("account").Create(&ac)
 		res = 8
 	}
-	s.Send(&server.NewAccount{Result: res})
+	s.Send(&SM_NewAccount{Result: res})
 }
 
 // ChangePassword 改密码
-func (g *Game) ChangePassword(s cellnet.Session, msg *client.ChangePassword) {
+func (g *Game) ChangePassword(s cellnet.Session, msg *CM_ChangePassword) {
 	/*
 	 * 0: Disabled
 	 * 1: Bad AccountID
@@ -406,28 +402,28 @@ func (g *Game) ChangePassword(s cellnet.Session, msg *client.ChangePassword) {
 	}
 
 	res := uint8(5)
-	ac := new(cm.Account)
+	ac := new(Account)
 	adb.Table("account").Where("username = ? AND password = ?", msg.AccountID, msg.CurrentPassword).Find(ac)
 	if ac.ID != 0 {
 		ac.Password = msg.NewPassword
-		adb.Table("account").Model(ac).Updates(cm.Account{Password: msg.NewPassword})
+		adb.Table("account").Model(ac).Updates(Account{Password: msg.NewPassword})
 		res = 6
 	}
-	s.Send(&server.ChangePassword{Result: res})
+	s.Send(&SM_ChangePassword{Result: res})
 }
 
-func (g *Game) getAccountCharacters(AccountID int) []server.SelectInfo {
-	ac := make([]cm.AccountCharacter, 3)
+func (g *Game) getAccountCharacters(AccountID int) []SM_SelectInfo {
+	ac := make([]AccountCharacter, 3)
 	adb.Table("account_character").Where("account_id = ?", AccountID).Limit(3).Find(&ac)
 	ids := make([]int, 3)
 	for _, c := range ac {
 		ids = append(ids, c.ID)
 	}
-	cs := make([]cm.Character, 3)
+	cs := make([]Character, 3)
 	adb.Table("character").Where("id in (?)", ids).Find(&cs)
-	si := make([]server.SelectInfo, len(cs))
+	si := make([]SM_SelectInfo, len(cs))
 	for i, c := range cs {
-		s := new(server.SelectInfo)
+		s := new(SM_SelectInfo)
 		s.Index = uint32(c.ID)
 		s.Name = c.Name
 		s.Level = c.Level
@@ -440,12 +436,12 @@ func (g *Game) getAccountCharacters(AccountID int) []server.SelectInfo {
 }
 
 // Login 登陆
-func (g *Game) Login(s cellnet.Session, msg *client.Login) {
+func (g *Game) Login(s cellnet.Session, msg *CM_Login) {
 	p, ok := g.GetPlayer(s, LOGIN)
 	if !ok {
 		return
 	}
-	a := new(cm.Account)
+	a := new(Account)
 	adb.Table("account").Where("username = ? AND password = ?", msg.AccountID, msg.Password).Find(a)
 	if a.ID == 0 {
 		s.Send(ServerMessage{}.Login(4))
@@ -453,18 +449,18 @@ func (g *Game) Login(s cellnet.Session, msg *client.Login) {
 	}
 	p.AccountID = a.ID
 	p.GameStage = SELECT
-	res := new(server.LoginSuccess)
+	res := new(SM_LoginSuccess)
 	res.Characters = g.getAccountCharacters(p.AccountID)
 	s.Send(res)
 }
 
 // NewCharacter 创建角色
-func (g *Game) NewCharacter(s cellnet.Session, msg *client.NewCharacter) {
+func (g *Game) NewCharacter(s cellnet.Session, msg *CM_NewCharacter) {
 	p, ok := g.GetPlayer(s, SELECT)
 	if !ok {
 		return
 	}
-	acs := make([]cm.AccountCharacter, 3)
+	acs := make([]AccountCharacter, 3)
 	adb.Table("account_character").Where("account_id = ?", p.AccountID).Limit(3).Find(&acs)
 	if len(acs) >= 3 {
 		s.Send(ServerMessage{}.NewCharacter(4))
@@ -474,48 +470,48 @@ func (g *Game) NewCharacter(s cellnet.Session, msg *client.NewCharacter) {
 }
 
 // DeleteCharacter 删除角色
-func (g *Game) DeleteCharacter(s cellnet.Session, msg *client.DeleteCharacter) {
+func (g *Game) DeleteCharacter(s cellnet.Session, msg *CM_DeleteCharacter) {
 	_, ok := g.GetPlayer(s, SELECT)
 	if !ok {
 		return
 	}
 
-	c := new(cm.Character)
+	c := new(Character)
 	adb.Table("character").Where("id = ?", msg.CharacterIndex).Find(c)
 	if c.ID == 0 {
-		res := new(server.DeleteCharacter)
+		res := new(SM_DeleteCharacter)
 		res.Result = 4
 		s.Send(res)
 		return
 	}
 	adb.Table("character").Delete(c)
-	adb.Table("account_character").Where("character_id = ?", c.ID).Delete(cm.Character{})
-	res := new(server.DeleteCharacterSuccess)
+	adb.Table("account_character").Where("character_id = ?", c.ID).Delete(Character{})
+	res := new(SM_DeleteCharacterSuccess)
 	res.CharacterIndex = msg.CharacterIndex
 	s.Send(res)
 }
 
-func updatePlayerInfo(g *Game, p *Player, c *cm.Character) {
+func updatePlayerInfo(g *Game, p *Player, c *Character) {
 	p.GameStage = GAME
 	p.ID = uint32(c.ID)
 	p.Name = c.Name
-	p.NameColor = cm.Color{R: 255, G: 255, B: 255}
+	p.NameColor = Color{R: 255, G: 255, B: 255}
 	p.Direction = c.Direction
-	p.CurrentLocation = cm.NewPoint(int(c.CurrentLocationX), int(c.CurrentLocationY))
-	p.BindLocation = cm.NewPoint(c.BindLocationX, c.BindLocationY)
+	p.CurrentLocation = NewPoint(int(c.CurrentLocationX), int(c.CurrentLocationY))
+	p.BindLocation = NewPoint(c.BindLocationX, c.BindLocationY)
 	p.BindMapIndex = c.BindMapID
 
-	magics := make([]*cm.UserMagic, 0)
+	magics := make([]*UserMagic, 0)
 	adb.Table("user_magic").Where("character_id = ?", c.ID).Find(&magics)
 	for _, v := range magics {
 		v.Info = data.GetMagicInfoByID(v.MagicID)
 	}
 
-	p.Inventory = BagLoadFromDB(p, cm.UserItemTypeInventory, 46)
-	p.Equipment = BagLoadFromDB(p, cm.UserItemTypeEquipment, 14)
-	p.QuestInventory = BagLoadFromDB(p, cm.UserItemTypeQuestInventory, 40)
-	p.Storage = BagLoadFromDB(p, cm.UserItemTypeStorage, 80)
-	p.Trade = NewBag(p, cm.UserItemTypeTrade, 10)
+	p.Inventory = BagLoadFromDB(p, UserItemTypeInventory, 46)
+	p.Equipment = BagLoadFromDB(p, UserItemTypeEquipment, 14)
+	p.QuestInventory = BagLoadFromDB(p, UserItemTypeQuestInventory, 40)
+	p.Storage = BagLoadFromDB(p, UserItemTypeStorage, 80)
+	p.Trade = NewBag(p, UserItemTypeTrade, 10)
 
 	healNextTime := time.Now().Add(10 * time.Second)
 	p.Dead = false
@@ -529,7 +525,7 @@ func updatePlayerInfo(g *Game, p *Player, c *cm.Character) {
 	p.Class = c.Class
 	p.Gender = c.Gender
 	p.Hair = c.Hair
-	p.SendItemInfo = make([]*cm.ItemInfo, 0)
+	p.SendItemInfo = make([]*ItemInfo, 0)
 	p.MaxExperience = int64(data.ExpList[p.Level-1])
 	p.Magics = magics
 	p.ActionList = NewActionList()
@@ -555,18 +551,18 @@ func updatePlayerInfo(g *Game, p *Player, c *cm.Character) {
 }
 
 // StartGame 开始游戏
-func (g *Game) StartGame(s cellnet.Session, msg *client.StartGame) {
+func (g *Game) StartGame(s cellnet.Session, msg *CM_StartGame) {
 	p, ok := g.GetPlayer(s, SELECT)
 	if !ok {
 		return
 	}
 
-	c := new(cm.Character)
+	c := new(Character)
 	adb.Table("character").Where("id = ?", msg.CharacterIndex).Find(c)
 	if c.ID == 0 {
 		return
 	}
-	ac := new(cm.AccountCharacter)
+	ac := new(AccountCharacter)
 	adb.Table("account_character").Where("account_id = ? and character_id = ?", p.AccountID, c.ID).Find(&ac)
 	if ac.ID == 0 {
 		s.Send(ServerMessage{}.StartGame(2, 1024))
@@ -592,7 +588,7 @@ func (g *Game) StartGame(s cellnet.Session, msg *client.StartGame) {
 	p.StartGame()
 }
 
-func (g *Game) LogOut(s cellnet.Session, msg *client.LogOut) {
+func (g *Game) LogOut(s cellnet.Session, msg *CM_LogOut) {
 	p, ok := g.GetPlayer(s, GAME)
 	if !ok {
 		return
@@ -601,499 +597,499 @@ func (g *Game) LogOut(s cellnet.Session, msg *client.LogOut) {
 	p.StopGame(StopGameUserReturnedToSelectChar)
 	env.Players.Remove(p)
 	p.Map.DeleteObject(p)
-	s.Send(&server.LogOutSuccess{Characters: g.getAccountCharacters(p.AccountID)})
+	s.Send(&SM_LogOutSuccess{Characters: g.getAccountCharacters(p.AccountID)})
 	p.SaveData()
 }
 
-func (g *Game) Turn(p *Player, msg *client.Turn) {
+func (g *Game) Turn(p *Player, msg *CM_Turn) {
 	p.Turn(msg.Direction)
 }
 
-func (g *Game) Walk(p *Player, msg *client.Walk) {
+func (g *Game) Walk(p *Player, msg *CM_Walk) {
 	p.Walk(msg.Direction)
 }
 
-func (g *Game) Run(p *Player, msg *client.Run) {
+func (g *Game) Run(p *Player, msg *CM_Run) {
 	p.Run(msg.Direction)
 }
 
-func (g *Game) Chat(p *Player, msg *client.Chat) {
+func (g *Game) Chat(p *Player, msg *CM_Chat) {
 	p.Chat(msg.Message)
 }
 
-func (g *Game) MoveItem(p *Player, msg *client.MoveItem) {
+func (g *Game) MoveItem(p *Player, msg *CM_MoveItem) {
 	p.MoveItem(msg.Grid, msg.From, msg.To)
 }
 
-func (g *Game) StoreItem(p *Player, msg *client.StoreItem) {
+func (g *Game) StoreItem(p *Player, msg *CM_StoreItem) {
 	p.StoreItem(msg.From, msg.To)
 }
 
-func (g *Game) DepositRefineItem(p *Player, msg *client.DepositRefineItem) {
+func (g *Game) DepositRefineItem(p *Player, msg *CM_DepositRefineItem) {
 	p.DepositRefineItem(msg.From, msg.To)
 }
 
-func (g *Game) RetrieveRefineItem(p *Player, msg *client.RetrieveRefineItem) {
+func (g *Game) RetrieveRefineItem(p *Player, msg *CM_RetrieveRefineItem) {
 	p.RetrieveRefineItem(msg.From, msg.To)
 }
 
-func (g *Game) RefineCancel(p *Player, msg *client.RefineCancel) {
+func (g *Game) RefineCancel(p *Player, msg *CM_RefineCancel) {
 	p.RefineCancel()
 }
 
-func (g *Game) RefineItem(p *Player, msg *client.RefineItem) {
+func (g *Game) RefineItem(p *Player, msg *CM_RefineItem) {
 	p.RefineItem(msg.UniqueID)
 }
 
-func (g *Game) CheckRefine(p *Player, msg *client.CheckRefine) {
+func (g *Game) CheckRefine(p *Player, msg *CM_CheckRefine) {
 	p.CheckRefine(msg.UniqueID)
 }
 
-func (g *Game) ReplaceWedRing(p *Player, msg *client.ReplaceWedRing) {
+func (g *Game) ReplaceWedRing(p *Player, msg *CM_ReplaceWedRing) {
 	p.ReplaceWeddingRing(msg.UniqueID)
 }
 
-func (g *Game) DepositTradeItem(p *Player, msg *client.DepositTradeItem) {
+func (g *Game) DepositTradeItem(p *Player, msg *CM_DepositTradeItem) {
 	p.DepositTradeItem(msg.From, msg.To)
 }
 
-func (g *Game) RetrieveTradeItem(p *Player, msg *client.RetrieveTradeItem) {
+func (g *Game) RetrieveTradeItem(p *Player, msg *CM_RetrieveTradeItem) {
 	p.RetrieveTradeItem(msg.From, msg.To)
 }
 
-func (g *Game) TakeBackItem(p *Player, msg *client.TakeBackItem) {
+func (g *Game) TakeBackItem(p *Player, msg *CM_TakeBackItem) {
 	p.TakeBackItem(msg.From, msg.To)
 }
 
-func (g *Game) MergeItem(p *Player, msg *client.MergeItem) {
+func (g *Game) MergeItem(p *Player, msg *CM_MergeItem) {
 	p.MergeItem(msg.GridFrom, msg.GridTo, msg.IDFrom, msg.IDTo)
 }
 
-func (g *Game) EquipItem(p *Player, msg *client.EquipItem) {
+func (g *Game) EquipItem(p *Player, msg *CM_EquipItem) {
 	p.EquipItem(msg.Grid, msg.UniqueID, msg.To)
 }
 
-func (g *Game) RemoveItem(p *Player, msg *client.RemoveItem) {
+func (g *Game) RemoveItem(p *Player, msg *CM_RemoveItem) {
 	p.RemoveItem(msg.Grid, msg.UniqueID, msg.To)
 }
 
-func (g *Game) RemoveSlotItem(p *Player, msg *client.RemoveSlotItem) {
+func (g *Game) RemoveSlotItem(p *Player, msg *CM_RemoveSlotItem) {
 	p.RemoveSlotItem(msg.Grid, msg.UniqueID, msg.To, msg.GridTo)
 }
 
-func (g *Game) SplitItem(p *Player, msg *client.SplitItem) {
+func (g *Game) SplitItem(p *Player, msg *CM_SplitItem) {
 	p.SplitItem(msg.Grid, msg.UniqueID, msg.Count)
 }
 
-func (g *Game) UseItem(p *Player, msg *client.UseItem) {
+func (g *Game) UseItem(p *Player, msg *CM_UseItem) {
 	p.UseItem(msg.UniqueID)
 }
 
-func (g *Game) DropItem(p *Player, msg *client.DropItem) {
+func (g *Game) DropItem(p *Player, msg *CM_DropItem) {
 	p.DropItem(msg.UniqueID, msg.Count)
 }
 
-func (g *Game) DropGold(p *Player, msg *client.DropGold) {
+func (g *Game) DropGold(p *Player, msg *CM_DropGold) {
 	p.DropGold(uint64(msg.Amount))
 }
 
-func (g *Game) PickUp(p *Player, msg *client.PickUp) {
+func (g *Game) PickUp(p *Player, msg *CM_PickUp) {
 	p.PickUp()
 }
 
-func (g *Game) Inspect(p *Player, msg *client.Inspect) {
+func (g *Game) Inspect(p *Player, msg *CM_Inspect) {
 	p.Inspect(msg.ObjectID)
 }
 
-func (g *Game) ChangeAMode(p *Player, msg *client.ChangeAMode) {
+func (g *Game) ChangeAMode(p *Player, msg *CM_ChangeAMode) {
 	p.ChangeAMode(msg.Mode)
 }
 
-func (g *Game) ChangePMode(p *Player, msg *client.ChangePMode) {
+func (g *Game) ChangePMode(p *Player, msg *CM_ChangePMode) {
 	p.ChangePMode(msg.Mode)
 }
 
-func (g *Game) ChangeTrade(p *Player, msg *client.ChangeTrade) {
+func (g *Game) ChangeTrade(p *Player, msg *CM_ChangeTrade) {
 	p.ChangeTrade(msg.AllowTrade)
 }
 
-func (g *Game) Attack(p *Player, msg *client.Attack) {
+func (g *Game) Attack(p *Player, msg *CM_Attack) {
 	p.Attack(msg.Direction, msg.Spell)
 }
 
-func (g *Game) RangeAttack(p *Player, msg *client.RangeAttack) {
+func (g *Game) RangeAttack(p *Player, msg *CM_RangeAttack) {
 	p.RangeAttack(msg.Direction, msg.TargetLocation, msg.TargetID)
 }
 
-func (g *Game) Harvest(p *Player, msg *client.Harvest) {
+func (g *Game) Harvest(p *Player, msg *CM_Harvest) {
 	p.Harvest(msg.Direction)
 }
 
-func (g *Game) CallNPC(p *Player, msg *client.CallNPC) {
+func (g *Game) CallNPC(p *Player, msg *CM_CallNPC) {
 	p.CallNPC(msg.ObjectID, msg.Key)
 }
 
-func (g *Game) TalkMonsterNPC(p *Player, msg *client.TalkMonsterNPC) {
+func (g *Game) TalkMonsterNPC(p *Player, msg *CM_TalkMonsterNPC) {
 	p.TalkMonsterNPC(msg.ObjectID)
 }
 
-func (g *Game) BuyItem(p *Player, msg *client.BuyItem) {
+func (g *Game) BuyItem(p *Player, msg *CM_BuyItem) {
 	p.BuyItem(msg.ItemIndex, msg.Count, msg.Type)
 }
 
 // TODO
-func (g *Game) CraftItem(p *Player, msg *client.CraftItem) {
+func (g *Game) CraftItem(p *Player, msg *CM_CraftItem) {
 	p.CraftItem(msg.UniqueID, msg.Count, msg.Slots)
 }
 
-func (g *Game) SellItem(p *Player, msg *client.SellItem) {
+func (g *Game) SellItem(p *Player, msg *CM_SellItem) {
 	p.SellItem(msg.UniqueID, msg.Count)
 }
 
-func (g *Game) RepairItem(p *Player, msg *client.RepairItem) {
+func (g *Game) RepairItem(p *Player, msg *CM_RepairItem) {
 	p.RepairItem(msg.UniqueID, false)
 }
 
-func (g *Game) BuyItemBack(p *Player, msg *client.BuyItemBack) {
+func (g *Game) BuyItemBack(p *Player, msg *CM_BuyItemBack) {
 	p.BuyItemBack(msg.UniqueID, msg.Count)
 }
 
-func (g *Game) SRepairItem(p *Player, msg *client.SRepairItem) {
+func (g *Game) SRepairItem(p *Player, msg *CM_SRepairItem) {
 	p.RepairItem(msg.UniqueID, true)
 }
 
-func (g *Game) MagicKey(p *Player, msg *client.MagicKey) {
+func (g *Game) MagicKey(p *Player, msg *CM_MagicKey) {
 	p.MagicKey(msg.Spell, msg.Key)
 }
 
-func (g *Game) Magic(p *Player, msg *client.Magic) {
+func (g *Game) Magic(p *Player, msg *CM_Magic) {
 	p.Magic(msg.Spell, msg.Direction, msg.TargetID, msg.Location)
 }
 
-func (g *Game) SwitchGroup(p *Player, msg *client.SwitchGroup) {
+func (g *Game) SwitchGroup(p *Player, msg *CM_SwitchGroup) {
 	p.SwitchGroup(msg.AllowGroup)
 }
 
-func (g *Game) AddMember(p *Player, msg *client.AddMember) {
+func (g *Game) AddMember(p *Player, msg *CM_AddMember) {
 	p.AddMember(msg.Name)
 }
 
-func (g *Game) DelMember(p *Player, msg *client.DelMember) {
+func (g *Game) DelMember(p *Player, msg *CM_DelMember) {
 	p.DelMember(msg.Name)
 }
 
-func (g *Game) GroupInvite(p *Player, msg *client.GroupInvite) {
+func (g *Game) GroupInvite(p *Player, msg *CM_GroupInvite) {
 	p.GroupInvite(msg.AcceptInvite)
 }
 
-func (g *Game) TownRevive(p *Player, msg *client.TownRevive) {
+func (g *Game) TownRevive(p *Player, msg *CM_TownRevive) {
 	p.TownRevive()
 }
 
-func (g *Game) SpellToggle(p *Player, msg *client.SpellToggle) {
+func (g *Game) SpellToggle(p *Player, msg *CM_SpellToggle) {
 	p.SpellToggle(msg.Spell, msg.CanUse)
 }
 
-func (g *Game) ConsignItem(p *Player, msg *client.ConsignItem) {
+func (g *Game) ConsignItem(p *Player, msg *CM_ConsignItem) {
 	p.ConsignItem(msg.UniqueID, msg.Price)
 }
 
-func (g *Game) MarketSearch(p *Player, msg *client.MarketSearch) {
+func (g *Game) MarketSearch(p *Player, msg *CM_MarketSearch) {
 	p.MarketSearch(msg.Match)
 }
 
-func (g *Game) MarketRefresh(p *Player, msg *client.MarketRefresh) {
+func (g *Game) MarketRefresh(p *Player, msg *CM_MarketRefresh) {
 	p.MarketRefresh()
 }
 
-func (g *Game) MarketPage(p *Player, msg *client.MarketPage) {
+func (g *Game) MarketPage(p *Player, msg *CM_MarketPage) {
 	p.MarketPage(msg.Page)
 }
 
-func (g *Game) MarketBuy(p *Player, msg *client.MarketBuy) {
+func (g *Game) MarketBuy(p *Player, msg *CM_MarketBuy) {
 	p.MarketBuy(msg.AuctionID)
 }
 
-func (g *Game) MarketGetBack(p *Player, msg *client.MarketGetBack) {
+func (g *Game) MarketGetBack(p *Player, msg *CM_MarketGetBack) {
 	p.MarketGetBack(msg.AuctionID)
 }
 
-func (g *Game) RequestUserName(p *Player, msg *client.RequestUserName) {
+func (g *Game) RequestUserName(p *Player, msg *CM_RequestUserName) {
 	p.RequestUserName(msg.UserID)
 }
 
-func (g *Game) RequestChatItem(p *Player, msg *client.RequestChatItem) {
+func (g *Game) RequestChatItem(p *Player, msg *CM_RequestChatItem) {
 	p.RequestChatItem(msg.ChatItemID)
 }
 
-func (g *Game) EditGuildMember(p *Player, msg *client.EditGuildMember) {
-	p.EditGuildMember(msg.Name, msg.RankName, msg.RankIndex, msg.ChangeType)
+func (g *Game) EditGuildMember(p *Player, msg *CM_EditGuildMember) {
+	// p.EditGuildMember(msg.Name, msg.RankName, msg.RankIndex, msg.ChangeType)
 }
 
-func (g *Game) EditGuildNotice(p *Player, msg *client.EditGuildNotice) {
-	p.EditGuildNotice(msg.Notice)
+func (g *Game) EditGuildNotice(p *Player, msg *CM_EditGuildNotice) {
+	// p.EditGuildNotice(msg.Notice)
 }
 
-func (g *Game) GuildInvite(p *Player, msg *client.GuildInvite) {
-	p.GuildInvite(msg.AcceptInvite)
+func (g *Game) GuildInvite(p *Player, msg *CM_GuildInvite) {
+	// p.GuildInvite(msg.AcceptInvite)
 }
 
-func (g *Game) RequestGuildInfo(p *Player, msg *client.RequestGuildInfo) {
-	p.RequestGuildInfo(msg.Type)
+func (g *Game) RequestGuildInfo(p *Player, msg *CM_RequestGuildInfo) {
+	// p.RequestGuildInfo(msg.Type)
 }
 
-func (g *Game) GuildNameReturn(p *Player, msg *client.GuildNameReturn) {
-	p.GuildNameReturn(msg.Name)
+func (g *Game) GuildNameReturn(p *Player, msg *CM_GuildNameReturn) {
+	// p.GuildNameReturn(msg.Name)
 }
 
-func (g *Game) GuildStorageGoldChange(p *Player, msg *client.GuildStorageGoldChange) {
+func (g *Game) GuildStorageGoldChange(p *Player, msg *CM_GuildStorageGoldChange) {
 	p.GuildStorageGoldChange(msg.Type, msg.Amount)
 }
 
-func (g *Game) GuildStorageItemChange(p *Player, msg *client.GuildStorageItemChange) {
+func (g *Game) GuildStorageItemChange(p *Player, msg *CM_GuildStorageItemChange) {
 	p.GuildStorageItemChange(msg.Type, msg.From, msg.To)
 }
 
-func (g *Game) GuildWarReturn(p *Player, msg *client.GuildWarReturn) {
+func (g *Game) GuildWarReturn(p *Player, msg *CM_GuildWarReturn) {
 	p.GuildWarReturn(msg.Name)
 }
 
-func (g *Game) MarriageRequest(p *Player, msg *client.MarriageRequest) {
+func (g *Game) MarriageRequest(p *Player, msg *CM_MarriageRequest) {
 	p.MarriageRequest()
 }
 
-func (g *Game) MarriageReply(p *Player, msg *client.MarriageReply) {
+func (g *Game) MarriageReply(p *Player, msg *CM_MarriageReply) {
 	p.MarriageReply(msg.AcceptInvite)
 }
 
-func (g *Game) ChangeMarriage(p *Player, msg *client.ChangeMarriage) {
+func (g *Game) ChangeMarriage(p *Player, msg *CM_ChangeMarriage) {
 	p.ChangeMarriage()
 }
 
-func (g *Game) DivorceRequest(p *Player, msg *client.DivorceRequest) {
+func (g *Game) DivorceRequest(p *Player, msg *CM_DivorceRequest) {
 	p.DivorceRequest()
 }
 
-func (g *Game) DivorceReply(p *Player, msg *client.DivorceReply) {
+func (g *Game) DivorceReply(p *Player, msg *CM_DivorceReply) {
 	p.DivorceReply(msg.AcceptInvite)
 }
 
-func (g *Game) AddMentor(p *Player, msg *client.AddMentor) {
+func (g *Game) AddMentor(p *Player, msg *CM_AddMentor) {
 	p.AddMentor(msg.Name)
 }
 
-func (g *Game) MentorReply(p *Player, msg *client.MentorReply) {
+func (g *Game) MentorReply(p *Player, msg *CM_MentorReply) {
 	p.MentorReply(msg.AcceptInvite)
 }
 
-func (g *Game) AllowMentor(p *Player, msg *client.AllowMentor) {
+func (g *Game) AllowMentor(p *Player, msg *CM_AllowMentor) {
 	p.AllowMentor()
 }
 
-func (g *Game) CancelMentor(p *Player, msg *client.CancelMentor) {
+func (g *Game) CancelMentor(p *Player, msg *CM_CancelMentor) {
 	p.CancelMentor()
 }
 
-func (g *Game) TradeRequest(p *Player, msg *client.TradeRequest) {
+func (g *Game) TradeRequest(p *Player, msg *CM_TradeRequest) {
 	p.TradeRequest()
 }
 
-func (g *Game) TradeGold(p *Player, msg *client.TradeGold) {
+func (g *Game) TradeGold(p *Player, msg *CM_TradeGold) {
 	p.TradeGold(msg.Amount)
 }
 
-func (g *Game) TradeReply(p *Player, msg *client.TradeReply) {
+func (g *Game) TradeReply(p *Player, msg *CM_TradeReply) {
 	p.TradeReply(msg.AcceptInvite)
 }
 
-func (g *Game) TradeConfirm(p *Player, msg *client.TradeConfirm) {
+func (g *Game) TradeConfirm(p *Player, msg *CM_TradeConfirm) {
 	p.TradeConfirm(msg.Locked)
 }
 
-func (g *Game) TradeCancel(p *Player, msg *client.TradeCancel) {
+func (g *Game) TradeCancel(p *Player, msg *CM_TradeCancel) {
 	p.TradeCancel()
 }
 
-func (g *Game) EquipSlotItem(p *Player, msg *client.EquipSlotItem) {
+func (g *Game) EquipSlotItem(p *Player, msg *CM_EquipSlotItem) {
 	p.EquipSlotItem(msg.Grid, msg.UniqueID, msg.To, msg.GridTo)
 }
 
-func (g *Game) FishingCast(p *Player, msg *client.FishingCast) {
+func (g *Game) FishingCast(p *Player, msg *CM_FishingCast) {
 	p.FishingCast(msg.CastOut)
 }
 
-func (g *Game) FishingChangeAutocast(p *Player, msg *client.FishingChangeAutocast) {
+func (g *Game) FishingChangeAutocast(p *Player, msg *CM_FishingChangeAutocast) {
 	p.FishingChangeAutocast(msg.AutoCast)
 }
 
-func (g *Game) AcceptQuest(p *Player, msg *client.AcceptQuest) {
+func (g *Game) AcceptQuest(p *Player, msg *CM_AcceptQuest) {
 	p.AcceptQuest(msg.NPCIndex, msg.QuestIndex)
 }
 
-func (g *Game) FinishQuest(p *Player, msg *client.FinishQuest) {
+func (g *Game) FinishQuest(p *Player, msg *CM_FinishQuest) {
 	p.FinishQuest(msg.QuestIndex, msg.SelectedItemIndex)
 }
 
-func (g *Game) AbandonQuest(p *Player, msg *client.AbandonQuest) {
+func (g *Game) AbandonQuest(p *Player, msg *CM_AbandonQuest) {
 	p.AbandonQuest(msg.QuestIndex)
 }
 
-func (g *Game) ShareQuest(p *Player, msg *client.ShareQuest) {
+func (g *Game) ShareQuest(p *Player, msg *CM_ShareQuest) {
 	p.ShareQuest(msg.QuestIndex)
 }
 
-func (g *Game) AcceptReincarnation(p *Player, msg *client.AcceptReincarnation) {
+func (g *Game) AcceptReincarnation(p *Player, msg *CM_AcceptReincarnation) {
 	p.AcceptReincarnation()
 }
 
-func (g *Game) CancelReincarnation(p *Player, msg *client.CancelReincarnation) {
+func (g *Game) CancelReincarnation(p *Player, msg *CM_CancelReincarnation) {
 	p.CancelReincarnation()
 }
 
-func (g *Game) CombineItem(p *Player, msg *client.CombineItem) {
+func (g *Game) CombineItem(p *Player, msg *CM_CombineItem) {
 	p.CombineItem(msg.IDFrom, msg.IDTo)
 }
 
-func (g *Game) SetConcentration(p *Player, msg *client.SetConcentration) {
+func (g *Game) SetConcentration(p *Player, msg *CM_SetConcentration) {
 	p.SetConcentration(msg.ObjectID, msg.Enabled, msg.Interrupted)
 }
 
-func (g *Game) AwakeningNeedMaterials(p *Player, msg *client.AwakeningNeedMaterials) {
+func (g *Game) AwakeningNeedMaterials(p *Player, msg *CM_AwakeningNeedMaterials) {
 
 }
 
-func (g *Game) AwakeningLockedItem(p *Player, msg *client.AwakeningLockedItem) {
+func (g *Game) AwakeningLockedItem(p *Player, msg *CM_AwakeningLockedItem) {
 
 }
 
-func (g *Game) Awakening(p *Player, msg *client.Awakening) {
+func (g *Game) Awakening(p *Player, msg *CM_Awakening) {
 
 }
 
-func (g *Game) DisassembleItem(p *Player, msg *client.DisassembleItem) {
+func (g *Game) DisassembleItem(p *Player, msg *CM_DisassembleItem) {
 
 }
 
-func (g *Game) DowngradeAwakening(p *Player, msg *client.DowngradeAwakening) {
+func (g *Game) DowngradeAwakening(p *Player, msg *CM_DowngradeAwakening) {
 
 }
 
-func (g *Game) ResetAddedItem(p *Player, msg *client.ResetAddedItem) {
+func (g *Game) ResetAddedItem(p *Player, msg *CM_ResetAddedItem) {
 
 }
 
-func (g *Game) SendMail(p *Player, msg *client.SendMail) {
+func (g *Game) SendMail(p *Player, msg *CM_SendMail) {
 
 }
 
-func (g *Game) ReadMail(p *Player, msg *client.ReadMail) {
+func (g *Game) ReadMail(p *Player, msg *CM_ReadMail) {
 
 }
 
-func (g *Game) CollectParcel(p *Player, msg *client.CollectParcel) {
+func (g *Game) CollectParcel(p *Player, msg *CM_CollectParcel) {
 
 }
 
-func (g *Game) DeleteMail(p *Player, msg *client.DeleteMail) {
+func (g *Game) DeleteMail(p *Player, msg *CM_DeleteMail) {
 
 }
 
-func (g *Game) LockMail(p *Player, msg *client.LockMail) {
+func (g *Game) LockMail(p *Player, msg *CM_LockMail) {
 
 }
 
-func (g *Game) MailLockedItem(p *Player, msg *client.MailLockedItem) {
+func (g *Game) MailLockedItem(p *Player, msg *CM_MailLockedItem) {
 
 }
 
-func (g *Game) MailCost(p *Player, msg *client.MailCost) {
+func (g *Game) MailCost(p *Player, msg *CM_MailCost) {
 
 }
 
-func (g *Game) UpdateIntelligentCreature(p *Player, msg *client.UpdateIntelligentCreature) {
+func (g *Game) UpdateIntelligentCreature(p *Player, msg *CM_UpdateIntelligentCreature) {
 
 }
 
-func (g *Game) IntelligentCreaturePickup(p *Player, msg *client.IntelligentCreaturePickup) {
+func (g *Game) IntelligentCreaturePickup(p *Player, msg *CM_IntelligentCreaturePickup) {
 
 }
 
-func (g *Game) AddFriend(p *Player, msg *client.AddFriend) {
+func (g *Game) AddFriend(p *Player, msg *CM_AddFriend) {
 
 }
 
-func (g *Game) RemoveFriend(p *Player, msg *client.RemoveFriend) {
+func (g *Game) RemoveFriend(p *Player, msg *CM_RemoveFriend) {
 
 }
 
-func (g *Game) RefreshFriends(p *Player, msg *client.RefreshFriends) {
+func (g *Game) RefreshFriends(p *Player, msg *CM_RefreshFriends) {
 
 }
 
-func (g *Game) AddMemo(p *Player, msg *client.AddMemo) {
+func (g *Game) AddMemo(p *Player, msg *CM_AddMemo) {
 
 }
 
-func (g *Game) GuildBuffUpdate(p *Player, msg *client.GuildBuffUpdate) {
+func (g *Game) GuildBuffUpdate(p *Player, msg *CM_GuildBuffUpdate) {
 
 }
 
-func (g *Game) GameshopBuy(p *Player, msg *client.GameshopBuy) {
+func (g *Game) GameshopBuy(p *Player, msg *CM_GameshopBuy) {
 
 }
 
-func (g *Game) NPCConfirmInput(p *Player, msg *client.NPCConfirmInput) {
+func (g *Game) NPCConfirmInput(p *Player, msg *CM_NPCConfirmInput) {
 
 }
 
-func (g *Game) ReportIssue(p *Player, msg *client.ReportIssue) {
+func (g *Game) ReportIssue(p *Player, msg *CM_ReportIssue) {
 
 }
 
-func (g *Game) GetRanking(p *Player, msg *client.GetRanking) {
+func (g *Game) GetRanking(p *Player, msg *CM_GetRanking) {
 
 }
 
-func (g *Game) Opendoor(p *Player, msg *client.Opendoor) {
+func (g *Game) Opendoor(p *Player, msg *CM_Opendoor) {
 	p.OpenDoor(msg.DoorIndex)
 }
 
-func (g *Game) GetRentedItems(p *Player, msg *client.GetRentedItems) {
+func (g *Game) GetRentedItems(p *Player, msg *CM_GetRentedItems) {
 
 }
 
-func (g *Game) ItemRentalRequest(p *Player, msg *client.ItemRentalRequest) {
+func (g *Game) ItemRentalRequest(p *Player, msg *CM_ItemRentalRequest) {
 
 }
 
-func (g *Game) ItemRentalFee(p *Player, msg *client.ItemRentalFee) {
+func (g *Game) ItemRentalFee(p *Player, msg *CM_ItemRentalFee) {
 
 }
 
-func (g *Game) ItemRentalPeriod(p *Player, msg *client.ItemRentalPeriod) {
+func (g *Game) ItemRentalPeriod(p *Player, msg *CM_ItemRentalPeriod) {
 
 }
 
-func (g *Game) DepositRentalItem(p *Player, msg *client.DepositRentalItem) {
+func (g *Game) DepositRentalItem(p *Player, msg *CM_DepositRentalItem) {
 
 }
 
-func (g *Game) RetrieveRentalItem(p *Player, msg *client.RetrieveRentalItem) {
+func (g *Game) RetrieveRentalItem(p *Player, msg *CM_RetrieveRentalItem) {
 
 }
 
-func (g *Game) CancelItemRental(p *Player, msg *client.CancelItemRental) {
+func (g *Game) CancelItemRental(p *Player, msg *CM_CancelItemRental) {
 
 }
 
-func (g *Game) ItemRentalLockFee(p *Player, msg *client.ItemRentalLockFee) {
+func (g *Game) ItemRentalLockFee(p *Player, msg *CM_ItemRentalLockFee) {
 
 }
 
-func (g *Game) ItemRentalLockItem(p *Player, msg *client.ItemRentalLockItem) {
+func (g *Game) ItemRentalLockItem(p *Player, msg *CM_ItemRentalLockItem) {
 
 }
 
-func (g *Game) ConfirmItemRental(p *Player, msg *client.ConfirmItemRental) {
+func (g *Game) ConfirmItemRental(p *Player, msg *CM_ConfirmItemRental) {
 
 }

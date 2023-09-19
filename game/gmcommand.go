@@ -3,16 +3,13 @@ package game
 import (
 	"fmt"
 	"reflect"
-
-	"github.com/pyq19/mirgo/game/cm"
-	"github.com/pyq19/mirgo/game/script"
 )
 
 func _gmKill(p *Player, playername string) {
 	if playername != "" {
 		o := env.Players.GetPlayerByName(playername)
 		if o == nil {
-			p.ReceiveChat(fmt.Sprintf("找不到玩家(%s)", playername), cm.ChatTypeSystem)
+			p.ReceiveChat(fmt.Sprintf("找不到玩家(%s)", playername), ChatTypeSystem)
 			return
 		}
 		o.Die()
@@ -59,7 +56,7 @@ func _gmMap(p *Player) string {
 }
 
 func _gmMove(p *Player, x, y int) {
-	p.Teleport(p.Map, cm.NewPoint(x, y))
+	p.Teleport(p.Map, NewPoint(x, y))
 }
 
 func _gmMob(p *Player, monstername string) string {
@@ -86,17 +83,17 @@ func _gmInfo(p *Player) {
 		return
 	}
 	for _, o := range c.objects {
-		if o.GetRace() == cm.ObjectTypeMonster {
+		if o.GetRace() == ObjectTypeMonster {
 			mo := o.(*Monster)
-			p.ReceiveChat("--Monster Info--", cm.ChatTypeSystem2)
-			p.ReceiveChat(fmt.Sprintf("ID: %d, Name: %s, AI: %d", mo.ID, mo.Name, mo.AI), cm.ChatTypeSystem2)
-			p.ReceiveChat(fmt.Sprintf("Level: %d, Pos: %s", mo.Level, mo.GetPoint()), cm.ChatTypeSystem2)
-			p.ReceiveChat(fmt.Sprintf("HP: %d, MinDC: %d, MaxDC: %d", mo.HP, mo.MinDC, mo.MaxDC), cm.ChatTypeSystem2)
+			p.ReceiveChat("--Monster Info--", ChatTypeSystem2)
+			p.ReceiveChat(fmt.Sprintf("ID: %d, Name: %s, AI: %d", mo.ID, mo.Name, mo.AI), ChatTypeSystem2)
+			p.ReceiveChat(fmt.Sprintf("Level: %d, Pos: %s", mo.Level, mo.GetPoint()), ChatTypeSystem2)
+			p.ReceiveChat(fmt.Sprintf("HP: %d, MinDC: %d, MaxDC: %d", mo.HP, mo.MinDC, mo.MaxDC), ChatTypeSystem2)
 		}
-		if o.GetRace() == cm.ObjectTypePlayer {
+		if o.GetRace() == ObjectTypePlayer {
 			po := o.(*Player)
-			p.ReceiveChat("--Player Info--", cm.ChatTypeSystem2)
-			p.ReceiveChat(fmt.Sprintf("Name: %s, Level: %d, Pos: %s", po.Name, po.Level, po.GetPoint()), cm.ChatTypeSystem2)
+			p.ReceiveChat("--Player Info--", ChatTypeSystem2)
+			p.ReceiveChat(fmt.Sprintf("Name: %s, Level: %d, Pos: %s", po.Name, po.Level, po.GetPoint()), ChatTypeSystem2)
 		}
 	}
 }
@@ -111,15 +108,15 @@ func _gmExp(p *Player, exp int) {
 
 func _gmGiveSkill(p *Player, name string, level int) {
 	info := data.GetMagicInfoByName(name)
-	p.GiveSkill(cm.Spell(info.Spell), level)
+	p.GiveSkill(Spell(info.Spell), level)
 }
 
 func _gmAllowTrade(p *Player) {
 	p.AllowTrade = !p.AllowTrade
 	if p.AllowTrade {
-		p.ReceiveChat("你现在允许交易。", cm.ChatTypeSystem)
+		p.ReceiveChat("你现在允许交易。", ChatTypeSystem)
 	} else {
-		p.ReceiveChat("你现在拒绝交易。", cm.ChatTypeSystem)
+		p.ReceiveChat("你现在拒绝交易。", ChatTypeSystem)
 	}
 }
 
@@ -127,6 +124,7 @@ func _gmDie(p *Player) {
 	p.Die()
 }
 
+/*
 func _gmLeaveGuild(p *Player) {
 	if p.MyGuild == nil {
 		return
@@ -135,38 +133,41 @@ func _gmLeaveGuild(p *Player) {
 		return
 	}
 	if p.MyGuild.IsAtWar() {
-		p.ReceiveChat("在战争中不能离开行会。", cm.ChatTypeSystem)
+		p.ReceiveChat("在战争中不能离开行会。", ChatTypeSystem)
 		return
 	}
 	p.MyGuild.DeleteMember(p, p.Name)
 }
+*/
 
+/*
 func _gmCreateGuild(p *Player, guildname string) {
 	player := p
 	gName := guildname
 	if player.MyGuild != nil {
-		p.ReceiveChat(fmt.Sprintf("玩家 %s 已经在一个行会中了。", player.Name), cm.ChatTypeSystem)
+		p.ReceiveChat(fmt.Sprintf("玩家 %s 已经在一个行会中了。", player.Name), ChatTypeSystem)
 		return
 	}
 	if (len(gName) < 3) || (len(gName) > 20) {
-		p.ReceiveChat("行会名字必须在3-20字符之间。", cm.ChatTypeSystem)
+		p.ReceiveChat("行会名字必须在3-20字符之间。", ChatTypeSystem)
 		return
 	}
 	guild := env.GetGuild(gName)
 	if guild != nil {
-		p.ReceiveChat(fmt.Sprintf("行会 %s 已存在。", gName), cm.ChatTypeSystem)
+		p.ReceiveChat(fmt.Sprintf("行会 %s 已存在。", gName), ChatTypeSystem)
 		return
 	}
 	player.CanCreateGuild = true
 	if player.CreateGuild(gName) {
-		p.ReceiveChat(fmt.Sprintf("成功创建行会 %s 。", gName), cm.ChatTypeSystem)
+		p.ReceiveChat(fmt.Sprintf("成功创建行会 %s 。", gName), ChatTypeSystem)
 	} else {
-		p.ReceiveChat("创建行会失败。", cm.ChatTypeSystem)
+		p.ReceiveChat("创建行会失败。", ChatTypeSystem)
 	}
 	player.CanCreateGuild = false
 }
+*/
 
-var cmd = script.NewContext()
+var cmd = NewContext()
 
 func init() {
 	cmd.AddParser(reflect.TypeOf((*Player)(nil)), nil)
@@ -181,6 +182,6 @@ func init() {
 	cmd.Action("GIVESKILL", _gmGiveSkill)
 	cmd.Action("ALLOWTRADE", _gmAllowTrade)
 	cmd.Action("DIE", _gmDie)
-	cmd.Action("LEAVEGUILD", _gmLeaveGuild)
-	cmd.Action("CREATEGUILD", _gmCreateGuild)
+	// cmd.Action("LEAVEGUILD", _gmLeaveGuild)
+	// cmd.Action("CREATEGUILD", _gmCreateGuild)
 }

@@ -7,22 +7,19 @@ import (
 	"regexp"
 	"strings"
 	"time"
-
-	"github.com/pyq19/mirgo/game/cm"
-	"github.com/pyq19/mirgo/game/script"
 )
 
-func _CHECKPKPOINT(npc *NPC, p *Player, op script.CompareOp, v int) bool {
-	return script.CompareInt(op, p.PKPoints, v)
+func _CHECKPKPOINT(npc *NPC, p *Player, op CompareOp, v int) bool {
+	return CompareInt(op, p.PKPoints, v)
 }
 
-func _LEVEL(npc *NPC, p *Player, op script.CompareOp, v int) bool {
-	return script.CompareInt(op, int(p.Level), v)
+func _LEVEL(npc *NPC, p *Player, op CompareOp, v int) bool {
+	return CompareInt(op, int(p.Level), v)
 }
 
-func _CHECKGOLD(npc *NPC, p *Player, op script.CompareOp, v int) bool {
+func _CHECKGOLD(npc *NPC, p *Player, op CompareOp, v int) bool {
 	// FIX int64->int
-	return script.CompareInt(op, int(p.Gold), v)
+	return CompareInt(op, int(p.Gold), v)
 }
 
 func _GIVEBUFF(npc *NPC, p *Player, bufname string, time int) {
@@ -35,7 +32,7 @@ func _MOVE(npc *NPC, p *Player, mapname string, x, y int) {
 	if x < 0 || y < 0 {
 		// random teleport
 	} else {
-		p.Teleport(m, cm.NewPoint(x, y))
+		p.Teleport(m, NewPoint(x, y))
 	}
 }
 
@@ -84,10 +81,10 @@ func _GIVEITEM(npc *NPC, p *Player, itemname string, n int) {
 }
 
 func _LINEMESSAGE(npc *NPC, p *Player, msg string, t string) {
-	p.ReceiveChat(msg, cm.ChatTypeHint)
+	p.ReceiveChat(msg, ChatTypeHint)
 }
 func _LOCALMESSAGE(npc *NPC, p *Player, msg string, typ string) {
-	p.ReceiveChat(msg, cm.ChatTypeHint)
+	p.ReceiveChat(msg, ChatTypeHint)
 }
 
 func _GIVEGOLD(npc *NPC, p *Player, v int) {
@@ -135,7 +132,7 @@ func _CHECKMAP(npc *NPC, p *Player, mapname string) bool {
 func _ENTERMAP(npc *NPC, p *Player) {
 }
 
-func _PETCOUNT(npc *NPC, p *Player, op script.CompareOp, n int) bool {
+func _PETCOUNT(npc *NPC, p *Player, op CompareOp, n int) bool {
 	return false
 }
 
@@ -184,7 +181,7 @@ func _MONGEN(npc *NPC, p *Player, g1 string, n int) {
 
 func _GIVESKILL(npc *NPC, p *Player, name string, level int) {
 	info := data.GetMagicInfoByName(name)
-	p.GiveSkill(cm.Spell(info.Spell), level)
+	p.GiveSkill(Spell(info.Spell), level)
 }
 
 func _CHANGELEVEL(npc *NPC, p *Player, lv int) {
@@ -199,57 +196,57 @@ func _CHECKCLASS(npc *NPC, p *Player, classname string) bool {
 }
 
 func init() {
-	script.AddParser(reflect.TypeOf((*Player)(nil)), nil)
-	script.AddParser(reflect.TypeOf((*NPC)(nil)), nil)
-	script.AddParser(reflect.TypeOf(Flag(0)), parseFlag)
-	script.AddParser(reflect.TypeOf(QuestStatus(0)), parseQuestStatus)
+	AddParser(reflect.TypeOf((*Player)(nil)), nil)
+	AddParser(reflect.TypeOf((*NPC)(nil)), nil)
+	AddParser(reflect.TypeOf(Flag(0)), parseFlag)
+	AddParser(reflect.TypeOf(QuestStatus(0)), parseQuestStatus)
 
 	// if
-	script.Check("CHECKPKPOINT", _CHECKPKPOINT)
-	script.Check("LEVEL", _LEVEL)
-	script.Check("CHECKLEVEL", _LEVEL)
-	script.Check("CHECKGOLD", _CHECKGOLD)
-	script.Check("CHECKITEM", _CHECKITEM, 1)
-	script.Check("CHECKQUEST", _CHECKQUEST)
-	script.Check("INGUILD", _INGUILD)
-	script.Check("CHECK", _CHECK)
-	script.Check("CHECKMAP", _CHECKMAP)
-	script.Check("PETCOUNT", _PETCOUNT)
-	script.Check("CHECKGENDER", _CHECKGENDER)
-	script.Check("CHECKNAMELIST", _CHECKNAMELIST)
-	script.Check("ISADMIN", _ISADMIN)
-	script.Check("CHECKHUM", _CHECKHUM)
-	script.Check("CHECKBUFF", _CHECKBUFF)
-	script.Check("CHECKCLASS", _CHECKCLASS)
+	Check("CHECKPKPOINT", _CHECKPKPOINT)
+	Check("LEVEL", _LEVEL)
+	Check("CHECKLEVEL", _LEVEL)
+	Check("CHECKGOLD", _CHECKGOLD)
+	Check("CHECKITEM", _CHECKITEM, 1)
+	Check("CHECKQUEST", _CHECKQUEST)
+	Check("INGUILD", _INGUILD)
+	Check("CHECK", _CHECK)
+	Check("CHECKMAP", _CHECKMAP)
+	Check("PETCOUNT", _PETCOUNT)
+	Check("CHECKGENDER", _CHECKGENDER)
+	Check("CHECKNAMELIST", _CHECKNAMELIST)
+	Check("ISADMIN", _ISADMIN)
+	Check("CHECKHUM", _CHECKHUM)
+	Check("CHECKBUFF", _CHECKBUFF)
+	Check("CHECKCLASS", _CHECKCLASS)
 
-	script.Action("TAKEITEM", _TAKEITEM)
-	script.Action("CHECKITEM", _CHECKITEM, 1) // GM-Manager.txt 32行：可能是配置写错了。
-	script.Action("CHANGELEVEL", _CHANGELEVEL)
-	script.Action("LINEMESSAGE", _LINEMESSAGE)
-	script.Action("GIVEGOLD", _GIVEGOLD)
-	script.Action("GIVESKILL", _GIVESKILL, 1)
-	script.Action("PARAM1", _PARAM1)
-	script.Action("PARAM2", _PARAM2)
-	script.Action("PARAM3", _PARAM3)
-	script.Action("MONGEN", _MONGEN)
-	script.Action("REMOVENAMELIST", _REMOVENAMELIST)
-	script.Action("MONCLEAR", _MONCLEAR)
-	script.Action("REMOVEFROMGUILD", _REMOVEFROMGUILD)
-	script.Action("GIVEPET", _GIVEPET)
-	script.Action("CHANGEGENDER", _CHANGEGENDER)
-	script.Action("REMOVEBUFF", _REMOVEBUFF)
-	script.Action("CLEARPETS", _CLEARPETS)
-	script.Action("ENTERMAP", _ENTERMAP)
-	script.Action("REDUCEPKPOINT", _REDUCEPKPOINT)
-	script.Action("CLOSE", _CLOSE)
-	script.Action("GIVEBUFF", _GIVEBUFF)
-	script.Action("SET", _SET)
-	script.Action("MOVE", _MOVE, -1, -1)
-	script.Action("TAKEGOLD", _TAKEGOLD)
-	script.Action("LOCALMESSAGE", _LOCALMESSAGE)
-	script.Action("ADDTOGUILD", _ADDTOGUILD)
-	script.Action("ADDNAMELIST", _ADDNAMELIST)
-	script.Action("GIVEITEM", _GIVEITEM)
+	Action("TAKEITEM", _TAKEITEM)
+	Action("CHECKITEM", _CHECKITEM, 1) // GM-Manager.txt 32行：可能是配置写错了。
+	Action("CHANGELEVEL", _CHANGELEVEL)
+	Action("LINEMESSAGE", _LINEMESSAGE)
+	Action("GIVEGOLD", _GIVEGOLD)
+	Action("GIVESKILL", _GIVESKILL, 1)
+	Action("PARAM1", _PARAM1)
+	Action("PARAM2", _PARAM2)
+	Action("PARAM3", _PARAM3)
+	Action("MONGEN", _MONGEN)
+	Action("REMOVENAMELIST", _REMOVENAMELIST)
+	Action("MONCLEAR", _MONCLEAR)
+	Action("REMOVEFROMGUILD", _REMOVEFROMGUILD)
+	Action("GIVEPET", _GIVEPET)
+	Action("CHANGEGENDER", _CHANGEGENDER)
+	Action("REMOVEBUFF", _REMOVEBUFF)
+	Action("CLEARPETS", _CLEARPETS)
+	Action("ENTERMAP", _ENTERMAP)
+	Action("REDUCEPKPOINT", _REDUCEPKPOINT)
+	Action("CLOSE", _CLOSE)
+	Action("GIVEBUFF", _GIVEBUFF)
+	Action("SET", _SET)
+	Action("MOVE", _MOVE, -1, -1)
+	Action("TAKEGOLD", _TAKEGOLD)
+	Action("LOCALMESSAGE", _LOCALMESSAGE)
+	Action("ADDTOGUILD", _ADDTOGUILD)
+	Action("ADDNAMELIST", _ADDNAMELIST)
+	Action("GIVEITEM", _GIVEITEM)
 }
 
 type Flag int
@@ -260,7 +257,7 @@ func parseFlag(s string) (reflect.Value, error) {
 		return reflect.Value{}, errors.New("invalid flag:" + s)
 	}
 
-	return script.ParseInt(s[1 : len(s)-1])
+	return ParseInt(s[1 : len(s)-1])
 }
 
 type QuestStatus int
@@ -271,7 +268,7 @@ func parseQuestStatus(s string) (reflect.Value, error) {
 		s = "1"
 	}
 
-	return script.ParseInt(s)
+	return ParseInt(s)
 }
 
 var regNPCHotkey = regexp.MustCompile(`\<\$\w+\>`)

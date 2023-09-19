@@ -2,18 +2,16 @@ package game
 
 import (
 	"fmt"
-
-	"github.com/pyq19/mirgo/game/cm"
 )
 
 // Cell 地图格子
 type Cell struct {
-	Point     cm.Point
-	Attribute cm.CellAttribute
+	Point     Point
+	Attribute CellAttribute
 	objects   map[uint32]IMapObject
 }
 
-func NewCell(attr cm.CellAttribute) *Cell {
+func NewCell(attr CellAttribute) *Cell {
 	return &Cell{
 		Attribute: attr,
 		objects:   map[uint32]IMapObject{},
@@ -22,7 +20,7 @@ func NewCell(attr cm.CellAttribute) *Cell {
 
 // IsValid ...
 func (c *Cell) IsValid() bool {
-	return c.Attribute == cm.CellAttributeWalk
+	return c.Attribute == CellAttributeWalk
 }
 
 // IsEmpty ...
@@ -59,7 +57,7 @@ func (c *Cell) HasObject() bool {
 
 // CanWalk ...
 func (c *Cell) CanWalk() bool {
-	return c.Attribute == cm.CellAttributeWalk
+	return c.Attribute == CellAttributeWalk
 }
 
 func (c *Cell) String() string {

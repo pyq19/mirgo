@@ -9,32 +9,30 @@ import (
 
 	"github.com/jinzhu/gorm"
 	"github.com/pelletier/go-toml"
-	"github.com/pyq19/mirgo/game/cm"
-	"github.com/pyq19/mirgo/game/util"
 )
 
 // GameDB 服务端数据，启动时加载
 type GameData struct {
-	// Basic              cm.Basic
-	GameShopItems      []*cm.GameShopItem
-	ItemInfos          []*cm.ItemInfo
-	StartItems         []*cm.ItemInfo // 新玩家初始装备
-	MagicInfos         []*cm.MagicInfo
-	MapInfos           []*cm.MapInfo
-	MonsterInfos       []*cm.MonsterInfo
-	MovementInfos      []*cm.MovementInfo
-	NpcInfos           []*cm.NpcInfo
-	QuestInfos         []*cm.QuestInfo
-	RespawnInfos       []*cm.RespawnInfo
-	SafeZoneInfos      []*cm.SafeZoneInfo
-	StartPoints        []*cm.SafeZoneInfo // 起始点
-	MapIDInfoMap       map[int]*cm.MapInfo
-	ItemIDInfoMap      map[int]*cm.ItemInfo
-	ItemNameInfoMap    map[string]*cm.ItemInfo
-	MonsterIDInfoMap   map[int]*cm.MonsterInfo
-	MonsterNameInfoMap map[string]*cm.MonsterInfo
-	DropInfoMap        map[string][]*cm.DropInfo
-	MagicIDInfoMap     map[int]*cm.MagicInfo
+	// Basic              Basic
+	GameShopItems      []*GameShopItem
+	ItemInfos          []*ItemInfo
+	StartItems         []*ItemInfo // 新玩家初始装备
+	MagicInfos         []*MagicInfo
+	MapInfos           []*MapInfo
+	MonsterInfos       []*MonsterInfo
+	MovementInfos      []*MovementInfo
+	NpcInfos           []*NpcInfo
+	QuestInfos         []*QuestInfo
+	RespawnInfos       []*RespawnInfo
+	SafeZoneInfos      []*SafeZoneInfo
+	StartPoints        []*SafeZoneInfo // 起始点
+	MapIDInfoMap       map[int]*MapInfo
+	ItemIDInfoMap      map[int]*ItemInfo
+	ItemNameInfoMap    map[string]*ItemInfo
+	MonsterIDInfoMap   map[int]*MonsterInfo
+	MonsterNameInfoMap map[string]*MonsterInfo
+	DropInfoMap        map[string][]*DropInfo
+	MagicIDInfoMap     map[int]*MagicInfo
 	ExpList            []int
 }
 
@@ -42,13 +40,13 @@ var data *GameData
 
 func NewGameData(db *gorm.DB) *GameData {
 	d := &GameData{}
-	d.MapIDInfoMap = map[int]*cm.MapInfo{}
-	d.ItemIDInfoMap = map[int]*cm.ItemInfo{}
-	d.ItemNameInfoMap = map[string]*cm.ItemInfo{}
-	d.MonsterIDInfoMap = map[int]*cm.MonsterInfo{}
-	d.MonsterNameInfoMap = map[string]*cm.MonsterInfo{}
-	d.DropInfoMap = map[string][]*cm.DropInfo{}
-	d.MagicIDInfoMap = map[int]*cm.MagicInfo{}
+	d.MapIDInfoMap = map[int]*MapInfo{}
+	d.ItemIDInfoMap = map[int]*ItemInfo{}
+	d.ItemNameInfoMap = map[string]*ItemInfo{}
+	d.MonsterIDInfoMap = map[int]*MonsterInfo{}
+	d.MonsterNameInfoMap = map[string]*MonsterInfo{}
+	d.DropInfoMap = map[string][]*DropInfo{}
+	d.MagicIDInfoMap = map[int]*MagicInfo{}
 
 	d.Load(db)
 
@@ -68,7 +66,7 @@ func (d *GameData) Load(db *gorm.DB) {
 	db.Table("respawn").Find(&d.RespawnInfos)
 	db.Table("safe_zone").Find(&d.SafeZoneInfos)
 
-	d.StartItems = []*cm.ItemInfo{}
+	d.StartItems = []*ItemInfo{}
 
 	for _, v := range d.ItemInfos {
 		v := v
@@ -87,7 +85,7 @@ func (d *GameData) Load(db *gorm.DB) {
 		}
 	}
 
-	d.StartPoints = []*cm.SafeZoneInfo{}
+	d.StartPoints = []*SafeZoneInfo{}
 	for _, v := range d.SafeZoneInfos {
 		if v.StartPoint != 0 {
 			d.StartPoints = append(d.StartPoints, v)
@@ -113,8 +111,8 @@ func (d *GameData) Load(db *gorm.DB) {
 	d.LoadExpList()
 }
 
-func (d *GameData) RandomStartPoint() *cm.SafeZoneInfo {
-	return d.StartPoints[util.RandomNext(len(d.StartPoints))]
+func (d *GameData) RandomStartPoint() *SafeZoneInfo {
+	return d.StartPoints[RandomNext(len(d.StartPoints))]
 }
 
 func (d *GameData) LoadMonsterDrop() {
@@ -136,8 +134,8 @@ func (d *GameData) LoadMonsterDrop() {
 	}
 }
 
-func (d *GameData) loadDropFile(filename string) ([]*cm.DropInfo, error) {
-	lines, err := util.ReadLines(filename)
+func (d *GameData) loadDropFile(filename string) ([]*DropInfo, error) {
+	lines, err := ReadLines(filename)
 	if err != nil {
 		return nil, err
 	}
@@ -148,16 +146,16 @@ func (d *GameData) loadDropFile(filename string) ([]*cm.DropInfo, error) {
 		return fmt.Errorf("DropInfo 格式不正确，%s行%d:%s %s", filename, line, lines[line], detail)
 	}
 
-	ret := []*cm.DropInfo{}
+	ret := []*DropInfo{}
 	for i, line := range lines {
 
 		line = strings.TrimSpace(line)
-		line = util.RemoveBOM(line)
+		line = RemoveBOM(line)
 		if line == "" || strings.HasPrefix(line, ";") {
 			continue
 		}
 
-		res := util.SplitString(line)
+		res := SplitString(line)
 
 		if len(res) != 3 && len(res) != 2 {
 			log.Errorf("line: %s; line[0]: %s", line, line[0])
@@ -175,7 +173,7 @@ func (d *GameData) loadDropFile(filename string) ([]*cm.DropInfo, error) {
 			return nil, lineError(i, "分母错误")
 		}
 
-		info := &cm.DropInfo{Low: low, High: high, ItemName: res[1], Count: 1}
+		info := &DropInfo{Low: low, High: high, ItemName: res[1], Count: 1}
 
 		if len(res) == 3 { // 1/10 Gold 500
 			if strings.ToUpper(res[2]) == "Q" {
@@ -213,7 +211,7 @@ func (d *GameData) LoadExpList() {
 }
 
 // GetMapInfoByID ...
-func (d *GameData) GetMapInfoByID(mapID int) *cm.MapInfo {
+func (d *GameData) GetMapInfoByID(mapID int) *MapInfo {
 	v, ok := d.MapIDInfoMap[mapID]
 	if !ok {
 		return nil
@@ -222,7 +220,7 @@ func (d *GameData) GetMapInfoByID(mapID int) *cm.MapInfo {
 }
 
 // GetItemInfoByID ...
-func (d *GameData) GetItemInfoByID(itemID int) *cm.ItemInfo {
+func (d *GameData) GetItemInfoByID(itemID int) *ItemInfo {
 	v, ok := d.ItemIDInfoMap[itemID]
 	if !ok {
 		return nil
@@ -231,7 +229,7 @@ func (d *GameData) GetItemInfoByID(itemID int) *cm.ItemInfo {
 }
 
 // GetItemInfoByName ...
-func (d *GameData) GetItemInfoByName(itemName string) *cm.ItemInfo {
+func (d *GameData) GetItemInfoByName(itemName string) *ItemInfo {
 	v, ok := d.ItemNameInfoMap[itemName]
 	if !ok {
 		return nil
@@ -240,7 +238,7 @@ func (d *GameData) GetItemInfoByName(itemName string) *cm.ItemInfo {
 }
 
 // GetMonsterInfoByID ...
-func (d *GameData) GetMonsterInfoByID(monsterID int) *cm.MonsterInfo {
+func (d *GameData) GetMonsterInfoByID(monsterID int) *MonsterInfo {
 	v, ok := d.MonsterIDInfoMap[monsterID]
 	if !ok {
 		return nil
@@ -249,7 +247,7 @@ func (d *GameData) GetMonsterInfoByID(monsterID int) *cm.MonsterInfo {
 }
 
 // GetMonsterInfoByName ...
-func (d *GameData) GetMonsterInfoByName(monsterName string) *cm.MonsterInfo {
+func (d *GameData) GetMonsterInfoByName(monsterName string) *MonsterInfo {
 	v, ok := d.MonsterNameInfoMap[monsterName]
 	if !ok {
 		return nil
@@ -258,7 +256,7 @@ func (d *GameData) GetMonsterInfoByName(monsterName string) *cm.MonsterInfo {
 }
 
 // GetMagicInfoByID ...
-func (d *GameData) GetMagicInfoByID(magicID int) *cm.MagicInfo {
+func (d *GameData) GetMagicInfoByID(magicID int) *MagicInfo {
 	v, ok := d.MagicIDInfoMap[magicID]
 	if !ok {
 		return nil
@@ -266,7 +264,7 @@ func (d *GameData) GetMagicInfoByID(magicID int) *cm.MagicInfo {
 	return v
 }
 
-func (d *GameData) GetMagicInfoBySpell(spell cm.Spell) *cm.MagicInfo {
+func (d *GameData) GetMagicInfoBySpell(spell Spell) *MagicInfo {
 	for _, v := range d.MagicIDInfoMap {
 		if v.Spell == int(spell) {
 			return v
@@ -275,7 +273,7 @@ func (d *GameData) GetMagicInfoBySpell(spell cm.Spell) *cm.MagicInfo {
 	return nil
 }
 
-func (d *GameData) GetMagicInfoByName(name string) *cm.MagicInfo {
+func (d *GameData) GetMagicInfoByName(name string) *MagicInfo {
 	for _, v := range d.MagicIDInfoMap {
 		if v.Name == name {
 			return v
@@ -284,7 +282,7 @@ func (d *GameData) GetMagicInfoByName(name string) *cm.MagicInfo {
 	return nil
 }
 
-func (d *GameData) GetRealItem(origin *cm.ItemInfo, level uint16, job cm.MirClass, itemList []*cm.ItemInfo) *cm.ItemInfo {
+func (d *GameData) GetRealItem(origin *ItemInfo, level uint16, job MirClass, itemList []*ItemInfo) *ItemInfo {
 	if origin.ClassBased && origin.LevelBased {
 		return d.GetClassAndLevelBasedItem(origin, job, level, itemList)
 	}
@@ -297,13 +295,13 @@ func (d *GameData) GetRealItem(origin *cm.ItemInfo, level uint16, job cm.MirClas
 	return origin
 }
 
-func (d *GameData) GetLevelBasedItem(origin *cm.ItemInfo, level uint16, itemList []*cm.ItemInfo) *cm.ItemInfo {
+func (d *GameData) GetLevelBasedItem(origin *ItemInfo, level uint16, itemList []*ItemInfo) *ItemInfo {
 	output := origin
 	for i := 0; i < len(itemList); i++ {
 		info := itemList[i]
 		// if info.Name.StartsWith(Origin.Name) {
 		if strings.HasPrefix(info.Name, origin.Name) {
-			if (info.RequiredType == cm.RequiredTypeLevel) && (uint16(info.RequiredAmount) <= level) && (output.RequiredAmount < info.RequiredAmount) && (origin.RequiredGender == info.RequiredGender) {
+			if (info.RequiredType == RequiredTypeLevel) && (uint16(info.RequiredAmount) <= level) && (output.RequiredAmount < info.RequiredAmount) && (origin.RequiredGender == info.RequiredGender) {
 				output = info
 			}
 		}
@@ -311,7 +309,7 @@ func (d *GameData) GetLevelBasedItem(origin *cm.ItemInfo, level uint16, itemList
 	return output
 }
 
-func (d *GameData) GetClassBasedItem(origin *cm.ItemInfo, job cm.MirClass, itemList []*cm.ItemInfo) *cm.ItemInfo {
+func (d *GameData) GetClassBasedItem(origin *ItemInfo, job MirClass, itemList []*ItemInfo) *ItemInfo {
 	for i := 0; i < len(itemList); i++ {
 		info := itemList[i]
 		if strings.HasPrefix(info.Name, origin.Name) {
@@ -323,13 +321,13 @@ func (d *GameData) GetClassBasedItem(origin *cm.ItemInfo, job cm.MirClass, itemL
 	return origin
 }
 
-func (d *GameData) GetClassAndLevelBasedItem(origin *cm.ItemInfo, job cm.MirClass, level uint16, itemList []*cm.ItemInfo) *cm.ItemInfo {
+func (d *GameData) GetClassAndLevelBasedItem(origin *ItemInfo, job MirClass, level uint16, itemList []*ItemInfo) *ItemInfo {
 	output := origin
 	for i := 0; i < len(itemList); i++ {
 		info := itemList[i]
 		if strings.HasPrefix(info.Name, origin.Name) {
 			if uint8(info.RequiredClass) == (1 << uint8(job)) {
-				if (info.RequiredType == cm.RequiredTypeLevel) && (uint16(info.RequiredAmount) <= level) && (output.RequiredAmount <= info.RequiredAmount) && (origin.RequiredGender == info.RequiredGender) {
+				if (info.RequiredType == RequiredTypeLevel) && (uint16(info.RequiredAmount) <= level) && (output.RequiredAmount <= info.RequiredAmount) && (origin.RequiredGender == info.RequiredGender) {
 					output = info
 				}
 			}

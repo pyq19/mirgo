@@ -2,9 +2,6 @@ package game
 
 import (
 	"time"
-
-	"github.com/pyq19/mirgo/game/cm"
-	"github.com/pyq19/mirgo/game/proto/server"
 )
 
 type Door struct {
@@ -12,7 +9,7 @@ type Door struct {
 	Index    byte
 	State    int //0: closed, 1: opening, 2: open, 3: closing
 	LastTick time.Time
-	Location cm.Point
+	Location Point
 }
 
 func (d *Door) IsOpen() bool {
@@ -26,7 +23,7 @@ func (d *Door) SetOpen(open bool) {
 		d.State = 0
 	}
 	d.LastTick = time.Now()
-	d.Map.BroadcastP(d.Location, &server.Opendoor{DoorIndex: d.Index, Close: !open}, nil)
+	d.Map.BroadcastP(d.Location, &SM_Opendoor{DoorIndex: d.Index, Close: !open}, nil)
 }
 
 func (d *Door) Tick(now time.Time) {
@@ -49,11 +46,11 @@ func NewGrid(w, h uint32) *Grid {
 	}
 }
 
-func (g *Grid) In(loc cm.Point) bool {
+func (g *Grid) In(loc Point) bool {
 	return loc.X < g.W && loc.Y < g.H
 }
 
-func (g *Grid) Set(loc cm.Point, d *Door) {
+func (g *Grid) Set(loc Point, d *Door) {
 	if g.In(loc) {
 		if _, ok := g.Grid[loc.X]; !ok {
 			g.Grid[loc.X] = map[uint32]*Door{}
@@ -63,7 +60,7 @@ func (g *Grid) Set(loc cm.Point, d *Door) {
 	}
 }
 
-func (g *Grid) Get(loc cm.Point) *Door {
+func (g *Grid) Get(loc Point) *Door {
 	if _, ok := g.Grid[loc.X]; !ok {
 		return nil
 	}

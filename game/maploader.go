@@ -3,9 +3,6 @@ package game
 import (
 	"fmt"
 	"io/ioutil"
-
-	"github.com/pyq19/mirgo/game/cm"
-	"github.com/pyq19/mirgo/game/util"
 )
 
 func LoadMap(filepath string) *Map {
@@ -77,15 +74,15 @@ func DetectMapVersion(input []byte) byte {
 }
 
 var (
-	LowWallCell  = NewCell(cm.CellAttributeLowWall)
-	HighWallCell = NewCell(cm.CellAttributeHighWall)
+	LowWallCell  = NewCell(CellAttributeLowWall)
+	HighWallCell = NewCell(CellAttributeHighWall)
 )
 
 func GetMapV0(bytes []byte) *Map {
 	offset := 0
-	w := util.BytesToUint16(bytes[offset:])
+	w := BytesToUint16(bytes[offset:])
 	offset += 2
-	h := util.BytesToUint16(bytes[offset:])
+	h := BytesToUint16(bytes[offset:])
 	width := int(w)
 	height := int(h)
 
@@ -99,26 +96,26 @@ func GetMapV0(bytes []byte) *Map {
 
 			cell = nil
 
-			if (util.BytesToUint16(bytes[offset:]) & 0x8000) != 0 {
+			if (BytesToUint16(bytes[offset:]) & 0x8000) != 0 {
 				cell = HighWallCell //Can Fire Over.
 			}
 
 			offset += 2
-			if (util.BytesToUint16(bytes[offset:]) & 0x8000) != 0 {
+			if (BytesToUint16(bytes[offset:]) & 0x8000) != 0 {
 				cell = LowWallCell //Can't Fire Over.
 			}
 
 			offset += 2
-			if (util.BytesToUint16(bytes[offset:]) & 0x8000) != 0 {
+			if (BytesToUint16(bytes[offset:]) & 0x8000) != 0 {
 				cell = HighWallCell //No Floor Tile.
 			}
 
 			if cell == nil {
-				cell = NewCell(cm.CellAttributeWalk)
+				cell = NewCell(CellAttributeWalk)
 			}
 
-			point := cm.NewPoint(x, y)
-			if cell.Attribute == cm.CellAttributeWalk {
+			point := NewPoint(x, y)
+			if cell.Attribute == CellAttributeWalk {
 				cell.Point = point
 				m.SetCell(point, cell)
 			}
@@ -141,11 +138,11 @@ func GetMapV0(bytes []byte) *Map {
 
 func GetMapV1(bytes []byte) *Map {
 	offset := 21
-	w := util.BytesToUint16(bytes[offset:])
+	w := BytesToUint16(bytes[offset:])
 	offset += 2
-	xor := util.BytesToUint16(bytes[offset:])
+	xor := BytesToUint16(bytes[offset:])
 	offset += 2
-	h := util.BytesToUint16(bytes[offset:])
+	h := BytesToUint16(bytes[offset:])
 	width := int(w ^ xor)
 	height := int(h ^ xor)
 
@@ -159,21 +156,21 @@ func GetMapV1(bytes []byte) *Map {
 
 			cell = nil
 
-			if (util.BytesToUint32(bytes[offset:])^0xAA38AA38)&0x20000000 != 0 {
+			if (BytesToUint32(bytes[offset:])^0xAA38AA38)&0x20000000 != 0 {
 				cell = HighWallCell
 			}
 
 			offset += 6
-			if ((util.BytesToUint16(bytes[offset:]) ^ xor) & 0x8000) != 0 {
+			if ((BytesToUint16(bytes[offset:]) ^ xor) & 0x8000) != 0 {
 				cell = LowWallCell
 			}
 
 			if cell == nil {
-				cell = NewCell(cm.CellAttributeWalk)
+				cell = NewCell(CellAttributeWalk)
 			}
 
-			point := cm.NewPoint(x, y)
-			if cell.Attribute == cm.CellAttributeWalk {
+			point := NewPoint(x, y)
+			if cell.Attribute == CellAttributeWalk {
 				cell.Point = point
 				m.SetCell(point, cell)
 			}
@@ -196,9 +193,9 @@ func GetMapV1(bytes []byte) *Map {
 
 func GetMapV3(bytes []byte) *Map {
 	offset := 0
-	w := util.BytesToUint16(bytes[offset:])
+	w := BytesToUint16(bytes[offset:])
 	offset += 2
-	h := util.BytesToUint16(bytes[offset:])
+	h := BytesToUint16(bytes[offset:])
 	width := int(w)
 	height := int(h)
 
@@ -211,26 +208,26 @@ func GetMapV3(bytes []byte) *Map {
 
 			cell = nil
 
-			if (util.BytesToUint16(bytes[offset:]) & 0x8000) != 0 {
+			if (BytesToUint16(bytes[offset:]) & 0x8000) != 0 {
 				cell = HighWallCell
 			}
 
 			offset += 2
-			if (util.BytesToUint16(bytes[offset:]) & 0x8000) != 0 {
+			if (BytesToUint16(bytes[offset:]) & 0x8000) != 0 {
 				cell = LowWallCell
 			}
 
 			offset += 2
-			if (util.BytesToUint16(bytes[offset:]) & 0x8000) != 0 {
+			if (BytesToUint16(bytes[offset:]) & 0x8000) != 0 {
 				cell = HighWallCell
 			}
 
 			if cell == nil {
-				cell = NewCell(cm.CellAttributeWalk)
+				cell = NewCell(CellAttributeWalk)
 			}
 
-			point := cm.NewPoint(x, y)
-			if cell.Attribute == cm.CellAttributeWalk {
+			point := NewPoint(x, y)
+			if cell.Attribute == CellAttributeWalk {
 				cell.Point = point
 				m.SetCell(point, cell)
 			}
@@ -254,9 +251,9 @@ func GetMapV3(bytes []byte) *Map {
 
 func GetMapV5(bytes []byte) *Map {
 	offset := 22
-	w := util.BytesToUint16(bytes[offset:])
+	w := BytesToUint16(bytes[offset:])
 	offset += 2
-	h := util.BytesToUint16(bytes[offset:])
+	h := BytesToUint16(bytes[offset:])
 	width := int(w)
 	height := int(h)
 
@@ -275,7 +272,7 @@ func GetMapV5(bytes []byte) *Map {
 			} else if (bytes[offset] & 0x02) != 2 {
 				cell = LowWallCell
 			} else {
-				cell = NewCell(cm.CellAttributeWalk)
+				cell = NewCell(CellAttributeWalk)
 			}
 			offset += 13
 
@@ -286,7 +283,7 @@ func GetMapV5(bytes []byte) *Map {
 
 			offset += 1
 
-			cell.Point = cm.NewPoint(x, y)
+			cell.Point = NewPoint(x, y)
 			m.SetCell(cell.Point, cell)
 		}
 	}

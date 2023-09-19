@@ -3,14 +3,12 @@ package game
 import (
 	"fmt"
 	"time"
-
-	"github.com/pyq19/mirgo/game/cm"
 )
 
 type Item struct {
 	MapObject
 	Gold     uint64
-	UserItem *cm.UserItem
+	UserItem *UserItem
 }
 
 func NewGold(dropper IMapObject, gold uint64) *Item {
@@ -22,7 +20,7 @@ func NewGold(dropper IMapObject, gold uint64) *Item {
 	return item
 }
 
-func NewItem(dropper IMapObject, ui *cm.UserItem) *Item {
+func NewItem(dropper IMapObject, ui *UserItem) *Item {
 	item := &Item{UserItem: ui}
 	item.Name = ui.Info.Name
 	item.ID = env.NewObjectID()
@@ -31,20 +29,20 @@ func NewItem(dropper IMapObject, ui *cm.UserItem) *Item {
 	// if ui.IsAdded {
 	// 	item.NameColor = Color.Cyan
 	// } else {
-	if ui.Info.Grade == cm.ItemGradeNone {
-		item.NameColor = cm.ColorWhite
+	if ui.Info.Grade == ItemGradeNone {
+		item.NameColor = ColorWhite
 	}
-	if ui.Info.Grade == cm.ItemGradeCommon {
-		item.NameColor = cm.ColorWhite
+	if ui.Info.Grade == ItemGradeCommon {
+		item.NameColor = ColorWhite
 	}
-	if ui.Info.Grade == cm.ItemGradeRare {
-		item.NameColor = cm.ColorDeepSkyBlue
+	if ui.Info.Grade == ItemGradeRare {
+		item.NameColor = ColorDeepSkyBlue
 	}
-	if ui.Info.Grade == cm.ItemGradeLegendary {
-		item.NameColor = cm.ColorDarkOrange
+	if ui.Info.Grade == ItemGradeLegendary {
+		item.NameColor = ColorDarkOrange
 	}
-	if ui.Info.Grade == cm.ItemGradeMythical {
-		item.NameColor = cm.ColorPlum
+	if ui.Info.Grade == ItemGradeMythical {
+		item.NameColor = ColorPlum
 	}
 	// }
 
@@ -93,7 +91,7 @@ func (m *Item) AddPlayerCount(n int) {
 	}
 }
 
-func (m *Item) Attacked(attacker IMapObject, damage int, dtype cm.DefenceType, damageWeapon bool) int {
+func (m *Item) Attacked(attacker IMapObject, damage int, dtype DefenceType, damageWeapon bool) int {
 	return 0
 }
 
@@ -111,15 +109,15 @@ func (i *Item) Process(dt time.Duration) {
 
 }
 
-func (i *Item) GetRace() cm.ObjectType {
-	return cm.ObjectTypeItem
+func (i *Item) GetRace() ObjectType {
+	return ObjectTypeItem
 }
 
 func (i *Item) IsBlocking() bool {
 	return false
 }
 
-func (i *Item) GetPoint() cm.Point {
+func (i *Item) GetPoint() Point {
 	return i.CurrentLocation
 }
 
@@ -131,7 +129,7 @@ func (i *Item) Broadcast(msg interface{}) {
 	i.Map.BroadcastP(i.CurrentLocation, msg, nil)
 }
 
-func (i *Item) GetDirection() cm.MirDirection {
+func (i *Item) GetDirection() MirDirection {
 	return i.Direction
 }
 
@@ -151,14 +149,14 @@ func (i *Item) AddBuff(buff *Buff) {}
 
 func (i *Item) ApplyPoison(poison *Poison, caster IMapObject) {}
 
-func (i *Item) GetItemInfo() *cm.ItemInfo {
+func (i *Item) GetItemInfo() *ItemInfo {
 	return data.GetItemInfoByID(int(i.UserItem.ItemID))
 }
 
 func (i *Item) GetImage() uint16 {
 	info := i.GetItemInfo()
 	switch info.Type {
-	case cm.ItemTypeAmulet:
+	case ItemTypeAmulet:
 		if info.StackSize > 0 {
 			switch info.Shape {
 			case 0: //Amulet
@@ -201,7 +199,7 @@ func (i *Item) GetImage() uint16 {
 }
 
 // Drop 物品加入到地图上，传入中心点 center，范围 distance
-func (i *Item) Drop(center cm.Point, distance int) (string, bool) {
+func (i *Item) Drop(center Point, distance int) (string, bool) {
 
 	ok := false
 
@@ -211,7 +209,7 @@ func (i *Item) Drop(center cm.Point, distance int) (string, bool) {
 		}
 
 		ok = true
-		i.CurrentLocation = cm.NewPoint(x, y)
+		i.CurrentLocation = NewPoint(x, y)
 		i.Map.AddObject(i)
 		i.BroadcastInfo()
 

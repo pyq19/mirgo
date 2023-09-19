@@ -14,19 +14,11 @@ import (
 	_ "github.com/davyxu/cellnet/peer/tcp"
 	"github.com/davyxu/cellnet/proc"
 	"github.com/davyxu/cellnet/timer"
-	"github.com/davyxu/golog"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/sqlite"
-	"github.com/pyq19/mirgo/game/cm"
-	_ "github.com/pyq19/mirgo/game/mirtcp"
-	"github.com/pyq19/mirgo/game/proto/server"
-	"github.com/pyq19/mirgo/game/script"
-	"github.com/pyq19/mirgo/game/util"
-	"github.com/pyq19/mirgo/setting"
 )
 
 var env *Environ
-var log = golog.New("server")
 
 // Environ ...
 type Environ struct {
@@ -40,8 +32,8 @@ type Environ struct {
 	lastFrame          time.Time
 
 	DefaultNPC *NPC
-	Lights     cm.LightSetting
-	GuildList  *GuildList
+	Lights     LightSetting
+	// GuildList  *GuildList
 }
 
 func (e *Environ) Loop() {
@@ -52,7 +44,7 @@ func (e *Environ) Loop() {
 	nowHour := now.Hour()
 	if lastHour != nowHour {
 		e.AdjustLights()
-		e.Broadcast(&server.TimeOfDay{Lights: e.Lights})
+		e.Broadcast(&SM_TimeOfDay{Lights: e.Lights})
 	}
 
 	for _, m := range e.Maps {
@@ -90,7 +82,7 @@ func (g *Environ) ServerStart() {
 
 // NewEnviron ...
 func NewEnviron() *Environ {
-	settings = setting.Must()
+	settings = Must()
 
 	gameData, err := gorm.Open("sqlite3", settings.DBPath)
 	if err != nil {
@@ -113,7 +105,7 @@ func NewEnviron() *Environ {
 	id := adb.GetObjectID()
 	if id == 0 {
 		id = 100000
-		adb.Table("basic").Create(&cm.Basic{ID: 1, ObjectID: id})
+		adb.Table("basic").Create(&Basic{ID: 1, ObjectID: id})
 	}
 	e.ObjectID = id
 	go func() {
@@ -122,12 +114,12 @@ func NewEnviron() *Environ {
 		}
 	}()
 
-	script.SearchPaths = []string{
+	SearchPaths = []string{
 		filepath.Join(settings.EnvirPath, "NPCs"),
 		settings.EnvirPath,
 	}
 
-	e.DefaultNPC = NewNPC(nil, e.NewObjectID(), &cm.NpcInfo{
+	e.DefaultNPC = NewNPC(nil, e.NewObjectID(), &NpcInfo{
 		Name:     "DefaultNPC",
 		Filename: "00Default",
 	})
@@ -165,8 +157,8 @@ func PrintEnviron(env *Environ) {
 	log.Debugf("共加载了 %d 张地图，%d 怪物，%d NPC\n", mapCount, monsterCount, npcCount)
 }
 
-func (e *Environ) NewUserItem(i *cm.ItemInfo) *cm.UserItem {
-	res := &cm.UserItem{
+func (e *Environ) NewUserItem(i *ItemInfo) *UserItem {
+	res := &UserItem{
 		ID:             uint64(e.NewObjectID()),
 		ItemID:         i.ID,
 		CurrentDura:    100,
@@ -204,7 +196,7 @@ func (e *Environ) NewUserItem(i *cm.ItemInfo) *cm.UserItem {
 func (e *Environ) InitMaps() {
 
 	uppercaseNameRealNameMap := map[string]string{}
-	files := util.GetFiles(settings.MapDirPath, []string{".map"})
+	files := GetFiles(settings.MapDirPath, []string{".map"})
 
 	for _, f := range files {
 		uppercaseNameRealNameMap[strings.ToUpper(filepath.Base(f))] = f
@@ -270,14 +262,14 @@ func (e *Environ) AdjustLights() {
 	oldLights := e.Lights
 	hours := (time.Now().Hour() * 2) % 24
 	if hours == 6 || hours == 7 {
-		e.Lights = cm.LightSettingDawn
+		e.Lights = LightSettingDawn
 	} else if hours >= 8 && hours <= 15 {
-		e.Lights = cm.LightSettingDay
+		e.Lights = LightSettingDay
 	} else if hours == 16 || hours == 17 {
-		e.Lights = cm.LightSettingEvening
+		e.Lights = LightSettingEvening
 	} else {
-		// e.Lights = cm.LightSettingNight
-		e.Lights = cm.LightSettingEvening
+		// e.Lights = LightSettingNight
+		e.Lights = LightSettingEvening
 	}
 	if oldLights == e.Lights {
 		return
@@ -285,6 +277,7 @@ func (e *Environ) AdjustLights() {
 	// e.Broadcast(&server.TimeOfDay{Lights: e.Lights})
 }
 
+/*
 // GetGuild 通过工会名称获取工会
 func (e *Environ) GetGuild(name string) *Guild {
 	for e := e.GuildList.List.Front(); e != nil; e = e.Next() {
@@ -295,6 +288,7 @@ func (e *Environ) GetGuild(name string) *Guild {
 	}
 	return nil
 }
+*/
 
 func (e *Environ) GetPlayer(name string) *Player {
 	return e.Players.GetPlayerByName(name)
