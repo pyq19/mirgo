@@ -12,11 +12,11 @@ import (
 	_ "github.com/davyxu/cellnet/peer/tcp"
 	"github.com/davyxu/cellnet/proc"
 	"github.com/davyxu/golog"
-	"github.com/yenkeia/mirgo/game/cm"
-	_ "github.com/yenkeia/mirgo/game/mircodec"
-	_ "github.com/yenkeia/mirgo/game/mirtcp"
-	"github.com/yenkeia/mirgo/game/proto/client"
-	"github.com/yenkeia/mirgo/game/proto/server"
+	"github.com/pyq19/mirgo/game/cm"
+	_ "github.com/pyq19/mirgo/game/mircodec"
+	_ "github.com/pyq19/mirgo/game/mirtcp"
+	"github.com/pyq19/mirgo/game/proto/client"
+	"github.com/pyq19/mirgo/game/proto/server"
 )
 
 var log = golog.New("client")

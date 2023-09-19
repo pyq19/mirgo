@@ -8,7 +8,6 @@ require (
 	github.com/gorilla/websocket v1.4.2
 	github.com/jinzhu/gorm v1.9.12
 	github.com/pelletier/go-toml v1.6.0
-	github.com/yenkeia/mirgo v0.0.0-20201113085532-5558abbc85b7
 )
 
 require (

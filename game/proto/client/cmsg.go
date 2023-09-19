@@ -2,7 +2,7 @@ package client
 
 import (
 	_ "github.com/davyxu/cellnet/codec/binary"
-	"github.com/yenkeia/mirgo/game/cm"
+	"github.com/pyq19/mirgo/game/cm"
 )
 
 const (

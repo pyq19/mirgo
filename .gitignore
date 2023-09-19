@@ -63,4 +63,4 @@ go.sum
 dotnettools/account.sqlite-journal
 client
 
-/mirgo
+/server
