@@ -11,7 +11,7 @@ import (
 //（sceneplay.go），getObjectsLoader 必须保证该 area 的缓存 map 已创建，
 // 无论 LoadMap 是否跑过、resources 是否就绪。
 func TestObjectsCacheLazyInit(t *testing.T) {
-	s := NewPlayScene(nil, &engine.ResourceManager{}, "", nil)
+	s := NewPlayScene(nil, &engine.ResourceManager{}, "")
 	loader := s.getObjectsLoader(0)
 	if loader != nil {
 		t.Fatalf("无资源时 loader 应为 nil, got %v", loader)

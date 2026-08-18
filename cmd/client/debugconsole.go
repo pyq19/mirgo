@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"sort"
-	"strconv"
 	"strings"
 	"time"
 	"unicode/utf8"
@@ -11,10 +10,6 @@ import (
 	"github.com/pyq0109/mirgo/internal/engine"
 	"github.com/pyq0109/mirgo/internal/log"
 )
-
-// gDebug 是全局控制台引用。由 main.go 在创建后设置,
-// 供 UI 事件日志等无法直接持有控制台引用的代码使用。
-var gDebug *DebugConsole
 
 // uiLogTag 是 UI 调试命令在日志中的标签。
 const uiLogTag = "UIDebug"
@@ -37,8 +32,7 @@ type DebugCmd struct {
 }
 
 // DebugConsole 是跨场景的全局调试叠加层。它由 main.go 持有,
-// 在 GLFW 回调层拦截输入、在场景渲染之后绘制自身。场景相关的
-// 命令通过 Register/Unregister 动态增删。
+// 在 GLFW 回调层拦截输入、在场景渲染之后绘制自身。
 type DebugConsole struct {
 	Visible   bool
 	Lines     []string
@@ -92,19 +86,13 @@ func NewDebugConsole(gl *engine.GLState, text *engine.TextRenderer) *DebugConsol
 	}
 	dc.Register("help", "list all commands", dc.cmdHelp)
 	dc.Register("clear", "clear console output", dc.cmdClear)
-	dc.Register("ui", "ui tree|bounds|hit|events|state|inspect|move|click|audit", dc.cmdUI)
-	dc.Register("click", "click <x> <y> [right] — simulate click", dc.cmdClick)
+	dc.Register("ui", "ui bounds — toggle UI bounds overlay", dc.cmdUI)
 	return dc
 }
 
 // Register 注册 (或覆盖) 一条命令。
 func (dc *DebugConsole) Register(name, help string, fn func(args []string)) {
 	dc.cmds[name] = DebugCmd{Help: help, Fn: fn}
-}
-
-// Unregister 删除一条命令。
-func (dc *DebugConsole) Unregister(name string) {
-	delete(dc.cmds, name)
 }
 
 // SetMouse 每帧由 main.go 更新鼠标逻辑坐标。
@@ -525,120 +513,16 @@ func (dc *DebugConsole) cmdUI(args []string) {
 		dc.uiLogf("no UI in current scene")
 		return
 	}
-	if len(args) == 0 {
-		dc.Printf("usage: ui tree|bounds|hit|events|state|inspect|move|click|audit")
+	if len(args) == 0 || args[0] != "bounds" {
+		dc.Printf("usage: ui bounds")
 		return
 	}
-	log.Logf(log.LevelInfo, uiLogTag, "> ui %s", strings.Join(args, " "))
-	switch args[0] {
-	case "audit":
-		filter := ""
-		if len(args) > 1 {
-			filter = args[1]
-		}
-		dc.uiLogf("%s", ui.DebugAudit(filter))
-	case "tree":
-		depth := 3
-		if len(args) > 1 {
-			fmt.Sscanf(args[1], "%d", &depth)
-		}
-		dc.uiLogf("%s", ui.DebugTree(depth))
-	case "bounds":
-		ui.ShowBounds = !ui.ShowBounds
-		if ui.ShowBounds {
-			ui.BoundsNames = 1 // 默认可读模式: 框+仅光标下名字
-		}
-		dc.uiLogf("ui bounds %s", onOff(ui.ShowBounds))
-	case "hit":
-		dc.uiLogf("%s", ui.DebugHitTest(int(dc.mouseX), int(dc.mouseY)))
-	case "events":
-		debugUIEvents = !debugUIEvents
-		dc.uiLogf("ui events %s", onOff(debugUIEvents))
-	case "state":
-		dc.uiLogf("modal=%s capture=%s focus=%s",
-			debugCtlName(ui.Modal), debugCtlName(ui.Capture), debugCtlName(ui.Focused))
-		vis := 0
-		var countVis func(c *UIControl)
-		countVis = func(c *UIControl) {
-			if c.Visible {
-				vis++
-			}
-			for _, ch := range c.Children {
-				countVis(ch)
-			}
-		}
-		countVis(ui.Root)
-		dc.uiLogf("root children=%d visible controls=%d", len(ui.Root.Children), vis)
-	case "inspect":
-		if len(args) < 2 {
-			dc.uiLogf("usage: ui inspect <name>")
-			return
-		}
-		dc.uiLogf("%s", ui.DebugInspect(strings.Join(args[1:], " ")))
-	case "move":
-		if len(args) < 4 {
-			dc.uiLogf("usage: ui move <name> <x> <y>")
-			return
-		}
-		name := strings.Join(args[1:len(args)-2], " ")
-		x, err1 := strconv.Atoi(args[len(args)-2])
-		y, err2 := strconv.Atoi(args[len(args)-1])
-		if err1 != nil || err2 != nil {
-			dc.uiLogf("usage: ui move <name> <x> <y>  (x,y must be integers)")
-			return
-		}
-		c := ui.FindControl(name)
-		if c == nil {
-			dc.uiLogf("control %q not found", name)
-			return
-		}
-		oldX, oldY := c.Left, c.Top
-		c.Left, c.Top = x, y
-		dc.uiLogf("%s moved (%d,%d) -> (%d,%d)", c.Name, oldX, oldY, x, y)
-	case "click":
-		if len(args) < 2 {
-			dc.uiLogf("usage: ui click <name>")
-			return
-		}
-		c := ui.FindControl(strings.Join(args[1:], " "))
-		if c == nil {
-			dc.uiLogf("control %q not found", strings.Join(args[1:], " "))
-			return
-		}
-		w, h := c.effectiveSize()
-		cx, cy := c.AbsX()+w/2, c.AbsY()+h/2
-		ui.RouteMouseDown(cx, cy, 0)
-		ui.RouteMouseUp(cx, cy, 0)
-		dc.uiLogf("clicked %s at (%d,%d)", c.Name, cx, cy)
-	default:
-		dc.uiLogf("unknown ui subcommand: %s", args[0])
+	log.Logf(log.LevelInfo, uiLogTag, "> ui bounds")
+	ui.ShowBounds = !ui.ShowBounds
+	if ui.ShowBounds {
+		ui.BoundsNames = 1 // 默认可读模式: 框+仅光标下名字
 	}
-}
-
-func (dc *DebugConsole) cmdClick(args []string) {
-	ui := gActiveUI
-	if ui == nil {
-		dc.uiLogf("no UI in current scene")
-		return
-	}
-	if len(args) < 2 {
-		dc.Printf("usage: click <x> <y> [right]")
-		return
-	}
-	x, err1 := strconv.Atoi(args[0])
-	y, err2 := strconv.Atoi(args[1])
-	if err1 != nil || err2 != nil {
-		dc.Printf("usage: click <x> <y> [right]")
-		return
-	}
-	button := 0
-	if len(args) >= 3 && args[2] == "right" {
-		button = 1
-	}
-	log.Logf(log.LevelInfo, uiLogTag, "> click %s", strings.Join(args, " "))
-	consumed := ui.RouteMouseDown(x, y, button)
-	ui.RouteMouseUp(x, y, button)
-	dc.uiLogf("click (%d,%d) btn=%d consumed=%v", x, y, button, consumed)
+	dc.uiLogf("ui bounds %s", onOff(ui.ShowBounds))
 }
 
 // --- 渲染 ---

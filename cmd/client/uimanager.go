@@ -32,18 +32,8 @@ type UIManager struct {
 
 // gActiveUI 是当前活动场景的 UIManager 引用。
 // 各场景在 Open() 中设置、Close() 中置 nil，
-// 使全局注册的 ui/click 调试命令可跨场景工作。
+// 使全局注册的 ui bounds 调试命令可跨场景工作。
 var gActiveUI *UIManager
-
-// debugUIEvents 开关: 为 true 时 UI 输入事件会输出到全局控制台,
-// 用于排查 "交互失效" (点击没反应、事件被谁吃掉等问题)。
-var debugUIEvents bool
-
-func uiEventf(format string, args ...interface{}) {
-	if debugUIEvents && gDebug != nil {
-		gDebug.Printf(format, args...)
-	}
-}
 
 func NewUIManager(gl *engine.GLState, resources *engine.ResourceManager, text *engine.TextRenderer) *UIManager {
 	root := NewUIControl("DBackground", KindControl)
@@ -109,8 +99,7 @@ func (m *UIManager) CloseModal(c *UIControl) {
 
 // RouteMouseDown 在 UI 消费了事件时返回 true (游戏世界必须忽略该事件
 // — 对应 ClMain.pas 的 `if g_DWinMan.MouseDown then exit`).
-func (m *UIManager) RouteMouseDown(absX, absY int, button int) (consumed bool) {
-	defer func() { uiEventf("[down] (%d,%d) btn=%d consumed=%v", absX, absY, button, consumed) }()
+func (m *UIManager) RouteMouseDown(absX, absY int, button int) bool {
 	if m.Modal != nil && m.Modal.Visible {
 		// 模态可见时恒吞掉鼠标事件 (TDWinManager.MouseDown
 		// 恒返回 TRUE, DWinCtl.pas:1008-1015), 点在模态框外也不许落到世界.
@@ -125,8 +114,7 @@ func (m *UIManager) RouteMouseDown(absX, absY int, button int) (consumed bool) {
 	return m.dispatchMouseDown(m.Root, button, absX-m.Root.Left, absY-m.Root.Top)
 }
 
-func (m *UIManager) RouteMouseUp(absX, absY int, button int) (consumed bool) {
-	defer func() { uiEventf("[up] (%d,%d) btn=%d consumed=%v", absX, absY, button, consumed) }()
+func (m *UIManager) RouteMouseUp(absX, absY int, button int) bool {
 	if m.Modal != nil && m.Modal.Visible {
 		log.Logf(log.LevelDebug, "UI", "mouse-up routed -> modal %s pos=(%d,%d)", m.Modal.Name, absX, absY)
 		m.dispatchMouseUp(m.Modal, button, m.Modal.ParentSpaceX(absX), m.Modal.ParentSpaceY(absY))
@@ -295,7 +283,6 @@ func (m *UIManager) dispatchMouseUp(c *UIControl, button, x, y int) bool {
 					m.ReleaseCapture()
 					if !c.Background && c.InRange(x, y) {
 						log.Logf(log.LevelDebug, "UI", "click %s(%s) pos=(%d,%d)", c.Name, c.Kind, x, y)
-				uiEventf("[click] %s (%s)", c.DebugPath(), c.Kind)
 						if c.OnMouseUp != nil {
 							c.OnMouseUp(c, button, x, y)
 						}
@@ -327,7 +314,6 @@ func (m *UIManager) dispatchMouseUp(c *UIControl, button, x, y int) bool {
 			// 控件 (如 DStateWin 魔法页命中检测) 在此收到它.
 			if c.OnClick != nil {
 				log.Logf(log.LevelDebug, "UI", "click %s(%s) pos=(%d,%d)", c.Name, c.Kind, x, y)
-				uiEventf("[click] %s (%s)", c.DebugPath(), c.Kind)
 				if c.ClickSound >= 0 {
 					gSound.PlaySound(c.ClickSound)
 				}
@@ -541,7 +527,7 @@ func (m *UIManager) BlitImage(f *wil.File, idx, x, y int, proj [16]float32) bool
 }
 
 // ---------------------------------------------------------------------------
-// 调试检查 (debugconsole "ui" 命令使用)
+// 调试检查 (DebugTree 供布局快照测试; debugCollectHits 供悬停检测)
 // ---------------------------------------------------------------------------
 
 // DebugTree 返回缩进的控件树文本, maxDepth 限制展开深度。
@@ -575,28 +561,6 @@ func (m *UIManager) debugTreeWalk(sb *strings.Builder, c *UIControl, depth, maxD
 	}
 }
 
-// DebugHitTest 返回绝对坐标 (x,y) 处的命中链 (自底向上) 及路由状态,
-// 用于排查 "点不中/点错控件" 的交互问题。
-func (m *UIManager) DebugHitTest(x, y int) string {
-	var hits []*UIControl
-	m.debugCollectHits(m.Root, x-m.Root.Left, y-m.Root.Top, &hits)
-
-	var sb strings.Builder
-	fmt.Fprintf(&sb, "(%d,%d) hit chain (bottom->top):\n", x, y)
-	if len(hits) == 0 {
-		sb.WriteString("  (none)\n")
-	}
-	for i, c := range hits {
-		fmt.Fprintf(&sb, "  %d. %s (%s)\n", i+1, c.Name, c.Kind)
-	}
-	if n := len(hits); n > 0 {
-		fmt.Fprintf(&sb, "  -> topmost: %s\n", hits[n-1].Name)
-	}
-	fmt.Fprintf(&sb, "modal=%s capture=%s focus=%s",
-		debugCtlName(m.Modal), debugCtlName(m.Capture), debugCtlName(m.Focused))
-	return sb.String()
-}
-
 func debugCtlName(c *UIControl) string {
 	if c == nil {
 		return "none"
@@ -617,54 +581,6 @@ func (m *UIManager) debugCollectHits(c *UIControl, x, y int, hits *[]*UIControl)
 			m.debugCollectHits(ch, x-c.Left, y-c.Top, hits)
 		}
 	}
-}
-
-// FindControl 按名称精确查找控件（不区分大小写），DFS 遍历整棵树含 Modal。
-func (m *UIManager) FindControl(name string) *UIControl {
-	var find func(c *UIControl) *UIControl
-	find = func(c *UIControl) *UIControl {
-		if strings.EqualFold(c.Name, name) {
-			return c
-		}
-		for _, ch := range c.Children {
-			if r := find(ch); r != nil {
-				return r
-			}
-		}
-		return nil
-	}
-	if r := find(m.Root); r != nil {
-		return r
-	}
-	if m.Modal != nil {
-		return find(m.Modal)
-	}
-	return nil
-}
-
-// DebugInspect 返回单个控件的完整属性 dump。
-func (m *UIManager) DebugInspect(name string) string {
-	c := m.FindControl(name)
-	if c == nil {
-		return fmt.Sprintf("control %q not found", name)
-	}
-	w, h := c.effectiveSize()
-	var sb strings.Builder
-	fmt.Fprintf(&sb, "%s (%s)\n", c.DebugPath(), c.Kind)
-	fmt.Fprintf(&sb, "  pos=(%d,%d) abs=(%d,%d) size=%dx%d\n", c.Left, c.Top, c.AbsX(), c.AbsY(), w, h)
-	fmt.Fprintf(&sb, "  visible=%v floating=%v background=%v enablefocus=%v tag=%d\n",
-		c.Visible, c.Floating, c.Background, c.EnableFocus, c.Tag)
-	if c.FaceIndex != 0 || c.WLib != nil {
-		fmt.Fprintf(&sb, "  face=%d wlib=%v\n", c.FaceIndex, c.WLib != nil)
-	}
-	if c.Kind == KindGrid {
-		fmt.Fprintf(&sb, "  grid: %dx%d cell=%dx%d sel=(%d,%d) cur=(%d,%d)\n",
-			c.ColCount, c.RowCount, c.ColWidth, c.RowHeight,
-			c.SelectCol, c.SelectRow, c.Col, c.Row)
-	}
-	fmt.Fprintf(&sb, "  children=%d parent=%s\n", len(c.Children), debugCtlName(c.Parent))
-	fmt.Fprintf(&sb, "  callbacks:%s\n", debugCallbacks(c))
-	return strings.TrimRight(sb.String(), "\n")
 }
 
 // HoveredControl 返回鼠标坐标处最顶层的可交互控件 (Button/Grid/EnableFocus)。
@@ -697,47 +613,6 @@ func (m *UIManager) HoverProvidesHint(x, y int) bool {
 		return c.OnMouseMove != nil
 	}
 	return false
-}
-
-func debugCallbacks(c *UIControl) string {
-	var names []string
-	if c.OnDirectPaint != nil {
-		names = append(names, "paint")
-	}
-	if c.OnClick != nil {
-		names = append(names, "click")
-	}
-	if c.OnDblClick != nil {
-		names = append(names, "dblclick")
-	}
-	if c.OnMouseDown != nil {
-		names = append(names, "down")
-	}
-	if c.OnMouseUp != nil {
-		names = append(names, "up")
-	}
-	if c.OnMouseMove != nil {
-		names = append(names, "move")
-	}
-	if c.OnChar != nil {
-		names = append(names, "char")
-	}
-	if c.OnKeyDown != nil {
-		names = append(names, "key")
-	}
-	if c.OnGridPaint != nil {
-		names = append(names, "gridpaint")
-	}
-	if c.OnGridSelect != nil {
-		names = append(names, "gridselect")
-	}
-	if c.OnInRealArea != nil {
-		names = append(names, "inrealarea")
-	}
-	if len(names) == 0 {
-		return ""
-	}
-	return " cb=" + strings.Join(names, ",")
 }
 
 // SetHoverPos 记录最近一帧光标位置, 供包围盒"仅光标下显示名字"模式 (BoundsNames=1) 取悬停控件。

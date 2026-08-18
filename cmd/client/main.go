@@ -178,9 +178,8 @@ func main() {
 		}
 	}
 	dbgConsole := NewDebugConsole(glState, consoleText)
-	gDebug = dbgConsole
 
-	playScene := NewPlayScene(glState, resources, *mapDir, dbgConsole)
+	playScene := NewPlayScene(glState, resources, *mapDir)
 	playScene.SetText(textRenderer)
 	loginScene := NewLoginScene(glState, resources, textRenderer)
 	selectChrScene := NewSelectChrScene(glState, resources, textRenderer)

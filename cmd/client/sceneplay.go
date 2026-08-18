@@ -270,11 +270,9 @@ type PlayScene struct {
 
 	effects *EffectManager
 	events  *EventManager
-
-	dbg *DebugConsole // 全局调试控制台 (由 main.go 注入)
 }
 
-func NewPlayScene(gl *engine.GLState, resources *engine.ResourceManager, mapDir string, dbg *DebugConsole) *PlayScene {
+func NewPlayScene(gl *engine.GLState, resources *engine.ResourceManager, mapDir string) *PlayScene {
 	s := &PlayScene{
 		gl:             gl,
 		resources:      resources,
@@ -292,7 +290,6 @@ func NewPlayScene(gl *engine.GLState, resources *engine.ResourceManager, mapDir 
 		effects:        NewEffectManager(),
 		events:         NewEventManager(),
 		ui:             NewUIManager(gl, resources, nil),
-		dbg:            dbg,
 	}
 	// 手持物品时点击空白处将物品丢到地面
 	// （FState.pas:1865-1886 DBackgroundBackgroundClick）。
@@ -604,13 +601,11 @@ func (s *PlayScene) OnResize() {}
 
 func (s *PlayScene) Open() {
 	gActiveUI = s.ui
-	s.registerDebugCmds()
 	log.Logf(log.LevelInfo, "PlayScene", "opened")
 }
 
 func (s *PlayScene) Close() {
 	gActiveUI = nil
-	s.unregisterDebugCmds()
 	gSound.SilenceSound()
 	if s.gray != nil {
 		s.gray.dispose()

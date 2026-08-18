@@ -83,7 +83,7 @@ func newTestText(t *testing.T) *engine.TextRenderer {
 }
 
 func TestPlaySceneLayoutSnapshot(t *testing.T) {
-	s := NewPlayScene(nil, &engine.ResourceManager{}, "", nil)
+	s := NewPlayScene(nil, &engine.ResourceManager{}, "")
 	snapCheck(t, "play_layout.snap", s.ui.DebugTree(99))
 }
 
@@ -138,7 +138,7 @@ func overlapsSibling(b *UIControl) bool {
 // (与实际游玩时一次只开一个面板一致), 其内每个无重叠按钮的中心点
 // 必须命中自己。
 func TestPlaySceneHitAssertions(t *testing.T) {
-	s := NewPlayScene(nil, &engine.ResourceManager{}, "", nil)
+	s := NewPlayScene(nil, &engine.ResourceManager{}, "")
 	ui := s.ui
 
 	tops := append([]*UIControl{}, ui.Root.Children...)

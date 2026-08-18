@@ -4,12 +4,11 @@ package main
 // (WLib/FaceIndex + 图片尺寸/HotX/HotY) 是两套独立数据, 仅靠
 // SetImgIndex 弱同步 (uicontrol.go), 大量手工覆盖导致 "按钮图与
 // 点击范围不符"、"子控件错位" 类 bug。Audit 自动对照两套数据与
-// 布局常识列出问题清单; 只报告不修复。控制台入口: ui audit。
+// 布局常识列出问题清单; 只报告不修复, 由 Validate 在各场景建树后写入日志。
 
 import (
 	"fmt"
 	"sort"
-	"strings"
 
 	"github.com/pyq0109/mirgo/internal/log"
 )
@@ -173,43 +172,4 @@ func (m *UIManager) Validate() {
 	}
 	log.Logf(log.LevelInfo, "UIAudit", "validate: %d issues (%d error, %d warn, %d info)",
 		len(issues), nErr, nWarn, nInfo)
-}
-
-// DebugAudit 返回人类可读的审计清单 (ui audit 命令)。
-// filter 为空=全部, "err"=仅 error, 其他=路径子串过滤。
-func (m *UIManager) DebugAudit(filter string) string {
-	issues := m.Audit()
-	if len(issues) == 0 {
-		return "audit: no issues"
-	}
-	var nErr, nWarn, nInfo int
-	for _, is := range issues {
-		switch is.Level {
-		case AuditError:
-			nErr++
-		case AuditWarn:
-			nWarn++
-		default:
-			nInfo++
-		}
-	}
-	var sb strings.Builder
-	shown := 0
-	for _, is := range issues {
-		switch {
-		case filter == "err" && is.Level != AuditError:
-			continue
-		case filter != "" && filter != "err" &&
-			!strings.Contains(strings.ToLower(is.Path), strings.ToLower(filter)):
-			continue
-		}
-		fmt.Fprintf(&sb, "%-4s %-15s %s\n     %s\n", is.Level, is.Rule, is.Path, is.Msg)
-		shown++
-	}
-	if shown == 0 {
-		fmt.Fprintf(&sb, "(no issue matches filter %q)\n", filter)
-	}
-	fmt.Fprintf(&sb, "--- total %d issues (%d error, %d warn, %d info), %d shown",
-		len(issues), nErr, nWarn, nInfo, shown)
-	return strings.TrimRight(sb.String(), "\n")
 }

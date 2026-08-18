@@ -102,7 +102,7 @@ func TestReturnItemToBag(t *testing.T) {
 // 修复 1.2：技能书（StdMode=4, Shape<100）双击使用必须先弹学习确认
 //（Delphi EatItem -1 分支, ClMain.pas:1981-1994）；药品直接使用。
 func TestUseHeldItemSkillBookConfirmation(t *testing.T) {
-	s := NewPlayScene(nil, &engine.ResourceManager{}, "", nil)
+	s := NewPlayScene(nil, &engine.ResourceManager{}, "")
 	var used []int32
 	s.sendUseItem = func(mi int32) { used = append(used, mi) }
 
