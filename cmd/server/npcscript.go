@@ -2080,7 +2080,7 @@ func (p *PlayObject) getTotalEquipWeight() int {
 
 // sendMsgByType 按频道类型发送消息 (Delphi ObjNpc.pas:3364-3386)。
 func (s *NpcScript) sendMsgByType(msgType int, text string, p *PlayObject, npc *NpcObject, server *netserver.TCPServer) {
-	sysMsg := protocol.MakeDefaultMsg(protocol.SMSysMessage, 0, 0, 0, 0)
+	sysMsg := protocol.MakeDefaultMsg(protocol.SMSysMessage, 0, chatColorSys, 0, 0)
 	body := protocol.EncodeString(text)
 	switch msgType {
 	case 0: // 全服广播

@@ -52,6 +52,8 @@ type pendingChangeFace struct {
 type ChatMessage struct {
 	Text string
 	Time int64
+	Fg   [4]float32 // 前景色（Delphi ChatStrs.Objects，服务端 Param 低字节调色板索引）
+	Bg   [4]float32 // 背景色（Delphi ChatBks，Param 高字节调色板索引）
 }
 
 type PlayScene struct {
@@ -128,6 +130,7 @@ type PlayScene struct {
 	lastMoveTick          int64
 	lastAniTick           int64
 	text                  *engine.TextRenderer
+	chatText              *engine.TextRenderer // 聊天专用小字号（行高 12px 容纳）
 
 	groundItems   map[int32]*GroundItemInfo
 	floatingTexts []FloatingText
@@ -224,9 +227,9 @@ type PlayScene struct {
 	hoverSelf  bool // Delphi g_boSelectMyself：鼠标悬停在自己身上
 
 	// 小地图（Delphi PlayScn.pas DrawMiniMap 移植）。
-	minimapLv  int     // 0 隐藏 / 1 半透明 / 2 不透明（g_nViewMinMapLv）
-	mmBlinkOn  bool    // 标记闪烁状态（m_boViewBlink，300ms 翻转）
-	mmBlinkAcc float64 // 闪烁累计时间（秒）
+	// 标记常亮：原版 m_boViewBlink 每 300ms 隐藏全部标记
+	//（PlayScn.pas:801-819），此处有意改为常亮以提升观感。
+	minimapLv int // 0 隐藏 / 1 半透明 / 2 不透明（g_nViewMinMapLv）
 
 	// 小地图/交易/行会共享的 3 秒查询节流（g_dwQueryMsgTick，
 	// MShare.pas:301；FState:5412,5427,5438,6372,6381）。
@@ -550,6 +553,14 @@ func (s *PlayScene) RemoveGroundItem(id int32) {
 
 func (s *PlayScene) SetText(t *engine.TextRenderer) {
 	s.text = t
+	// 聊天行高仅 12px（FState:3703），主字体行高超出会叠行；
+	// 派生 8pt 小字体专供聊天板/输入行（同调试控制台用档）。
+	s.chatText = t
+	if t != nil {
+		if small, err := t.WithSize(8); err == nil {
+			s.chatText = small
+		}
+	}
 	s.ui.SetText(t)
 }
 
@@ -580,10 +591,10 @@ func (s *PlayScene) LoadMap(mapName string) error {
 	s.State.ShowShop = false
 	s.npcDlgX, s.npcDlgY = -1, -1
 
-	if s.resources.Objects[0] != nil {
-		s.objectsLoaders[0] = s.resources.Objects[0]
-		s.objectsCaches[0] = make(map[int]uint32)
-	}
+	// 三层纹理缓存（texCache/smTexCache/objectsCaches）跨地图保留：
+	// PlayScene 与 GL 上下文同为进程级单例，同索引纹理 ID 始终有效；
+	// 且前景层像素上传后即 ReleasePixels 成壳（wil.go 壳不可再解码），
+	// 清空缓存会导致二次 LoadMap（重入/传送）后前景层无法重建。
 
 	log.Logf(log.LevelInfo, "PlayScene", "map loaded: %s (%dx%d)", mapName, m.Width, m.Height)
 	return nil
@@ -605,18 +616,17 @@ func (s *PlayScene) Close() {
 		s.gray.dispose()
 		s.gray = nil
 	}
+	// 清空跨会话残留：魔法特效、地图事件（火墙等）、地面物品、
+	// 飘字——防止残影画到下一局的新地图上。
+	s.effects = NewEffectManager()
+	s.events = NewEventManager()
+	clear(s.groundItems)
+	s.floatingTexts = nil
 	s.State.Reset()
 	log.Logf(log.LevelInfo, "PlayScene", "closed")
 }
 
 func (s *PlayScene) Update(dt float64) {
-	// 小地图标记闪烁：每 300ms 翻转（PlayScn.pas:801-804）。
-	s.mmBlinkAcc += dt
-	if s.mmBlinkAcc >= 0.3 {
-		s.mmBlinkAcc = 0
-		s.mmBlinkOn = !s.mmBlinkOn
-	}
-
 	if s.lightingDirty {
 		if s.lighting != nil {
 			s.lighting.Destroy()
@@ -1381,6 +1391,11 @@ func (s *PlayScene) drawFrontLarge(info *mapformat.CellInfo, x, y int, proj [16]
 }
 
 func (s *PlayScene) getObjectsLoader(area int) *wil.File {
+	// 懒初始化该 area 的纹理缓存（调用方直接以 s.objectsCaches[area]
+	// 作 getTex 参数，nil map 会 panic）。
+	if s.objectsCaches[area] == nil {
+		s.objectsCaches[area] = make(map[int]uint32)
+	}
 	if f, ok := s.objectsLoaders[area]; ok {
 		return f
 	}
@@ -1395,7 +1410,6 @@ func (s *PlayScene) getObjectsLoader(area int) *wil.File {
 		return nil
 	}
 	s.objectsLoaders[area] = f
-	s.objectsCaches[area] = make(map[int]uint32)
 	return f
 }
 
@@ -1921,13 +1935,22 @@ func dirOffset(dir int) (dx, dy int) {
 
 func (s *PlayScene) OnMouseMove(x, y float64) {
 	s.mouseX, s.mouseY = x, y
-	s.ui.RouteMouseMove(int(x), int(y))
+	// Delphi ClMain.pas:2083：控件消费移动时提示归控件自己的 MouseMove
+	// 管理；但消费控件若不提供提示（如底板背景），离开提示控件后须清除
+	// 残留提示——用户可见的"悬停提示不消失"即此路径缺失。
+	if s.ui.RouteMouseMove(int(x), int(y)) {
+		if !s.ui.HoverProvidesHint(int(x), int(y)) {
+			s.tooltip.Clear()
+		}
+		return
+	}
 
 	// 基于格子的焦点检测（Delphi g_FocusCret, ClMain.pas:2085-2096）。
 	s.focusActor = nil
 	s.hoverSelf = false
 	s.hoverItemName = ""
 	if y >= MapSurfaceH || s.cam == nil || s.State.MySelf == nil {
+		s.tooltip.Clear()
 		return
 	}
 	wx, wy := s.cam.ScreenToWorld(x, y)
@@ -1952,9 +1975,9 @@ func (s *PlayScene) OnMouseMove(x, y float64) {
 	if len(hoverNames) > 0 {
 		hoverItem = strings.Join(hoverNames, "\\")
 		s.tooltip.Show(int(x), int(y), hoverItem, [4]float32{1, 1, 0.8, 1}, true)
-	}
-	// 仅当之前有悬停物品且现在没有时清除（避免覆盖 UI 提示）
-	if s.hoverItemName != "" && hoverItem == "" {
+	} else {
+		// 空白区移动清除残留提示（含之前由 UI 按钮显示的提示，
+		// Delphi ClMain.pas:2107）。
 		s.tooltip.Clear()
 	}
 	s.hoverItemName = hoverItem
@@ -2569,7 +2592,8 @@ func dirToward(fromX, fromY, toX, toY int) int {
 }
 
 func (s *PlayScene) OnScroll(offX, offY float64) {
-	// NPC 对话框滚动
+	// NPC 对话框滚动：Go 增强——Delphi 无滚动、超长文本直接溢出
+	//（FState:4806-4880），此处有意支持滚轮回看。
 	if s.State.ShowNpcDialog && s.hudNpc != nil {
 		ax, ay := s.hudNpc.AbsX(), s.hudNpc.AbsY()
 		if int(s.mouseX) >= ax && int(s.mouseX) <= ax+s.hudNpc.Width &&
@@ -2607,11 +2631,83 @@ func (s *PlayScene) OnScroll(offX, offY float64) {
 	}
 }
 
+// 聊天板常量（Delphi DrawScrn.pas）：
+// BOXWIDTH=(SCREENWIDTH div 2-214)*2=372px 入缓冲即换行（:152）；
+// 缓冲区上限 200 行，超出删头（:182）。
+const (
+	chatBoxWidth = 372
+	chatMaxLines = 200
+)
+
 func (s *PlayScene) AddChatMessage(text string) {
-	s.chatMessages = append(s.chatMessages, ChatMessage{Text: text, Time: time.Now().UnixMilli()})
-	if len(s.chatMessages) > 100 {
-		s.chatMessages = s.chatMessages[len(s.chatMessages)-100:]
+	// 本地消息默认色：Delphi 本地提示为白字黑底（如声音开关，
+	// FState:3813-3821）。
+	s.AddChatMessageColor(text, [4]float32{1, 1, 1, 1}, [4]float32{0, 0, 0, 1})
+}
+
+// AddChatMessageColor 以指定前景/背景色追加聊天消息。
+func (s *PlayScene) AddChatMessageColor(text string, fg, bg [4]float32) {
+	lines := s.wrapChatText(text)
+	// 锚定历史视窗（Delphi ChatBoardTop 为绝对顶行索引，新消息仅在
+	// 处于底部时跟随，DrawScrn.pas:186-188）：上滚状态下新增 N 行则
+	// chatScroll += N，保持可见内容不动。
+	if s.chatScroll > 0 {
+		s.chatScroll += len(lines)
 	}
+	now := time.Now().UnixMilli()
+	for _, ln := range lines {
+		s.chatMessages = append(s.chatMessages, ChatMessage{Text: ln, Time: now, Fg: fg, Bg: bg})
+	}
+	if extra := len(s.chatMessages) - chatMaxLines; extra > 0 {
+		s.chatMessages = s.chatMessages[extra:]
+		s.chatScroll -= extra
+		if s.chatScroll < 0 {
+			s.chatScroll = 0
+		}
+	}
+	if max := len(s.chatMessages) - ViewChatLine; max >= 0 && s.chatScroll > max {
+		s.chatScroll = max
+	}
+}
+
+// addServerChat 网络聊天消息入口：颜色由服务端 Param 下发（低字节=前景、
+// 高字节=背景调色板索引，ClMain.pas:4324-4334）。频道靠前缀区分的旧逻辑
+// 已废弃——原版无前缀，颜色即频道。
+func (s *PlayScene) addServerChat(text string, param uint16) {
+	fg := s.chatPalette(byte(param))
+	bg := s.chatPalette(byte(param >> 8))
+	s.AddChatMessageColor(text, fg, bg)
+}
+
+// chatPalette 调色板索引→RGBA。Delphi GetRGB ≡ Prguse MainPalette
+//（ClMain.pas:392-398,996）；资源未就绪时回退白字。
+func (s *PlayScene) chatPalette(idx byte) [4]float32 {
+	if s.resources != nil && s.resources.Prguse != nil {
+		c := s.resources.Prguse.Palette[idx]
+		return [4]float32{float32(c.R) / 255, float32(c.G) / 255, float32(c.B) / 255, 1}
+	}
+	return [4]float32{1, 1, 1, 1}
+}
+
+// wrapChatText 按 372px 拆行；聊天小字体未就绪时不换行。
+func (s *PlayScene) wrapChatText(text string) []string {
+	if s.chatText == nil || s.chatText.MeasureText(text) <= chatBoxWidth {
+		return []string{text}
+	}
+	var lines []string
+	var cur strings.Builder
+	for _, r := range text {
+		cur.WriteRune(r)
+		if s.chatText.MeasureText(cur.String()) > chatBoxWidth {
+			lines = append(lines, strings.TrimSuffix(cur.String(), string(r)))
+			cur.Reset()
+			cur.WriteRune(r)
+		}
+	}
+	if cur.Len() > 0 {
+		lines = append(lines, cur.String())
+	}
+	return lines
 }
 
 // tryLogout Alt+X / 底栏登出按钮。Delphi（ClMain:1575-1593 +

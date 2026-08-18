@@ -209,7 +209,7 @@ func (g *Guild) expireWars(ue *UserEngine, server *netserver.TCPServer, now int6
 
 // sendGuildSystemMsg 向行会全体在线成员发送系统消息（Delphi SendGuildMsg, Guild.pas:645）。
 func (g *Guild) sendGuildSystemMsg(ue *UserEngine, server *netserver.TCPServer, text string) {
-	resp := protocol.MakeDefaultMsg(protocol.SMSysMessage, 0, 0, 0, 0)
+	resp := protocol.MakeDefaultMsg(protocol.SMSysMessage, 0, chatColorSys, 0, 0)
 	for _, memberName := range g.Members {
 		if member := ue.GetPlayerByName(memberName); member != nil {
 			server.Send(member.Session.ID, resp, protocol.EncodeString(text))
@@ -344,7 +344,7 @@ func (p *PlayObject) HandleGuildMessage(msg SendMessage, server *netserver.TCPSe
 	for _, memberName := range guild.Members {
 		member := p.Engine.GetPlayerByName(memberName)
 		if member != nil {
-			guildMsg := protocol.MakeDefaultMsg(protocol.SMGuildMessage, p.ID, 0, 0, 0)
+			guildMsg := protocol.MakeDefaultMsg(protocol.SMGuildMessage, p.ID, chatColorGuild, 0, 0)
 			server.Send(member.Session.ID, guildMsg, protocol.EncodeString(p.Name+"/"+text))
 		}
 	}
@@ -552,7 +552,7 @@ func (p *PlayObject) HandleGuildWar(msg SendMessage, server *netserver.TCPServer
 	guild.WarGuilds = append(guild.WarGuilds, war)
 	targetGuild.WarGuilds = append(targetGuild.WarGuilds, GuildWar{GuildName: guild.Name, StartTick: now, EndTick: now + warDuration})
 
-	sysMsg := protocol.MakeDefaultMsg(protocol.SMSysMessage, 0, 0, 0, 0)
+	sysMsg := protocol.MakeDefaultMsg(protocol.SMSysMessage, 0, chatColorSys, 0, 0)
 	text := "行会战争开始: " + guild.Name + " vs " + targetGuildName
 	for _, memberName := range guild.Members {
 		member := p.Engine.GetPlayerByName(memberName)

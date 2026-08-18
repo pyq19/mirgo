@@ -177,6 +177,34 @@ type ShopItem struct {
 	Price   int
 	Stock   int
 	Grade   int
+	// Item 明细列表模式下的完整物品数据（物品属性 Hint 用；
+	// Delphi g_MenuItemList 存整条 TClientItem，ClMain.pas:5710）。
+	// 主列表/制药列表无物品数据，为 nil。
+	Item *BagItem
+}
+
+// stdItemToDef 将协议 StdItem 转为 ClientItemDef（明细商品列表
+// 物品 Hint 用——Delphi 直接用服务端下发的 TClientItem 显示属性，
+// 不查本地物品库；ClMain.pas:5692-5730）。
+func stdItemToDef(s *protocol.StdItem) *ClientItemDef {
+	return &ClientItemDef{
+		Name:      s.GetName(),
+		Looks:     s.Looks,
+		StdMode:   s.StdMode,
+		Shape:     s.Shape,
+		Weight:    s.Weight,
+		NeedLevel: byte(s.NeedLevel),
+		AC:        uint16(s.AC), ACMax: uint16(s.AC >> 16),
+		MAC: uint16(s.MAC), MACMax: uint16(s.MAC >> 16),
+		DC: uint16(s.DC), DCMax: uint16(s.DC >> 16),
+		MC: uint16(s.MC), MCMax: uint16(s.MC >> 16),
+		SC: uint16(s.SC), SCMax: uint16(s.SC >> 16),
+		Price:    s.Price,
+		Source:   int16(s.Source),
+		Reserved: s.Reserved,
+		Need:     byte(s.Need),
+		AniCount: s.AniCount,
+	}
 }
 
 func NewGameState() *GameState {

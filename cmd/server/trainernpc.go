@@ -48,7 +48,7 @@ func (o *MonsterObject) reportTraining(server *netserver.TCPServer) {
 	text := fmt.Sprintf("破坏力 %d / 平均值 %d", o.trainDmgTotal, avg)
 	if o.engine != nil {
 		if hitter := o.engine.GetPlayer(o.trainLastHiterID); hitter != nil {
-			msg := protocol.MakeDefaultMsg(protocol.SMSysMessage, 0, 0, 0, 0)
+			msg := protocol.MakeDefaultMsg(protocol.SMSysMessage, 0, chatColorSys, 0, 0)
 			server.Send(hitter.Session.ID, msg, protocol.EncodeString(text))
 		}
 	}

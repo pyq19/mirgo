@@ -1,9 +1,9 @@
 DBackground (control) [0,0 800x600] vis 13ch
   DBottom (window) [0,349 800x251] vis 20ch
     DMyState (button) [643,410 80x24] vis
-    DMyState (button) [682,390 80x24] vis
-    DMyState (button) [722,370 80x24] vis
-    DMyState (button) [764,360 80x24] vis
+    DMyBag (button) [682,390 80x24] vis
+    DMyMagic (button) [722,370 80x24] vis
+    DOption (button) [764,360 80x24] vis
     DBotMiniMap (button) [219,453 80x24] vis
     DBotTrade (button) [249,453 80x24] vis
     DBotGuild (button) [279,453 80x24] vis

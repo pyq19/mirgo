@@ -1300,7 +1300,7 @@ func (h *NetHandler) HandleMessage(msg protocol.DefaultMessage, body, rawBody st
 
 	case protocol.SMHear:
 		log.Logf(log.LevelInfo, "Client", "chat: %s", body)
-		h.playScene.AddChatMessage(body)
+		h.playScene.addServerChat(body, msg.Param)
 
 	case protocol.SMMerchantSay:
 		h.playScene.State.ShopNpcID = msg.Recog // 记录当前对话的NPC ID
@@ -1540,7 +1540,7 @@ func (h *NetHandler) HandleMessage(msg protocol.DefaultMessage, body, rawBody st
 	case protocol.SMGuildMessage:
 		log.Logf(log.LevelInfo, "Client", "guild chat: %s", body)
 		h.playScene.addGuildChat(body)
-		h.playScene.AddChatMessage("[行会] " + body)
+		h.playScene.addServerChat(body, msg.Param)
 
 	case protocol.SMGuildRankUpdateFail:
 		// Delphi（ClMain:4877）：行会职务更新失败原因码。
@@ -1584,7 +1584,7 @@ func (h *NetHandler) HandleMessage(msg protocol.DefaultMessage, body, rawBody st
 
 	case protocol.SMSysMessage:
 		log.Logf(log.LevelInfo, "Client", "system message: %s", body)
-		h.playScene.AddChatMessage("[系统] " + body)
+		h.playScene.addServerChat(body, msg.Param)
 
 	case protocol.SMGoldChanged:
 		log.Logf(log.LevelInfo, "Client", "gold: %d", msg.Recog)
@@ -1744,15 +1744,15 @@ func (h *NetHandler) HandleMessage(msg protocol.DefaultMessage, body, rawBody st
 
 	case protocol.SMCry:
 		log.Logf(log.LevelInfo, "Client", "cry: %s", body)
-		h.playScene.AddChatMessage("[喊话] " + body)
+		h.playScene.addServerChat(body, msg.Param)
 
 	case protocol.SMWhisper:
 		log.Logf(log.LevelInfo, "Client", "whisper: %s", body)
-		h.playScene.AddChatMessage("[私聊] " + body)
+		h.playScene.addServerChat(body, msg.Param)
 
 	case protocol.SMGroupMessage:
 		log.Logf(log.LevelInfo, "Client", "group: %s", body)
-		h.playScene.AddChatMessage("[组队] " + body)
+		h.playScene.addServerChat(body, msg.Param)
 
 	case protocol.SMAddItem:
 		log.Logf(log.LevelInfo, "Client", "item added")
@@ -1873,12 +1873,22 @@ func (h *NetHandler) HandleMessage(msg protocol.DefaultMessage, body, rawBody st
 			if !ok {
 				break
 			}
+			// 完整物品存入 Item 供属性 Hint 用（Delphi g_MenuItemList）。
+			// 实例 DuraMax 字段被服务端复用为单价，真实最大耐久取
+			// 定义段 S.DuraMax（StdItemOf：s.DuraMax=def.DuraMax）。
+			bag := &BagItem{
+				Dura:      item.Dura,
+				DuraMax:   uint16(item.S.DuraMax),
+				MakeIndex: item.MakeIndex,
+				Def:       stdItemToDef(&item.S),
+			}
 			st.ShopGoods = append(st.ShopGoods, ShopItem{
 				Name:    item.S.GetName(),
 				SubMenu: 0,
 				Price:   int(item.DuraMax),
 				Stock:   int(item.MakeIndex),
 				Grade:   int(item.Dura) / 1000,
+				Item:    bag,
 			})
 		}
 

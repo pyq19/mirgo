@@ -9,6 +9,22 @@ import (
 	"github.com/pyq0109/mirgo/internal/protocol"
 )
 
+// 聊天消息 Param 颜色：低字节=前景、高字节=背景的调色板索引
+//（客户端 GetRGB ≡ Prguse MainPalette，ClMain.pas:392-398,996）。
+// 默认值取自 Delphi M2Share.pas:1838-1857；发送端填色见
+// ObjBase.pas:5662-5674。组队色为预留（Go 服务端暂未实现组队聊天）。
+// 有意偏差：Delphi 把 cry 并入 SM_HEAR 通道、组队并入 SM_SYSMESSAGE
+// 通道（ObjBase.pas:5665,5671，纯靠颜色区分）；Go 保留独立消息 ID，
+// 仅对齐颜色下发。
+const (
+	chatColorHear    = 0xFF<<8 | 0x00 // 附近：黑字亮底
+	chatColorCry     = 0x97<<8 | 0x00 // 喊话：黑字青底
+	chatColorWhisper = 0xFF<<8 | 0xFC // 私聊：浅字亮底
+	chatColorSys     = 0x38<<8 | 0xFF // 系统（红系默认）：白字深底
+	chatColorGuild   = 0xFF<<8 | 0xDB // 行会：绿字亮底
+	chatColorGroup   = 0xFF<<8 | 0xC4 // 组队：预留
+)
+
 func (p *PlayObject) HandleSay(msg SendMessage, server *netserver.TCPServer) {
 	text := msg.Msg
 	if text == "" {
@@ -54,7 +70,7 @@ func (p *PlayObject) HandleSay(msg SendMessage, server *netserver.TCPServer) {
 		if !ok || other.Ghost {
 			continue
 		}
-		hearMsg := protocol.MakeDefaultMsg(protocol.SMHear, p.ID, 0, 0, 0)
+		hearMsg := protocol.MakeDefaultMsg(protocol.SMHear, p.ID, chatColorHear, 0, 0)
 		body := protocol.EncodeString(p.Name + "/" + text)
 		server.Send(other.Session.ID, hearMsg, body)
 	}
@@ -66,7 +82,7 @@ func (p *PlayObject) HandleCry(text string, server *netserver.TCPServer) {
 	if p.Engine == nil {
 		return
 	}
-	cryMsg := protocol.MakeDefaultMsg(protocol.SMCry, p.ID, 0, 0, 0)
+	cryMsg := protocol.MakeDefaultMsg(protocol.SMCry, p.ID, chatColorCry, 0, 0)
 	body := protocol.EncodeString(p.Name + "/" + text)
 	p.Engine.mu.RLock()
 	for _, other := range p.Engine.PlayObjectList {
@@ -98,7 +114,7 @@ func (p *PlayObject) HandleWhisper(msg SendMessage, server *netserver.TCPServer)
 		return
 	}
 
-	whisperMsg := protocol.MakeDefaultMsg(protocol.SMWhisper, p.ID, 0, 0, 0)
+	whisperMsg := protocol.MakeDefaultMsg(protocol.SMWhisper, p.ID, chatColorWhisper, 0, 0)
 	// 发给目标：显示发送者名字
 	server.Send(target.Session.ID, whisperMsg, protocol.EncodeString(p.Name+"/"+text))
 	// 发回给自己：显示目标名字

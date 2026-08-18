@@ -147,6 +147,14 @@ func (s *PlayScene) buildNpcPanels() {
 	menu.Visible = false
 	menu.OnDirectPaint = func(c *UIControl, proj [16]float32) { s.paintShopMenu(c, proj) }
 	menu.OnMouseDown = func(c *UIControl, button, x, y int) { s.menuRowClick(x, y) }
+	menu.OnMouseMove = func(c *UIControl, x, y int) {
+		// 鼠标移出列表有效区清 Hint（DMenuDlgMouseMove，FState:5019-5026）。
+		lx := x - c.Left
+		ly := y - c.Top
+		if lx < 10 || lx > c.Width-20 || ly < 30 || ly > c.Height-50 {
+			s.tooltip.Clear()
+		}
+	}
 	ui.Root.AddChild(menu)
 	s.hudMenu = menu
 
@@ -319,7 +327,8 @@ func (s *PlayScene) paintNpcDialog(c *UIControl, proj [16]float32) {
 	// 实时区域用于命中检测)。
 	s.npcClicks = s.npcClicks[:0]
 	ax, ay := c.AbsX(), c.AbsY()
-	// NPC 名字 (Delphi FState:4810 MerchantName)
+	// NPC 名字：Go 增强——Delphi 保存 MerchantName 但从不绘制
+	//（FState:533-534,4703-4704 仅存不画），此处有意补画以提示对话对象。
 	if s.State.NpcDialogName != "" {
 		s.text.DrawTextOutline(s.State.NpcDialogName, float32(ax+npcTextX), float32(ay+10),
 			1, 1, 0, 1, 0, 0, 0, 1, proj)
@@ -503,7 +512,37 @@ func (s *PlayScene) menuRowClick(x, y int) {
 	if idx >= 0 && idx < len(s.State.ShopGoods) {
 		s.menuIndex = idx
 		gSound.PlaySound(sGlassButtonClick)
+		s.showShopItemHint(idx)
 	}
+}
+
+// showShopItemHint 商店行物品属性 Hint（FState:4986-5016）：仓库模式用
+// StorageItems（按 MakeIndex 关联），明细模式用下行完整 ClientItem；
+// 主列表/制药列表无物品数据（Delphi g_MenuItemList 为空）不显示。
+// 位置 DMenuDlg+(240, 32+行×13)，黄字，drawUp=FALSE。
+func (s *PlayScene) showShopItemHint(idx int) {
+	var item *BagItem
+	switch {
+	case s.State.ShopMode == 3:
+		g := s.State.ShopGoods[idx]
+		for i := range s.State.StorageItems {
+			if s.State.StorageItems[i].MakeIndex == int32(g.Price) {
+				item = &s.State.StorageItems[i]
+				break
+			}
+		}
+	case s.State.ShopDetailMode:
+		item = s.State.ShopGoods[idx].Item
+	}
+	if item == nil {
+		return
+	}
+	text, _ := GetMouseItemInfo(s.State, item)
+	if text == "" {
+		return
+	}
+	row := idx - s.menuTop
+	s.tooltip.Show(s.hudMenu.Left+240, s.hudMenu.Top+32+row*menuRowH, text, [4]float32{1, 1, 0, 1}, false)
 }
 
 // buySelected 对选中行执行操作 (FState:5028-5052)：

@@ -46,17 +46,18 @@ func (s *PlayScene) buildHUD() {
 	// 4 个状态按钮 (DlgConf 坐标, 相对 DBottom). Delphi 只在按下时
 	// 绘制它们 — 常态由底板美术呈现 (DMyStateDirectPaint :3733-3747).
 	stateDefs := []struct {
+		name            string
 		img, x, y, page int
 		bag             bool
 		hint            string
 	}{
-		{ImgBtnState, 643, 61, 0, false, "装备(F10,C)"},
-		{ImgBtnBag, 682, 41, -1, true, "物品(F9,B)"},
-		{ImgBtnMagic, 722, 21, 3, false, "魔法(F11,E)"},
-		{ImgBtnOption, 764, 11, -2, false, "声音(F12)"},
+		{"DMyState", ImgBtnState, 643, 61, 0, false, "装备(F10,C)"},
+		{"DMyBag", ImgBtnBag, 682, 41, -1, true, "物品(F9,B)"},
+		{"DMyMagic", ImgBtnMagic, 722, 21, 3, false, "魔法(F11,E)"},
+		{"DOption", ImgBtnOption, 764, 11, -2, false, "声音(F12)"},
 	}
 	for _, d := range stateDefs {
-		btn := NewUIControl("DMyState", KindButton)
+		btn := NewUIControl(d.name, KindButton)
 		btn.Left, btn.Top = d.x, d.y
 		btn.ClickSound = sGlassButtonClick
 		if prg != nil {
@@ -215,6 +216,10 @@ func (s *PlayScene) paintBottomBar(barY int, proj [16]float32) {
 			}
 			s.gl.DrawQuadSub(t, w, h, 0, 0, w, blendH, 0, by, w, blendH, 1, 1, 1, 1, proj)
 			if h > blendH {
+				// 下半不透明：Delphi 普通 Blit（FState:3587-3593）。WIL 解码器
+				// 把黑色烘焙为 alpha=0 且着色器丢弃 t.a<0.01（shader.go:34），
+				// 直接画会露出清屏色——先垫黑底再正常混合复现原版不透明效果。
+				s.gl.DrawQuadColor(0, by+blendH, w, h-blendH, 0, 0, 0, 1, proj)
 				s.gl.DrawQuadSub(t, w, h, 0, blendH, w, h-blendH, 0, by+blendH, w, h-blendH, 1, 1, 1, 1, proj)
 			}
 		} else {
@@ -318,11 +323,11 @@ func (s *PlayScene) paintBottomBar(barY int, proj [16]float32) {
 		}
 		for i, row := start, 0; i < end; i, row = i+1, row+1 {
 			msg := s.chatMessages[i]
-			r, g, b := s.chatColor(msg.Text)
-			lw := s.text.MeasureText(msg.Text)
+			lw := s.chatText.MeasureText(msg.Text)
 			s.gl.DrawQuadColor(chatBoardX, float32(chatBoardTop+row*chatLineH),
-				float32(lw), chatLineH, 0, 0, 0, 1, proj)
-			s.text.DrawText(msg.Text, chatBoardX, float32(chatBoardTop+row*chatLineH), r, g, b, 1, proj)
+				float32(lw), chatLineH, msg.Bg[0], msg.Bg[1], msg.Bg[2], msg.Bg[3], proj)
+			s.chatText.DrawText(msg.Text, chatBoardX, float32(chatBoardTop+row*chatLineH),
+				msg.Fg[0], msg.Fg[1], msg.Fg[2], msg.Fg[3], proj)
 		}
 
 		// 聊天输入行 — EdChat (208,581) 386×12.
@@ -332,30 +337,9 @@ func (s *PlayScene) paintBottomBar(barY int, proj [16]float32) {
 			if time.Now().UnixMilli()%1000 < 500 {
 				cursor = "|"
 			}
-			s.text.DrawText(s.chatInput+cursor, chatBoardX+2, 581, 0, 0, 0, 1, proj)
+			s.chatText.DrawText(s.chatInput+cursor, chatBoardX+2, 581, 0, 0, 0, 1, proj)
 		}
 	}
-}
-
-func (s *PlayScene) chatColor(text string) (r, g, b float32) {
-	switch {
-	case hasPrefix(text, "[系统]"):
-		return 1.0, 0.5, 0.5
-	case hasPrefix(text, "[行会]"):
-		return 0.5, 1.0, 0.5
-	case hasPrefix(text, "[组队]"):
-		return 0.5, 0.5, 1.0
-	case hasPrefix(text, "[私聊]"):
-		return 1.0, 0.5, 1.0
-	case hasPrefix(text, "[喊话]"):
-		return 1.0, 1.0, 0.0
-	default:
-		return 1.0, 1.0, 0.8
-	}
-}
-
-func hasPrefix(s, prefix string) bool {
-	return len(s) >= len(prefix) && s[:len(prefix)] == prefix
 }
 
 // paintBeltSlot 绘制腰带格图标 + 格号 (FState:3836-3853).

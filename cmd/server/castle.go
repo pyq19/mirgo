@@ -675,7 +675,7 @@ func (c *CastleObject) collectPeriodicTax(engine *UserEngine, now int64) {
 }
 
 func (c *CastleObject) broadcastSysMsg(server *netserver.TCPServer, engine *UserEngine, text string) {
-	msg := protocol.MakeDefaultMsg(protocol.SMSysMessage, 0, 0, 0, 0)
+	msg := protocol.MakeDefaultMsg(protocol.SMSysMessage, 0, chatColorSys, 0, 0)
 	for _, p := range engine.allPlayers() {
 		if !p.Ghost {
 			server.Send(p.Session.ID, msg, protocol.EncodeString(text))

@@ -513,7 +513,7 @@ func main() {
 				lastOnlineMsg = now
 				count := userEngine.GetPlayerCount() * config.GetSendOnlineCountRate() / 10
 				text := strings.Replace(config.GetSendOnlineCountMsg(), "%c", strconv.Itoa(count), 1)
-				onlineResp := protocol.MakeDefaultMsg(protocol.SMSysMessage, 0, 0, 0, 0)
+				onlineResp := protocol.MakeDefaultMsg(protocol.SMSysMessage, 0, chatColorSys, 0, 0)
 				for _, p := range userEngine.allPlayers() {
 					if !p.Ghost {
 						server.Send(p.Session.ID, onlineResp, protocol.EncodeString(text))

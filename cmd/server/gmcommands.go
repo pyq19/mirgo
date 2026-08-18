@@ -419,7 +419,7 @@ func (p *PlayObject) HandleGMCommand(cmd string, server *netserver.TCPServer) bo
 }
 
 func (p *PlayObject) sysMsg(server *netserver.TCPServer, text string) {
-	msg := protocol.MakeDefaultMsg(protocol.SMSysMessage, 0, 0, 0, 0)
+	msg := protocol.MakeDefaultMsg(protocol.SMSysMessage, 0, chatColorSys, 0, 0)
 	server.Send(p.Session.ID, msg, protocol.EncodeString(text))
 }
 

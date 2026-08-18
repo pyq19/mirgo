@@ -197,7 +197,7 @@ var DlgConf = map[string]DlgEntry{
 	"DBotGroup":    {ImgBotGroup, 309, 104, 0, 0},
 	"DBotPlusAbil": {ImgBotPlusAbil, 339, 104, 0, 0},
 	"DBotFriend":   {ImgBotFriend, 369, 104, 0, 0},
-	"DBotMemo":     {ImgBotMemo, 753, 204, 0, 0}, // y 超出屏幕 — 可疑, 需核对 dfm
+	"DBotMemo":     {ImgBotMemo, 753, 204, 0, 0}, // Delphi 死控件（无点击处理，FState/DFM 均无回调），Go 不实现；此处仅为对照真值
 	"DBotExit":     {ImgBotExit, 560, 104, 0, 0},
 	"DBotLogout":   {ImgBotLogout, 530, 104, 0, 0},
 	"DBelt1":       {ImgBeltSlot, 285, 59, 32, 29},

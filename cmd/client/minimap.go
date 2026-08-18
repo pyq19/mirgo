@@ -63,10 +63,8 @@ func (s *PlayScene) renderMinimap(proj [16]float32) {
 		ScreenWidth-120, 0, float32(w), float32(h),
 		1, 1, 1, alpha, proj)
 
-	// 标记与图像同步闪烁：灭帧只画底图（PlayScn.pas:819）。
-	if !s.mmBlinkOn {
-		return
-	}
+	// 标记常亮绘制。原版此处有 m_boViewBlink 闪烁门控、灭帧只画底图
+	//（PlayScn.pas:819），有意移除——见 sceneplay.go minimapLv 注释。
 
 	selfColor, monsterColor, animalColor := s.minimapMarkerColors()
 

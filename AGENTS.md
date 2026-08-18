@@ -100,7 +100,7 @@ cmd/client/
 ├── actormanager.go   # Actor管理：注册/Y排序/Feature解析
 ├── actor.go          # 动画模板(HA 14动作/MA 39模板)/CalcFrame
 ├── worder.go         # 武器前后层规则
-├── minimap.go        # 碰撞式小地图(FBO)
+├── minimap.go        # 小地图(mmap.wil 预渲染底图直绘+角色标记, 无FBO)
 ├── lighting.go       # 光照/迷雾(6级光罩+光源)
 ├── magiceffect.go    # 魔法特效管理(爆炸/飞行/地面)
 ├── eventman.go       # 地图事件渲染(SM_SHOWEVENT/火墙)

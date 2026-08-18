@@ -683,6 +683,22 @@ func (m *UIManager) HoveredControl(x, y int) *UIControl {
 	return nil
 }
 
+// HoverProvidesHint 报告鼠标下的最顶层非背景控件是否自带提示逻辑
+//（OnMouseMove，如底栏按钮悬停文案、商店列表行、背包格）。场景层据此
+// 决定移动到"消费移动但不产提示"的区域（底板背景等）时清除残留提示。
+func (m *UIManager) HoverProvidesHint(x, y int) bool {
+	var hits []*UIControl
+	m.debugCollectHits(m.Root, x-m.Root.Left, y-m.Root.Top, &hits)
+	for i := len(hits) - 1; i >= 0; i-- {
+		c := hits[i]
+		if c.Background {
+			continue
+		}
+		return c.OnMouseMove != nil
+	}
+	return false
+}
+
 func debugCallbacks(c *UIControl) string {
 	var names []string
 	if c.OnDirectPaint != nil {
