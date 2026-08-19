@@ -973,13 +973,19 @@ func handleAuthenticatedMessage(server *netserver.TCPServer, session *netserver.
 
 		// 验证该账号下角色存在（用 AccountID —— CharacterID 是游戏内
 		// 角色 ID，登出后为 0）
-		_, err := db.GetCharacterByName(session.AccountID, charName)
+		charData, err := db.GetCharacterByName(session.AccountID, charName)
 		if err != nil {
 			log.Logf(log.LevelError, "Server", "[CMSelChr] character %q not found, account %d: %v",
 				charName, session.AccountID, err)
 			return
 		}
 		log.Logf(log.LevelInfo, "Server", "[CMSelChr] character %q validated", charName)
+		// 持久化"上次选中的角色"（Delphi boSelected，UsrSoc.pas:887-894），
+		// 查角列表据此打 '*' 标记；失败不阻断选角。
+		if err := db.SetCharacterSelected(session.AccountID, charData.ID); err != nil {
+			log.Logf(log.LevelError, "Server", "[CMSelChr] set selected failed, account %d: %v",
+				session.AccountID, err)
+		}
 		setChrQueried(session.ID, false) // 选角完成，防止重复选角
 
 		// Fix 6: 发送 SMStartPlay，内容为 "addr/port"（同一服务器）
@@ -1169,14 +1175,15 @@ func sendCharacterList(server *netserver.TCPServer, session *netserver.Session, 
 	}
 
 	// 编码为文本: "*name1/job1/hair1/level1/sex1/name2/job2/hair2/level2/sex2"
-	// '*' 前缀标记上次选择的角色
+	// '*' 前缀标记上次选择的角色（Delphi boSelected，UsrSoc.pas:644）。
+	// 从未选过角色时不打 '*'，客户端兜底选中第一个（IntroScn ClearChrs 语义）。
 	var sb strings.Builder
 	for i, c := range chars {
 		if i > 0 {
 			sb.WriteByte('/')
 		}
-		if i == 0 {
-			sb.WriteByte('*') // 标记第一个为已选择
+		if c.Selected {
+			sb.WriteByte('*')
 		}
 		sb.WriteString(c.Name)
 		sb.WriteByte('/')
@@ -1349,6 +1356,9 @@ func loadPlayerItems(db *storage.Database, player *PlayObject) {
 		player.GiveItem(1)
 		player.GiveItem(2)
 		log.Logf(log.LevelInfo, "Server", "gave initial items to %s", player.Name)
+		// 新角色无物品存档也要初始化外观（DressLook 含性别位），
+		// 否则首次进场 Feature 的 dress 字节为 0，女体渲染成男体。
+		player.updateAppearance()
 		return
 	}
 

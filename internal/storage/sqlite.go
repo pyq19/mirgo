@@ -87,6 +87,7 @@ func (d *Database) initialize() error {
 			mp INTEGER NOT NULL DEFAULT 100,
 			exp INTEGER NOT NULL DEFAULT 0,
 			gold INTEGER NOT NULL DEFAULT 0,
+			selected INTEGER NOT NULL DEFAULT 0,
 			FOREIGN KEY (account_id) REFERENCES accounts(id)
 		)`,
 		guildsSchema,
@@ -184,13 +185,13 @@ func (d *Database) migrateCastle() error {
 	return nil
 }
 
-// migrateCharacters 为早期创建的 characters 表补齐 hair 列。
+// migrateCharacters 为早期创建的 characters 表补齐 hair、selected 列。
 func (d *Database) migrateCharacters() error {
 	rows, err := d.db.Query(`PRAGMA table_info(characters)`)
 	if err != nil {
 		return fmt.Errorf("migrateCharacters: %w", err)
 	}
-	hasHair := false
+	have := make(map[string]bool)
 	for rows.Next() {
 		var (
 			cid     int
@@ -204,19 +205,20 @@ func (d *Database) migrateCharacters() error {
 			rows.Close()
 			return fmt.Errorf("migrateCharacters: %w", err)
 		}
-		if name == "hair" {
-			hasHair = true
-		}
+		have[name] = true
 	}
 	rows.Close()
 	if err := rows.Err(); err != nil {
 		return fmt.Errorf("migrateCharacters: %w", err)
 	}
-	if hasHair {
-		return nil
-	}
-	if _, err := d.db.Exec(`ALTER TABLE characters ADD COLUMN hair INTEGER NOT NULL DEFAULT 0`); err != nil {
-		return fmt.Errorf("migrateCharacters: add hair: %w", err)
+	for _, col := range []string{"hair", "selected"} {
+		if have[col] {
+			continue
+		}
+		stmt := fmt.Sprintf("ALTER TABLE characters ADD COLUMN %s INTEGER NOT NULL DEFAULT 0", col)
+		if _, err := d.db.Exec(stmt); err != nil {
+			return fmt.Errorf("migrateCharacters: add %s: %w", col, err)
+		}
 	}
 	return nil
 }
@@ -441,7 +443,7 @@ func (d *Database) CreateCharacter(accountID int64, name string, job, sex, hair 
 // GetCharactersByAccount 返回某个账号下的所有角色。
 func (d *Database) GetCharactersByAccount(accountID int64) ([]CharacterInfo, error) {
 	rows, err := d.db.Query(
-		"SELECT id, name, job, sex, hair, level FROM characters WHERE account_id = ?",
+		"SELECT id, name, job, sex, hair, level, selected FROM characters WHERE account_id = ?",
 		accountID,
 	)
 	if err != nil {
@@ -452,12 +454,28 @@ func (d *Database) GetCharactersByAccount(accountID int64) ([]CharacterInfo, err
 	var chars []CharacterInfo
 	for rows.Next() {
 		var c CharacterInfo
-		if err := rows.Scan(&c.ID, &c.Name, &c.Job, &c.Sex, &c.Hair, &c.Level); err != nil {
+		var selected int
+		if err := rows.Scan(&c.ID, &c.Name, &c.Job, &c.Sex, &c.Hair, &c.Level, &selected); err != nil {
 			return nil, err
 		}
+		c.Selected = selected != 0
 		chars = append(chars, c)
 	}
 	return chars, rows.Err()
+}
+
+// SetCharacterSelected 标记账号下上次选中的角色（Delphi SelectChr 持久化
+// boSelected：选中者置 True、其余置 False，UsrSoc.pas:887-894）。
+func (d *Database) SetCharacterSelected(accountID, charID int64) error {
+	if _, err := d.db.Exec(
+		"UPDATE characters SET selected = 0 WHERE account_id = ?", accountID,
+	); err != nil {
+		return err
+	}
+	_, err := d.db.Exec(
+		"UPDATE characters SET selected = 1 WHERE account_id = ? AND id = ?", accountID, charID,
+	)
+	return err
 }
 
 // GetCharacterByID 按 ID 返回一个角色。
@@ -615,12 +633,13 @@ func (d *Database) DeleteGuild(name string) error {
 
 // CharacterInfo 是角色数据的摘要。
 type CharacterInfo struct {
-	ID    int64
-	Name  string
-	Job   int
-	Sex   int
-	Hair  int
-	Level int
+	ID       int64
+	Name     string
+	Job      int
+	Sex      int
+	Hair     int
+	Level    int
+	Selected bool // 上次选中的角色（Delphi boSelected，Grobal2.pas:777）
 }
 
 // Character 是完整的角色数据。

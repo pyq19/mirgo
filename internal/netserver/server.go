@@ -341,6 +341,9 @@ func (s *TCPServer) allowMessage(session *Session) bool {
 
 func (s *TCPServer) writeLoop(session *Session) {
 	defer s.wg.Done()
+	// 连接统一由 writeLoop 关闭：SendChan 关闭后先把队列中剩余帧
+	// 写完再关连接，保证"发送后立即断开"的消息（如 SM_EXITOK）不丢。
+	defer session.Conn.Close()
 
 	for {
 		select {
@@ -407,8 +410,8 @@ func (s *TCPServer) removeSession(session *Session) {
 		return // 已被另一路径移除
 	}
 
+	// 只关 SendChan：writeLoop 排空剩余帧后自行关闭连接。
 	session.closeOnce.Do(func() {
-		session.Conn.Close()
 		close(session.SendChan)
 	})
 

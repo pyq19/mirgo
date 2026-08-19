@@ -8,18 +8,35 @@ import (
 	"github.com/pyq0109/mirgo/internal/protocol"
 )
 
-// getDropPosition 在 (cx,cy) 周围 scatterRange 范围内寻找可行走空位。
-// Delphi: GetDropPosition (ObjBase.pas:1586)。
+// getDropPosition 从 (cx,cy) 逐圈向外扫描，返回最近的可用落点。
+// Delphi: GetDropPosition (ObjBase.pas:1534-1584)：
+//   - 优先选"无地面物品且可行走"的格子（GetItemEx = nil 且 bo2C，
+//     bo2C 含地形/门/存活实体判定，尸体不阻挡，Envir.pas:702-723）；
+//   - 找不到时退回物品最少的可行走格子（Delphi 阈值 <8，Go 每格
+//     上限 maxGroundItemsPerCell，AddGroundItem 仍会拒绝超限落地）；
+//   - 再不行退回原点。
+//
+// 循环次序与 Delphi 一致（圈→dy→dx，含原点本身，确定性落点）。
 func getDropPosition(envir *Environment, cx, cy, scatterRange int) (int, int) {
-	for i := 0; i < 10; i++ {
-		dx := rand.Intn(scatterRange*2+1) - scatterRange
-		dy := rand.Intn(scatterRange*2+1) - scatterRange
-		nx, ny := cx+dx, cy+dy
-		if envir.CanWalkEx(nx, ny, true) {
-			return nx, ny
+	bestX, bestY, bestCount := cx, cy, maxGroundItemsPerCell
+	for i := 1; i <= scatterRange; i++ {
+		for dy := -i; dy <= i; dy++ {
+			for dx := -i; dx <= i; dx++ {
+				nx, ny := cx+dx, cy+dy
+				if !envir.CanWalkEx(nx, ny, false) {
+					continue
+				}
+				n := envir.GroundItemCountAt(nx, ny)
+				if n == 0 {
+					return nx, ny
+				}
+				if n < bestCount {
+					bestCount, bestX, bestY = n, nx, ny
+				}
+			}
 		}
 	}
-	return cx, cy
+	return bestX, bestY
 }
 
 // randomUpgradeItem 随机生成装备附加属性（Delphi: RandomUpgradeItem, ItmUnit.pas:179）。

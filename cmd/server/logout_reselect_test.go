@@ -135,11 +135,14 @@ func TestLogoutThenStartGameAgain(t *testing.T) {
 	c.send(protocol.MakeDefaultMsg(protocol.CMIDPassword, 0, 0, 0, 0), "tester/pass")
 	expect(protocol.SMPassOKSelectServer, "登录")
 
-	// 2. 第一次查角
+	// 2. 第一次查角（尚未选过角色，无 '*' 标记）
 	c.send(protocol.MakeDefaultMsg(protocol.CMQueryChr, 0, 0, 0, 0), "tester/0")
 	msg, body := expect(protocol.SMQueryChr, "第一次查角")
 	if msg.Recog != 1 || !strings.Contains(body, "hero") {
 		t.Fatalf("第一次查角: Recog=%d body=%q, want 1 个角色且含 hero", msg.Recog, body)
+	}
+	if strings.Contains(body, "*") {
+		t.Errorf("第一次查角不应有 * 标记: %q", body)
 	}
 
 	// 3. 第一次选角 → SM_STARTPLAY
@@ -156,10 +159,15 @@ func TestLogoutThenStartGameAgain(t *testing.T) {
 
 	// 6. 登出后重新查角: 角色列表必须仍有 1 个角色
 	//    (旧实现用清零的 CharacterID 查账号域, 列表为空)。
+	//    且 '*' 必须打在刚玩过的 hero 上 (Delphi boSelected 语义,
+	//    修复"退回选角默认选中第一个角色")。
 	c.send(protocol.MakeDefaultMsg(protocol.CMQueryChr, 0, 0, 0, 0), "tester/0")
 	msg, body = expect(protocol.SMQueryChr, "登出后查角")
 	if msg.Recog != 1 || !strings.Contains(body, "hero") {
 		t.Fatalf("登出后查角: Recog=%d body=%q, want 1 个角色且含 hero", msg.Recog, body)
+	}
+	if !strings.HasPrefix(body, "*hero") {
+		t.Errorf("登出后查角: body=%q, want *hero 开头(上次选中标记)", body)
 	}
 
 	// 7. 再次选角: 必须再次收到 SM_STARTPLAY

@@ -103,10 +103,13 @@ func TestGetServerHostPort(t *testing.T) {
 }
 
 // ============================================================================
-// 单元测试 — 角色列表文本格式 (Fix 3)
+// 单元测试 — 上次选中角色持久化 (Delphi boSelected)
 // ============================================================================
 
-func TestSendCharacterListFormat(t *testing.T) {
+// TestCharacterSelectedFlag 回归："退回选角默认选中第一个角色"。
+// 上次选中的角色持久化在 DB（Delphi boSelected，UsrSoc.pas:887-894），
+// GetCharactersByAccount 返回 Selected 标记，sendCharacterList 据此打 '*'。
+func TestCharacterSelectedFlag(t *testing.T) {
 	tmpDir := t.TempDir()
 	dbPath := filepath.Join(tmpDir, "test.db")
 	db, err := storage.Open(dbPath)
@@ -120,59 +123,41 @@ func TestSendCharacterListFormat(t *testing.T) {
 	if err != nil {
 		t.Fatalf("CreateAccount: %v", err)
 	}
-
-	_, err = db.CreateCharacter(accountID, "Warrior", 0, 0, 0)
+	warriorID, err := db.CreateCharacter(accountID, "Warrior", 0, 0, 0)
 	if err != nil {
 		t.Fatalf("CreateCharacter Warrior: %v", err)
 	}
-	_, err = db.CreateCharacter(accountID, "Wizard", 1, 1, 0)
+	wizardID, err := db.CreateCharacter(accountID, "Wizard", 1, 1, 0)
 	if err != nil {
 		t.Fatalf("CreateCharacter Wizard: %v", err)
 	}
 
-	chars, err := db.GetCharactersByAccount(accountID)
-	if err != nil {
-		t.Fatalf("GetCharactersByAccount: %v", err)
-	}
-
-	// 构建文本格式（与 main.go 中 sendCharacterList 逻辑一致）
-	var sb strings.Builder
-	for i, c := range chars {
-		if i > 0 {
-			sb.WriteByte('/')
+	checkSelected := func(wantID int64) {
+		t.Helper()
+		chars, err := db.GetCharactersByAccount(accountID)
+		if err != nil {
+			t.Fatalf("GetCharactersByAccount: %v", err)
 		}
-		if i == 0 {
-			sb.WriteByte('*')
+		for _, c := range chars {
+			want := wantID != 0 && c.ID == wantID
+			if c.Selected != want {
+				t.Errorf("角色 %q Selected=%v, want %v", c.Name, c.Selected, want)
+			}
 		}
-		sb.WriteString(c.Name)
-		sb.WriteByte('/')
-		sb.WriteString(fmt.Sprintf("%d", c.Job))
-		sb.WriteByte('/')
-		sb.WriteString("0")
-		sb.WriteByte('/')
-		sb.WriteString(fmt.Sprintf("%d", c.Level))
-		sb.WriteByte('/')
-		sb.WriteString(fmt.Sprintf("%d", c.Sex))
 	}
 
-	result := sb.String()
+	checkSelected(0) // 初始：无角色被选中
 
-	if result[0] != '*' {
-		t.Errorf("result should start with *, got %q", result[:5])
+	if err := db.SetCharacterSelected(accountID, wizardID); err != nil {
+		t.Fatalf("SetCharacterSelected(Wizard): %v", err)
 	}
+	checkSelected(wizardID)
 
-	// 解析并验证
-	parts := strings.Split(result, "/")
-	if len(parts) != 10 {
-		t.Errorf("expected 10 parts, got %d: %q", len(parts), result)
+	// 切换选中：其余角色必须清零
+	if err := db.SetCharacterSelected(accountID, warriorID); err != nil {
+		t.Fatalf("SetCharacterSelected(Warrior): %v", err)
 	}
-
-	if parts[0] != "*Warrior" {
-		t.Errorf("parts[0] = %q, want *Warrior", parts[0])
-	}
-	if parts[1] != "0" || parts[3] != "1" || parts[4] != "0" {
-		t.Errorf("Warrior fields = %v", parts[1:5])
-	}
+	checkSelected(warriorID)
 }
 
 // ============================================================================
@@ -277,6 +262,7 @@ func newTestServer(t *testing.T) *testServer {
 				}
 				session.State = netserver.StateAuthenticated
 				session.AccountName = username
+				session.AccountID = accountID
 				session.CharacterID = accountID
 				resp := protocol.MakeDefaultMsg(protocol.SMPassOKSelectServer, 0, 0, 0, 0)
 				ts.server.Send(session.ID, resp, protocol.EncodeString("Server/1"))
@@ -288,36 +274,19 @@ func newTestServer(t *testing.T) *testServer {
 				resp := protocol.MakeDefaultMsg(protocol.SMSelectServerOK, 0, 0, 0, 0)
 				ts.server.Send(session.ID, resp, protocol.EncodeString(fmt.Sprintf("127.0.0.1/%d/54321", port)))
 			case protocol.CMQueryChr:
-				chars, _ := db.GetCharactersByAccount(session.CharacterID)
-				var sb strings.Builder
-				for i, c := range chars {
-					if i > 0 {
-						sb.WriteByte('/')
-					}
-					if i == 0 {
-						sb.WriteByte('*')
-					}
-					sb.WriteString(c.Name)
-					sb.WriteByte('/')
-					sb.WriteString(fmt.Sprintf("%d", c.Job))
-					sb.WriteByte('/')
-					sb.WriteString("0")
-					sb.WriteByte('/')
-					sb.WriteString(fmt.Sprintf("%d", c.Level))
-					sb.WriteByte('/')
-					sb.WriteString(fmt.Sprintf("%d", c.Sex))
-				}
-				resp := protocol.MakeDefaultMsg(protocol.SMQueryChr, int32(len(chars)), 0, 0, 0)
-				ts.server.Send(session.ID, resp, protocol.EncodeString(sb.String()))
+				// 走生产 sendCharacterList，'*' 标记由 DB selected 列决定
+				sendCharacterList(ts.server, session, db)
 			case protocol.CMSelChr:
 				charName := body
 				if idx := strings.Index(body, "/"); idx >= 0 {
 					charName = body[idx+1:]
 				}
-				_, err := db.GetCharacterByName(session.CharacterID, charName)
+				charData, err := db.GetCharacterByName(session.CharacterID, charName)
 				if err != nil {
 					return
 				}
+				// 与生产 CMSelChr 一致：持久化上次选中的角色
+				db.SetCharacterSelected(session.AccountID, charData.ID)
 				startResp := protocol.MakeDefaultMsg(protocol.SMStartPlay, 0, 0, 0, 0)
 				ts.server.Send(session.ID, startResp, protocol.EncodeString(fmt.Sprintf("127.0.0.1/%d", port)))
 			}
@@ -556,21 +525,36 @@ func TestIntegration_QueryChrTextFormat(t *testing.T) {
 		t.Fatalf("query: Ident=%d, want %d", msg.Ident, protocol.SMQueryChr)
 	}
 
-	// 验证文本格式: "*name/job/hair/level/sex/..."
+	// 验证文本格式: "name/job/hair/level/sex/..."；从未选过角色时无 '*' 标记
 	if body == "" {
 		t.Fatal("SMQueryChr body is empty")
 	}
-	if body[0] != '*' {
-		t.Errorf("body should start with *, got %q", body[:10])
+	if strings.Contains(body, "*") {
+		t.Errorf("body should have no * before any selection, got %q", body)
 	}
-
-	// 解析并验证
 	parts := strings.Split(body, "/")
 	if len(parts) != 10 { // 2 个角色 * 5 个字段
 		t.Errorf("expected 10 parts, got %d: %q", len(parts), body)
 	}
-	if parts[0] != "*Fighter" {
-		t.Errorf("parts[0]=%q, want *Fighter", parts[0])
+
+	// 回归: 选中第二个角色后再查角, '*' 必须打在 Mage 上而非固定第一个
+	// (Delphi boSelected, UsrSoc.pas:644/887-894)。
+	c.send(protocol.MakeDefaultMsg(protocol.CMSelChr, 0, 0, 0, 0), "charlie/Mage")
+	c.recv() // SMStartPlay
+	c.send(protocol.MakeDefaultMsg(protocol.CMQueryChr, 0, 0, 0, 0), "charlie/54321")
+	msg, body = c.recv()
+	if msg.Ident != protocol.SMQueryChr {
+		t.Fatalf("requery: Ident=%d, want %d", msg.Ident, protocol.SMQueryChr)
+	}
+	parts = strings.Split(body, "/")
+	if len(parts) != 10 {
+		t.Fatalf("expected 10 parts, got %d: %q", len(parts), body)
+	}
+	if parts[0] != "Fighter" {
+		t.Errorf("parts[0]=%q, want Fighter (无 *)", parts[0])
+	}
+	if parts[5] != "*Mage" {
+		t.Errorf("parts[5]=%q, want *Mage (上次选中标记)", parts[5])
 	}
 
 	t.Logf("SMQueryChr body=%q", body)
@@ -677,11 +661,14 @@ func TestIntegration_FullLoginFlow(t *testing.T) {
 	accID, _, _ := ts.db.GetAccountByUsername("frank")
 	ts.db.CreateCharacter(accID, "Warrior", 0, 0, 0)
 
-	// 第5步: 查询角色
+	// 第5步: 查询角色（从未选过角色时无 '*' 标记，客户端兜底选第一个）
 	c.send(protocol.MakeDefaultMsg(protocol.CMQueryChr, 0, 0, 0, 0), "frank/54321")
 	msg, body = c.recv()
 	assertMsg(t, msg, protocol.SMQueryChr, "SMQueryChr")
-	assertHasPrefix(t, body, "*", "SMQueryChr body starts with *")
+	assertNotEmpty(t, body, "SMQueryChr body")
+	if strings.Contains(body, "*") {
+		t.Errorf("SMQueryChr body should have no * before selection: %q", body)
+	}
 	t.Logf("[3] Characters: body=%q", body)
 
 	// 第6步: 选角
@@ -722,13 +709,6 @@ func assertNotEmpty(t *testing.T, s string, desc string) {
 	}
 }
 
-func assertHasPrefix(t *testing.T, s string, prefix string, desc string) {
-	t.Helper()
-	if !strings.HasPrefix(s, prefix) {
-		t.Errorf("%s: %q does not start with %q", desc, s, prefix)
-	}
-}
-
 // TestExtractDialogLabels 验证对话链接白名单提取 (F3: 不应误收 </C> 的 "C")。
 func TestExtractDialogLabels(t *testing.T) {
 	text := "欢迎光临\\" +
@@ -745,6 +725,42 @@ func TestExtractDialogLabels(t *testing.T) {
 		if !want[lbl] {
 			t.Errorf("unexpected label %q in %v (centering tags must be skipped)", lbl, got)
 		}
+	}
+}
+
+// TestNewCharacterAppearanceInit 回归: 新角色首次登录走 loadPlayerItems
+// 的"无物品存档"早期 return 分支, 必须初始化外观(含性别位),
+// 否则 Feature 的 dress 字节为 0, 女性角色被渲染成男体。
+func TestNewCharacterAppearanceInit(t *testing.T) {
+	tmpDir := t.TempDir()
+	db, err := storage.Open(filepath.Join(tmpDir, "test.db"))
+	if err != nil {
+		t.Fatalf("Open DB: %v", err)
+	}
+	defer db.Close()
+
+	accountID, err := db.CreateAccount("apper", simpleHash("pass"))
+	if err != nil {
+		t.Fatalf("CreateAccount: %v", err)
+	}
+	charID, err := db.CreateCharacter(accountID, "girl", 0, 1, 0)
+	if err != nil {
+		t.Fatalf("CreateCharacter: %v", err)
+	}
+
+	p := NewPlayObject(nil, "girl", int32(charID))
+	p.Gender = 1 // 女性
+	loadPlayerItems(db, p)
+
+	if p.DressLook != 1 {
+		t.Errorf("DressLook = %d, want 1 (裸体女)", p.DressLook)
+	}
+	_, dress, _, hair := protocol.ParseHumanFeature(p.Feature())
+	if dress != 1 {
+		t.Errorf("Feature dress 字节 = %d, want 1", dress)
+	}
+	if hair%2 != 1 {
+		t.Errorf("Feature hair 奇偶位 = %d, want 奇数(女)", hair%2)
 	}
 }
 

@@ -508,6 +508,21 @@ func (e *Environment) GetGroundItemAt(x, y int) *GroundItem {
 	return nil
 }
 
+// GroundItemCountAt 返回格子上的地面物品数量
+//（Delphi GetItemEx 的 nItemCount，ObjBase.pas:1551）。
+func (e *Environment) GroundItemCountAt(x, y int) int {
+	if x < 0 || x >= e.Width || y < 0 || y >= e.Height {
+		return 0
+	}
+	n := 0
+	for _, o := range e.Cells[y*e.Width+x].ObjList {
+		if o.Type == OS_ITEMOBJECT {
+			n++
+		}
+	}
+	return n
+}
+
 // CanFlyLine 检查 (x1,y1) 到 (x2,y2) 之间是否有视线（Bresenham 逐格检查 CanFly）。
 // 对应 Delphi m_PEnvir.CanFly 视线检查。
 func (e *Environment) CanFlyLine(x1, y1, x2, y2 int) bool {

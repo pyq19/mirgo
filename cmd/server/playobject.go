@@ -102,12 +102,8 @@ type PlayObject struct {
 	LastHiterTick int64
 	EnterMapTick  int64 // 进入地图时间（切图保护）
 
-	Deal         *DealState
-	// lastDealTick 交易/丢弃共用节流（Delphi m_DealLastTick）：
-	// 丢弃需间隔 3000ms（ObjBase.pas:16244）；DealEnd 双方最近
-	// 交易动作 <1000ms 判连点作弊（ObjBase.pas:17844-17849）。
-	lastDealTick int64
-	tryDealTick  int64 // DealTry 冷却（dwTryDealTime=3000ms）
+	Deal        *DealState
+	tryDealTick int64 // DealTry 冷却（dwTryDealTime=3000ms）
 	lastLampTick int64 // 光源耐久 tick（500ms，Delphi dwDecLightItemDrugTime）
 	GuildName    string
 	GuildRank    string
@@ -2150,15 +2146,9 @@ func (p *PlayObject) HandlePickup(msg SendMessage, server *netserver.TCPServer) 
 	if p.Deal != nil {
 		return
 	}
-	var item *GroundItem
-	for dy := -1; dy <= 1 && item == nil; dy++ {
-		for dx := -1; dx <= 1; dx++ {
-			if gi := p.envir.GetGroundItemAt(p.CurrX+dx, p.CurrY+dy); gi != nil {
-				item = gi
-				break
-			}
-		}
-	}
+	// Delphi 只拾取人物脚下格子的物品（GetItem(m_nCurrX, m_nCurrY)，
+	// ObjBase.pas:1696），相邻格的物品需要走过去才能捡。
+	item := p.envir.GetGroundItemAt(p.CurrX, p.CurrY)
 	if item == nil {
 		return
 	}

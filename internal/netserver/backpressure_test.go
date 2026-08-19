@@ -8,6 +8,8 @@ import (
 	"sync/atomic"
 	"testing"
 	"time"
+
+	"github.com/pyq0109/mirgo/internal/protocol"
 )
 
 // bufConn 非阻塞内存连接：Write 永不阻塞，供 writeLoop 背压测试使用。
@@ -133,6 +135,33 @@ func TestBackpressureEchoResume(t *testing.T) {
 	waitFor(t, 2*time.Second, "回显恢复后写入 tail", func() bool { return conn.len() >= len(big)+4 })
 	if elapsed := time.Since(start); elapsed > 200*time.Millisecond {
 		t.Fatalf("回显后应立即恢复发送，实际耗时 %v", elapsed)
+	}
+}
+
+// TestCloseSessionFlushesPending 回归："ScenePlay 退出游戏失败"。
+// 发送消息后断开连接必须先排空发送队列再关 conn，否则断开前一刻
+// 入队的帧（如退出确认 SM_EXITOK）丢失，客户端永远收不到。
+// 旧实现在 removeSession 里直接 Conn.Close()，与 writeLoop 竞态。
+func TestCloseSessionFlushesPending(t *testing.T) {
+	conn := &bufConn{}
+	session := newTestSession(conn)
+	server := &TCPServer{
+		done:     make(chan struct{}),
+		sessions: make(map[int64]*Session),
+	}
+	server.sessions[session.ID] = session
+	server.wg.Add(1)
+	go server.writeLoop(session)
+
+	if err := server.Send(session.ID, protocol.DefaultMessage{Ident: 999}, ""); err != nil {
+		t.Fatalf("Send: %v", err)
+	}
+	server.CloseSession(session.ID)
+
+	waitFor(t, 2*time.Second, "关连接前冲刷待发帧", func() bool { return conn.len() > 0 })
+	server.wg.Wait()
+	if _, ok := server.sessions[session.ID]; ok {
+		t.Error("会话应已被移除")
 	}
 }
 

@@ -232,6 +232,7 @@ func main() {
 			log.Logf(log.LevelInfo, "Client", "[callback] onFail: resetting handler")
 			handler = nil
 		}
+		handler.onExit = func() { glfwWindow.SetShouldClose(true) }
 		handler.loginID = id
 		log.Logf(log.LevelInfo, "Client", "[callback] LoginFunc: sending login id=%s", id)
 		handler.SendLogin(id, password)
@@ -254,6 +255,7 @@ func main() {
 			handler.onFail = func() {
 				handler = nil
 			}
+			handler.onExit = func() { glfwWindow.SetShouldClose(true) }
 		}
 		handler.registerID = ue.Account()
 		regMsg := protocol.MakeDefaultMsg(protocol.CMAddNewUser, 0, 0, 0, 0)
@@ -283,6 +285,7 @@ func main() {
 			handler.onFail = func() {
 				handler = nil
 			}
+			handler.onExit = func() { glfwWindow.SetShouldClose(true) }
 		}
 		handler.SendChgPw(id, oldpw, newpw)
 	})
@@ -493,6 +496,7 @@ type NetHandler struct {
 	// 回调（由 main 设置）
 	onReconnect func(addr string, loginID string, certification int)
 	onFail      func() // 登录失败时调用，在 main 中重置 handler
+	onExit      func() // 退出游戏时调用，在 main 中关闭窗口
 }
 
 // enqueue 追加已解码消息供主线程分发（从 ReadLoop 调用）。
@@ -1187,6 +1191,9 @@ func (h *NetHandler) HandleMessage(msg protocol.DefaultMessage, body, rawBody st
 	case protocol.SMExitOK:
 		log.Logf(log.LevelInfo, "Client", "exit OK, closing")
 		h.Close()
+		if h.onExit != nil {
+			h.onExit()
+		}
 		if h.onFail != nil {
 			h.onFail()
 		}
@@ -2514,8 +2521,14 @@ func connectToServer(addr string, loginScene *LoginScene, playScene *PlayScene, 
 	})
 
 	playScene.SetSendExit(func() {
+		// Delphi AppExit（ClMain.pas:1187-1195）：确认后直接关闭，不等
+		// 服务端回应。CM_EXITGAME 只是通知服务端显式保存；即使丢失，
+		// 断开连接的 DisconnectHandler 也会保存角色。
 		msg := protocol.MakeDefaultMsg(protocol.CMExitGame, 0, 0, 0, 0)
 		handler.Send(msg, "")
+		if handler.onExit != nil {
+			handler.onExit()
+		}
 	})
 
 	playScene.SetSendAddFriend(func(name string) {

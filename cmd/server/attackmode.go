@@ -151,12 +151,9 @@ func (p *PlayObject) HandleDropItem(msg SendMessage, server *netserver.TCPServer
 		dropFail()
 		return
 	}
-	// 3000ms 节流（与交易共用 m_DealLastTick，ObjBase.pas:16244）。
+	// Delphi 的 m_DealLastTick 只由交易操作写入，该检查仅禁止交易后
+	// 3 秒内丢弃（ObjBase.pas:16244），连续丢弃不节流——此处不做限流。
 	now := time.Now().UnixMilli()
-	if now-p.lastDealTick < 3000 {
-		dropFail()
-		return
-	}
 	item := p.ItemList[bagIdx]
 
 	name := "Item"
@@ -169,7 +166,6 @@ func (p *PlayObject) HandleDropItem(msg SendMessage, server *netserver.TCPServer
 			price = def.Price
 		}
 	}
-	p.lastDealTick = now
 	p.ItemList = append(p.ItemList[:bagIdx], p.ItemList[bagIdx+1:]...)
 
 	// 廉价物品管控（Delphi boControlDropItem，ObjBase.pas:16256-16262）：
@@ -188,12 +184,18 @@ func (p *PlayObject) HandleDropItem(msg SendMessage, server *netserver.TCPServer
 	p.Engine.nextItemID++
 	p.Engine.mu.Unlock()
 
+	// 散落范围 1：身边 3×3 内找最近的空格子
+	//（Delphi ClientDropItem → DropItemDown(UserItem, 1, ...)，ObjBase.pas:16265）。
+	x, y := p.CurrX, p.CurrY+1
+	if p.envir != nil {
+		x, y = getDropPosition(p.envir, p.CurrX, p.CurrY, 1)
+	}
 	gi := &GroundItem{
 		ID:       id,
 		Name:     name,
 		Looks:    looks,
-		X:        p.CurrX,
-		Y:        p.CurrY + 1,
+		X:        x,
+		Y:        y,
 		DropTick: now,
 		UserItem: item,
 	}
@@ -245,12 +247,8 @@ func (p *PlayObject) HandleDropGold(msg SendMessage, server *netserver.TCPServer
 	if p.Engine.Config.GetControlDropItem() && amount < 1000 {
 		return
 	}
-	// 3000ms 节流（与丢弃物品共用）。
+	// Delphi ClientDropGold 无节流（ObjBase.pas:16187-16212）。
 	now := time.Now().UnixMilli()
-	if now-p.lastDealTick < 3000 {
-		return
-	}
-	p.lastDealTick = now
 
 	p.Engine.mu.Lock()
 	id := p.Engine.nextItemID
