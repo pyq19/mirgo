@@ -156,6 +156,8 @@ func main() {
 	if resIdx != 0 {
 		engine.TextScale = float64(resolutions[resIdx][0]) / float64(ScreenWidth)
 	}
+	// 主字体 9pt ≡ 原版 dfm Font.Height=-12（ClMain.dfm），
+	// GDI 后端按 -12px 光栅化，与原版 TextOut 一致。
 	textRenderer, err := engine.NewTextRenderer(glState, "", 9)
 	if err != nil {
 		log.Logf(log.LevelWarn, "Client", "failed to load font: %v", err)

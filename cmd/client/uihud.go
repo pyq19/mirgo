@@ -323,10 +323,10 @@ func (s *PlayScene) paintBottomBar(barY int, proj [16]float32) {
 		}
 		for i, row := start, 0; i < end; i, row = i+1, row+1 {
 			msg := s.chatMessages[i]
-			lw := s.chatText.MeasureText(msg.Text)
+			lw := s.text.MeasureText(msg.Text)
 			s.gl.DrawQuadColor(chatBoardX, float32(chatBoardTop+row*chatLineH),
 				float32(lw), chatLineH, msg.Bg[0], msg.Bg[1], msg.Bg[2], msg.Bg[3], proj)
-			s.chatText.DrawText(msg.Text, chatBoardX, float32(chatBoardTop+row*chatLineH),
+			s.text.DrawText(msg.Text, chatBoardX, float32(chatBoardTop+row*chatLineH),
 				msg.Fg[0], msg.Fg[1], msg.Fg[2], msg.Fg[3], proj)
 		}
 
@@ -337,7 +337,7 @@ func (s *PlayScene) paintBottomBar(barY int, proj [16]float32) {
 			if time.Now().UnixMilli()%1000 < 500 {
 				cursor = "|"
 			}
-			s.chatText.DrawText(s.chatInput+cursor, chatBoardX+2, 581, 0, 0, 0, 1, proj)
+			s.text.DrawText(s.chatInput+cursor, chatBoardX+2, 581, 0, 0, 0, 1, proj)
 		}
 	}
 }

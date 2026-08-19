@@ -130,7 +130,6 @@ type PlayScene struct {
 	lastMoveTick          int64
 	lastAniTick           int64
 	text                  *engine.TextRenderer
-	chatText              *engine.TextRenderer // 聊天专用小字号（行高 12px 容纳）
 
 	groundItems   map[int32]*GroundItemInfo
 	floatingTexts []FloatingText
@@ -549,15 +548,9 @@ func (s *PlayScene) RemoveGroundItem(id int32) {
 }
 
 func (s *PlayScene) SetText(t *engine.TextRenderer) {
+	// Delphi 原版全客户端含聊天板共用单一画布字体（宋体 9pt，
+	// ClMain.pas:868-873、FState:3692-3706），聊天不另派生小字号。
 	s.text = t
-	// 聊天行高仅 12px（FState:3703），主字体行高超出会叠行；
-	// 派生 8pt 小字体专供聊天板/输入行（同调试控制台用档）。
-	s.chatText = t
-	if t != nil {
-		if small, err := t.WithSize(8); err == nil {
-			s.chatText = small
-		}
-	}
 	s.ui.SetText(t)
 }
 
@@ -2684,16 +2677,16 @@ func (s *PlayScene) chatPalette(idx byte) [4]float32 {
 	return [4]float32{1, 1, 1, 1}
 }
 
-// wrapChatText 按 372px 拆行；聊天小字体未就绪时不换行。
+// wrapChatText 按 372px 拆行；字体未就绪时不换行。
 func (s *PlayScene) wrapChatText(text string) []string {
-	if s.chatText == nil || s.chatText.MeasureText(text) <= chatBoxWidth {
+	if s.text == nil || s.text.MeasureText(text) <= chatBoxWidth {
 		return []string{text}
 	}
 	var lines []string
 	var cur strings.Builder
 	for _, r := range text {
 		cur.WriteRune(r)
-		if s.chatText.MeasureText(cur.String()) > chatBoxWidth {
+		if s.text.MeasureText(cur.String()) > chatBoxWidth {
 			lines = append(lines, strings.TrimSuffix(cur.String(), string(r)))
 			cur.Reset()
 			cur.WriteRune(r)

@@ -3,7 +3,10 @@ package engine
 import (
 	"fmt"
 	"image"
+	"math"
 	"os"
+	"path/filepath"
+	"strings"
 	"sync"
 
 	"github.com/go-gl/gl/v3.3-core/gl"
@@ -39,6 +42,8 @@ type glyphEntry struct {
 }
 
 // TextRenderer 使用 TTF 字体渲染文本，并缓存字形纹理。
+// Windows 上优先 GDI 光栅化（gdi 非 nil），复刻 Delphi 原版 TextOut 的
+// hinting/点阵清晰度；其余平台回退 x/image 矢量抗锯齿。
 type TextRenderer struct {
 	gl         *GLState
 	face       font.Face   // 逻辑尺寸 face（度量/布局）
@@ -49,14 +54,39 @@ type TextRenderer struct {
 	cacheMu    sync.RWMutex
 	size       float64
 	fontData   []byte // 保存以便 WithSize 复用
+	gdi        *gdiFont
+	gdiRender  *gdiFont // 高分辨率 GDI 光栅，nil 时 == gdi
+	gdiFamily  string
+	gdiPx      int
+}
+
+// ptToPx 点数→96dpi 像素（9pt→12px，对应 Delphi Font.Height=-12）。
+func ptToPx(size float64) int { return int(math.Round(size * 96 / 72)) }
+
+// gdiFamilyForPath 字体文件→GDI 族名；不识别（含非 Windows 路径）返回 ""。
+func gdiFamilyForPath(path string) string {
+	switch strings.ToLower(filepath.Base(path)) {
+	case "simsun.ttc":
+		return "SimSun"
+	case "msyh.ttc":
+		return "Microsoft YaHei"
+	case "msyhbd.ttc":
+		return "Microsoft YaHei Bold"
+	case "simhei.ttf":
+		return "SimHei"
+	case "arial.ttf":
+		return "Arial"
+	}
+	return ""
 }
 
 // fontSearchPaths 列出常见系统的中文字体路径。
 var fontSearchPaths = []string{
-	// Windows
+	// Windows：Delphi 原版默认宋体（MShare.pas:216-228 g_sCurFontName），
+	// 9pt 行高恰好容纳聊天板 12px 行距（FState:3703）。
+	`C:\Windows\Fonts\simsun.ttc`, // 宋体
 	`C:\Windows\Fonts\msyh.ttc`,  // 微软雅黑
 	`C:\Windows\Fonts\msyhbd.ttc`, // 微软雅黑 Bold
-	`C:\Windows\Fonts\simsun.ttc`, // 宋体
 	`C:\Windows\Fonts\simhei.ttf`, // 黑体
 	`C:\Windows\Fonts\arial.ttf`,  // Arial（英文兜底）
 	// Linux
@@ -125,13 +155,19 @@ func NewTextRenderer(glState *GLState, fontPath string, size float64) (*TextRend
 	ascent := metrics.Ascent.Ceil()
 
 	tr := &TextRenderer{
-		gl:       glState,
-		face:     face,
-		ascent:   ascent,
-		scale:    1,
-		cache:    make(map[rune]*glyphEntry),
-		size:     size,
-		fontData: fontData,
+		gl:        glState,
+		face:      face,
+		ascent:    ascent,
+		scale:     1,
+		cache:     make(map[rune]*glyphEntry),
+		size:      size,
+		fontData:  fontData,
+		gdiFamily: gdiFamilyForPath(resolvedPath),
+		gdiPx:     ptToPx(size),
+	}
+	tr.gdi, _ = newGdiFont(tr.gdiFamily, tr.gdiPx)
+	if tr.gdi != nil {
+		tr.ascent = tr.gdi.ascent
 	}
 	allRenderers = append(allRenderers, tr)
 	if TextScale != 1 {
@@ -164,13 +200,19 @@ func (tr *TextRenderer) WithSize(size float64) (*TextRenderer, error) {
 	}
 
 	child := &TextRenderer{
-		gl:       tr.gl,
-		face:     face,
-		ascent:   face.Metrics().Ascent.Ceil(),
-		scale:    1,
-		cache:    make(map[rune]*glyphEntry),
-		size:     size,
-		fontData: tr.fontData,
+		gl:        tr.gl,
+		face:      face,
+		ascent:    face.Metrics().Ascent.Ceil(),
+		scale:     1,
+		cache:     make(map[rune]*glyphEntry),
+		size:      size,
+		fontData:  tr.fontData,
+		gdiFamily: tr.gdiFamily,
+		gdiPx:     ptToPx(size),
+	}
+	child.gdi, _ = newGdiFont(child.gdiFamily, child.gdiPx)
+	if child.gdi != nil {
+		child.ascent = child.gdi.ascent
 	}
 	allRenderers = append(allRenderers, child)
 	if TextScale != 1 {
@@ -189,6 +231,17 @@ func (tr *TextRenderer) SetScale(s float64) {
 		return
 	}
 	tr.scale = s
+	if tr.gdi != nil {
+		if tr.gdiRender != nil {
+			tr.gdiRender.close()
+			tr.gdiRender = nil
+		}
+		if s != 1 {
+			tr.gdiRender, _ = newGdiFont(tr.gdiFamily, int(math.Round(float64(tr.gdiPx)*s)))
+		}
+		tr.clearCache()
+		return
+	}
 	if s == 1 {
 		tr.renderFace = nil
 	} else {
@@ -230,6 +283,39 @@ func (tr *TextRenderer) getGlyph(ch rune) *glyphEntry {
 		return g
 	}
 	tr.cacheMu.RUnlock()
+
+	// GDI 后端（Windows）：度量取逻辑字体，纹理取高分辨率字体。
+	if tr.gdi != nil {
+		img, gw, gh, advance, topX, topY, ok := tr.gdi.glyph(ch)
+		if !ok {
+			spaceAdv, _ := tr.face.GlyphAdvance(' ')
+			return &glyphEntry{advance: spaceAdv.Ceil()}
+		}
+		src := img
+		if tr.gdiRender != nil {
+			if rimg, _, _, _, _, _, rok := tr.gdiRender.glyph(ch); rok && rimg != nil {
+				src = rimg
+			}
+		}
+		var tex uint32
+		if src != nil {
+			tex = tr.gl.UploadTexture(src)
+		}
+		g := &glyphEntry{
+			tex:      tex,
+			w:        gw,
+			h:        gh,
+			advance:  advance,
+			bearingX: topX,
+			// DrawText 以 y+ascent-bearingY 定位字形顶：GDI 裁剪框顶
+			// 相对行顶为 topY，等价 bearingY = ascent-topY。
+			bearingY: tr.ascent - topY,
+		}
+		tr.cacheMu.Lock()
+		tr.cache[ch] = g
+		tr.cacheMu.Unlock()
+		return g
+	}
 
 	// 逻辑度量（用于布局/quad 尺寸）。
 	advance, ok := tr.face.GlyphAdvance(ch)
@@ -370,12 +456,23 @@ func (tr *TextRenderer) Ascent() int {
 
 // LineHeight 返回完整行高（ascent + descent）。
 func (tr *TextRenderer) LineHeight() int {
+	if tr.gdi != nil {
+		return tr.gdi.heightPx
+	}
 	metrics := tr.face.Metrics()
 	return (metrics.Ascent + metrics.Descent).Ceil()
 }
 
 // Destroy 释放所有缓存的 GL 纹理并从全局注册表移除。
 func (tr *TextRenderer) Destroy() {
+	if tr.gdi != nil {
+		tr.gdi.close()
+		tr.gdi = nil
+	}
+	if tr.gdiRender != nil {
+		tr.gdiRender.close()
+		tr.gdiRender = nil
+	}
 	tr.cacheMu.Lock()
 	for _, g := range tr.cache {
 		if g.tex != 0 {
