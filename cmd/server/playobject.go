@@ -2581,12 +2581,12 @@ func (p *PlayObject) sendWeightChanged(server *netserver.TCPServer) {
 	server.Send(p.Session.ID, resp, "")
 }
 
-// encodeStdItemsBody 序列化物品定义数据库。布局：count u16，
+// encodeStdItemsRaw 序列化物品定义数据库（未编码原始字节）。布局：count u16，
 // 每个物品：Idx u16, Looks u16, StdMode/Shape/Weight/NeedLevel u8×4,
 // AC/ACMax/MAC/MACMax/DC/DCMax/MC/MCMax/SC/SCMax u16×10, Price u32,
 // Source u16(int16 位模式), Reserved/Need/AniCount u8×3,
 // NameLen u8 + Name (UTF-8)。客户端镜像见 GameState.ParseItemDefs。
-func encodeStdItemsBody(items []ItemDef) string {
+func encodeStdItemsRaw(items []ItemDef) []byte {
 	buf := make([]byte, 2, 2+len(items)*45)
 	binary.LittleEndian.PutUint16(buf, uint16(len(items)))
 	var tmp [4]byte
@@ -2621,16 +2621,67 @@ func encodeStdItemsBody(items []ItemDef) string {
 		buf = append(buf, byte(len(name)))
 		buf = append(buf, name...)
 	}
-	return protocol.EncodeBuffer(buf)
+	return buf
 }
 
-// SendStdItems 在登录时一次性下发完整的物品定义数据库。
+func encodeStdItemsBody(items []ItemDef) string {
+	return protocol.EncodeBuffer(encodeStdItemsRaw(items))
+}
+
+// stdItemsChunkBudget 是单个 SMStdItems 分块的原始字节预算。
+// 必须小于 protocol.BufferSize(10000)，否则 EncodeBuffer 返回空串。
+const stdItemsChunkBudget = 8000
+
+// stdItemRecordSize 返回单条物品记录在 SMStdItems body 中的字节数
+// （固定段 38 + 名字，名字截断规则与 encodeStdItemsRaw 一致）。
+func stdItemRecordSize(def *ItemDef) int {
+	n := len(def.Name)
+	if n > 255 {
+		n = 255
+	}
+	return 38 + n
+}
+
+// splitStdItems 按原始字节预算把物品列表切分为 [start,end) 区间，
+// 区间串联覆盖全部物品且保持原序。
+func splitStdItems(items []ItemDef) [][2]int {
+	var chunks [][2]int
+	for start := 0; start < len(items); {
+		size, end := 2, start
+		for end < len(items) {
+			if size+stdItemRecordSize(&items[end]) > stdItemsChunkBudget && end > start {
+				break
+			}
+			size += stdItemRecordSize(&items[end])
+			end++
+		}
+		chunks = append(chunks, [2]int{start, end})
+		start = end
+	}
+	return chunks
+}
+
+// SendStdItems 在登录时下发完整的物品定义数据库。
+// 全库原始字节远超 protocol.BufferSize，必须分块发送（每块一条
+// SMStdItems 消息），否则 EncodeBuffer 会静默返回空串、客户端拿不到
+// 任何定义。消息头 Recog=物品总数，Param=块序号(0基)，Tag=总块数。
 func (p *PlayObject) SendStdItems(server *netserver.TCPServer) {
 	if p.ItemDB == nil {
 		return
 	}
-	resp := protocol.MakeDefaultMsg(protocol.SMStdItems, int32(len(p.ItemDB.Items)), 0, 0, 0)
-	server.Send(p.Session.ID, resp, encodeStdItemsBody(p.ItemDB.Items))
+	items := p.ItemDB.Items
+	chunks := splitStdItems(items)
+	for ci, c := range chunks {
+		body := encodeStdItemsBody(items[c[0]:c[1]])
+		if body == "" {
+			log.Logf(log.LevelError, "Server", "SMStdItems chunk %d/%d (%d items) encode failed",
+				ci, len(chunks), c[1]-c[0])
+			continue
+		}
+		resp := protocol.MakeDefaultMsg(protocol.SMStdItems, int32(len(items)),
+			uint16(ci), uint16(len(chunks)), 0)
+		server.Send(p.Session.ID, resp, body)
+	}
 }
 
 func (p *PlayObject) SendUseItems(server *netserver.TCPServer) {

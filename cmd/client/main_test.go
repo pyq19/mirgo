@@ -416,6 +416,60 @@ func TestParseItemDefsAndRelink(t *testing.T) {
 	}
 }
 
+// TestParseItemDefsChunkedMerge 验证 SMStdItems 分块到达时的合并语义：
+// 每块自描述，按 idx 合并入 ItemDefs，并对已到达的背包物品重关联。
+func TestParseItemDefsChunkedMerge(t *testing.T) {
+	gs := NewGameState()
+	// 金创药(小量) idx=1... 此处沿用 7/9 与既有用例一致；Looks 值取
+	// 398(金创药)与 1(肉)复现"药水画成肉"的回归场景。
+	gs.BagItems[0] = &BagItem{Idx: 7, MakeIndex: 1}
+	gs.BagItems[1] = &BagItem{Idx: 9, MakeIndex: 2}
+
+	mkRec := func(idx, looks uint16, name string) []byte {
+		rec := make([]byte, 37)
+		binary.LittleEndian.PutUint16(rec[0:2], idx)
+		binary.LittleEndian.PutUint16(rec[2:4], looks)
+		rec = append(rec, byte(len(name)))
+		rec = append(rec, name...)
+		return rec
+	}
+	mkChunk := func(recs ...[]byte) string {
+		raw := make([]byte, 2)
+		binary.LittleEndian.PutUint16(raw, uint16(len(recs)))
+		for _, r := range recs {
+			raw = append(raw, r...)
+		}
+		return string(raw)
+	}
+
+	// 第一块到达：仅覆盖 idx=7。
+	gs.ParseItemDefs(mkChunk(mkRec(7, 398, "金创药")))
+	if gs.BagItems[0].Def == nil {
+		t.Fatal("chunk1: bag item 7 not linked")
+	}
+	if got := gs.BagItems[0].Looks(); got != 398 {
+		t.Errorf("chunk1: Looks = %d, want 398", got)
+	}
+	if gs.BagItems[1].Def != nil {
+		t.Fatal("chunk1: bag item 9 linked too early")
+	}
+
+	// 第二块到达：定义合并、剩余物品补关联。
+	gs.ParseItemDefs(mkChunk(mkRec(9, 1, "肉")))
+	if len(gs.ItemDefs) != 2 {
+		t.Fatalf("ItemDefs count = %d, want 2", len(gs.ItemDefs))
+	}
+	if gs.BagItems[1].Def == nil {
+		t.Fatal("chunk2: bag item 9 not linked")
+	}
+	if got := gs.BagItems[1].Looks(); got != 1 {
+		t.Errorf("chunk2: Looks = %d, want 1", got)
+	}
+	if got := gs.BagItems[0].Looks(); got != 398 {
+		t.Errorf("chunk2: bag item 7 Looks = %d, want 398", got)
+	}
+}
+
 func TestParseMagicsExtendedLayout(t *testing.T) {
 	gs := NewGameState()
 	raw := make([]byte, 2, 32)

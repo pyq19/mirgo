@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/binary"
+	"fmt"
 	"testing"
 
 	"github.com/pyq0109/mirgo/internal/protocol"
@@ -176,6 +177,78 @@ func TestEncodeStdItemsBodyLayout(t *testing.T) {
 	name2 := string(raw[off+38 : off+38+nameLen2])
 	if name2 != "金创药" {
 		t.Errorf("item1 name = %q, want 金创药", name2)
+	}
+}
+
+// TestSplitStdItems 验证大物品库分块：每块 raw ≤ 预算、EncodeBuffer
+// 可编码，块串联还原全部物品且保持原序。
+func TestSplitStdItems(t *testing.T) {
+	if got := splitStdItems(nil); len(got) != 0 {
+		t.Errorf("splitStdItems(nil) = %v, want empty", got)
+	}
+
+	items := make([]ItemDef, 686)
+	for i := range items {
+		items[i] = ItemDef{
+			Idx:   i,
+			Name:  fmt.Sprintf("分块测试物品%04d", i),
+			Looks: uint16(100 + i),
+		}
+	}
+
+	// 回归基线：整库直编必须超过 BufferSize——这正是图标 bug 的根因，
+	// 也是分块存在的前提。
+	if n := len(encodeStdItemsRaw(items)); n < protocol.BufferSize {
+		t.Fatalf("test DB raw = %d bytes, want >= BufferSize(%d) to exercise chunking",
+			n, protocol.BufferSize)
+	}
+	if encodeStdItemsBody(items) != "" {
+		t.Fatal("whole-DB EncodeBuffer should return empty (icon bug root cause)")
+	}
+
+	chunks := splitStdItems(items)
+	if len(chunks) < 2 {
+		t.Fatalf("chunks = %d, want >= 2", len(chunks))
+	}
+
+	prevEnd := 0
+	for ci, c := range chunks {
+		if c[0] != prevEnd {
+			t.Fatalf("chunk %d starts at %d, want %d (gap/overlap)", ci, c[0], prevEnd)
+		}
+		prevEnd = c[1]
+
+		raw := encodeStdItemsRaw(items[c[0]:c[1]])
+		if len(raw) > stdItemsChunkBudget {
+			t.Errorf("chunk %d raw = %d bytes, exceeds budget %d",
+				ci, len(raw), stdItemsChunkBudget)
+		}
+		body := protocol.EncodeBuffer(raw)
+		if body == "" {
+			t.Fatalf("chunk %d EncodeBuffer returned empty (raw=%d)", ci, len(raw))
+		}
+		decoded := []byte(decodeTestBody(body))
+		count := int(binary.LittleEndian.Uint16(decoded[0:2]))
+		if count != c[1]-c[0] {
+			t.Fatalf("chunk %d count = %d, want %d", ci, count, c[1]-c[0])
+		}
+		off := 2
+		for j := c[0]; j < c[1]; j++ {
+			idx := binary.LittleEndian.Uint16(decoded[off : off+2])
+			looks := binary.LittleEndian.Uint16(decoded[off+2 : off+4])
+			if idx != uint16(items[j].Idx) || looks != items[j].Looks {
+				t.Fatalf("chunk %d record %d = idx %d/looks %d, want %d/%d",
+					ci, j-c[0], idx, looks, items[j].Idx, items[j].Looks)
+			}
+			nameLen := int(decoded[off+37])
+			off += 38 + nameLen
+		}
+		if off != len(decoded) {
+			t.Errorf("chunk %d consumed %d bytes, want %d", ci, off, len(decoded))
+		}
+	}
+	if prevEnd != len(items) {
+		t.Fatalf("chunks end at %d, want %d", prevEnd, len(items))
 	}
 }
 
