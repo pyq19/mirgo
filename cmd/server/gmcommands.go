@@ -78,9 +78,24 @@ func (p *PlayObject) HandleGMCommand(cmd string, server *netserver.TCPServer) bo
 		}
 		return true
 	case "nomob":
-		now := time.Now().UnixMilli()
-		p.Engine.NoMonGen = !p.Engine.NoMonGen
-		if p.Engine.NoMonGen {
+		// 无参数保持 Delphi 切换语义; on/off 显式设定状态 (幂等),
+		// 供客户端调试指令使用 — 避免误触第二次把刷怪切回来。
+		mode := ""
+		if len(parts) >= 2 {
+			mode = strings.ToLower(parts[1])
+		}
+		var turnOn bool
+		switch mode {
+		case "on":
+			turnOn = true
+		case "off":
+			turnOn = false
+		default:
+			turnOn = !p.Engine.NoMonGen
+		}
+		p.Engine.NoMonGen = turnOn
+		if turnOn {
+			now := time.Now().UnixMilli()
 			killed := 0
 			for _, m := range p.Engine.Monsters {
 				if !m.Death && !m.Ghost {

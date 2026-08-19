@@ -170,10 +170,10 @@ func main() {
 
 	sceneMgr := engine.NewSceneManager()
 
-	// 全局调试控制台 (跨场景可用)。使用 8pt 小字体 (Delphi 物品提示 8pt), 加载失败时退回主字体。
+	// 全局调试控制台 (跨场景可用)。12pt = 16px, 落在宋体点阵尺寸上, 清晰锐利; 加载失败时退回主字体。
 	var consoleText *engine.TextRenderer
 	if textRenderer != nil {
-		if small, err := textRenderer.WithSize(8); err == nil {
+		if small, err := textRenderer.WithSize(12); err == nil {
 			consoleText = small
 		} else {
 			consoleText = textRenderer
@@ -200,6 +200,30 @@ func main() {
 	glfwWindow := window.GetWindow()
 	dbgConsole.SetClipboard = glfwWindow.SetClipboardString
 	dbgConsole.GetClipboard = glfwWindow.GetClipboardString
+
+	// nomob: 以聊天形式向服务器发 @nomob on/off (免 GM 权限, cmd/server/gmcommands.go) —
+	// 杀死全部存活怪物并停止刷怪, 消除 SM_HIT/SM_TURN/SM_WALK 等怪物动作消息
+	// 对调试日志的干扰。显式 on/off 而非切换: 重复执行不会把刷怪切回来。
+	dbgConsole.Register("nomob", "nomob [off]: kill all monsters & stop mon-gen; off resumes", func(args []string) {
+		if handler == nil {
+			dbgConsole.Printf("not connected")
+			return
+		}
+		if sceneMgr.CurrentType() != engine.ScenePlayGame {
+			dbgConsole.Printf("only usable in game")
+			return
+		}
+		mode := "on"
+		if len(args) > 0 && args[0] == "off" {
+			mode = "off"
+		}
+		sayMsg := protocol.MakeDefaultMsg(protocol.CMSay, 0, 0, 0, 0)
+		if err := handler.Send(sayMsg, "@nomob "+mode); err != nil {
+			dbgConsole.Printf("send failed: %v", err)
+			return
+		}
+		dbgConsole.Printf("@nomob %s sent — result in sys chat", mode)
+	})
 
 	winW, winH = glfwWindow.GetSize()
 

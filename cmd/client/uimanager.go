@@ -197,7 +197,7 @@ func (m *UIManager) dispatchMouseDown(c *UIControl, button, x, y int) bool {
 		// TDGrid.MouseDown (:721-736): 左键且命中单元格 → 捕获.
 		if button == 0 {
 			if col, row, ok := c.ColRowAt(x, y); ok {
-				log.Logf(log.LevelDebug, "UI", "grid mouse-down %s cell=(%d,%d)", c.Name, col, row)
+				log.Logf(log.LevelDebug, "UI", "grid mouse-down %s cell=(%d,%d)", c.DebugPath(), col, row)
 				c.SelectCol, c.SelectRow = col, row
 				m.SetCapture(c)
 				return true
@@ -219,7 +219,7 @@ func (m *UIManager) dispatchMouseDown(c *UIControl, button, x, y int) bool {
 			return false
 		}
 		if m.canFocusMsg(c) && (c.InRange(x, y) || m.Capture == c) {
-			log.Logf(log.LevelDebug, "UI", "mouse-down %s(%s) pos=(%d,%d) btn=%d", c.Name, c.Kind, x, y, button)
+			log.Logf(log.LevelDebug, "UI", "mouse-down %s(%s) pos=(%d,%d) btn=%d", c.DebugPath(), c.Kind, x, y, button)
 			if c.OnMouseDown != nil {
 				c.OnMouseDown(c, button, x, y)
 			}
@@ -261,7 +261,7 @@ func (m *UIManager) dispatchMouseUp(c *UIControl, button, x, y int) bool {
 		if button == 0 {
 			if col, row, ok := c.ColRowAt(x, y); ok {
 				if c.SelectCol == col && c.SelectRow == row {
-					log.Logf(log.LevelDebug, "UI", "grid select %s cell=(%d,%d)", c.Name, col, row)
+					log.Logf(log.LevelDebug, "UI", "grid select %s cell=(%d,%d)", c.DebugPath(), col, row)
 					c.Col, c.Row = col, row
 					if c.OnGridSelect != nil {
 						c.OnGridSelect(c, col, row)
@@ -282,7 +282,7 @@ func (m *UIManager) dispatchMouseUp(c *UIControl, button, x, y int) bool {
 					// TDWindow.MouseUp 只是调用 inherited).
 					m.ReleaseCapture()
 					if !c.Background && c.InRange(x, y) {
-						log.Logf(log.LevelDebug, "UI", "click %s(%s) pos=(%d,%d)", c.Name, c.Kind, x, y)
+						log.Logf(log.LevelDebug, "UI", "click %s(%s) pos=(%d,%d)", c.DebugPath(), c.Kind, x, y)
 						if c.OnMouseUp != nil {
 							c.OnMouseUp(c, button, x, y)
 						}
@@ -313,7 +313,7 @@ func (m *UIManager) dispatchMouseUp(c *UIControl, button, x, y int) bool {
 			// Delphi 中抬起之后会跟一个 WM_LBUTTONCLK; 带 OnClick 的
 			// 控件 (如 DStateWin 魔法页命中检测) 在此收到它.
 			if c.OnClick != nil {
-				log.Logf(log.LevelDebug, "UI", "click %s(%s) pos=(%d,%d)", c.Name, c.Kind, x, y)
+				log.Logf(log.LevelDebug, "UI", "click %s(%s) pos=(%d,%d)", c.DebugPath(), c.Kind, x, y)
 				if c.ClickSound >= 0 {
 					gSound.PlaySound(c.ClickSound)
 				}
@@ -402,7 +402,7 @@ func (m *UIManager) dispatchDblClick(c *UIControl, x, y int) bool {
 	// 捕获优先于子控件 (DWinCtl.pas:558-565).
 	if m.Capture != nil {
 		if m.Capture == c && c.OnDblClick != nil {
-			log.Logf(log.LevelDebug, "UI", "double-click %s(%s) pos=(%d,%d)", c.Name, c.Kind, x, y)
+			log.Logf(log.LevelDebug, "UI", "double-click %s(%s) pos=(%d,%d)", c.DebugPath(), c.Kind, x, y)
 			c.OnDblClick(c, x, y)
 			return true
 		}
@@ -418,7 +418,7 @@ func (m *UIManager) dispatchDblClick(c *UIControl, x, y int) bool {
 		return false
 	}
 	if c.InRange(x, y) && c.OnDblClick != nil {
-		log.Logf(log.LevelDebug, "UI", "double-click %s(%s) pos=(%d,%d)", c.Name, c.Kind, x, y)
+		log.Logf(log.LevelDebug, "UI", "double-click %s(%s) pos=(%d,%d)", c.DebugPath(), c.Kind, x, y)
 		c.OnDblClick(c, x, y)
 		return true
 	}
