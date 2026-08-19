@@ -406,9 +406,7 @@ func (s *SelectChrScene) Render(gl *engine.GLState, proj [16]float32) {
 	s.syncUI()
 	if s.ui != nil {
 		s.ui.Paint(proj)
-		if s.ui.ShowBounds {
-			s.ui.RenderDebugBounds(proj)
-		}
+		s.ui.RenderDebug(proj)
 	}
 }
 

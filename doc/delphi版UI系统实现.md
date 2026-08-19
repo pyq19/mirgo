@@ -1150,7 +1150,7 @@ Actor 屏幕位置：`((Rx-Left)*UNITX + defx, (Ry-Top-1)*UNITY + defy)`（Y 方
 | 事件 | 处理器 | UI 门 | 游戏逻辑 |
 |------|--------|-------|----------|
 | KeyPress | `FormKeyPress` `:1725` | `g_DWinMan.KeyPress` `:1727` | 聊天热键 Space/Enter/`!`/`@`/`/` `:1741-1783`；`1..6` 腰带 `:1734` |
-| KeyDown | `FormKeyDown` `:1456` | `g_DWinMan.KeyDown` `:1471` | F9=背包, F10=状态, F11=魔法, F12=设置, F1-F8=施法 |
+| KeyDown | `FormKeyDown` `:1456` | `g_DWinMan.KeyDown` `:1471` | F9=背包, F10=状态, F11=魔法, F12=设置, F1-F8=施法；聊天未开时 C=状态页 0、E=魔法页 3（`:1668-1685`） |
 | MouseMove | `DXDrawMouseMove` `:2076` | `g_DWinMan.MouseMove` `:2083` | 焦点/目标/拖拽提示 `:2085-2116` |
 | MouseDown | `DXDrawMouseDown` `:2120` | `g_DWinMan.MouseDown` `:2197` | 右键=转向/跑, 左键=攻击/NPC/拾取/走 |
 | MouseUp | `DXDrawMouseUp` `:2384` | `g_DWinMan.MouseUp` `:2387` | 清除移动目标 |
@@ -1254,7 +1254,7 @@ end;
 ### 12.5 FState.dfm 结构
 
 - 根控件 `TDWindow DBackground`（`Align=alClient`，`OnBackgroundClick=DBackgroundBackgroundClick`）
-- 每个对话框是 `TDWindow`，`DParent=DBackground`，`Floating=True`
+- 对话框是 `TDWindow`，`DParent=DBackground`；`Floating` 按 DFM 逐窗口取值：对话框类窗口（`DStateWin`、`DItemBag` 等）为 `True`（可拖动+点击置顶），`DBottom` 等固定面板为 `False`（二进制 DFM 实测）
 - 每个按钮 `DParent=<所属对话框>`
 - 事件绑定：`OnDirectPaint`（自定义绘制）、`OnClick`、`OnClickSound`（选择点击音效）、`ClickCount`
 - 许多处理器是**共享的**（如 `DMsgDlgOkDirectPaint` 绘制所有服务器按钮；`DccCloseDirectPaint` 绘制大多数通用按钮），通过 `Sender` 分发
@@ -1325,7 +1325,7 @@ HP/MP 可点击覆盖：`DButtonHP` 在 `(40,91,45×90)`，`DButtonMP` 在 `(87,
 
 ### 13.4 角色状态窗口（DStateWin）
 
-图像 370，`Left:=SCREENWIDTH-width, Top:=0`（`FState.pas:981-986`）。
+图像 370，`Left:=SCREENWIDTH-width, Top:=0`（`FState.pas:981-986`）；DFM `Floating=True`，可拖动、点击置顶（`DWinCtl.pas:811-839`）。
 
 **4 页**（`StatePage`，`MAXSTATEPAGE=4`），`DStateWinDirectPaint`（`:2788-3039`）：
 
@@ -1336,7 +1336,17 @@ HP/MP 可点击覆盖：`DButtonHP` 在 `(40,91,45×90)`，`DButtonMP` 在 `(87,
 | 2 | 详细属性（经验%/重量/命中/攻速/抗性） | `:2871-2930` |
 | 3 | 魔法列表（图标+名称/等级/训练进度/快捷键） | `:2931-2998` |
 
-装备槽 `DSW*` 有精确位置/尺寸（`:987-1084`）；页导航 `DStPageUp/Down`，关闭 `DCloseState`，上/下一个 `DPrevState/DNextState`（`:1069-1084`）。
+绘制细节：
+
+- 底图 [370] 每帧先画（`:2800-2802`）；HP/MP 标签+黑条、窗口底部描述框框体均**烘焙在 [370]**——数值仅页 1 绘制（`:2855-2870`），描述框文字的原版代码已注释（`:3000-3023`），故页 0 可见空黑条与空框，属正常现象。
+- 页 0 身体 376/377 **不透明**绘制（Draw 参数 FALSE，`:2811-2813`），覆盖 [370] 烘焙的左列槽框；头发/衣服/武器/头盔层透明（TRUE）。`DSWWeapon/Dress/Helmet` 为纯透明热区（DFM 无 OnDirectPaint）。
+- 角色名**四页均绘**，颜色 `m_nNameColor`（`:3026-3030`）；行会名+职位仅页 0，clSilver（`:3031-3035`）。
+
+控件与交互：
+
+- 关闭 `DCloseState`；页导航 `DPrevState/DNextState`（`DPrevStateClick/DNextStateClick`，`:3241-3255`）。`DStPageUp/Down` 是**页 3 魔法列表滚动**，由 `PageChanged` 控制显隐（`:3219-3239`），不是页导航。
+- `OpenMyStatus` toggle Visible 并调 `PageChanged`（`:1784-1788`）：进入页 3 时 `MagicPage:=0` 且 `ClearHint`。
+- 装备槽 `DSW*` 精确位置/尺寸（`:987-1084`）；点击共用 `DSWWeaponClick`（`:3257-3402`，含衣服性别校验 男 StdMode=10/女=11 `:3272-3282`、戒指/手镯左右互配 `:3300-3325`、护身符兼容左手镯 `:3326-3335`）；悬停 hint 跟随光标（锚点=槽表面+光标局部偏移，`:3404-3467`，`:3449-3452`）。
 
 `DUserState1`（`:1089-1162`）是"查看其他玩家"变体，停靠在左侧一个窗口宽度处。
 
@@ -1624,7 +1634,7 @@ U_BELT=10, U_BOOTS=11, U_CHARM=12
 | 381 | 消息对话框（小） | `FState.pas:2002` |
 | 384 | NPC 对话背景 | `FState.pas:1297` |
 | 385 | 商店购买面板 | `FState.pas:1324` |
-| 386-388 | 购买/上一页/下一页按钮 | `MShare.pas:510-512` |
+| 386-388 | 386=购买类按钮；387/388=状态窗翻页箭 `DPrevState/DNextState` | `MShare.pas:510-512`；`FState.pas:1079-1084` |
 | 389/390 | 交易本方/对方面板 | `FState.pas:1459-1491` |
 | 391 | 交易确认按钮 | `FState.pas:1469` |
 | 392 | 出售面板 | `FState.pas:1346` |

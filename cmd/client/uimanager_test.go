@@ -260,3 +260,23 @@ func TestRaiseToTopChangesHitOrder(t *testing.T) {
 		t.Fatalf("expected w1 raised on top, got %q", who)
 	}
 }
+
+func TestControlDesc(t *testing.T) {
+	m := newTestManager()
+	btn := NewUIControl("DSW", KindButton)
+	btn.Left, btn.Top, btn.Width, btn.Height = 25, 141, 34, 31
+	btn.Visible = true
+	m.Root.AddChild(btn)
+
+	got := controlDesc(btn)
+	want := "DBackground>DSW (button) [25,141 34x31] vis=true"
+	if got != want {
+		t.Fatalf("controlDesc = %q, want %q", got, want)
+	}
+
+	btn.Visible = false
+	wantHidden := "DBackground>DSW (button) [25,141 34x31] vis=false"
+	if got := controlDesc(btn); got != wantHidden {
+		t.Fatalf("controlDesc = %q, want %q", got, wantHidden)
+	}
+}

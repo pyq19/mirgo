@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"path/filepath"
 	"strings"
 
 	"github.com/pyq0109/mirgo/internal/engine"
@@ -24,6 +25,10 @@ type UIManager struct {
 	Focused *UIControl
 
 	ShowBounds bool // 调试: 绘制所有可见控件的包围盒
+
+	ShowImgs bool // 调试: 绘制可见控件绑定的 WIL 实际图像 (独立于常态渲染路径)
+
+	ShowInspect bool // 调试: 悬停拾取 — 高亮光标下控件并显示一行属性
 	// 调试: 包围盒名字模式 0=仅框 1=框+仅光标悬停控件及其祖先的名字 2=框+全部名字(带底条+去重)。
 	// 与 ShowBounds 解耦: ShowBounds 只决定是否画框, BoundsNames 决定名字密度。
 	BoundsNames    int
@@ -635,6 +640,67 @@ func (m *UIManager) RenderDebugBounds(proj [16]float32) {
 	if m.Modal != nil && m.Modal.Visible {
 		ctx.walk(m.Modal, proj)
 	}
+}
+
+// RenderDebugImgs 在每个可见控件位置绘制其绑定的 WIL 实际图像, 独立于
+// 常态渲染路径——常态被抑制 (如底栏按钮仅按下时画面) 或被 OnDirectPaint
+// 覆盖的控件也能看到其 FaceIndex 图素。
+func (m *UIManager) RenderDebugImgs(proj [16]float32) {
+	m.debugImgsWalk(m.Root, proj)
+	if m.Modal != nil && m.Modal.Visible {
+		m.debugImgsWalk(m.Modal, proj)
+	}
+}
+
+func (m *UIManager) debugImgsWalk(c *UIControl, proj [16]float32) {
+	if !c.Visible {
+		return
+	}
+	if c.WLib != nil {
+		m.BlitImage(c.WLib, c.FaceIndex, c.AbsX(), c.AbsY(), proj)
+	}
+	for _, ch := range c.Children {
+		m.debugImgsWalk(ch, proj)
+	}
+}
+
+// RenderDebug 调试叠加层统一入口, 按开关依次绘制:
+// WIL 实际图像 -> 包围盒 -> 悬停拾取。各场景渲染末尾调用一次。
+func (m *UIManager) RenderDebug(proj [16]float32) {
+	if m.ShowImgs {
+		m.RenderDebugImgs(proj)
+	}
+	if m.ShowBounds {
+		m.RenderDebugBounds(proj)
+	}
+	if m.ShowInspect {
+		m.RenderDebugInspect(proj)
+	}
+}
+
+// RenderDebugInspect 悬停拾取: 白框高亮光标下控件, 旁边一行属性
+// (路径/类型/矩形/可见性/WIL 来源), 复用包围盒标签的避让逻辑。
+func (m *UIManager) RenderDebugInspect(proj [16]float32) {
+	h := m.HoveredControl(m.hoverX, m.hoverY)
+	if h == nil {
+		return
+	}
+	w, hgt := h.effectiveSize()
+	x, y := float32(h.AbsX()), float32(h.AbsY())
+	drawWireRect(m.gl, x, y, float32(w), float32(hgt), 1, 1, 1, 0.9, proj)
+	ctx := &boundsCtx{m: m, mode: 2}
+	ctx.drawLabel(controlDesc(h), x, y, float32(w), float32(hgt), 1, 1, 1, proj)
+}
+
+// controlDesc 生成 inspector 的一行属性描述。
+func controlDesc(c *UIControl) string {
+	w, h := c.effectiveSize()
+	desc := fmt.Sprintf("%s (%s) [%d,%d %dx%d] vis=%v",
+		c.DebugPath(), c.Kind, c.AbsX(), c.AbsY(), w, h, c.Visible)
+	if c.WLib != nil {
+		desc += fmt.Sprintf(" wil=%s:%d", filepath.Base(c.WLib.Path()), c.FaceIndex)
+	}
+	return desc
 }
 
 type boundsCtx struct {

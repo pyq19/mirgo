@@ -60,7 +60,7 @@ func (s *PlayScene) buildState() {
 	prg := s.resources.Prguse
 
 	win := NewUIControl("DStateWin", KindWindow)
-	win.Floating = false // DFM: 不可拖动
+	win.Floating = true // DFM 实测 Floating=True: 可拖动 + 点击置顶
 	if prg != nil {
 		win.SetImgIndex(prg, ImgStateBg)
 	} else {
@@ -159,7 +159,8 @@ func (s *PlayScene) buildState() {
 			s.paintEquipSlot(def, c.AbsX(), c.AbsY(), proj)
 		}
 		btn.OnClick = func(c *UIControl, x, y int) { s.equipSlotClick(def.slot) }
-		btn.OnMouseMove = func(c *UIControl, x, y int) { s.equipSlotHover(def, c.AbsX(), c.AbsY()) }
+		// hint 锚点 = 槽表面 + 光标局部偏移, 即跟随光标 (FState:3449-3452)。
+		btn.OnMouseMove = func(c *UIControl, x, y int) { s.equipSlotHover(def, c.AbsX()+x, c.AbsY()+y) }
 		win.AddChild(btn)
 		s.stateSlotBtns[def.slot] = btn
 	}
@@ -199,6 +200,16 @@ func (s *PlayScene) syncStateWindow() {
 	win := s.hudState
 	if win == nil {
 		return
+	}
+	// OpenMyStatus/PageChanged (FState:1784-1788, 3219-3239): 开关或
+	// 翻页时清 hint; 进入(或重新打开于)第 3 页时 magicPage 归零。
+	if s.stateShown != s.State.ShowEquip || s.statePage != s.State.StatePage {
+		if s.State.StatePage == 3 {
+			s.magicPage = 0
+		}
+		s.tooltip.Clear()
+		s.stateShown = s.State.ShowEquip
+		s.statePage = s.State.StatePage
 	}
 	win.Visible = s.State.ShowEquip
 	page := s.State.StatePage
@@ -268,6 +279,14 @@ func (s *PlayScene) paintStatePage(c *UIControl, proj [16]float32) {
 		}
 		s.paintMagicList(ax, ay, proj)
 	}
+
+	// 名字四页均绘, 颜色取名字调色板 (FState:3026-3030)。
+	if s.text != nil && st.MySelf != nil {
+		name := st.MySelf.UserName
+		lw := s.text.MeasureText(name)
+		r, g, b := nameColorRGB(st.MySelf.NameColor)
+		s.text.DrawText(name, float32(ax+122-lw/2), float32(ay+23), r, g, b, 1, proj)
+	}
 }
 
 // paintPaperDoll 渲染身体/头发/衣服/武器/头盔图层 (FState:2804-2853)。
@@ -315,12 +334,7 @@ func (s *PlayScene) paintPaperDoll(ax, ay int, proj [16]float32) {
 		}
 	}
 
-	// 名字 + 行会 (FState:3028-3035)。
-	if st.MySelf != nil {
-		name := st.MySelf.UserName
-		lw := s.text.MeasureText(name)
-		s.text.DrawText(name, float32(ax+122-lw/2), float32(ay+23), 1, 1, 1, 1, proj)
-	}
+	// 行会仅页 0 (FState:3031-3035); 名字全页绘制, 见 paintStatePage。
 	if st.GuildName != "" {
 		s.text.DrawText(st.GuildName+" "+st.GuildRank, float32(ax+65), float32(ay+45), 0.75, 0.75, 0.75, 1, proj)
 	}
@@ -423,7 +437,8 @@ func (s *PlayScene) equipSlotClick(slot int) {
 	if s.itemMove.Moving {
 		equipped := false
 		if s.itemMove.Index >= 0 && s.itemMove.Item.Def != nil {
-			if takeOnSlotMatches(s.itemMove.Item.Def.StdMode, slot) && s.sendTakeOn != nil {
+			def := s.itemMove.Item.Def
+			if takeOnSlotMatches(def.StdMode, slot) && dressSexOK(def.StdMode, st.Sex) && s.sendTakeOn != nil {
 				s.sendTakeOn(s.itemMove.Item.MakeIndex, slot)
 				// 乐观更新: 等待服务端同步确认。
 				if s.itemMove.Index < len(st.BagItems) {
@@ -491,7 +506,7 @@ func (s *PlayScene) equipSlotHover(def stateSlotDef, ax, ay int) {
 	if item.DuraMax > 0 && item.Dura == 0 {
 		color = [4]float32{1, 0.3, 0.3, 1}
 	}
-	s.tooltip.Show(ax, ay+def.h, text, color, false)
+	s.tooltip.Show(ax, ay, text, color, false)
 }
 
 // openKeySelDlg 显示魔法快捷键绑定对话框 (DKeySelDlg,

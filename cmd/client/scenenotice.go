@@ -138,9 +138,7 @@ func (s *NoticeScene) Render(gl *engine.GLState, proj [16]float32) {
 		return
 	}
 	s.ui.Paint(proj)
-	if s.ui.ShowBounds {
-		s.ui.RenderDebugBounds(proj)
-	}
+	s.ui.RenderDebug(proj)
 }
 
 func (s *NoticeScene) OnKey(key int, action int) {

@@ -211,6 +211,9 @@ func Load(wilPath string) (*File, error) {
 func (wf *File) BtVersion() int  { return wf.btVersion }
 func (wf *File) ColorCount() int { return wf.colorCount }
 
+// Path 返回加载来源的 .wil 文件路径 (调试 inspector 用)。
+func (wf *File) Path() string { return wf.path }
+
 func (wf *File) GetImage(idx int) *Image {
 	if idx < 0 || idx >= wf.Count {
 		return nil

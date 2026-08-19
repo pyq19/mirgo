@@ -177,6 +177,16 @@ func takeOnSlotMatches(stdMode byte, slot int) bool {
 		return slot == protocol.URingL || slot == protocol.URingR
 	case 24, 26:
 		return slot == protocol.UArmRingL || slot == protocol.UArmRingR
+	case 25, 51: // 护身符额外接受左手镯 (FState:3326-3335)
+		return slot == protocol.UBujuk || slot == protocol.UArmRingL
 	}
 	return getTakeOnPosition(stdMode) == slot
+}
+
+// dressSexOK 衣服性别校验 (FState:3272-3282): StdMode 10 男 / 11 女。
+func dressSexOK(stdMode byte, sex int) bool {
+	if stdMode != 10 && stdMode != 11 {
+		return true
+	}
+	return int(stdMode)-10 == sex
 }

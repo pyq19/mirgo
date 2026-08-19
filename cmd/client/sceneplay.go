@@ -162,6 +162,8 @@ type PlayScene struct {
 	statePageUp   *UIControl
 	statePageDown *UIControl
 	magicPage     int
+	stateShown    bool // 上帧 ShowEquip, 探测 OpenMyStatus toggle (FState:1784-1788)
+	statePage     int  // 上帧 StatePage, 探测 PageChanged (FState:3219-3239)
 	chatScroll    int // 聊天板从最新消息向上回滚的行数
 
 	// 交易窗口（uideal.go）。
@@ -934,9 +936,7 @@ func (s *PlayScene) Render(glState *engine.GLState, proj [16]float32) {
 	uiProj := engine.OrthoProj(ScreenWidth, ScreenHeight)
 	s.renderMinimap(uiProj)
 	s.RenderUI(uiProj)
-	if s.ui.ShowBounds {
-		s.ui.RenderDebugBounds(uiProj)
-	}
+	s.ui.RenderDebug(uiProj)
 }
 
 // renderWorld 渲染世界层（地图三层 + 角色 + 特效 + 物品闪光 + 飘字），
@@ -1214,6 +1214,17 @@ func (s *PlayScene) groundItemPixelHit(gi *GroundItemInfo, wx, wy float64) bool 
 	return img.RGBA.RGBAAt(px, py).A > 0
 }
 
+// nameColorRGB 名字调色板索引转 RGB (249 红名 / 251 黄名, 其余白)。
+func nameColorRGB(color int) (float32, float32, float32) {
+	switch color {
+	case 249:
+		return 1, 0.2, 0.2
+	case 251:
+		return 1, 1, 0.2
+	}
+	return 1, 1, 1
+}
+
 func (s *PlayScene) drawActorLabel(a *Actor, worldX, worldY float32, proj [16]float32) {
 	// Delphi DrawScrn.pas:307-325：名字仅绘制给鼠标悬停的角色（g_FocusCret）
 	// 或悬停在自己身上时（g_boSelectMyself），不再按距离常驻显示。
@@ -1231,18 +1242,12 @@ func (s *PlayScene) drawActorLabel(a *Actor, worldX, worldY float32, proj [16]fl
 		nameW := float32(s.text.MeasureText(a.UserName))
 		nameX := worldX + float32(engine.TileWidth)/2 - nameW/2
 		log.Logf(log.LevelTrace, "Render", "play actor name '%s' pos=(%.0f,%.0f) death=%v", a.UserName, nameX, nameY, a.Death)
-		nr, ng, nb := 1.0, 1.0, 1.0
-		switch a.NameColor {
-		case 249: // 红名
-			nr, ng, nb = 1.0, 0.2, 0.2
-		case 251: // 黄名
-			nr, ng, nb = 1.0, 1.0, 0.2
-		}
+		nr, ng, nb := nameColorRGB(a.NameColor)
 		s.text.DrawText(a.UserName, nameX-1, nameY, 0, 0, 0, 1.0, proj)
 		s.text.DrawText(a.UserName, nameX+1, nameY, 0, 0, 0, 1.0, proj)
 		s.text.DrawText(a.UserName, nameX, nameY-1, 0, 0, 0, 1.0, proj)
 		s.text.DrawText(a.UserName, nameX, nameY+1, 0, 0, 0, 1.0, proj)
-		s.text.DrawText(a.UserName, nameX, nameY, float32(nr), float32(ng), float32(nb), 1.0, proj)
+		s.text.DrawText(a.UserName, nameX, nameY, nr, ng, nb, 1.0, proj)
 	}
 
 	// 所有可见角色的血条（DrawScrn.pas:280-301），位于 SayY - 10。

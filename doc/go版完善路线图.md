@@ -207,6 +207,8 @@ Go 已有：move/search/recall/slave/dearrecall/masterrecall/nomob/make/level/mo
 | 骰子小游戏 | FState.pas:1945-1994,2104-2113 |
 | 好友面板完整功能：私聊/邮件/黑名单/翻页 | Go uifriend.go:7 自注"简化版" |
 | Ctrl+F1..F8 第二套魔法键绑定 | Delphi DKsConF1-F8（ClMain.pas:1480-1481,1278-1283） |
+| 状态窗 DStateWin fidelity：不可拖动、名字仅页 0 且白色、magicPage 不归零、衣服性别/护身符兼容校验缺失、tooltip 不跟光标 | ✅ 本轮已修（DFM Floating=True；FState.pas:3026-3037、3219-3239、3272-3335、3449-3452） |
+| 状态窗页 2 抗性/恢复五值硬编码 +0% | 挂起：需 SMAbility body 双端扩展（FState.pas:2871-2930，见 plans/1785714108698-shiny-mountain.md） |
 
 #### 输入行为差异
 | 项 | Delphi | Go |

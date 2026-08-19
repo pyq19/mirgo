@@ -86,7 +86,7 @@ func NewDebugConsole(gl *engine.GLState, text *engine.TextRenderer) *DebugConsol
 	}
 	dc.Register("help", "list all commands", dc.cmdHelp)
 	dc.Register("clear", "clear console output", dc.cmdClear)
-	dc.Register("ui", "ui bounds — toggle UI bounds overlay", dc.cmdUI)
+	dc.Register("ui", "ui bounds|imgs|inspect|pick — toggle overlays / inspect hovered control", dc.cmdUI)
 	return dc
 }
 
@@ -513,16 +513,35 @@ func (dc *DebugConsole) cmdUI(args []string) {
 		dc.uiLogf("no UI in current scene")
 		return
 	}
-	if len(args) == 0 || args[0] != "bounds" {
-		dc.Printf("usage: ui bounds")
+	if len(args) == 0 {
+		dc.Printf("usage: ui bounds|imgs")
 		return
 	}
-	log.Logf(log.LevelInfo, uiLogTag, "> ui bounds")
-	ui.ShowBounds = !ui.ShowBounds
-	if ui.ShowBounds {
-		ui.BoundsNames = 1 // 默认可读模式: 框+仅光标下名字
+	switch args[0] {
+	case "bounds":
+		log.Logf(log.LevelInfo, uiLogTag, "> ui bounds")
+		ui.ShowBounds = !ui.ShowBounds
+		if ui.ShowBounds {
+			ui.BoundsNames = 1 // 默认可读模式: 框+仅光标下名字
+		}
+		dc.uiLogf("ui bounds %s", onOff(ui.ShowBounds))
+	case "imgs":
+		log.Logf(log.LevelInfo, uiLogTag, "> ui imgs")
+		ui.ShowImgs = !ui.ShowImgs
+		dc.uiLogf("ui imgs %s", onOff(ui.ShowImgs))
+	case "inspect":
+		log.Logf(log.LevelInfo, uiLogTag, "> ui inspect")
+		ui.ShowInspect = !ui.ShowInspect
+		dc.uiLogf("ui inspect %s", onOff(ui.ShowInspect))
+	case "pick":
+		if h := ui.HoveredControl(int(dc.mouseX), int(dc.mouseY)); h != nil {
+			dc.uiLogf("%s", controlDesc(h))
+		} else {
+			dc.uiLogf("pick: no control under cursor")
+		}
+	default:
+		dc.Printf("usage: ui bounds|imgs|inspect|pick")
 	}
-	dc.uiLogf("ui bounds %s", onOff(ui.ShowBounds))
 }
 
 // --- 渲染 ---
