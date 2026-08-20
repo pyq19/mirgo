@@ -249,13 +249,13 @@ func (p *PlayObject) castWarriorSpell(server *netserver.TCPServer, magID, power,
 						damage = 0
 					}
 					if damage > 0 {
-						p.applyDamage(server, t.BaseObject, damage, p.Dir)
+						p.applyDamage(server, t.BaseObject, damage, p.Dir, false)
 					}
 				}
 			case *PlayObject:
 				if !t.Ghost && !t.Death && t.ID != p.ID {
 					damage := power
-					p.applyDamage(server, t.BaseObject, damage, p.Dir)
+					p.applyDamage(server, t.BaseObject, damage, p.Dir, false)
 				}
 			}
 		}
@@ -302,7 +302,7 @@ func (p *PlayObject) castMageSpell(server *netserver.TCPServer, magID, power, tx
 		for _, obj := range objs {
 			if mon, ok := obj.(*MonsterObject); ok && !mon.Death && !mon.Ghost {
 				damage := power * 2 / 3
-				p.applyDamage(server, mon.BaseObject, damage, p.Dir)
+				p.applyDamage(server, mon.BaseObject, damage, p.Dir, true)
 			}
 		}
 	case 31:
@@ -357,7 +357,7 @@ func (p *PlayObject) castMageSpell(server *netserver.TCPServer, magID, power, tx
 				if mon, ok := p.envir.GetMovingObject(tx, ty).(*MonsterObject); ok && mon.LifeAttrib == LA_UNDEAD {
 					damage = damage * 3 / 2
 				}
-				p.applyDamage(server, target, damage, p.Dir)
+				p.applyDamage(server, target, damage, p.Dir, true)
 			}
 		}
 	case 46: // Mirroring: spawn a clone monster that fights for the player
@@ -427,7 +427,7 @@ func (p *PlayObject) castTaoistSpell(server *netserver.TCPServer, magID, power, 
 			if antiMagic > 0 && rand.Intn(100) < antiMagic {
 				damage = damage / 2
 			}
-			p.applyDamage(server, target, damage, p.Dir)
+			p.applyDamage(server, target, damage, p.Dir, true)
 		}
 	case 14: // 圣光结界：在目标位置创建圣幕，伤害亡灵
 		if p.envir != nil {
@@ -535,7 +535,7 @@ func (p *PlayObject) castTaoistSpell(server *netserver.TCPServer, magID, power, 
 					p.awardExp(server, mon)
 				} else {
 					damage := power * 3
-					p.applyDamage(server, mon.BaseObject, damage, p.Dir)
+					p.applyDamage(server, mon.BaseObject, damage, p.Dir, true)
 				}
 			}
 		}
@@ -558,7 +558,7 @@ func (p *PlayObject) castTaoistSpell(server *netserver.TCPServer, magID, power, 
 						mon.CurrX, mon.CurrY = pushX, pushY
 						p.envir.AddObject(pushX, pushY, OS_MOVINGOBJECT, mon)
 						damage := power / 3
-						p.applyDamage(server, mon.BaseObject, damage, p.Dir)
+						p.applyDamage(server, mon.BaseObject, damage, p.Dir, true)
 					}
 				}
 			}
@@ -640,7 +640,7 @@ func (p *PlayObject) doSpellDamageAt(server *netserver.TCPServer, damage, tx, ty
 		if antiMagic > 0 && rand.Intn(100) < antiMagic {
 			damage = damage / 2
 		}
-		p.applyDamage(server, target, damage, p.Dir)
+		p.applyDamage(server, target, damage, p.Dir, true)
 	}
 }
 
@@ -657,7 +657,7 @@ func (p *PlayObject) doSpellDamageArea(server *netserver.TCPServer, damage, radi
 			}
 			target := p.findAttackTarget(p.CurrX+dx, p.CurrY+dy)
 			if target != nil {
-				p.applyDamage(server, target, damage/2, p.Dir)
+				p.applyDamage(server, target, damage/2, p.Dir, true)
 			}
 		}
 	}
@@ -668,7 +668,7 @@ func (p *PlayObject) doSpellDamageAreaAt(server *netserver.TCPServer, damage, cx
 		for dx := -radius; dx <= radius; dx++ {
 			target := p.findAttackTarget(cx+dx, cy+dy)
 			if target != nil {
-				p.applyDamage(server, target, damage/2, p.Dir)
+				p.applyDamage(server, target, damage/2, p.Dir, true)
 			}
 		}
 	}

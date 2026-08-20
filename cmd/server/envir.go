@@ -192,6 +192,12 @@ func blocksMovement(obj interface{}) bool {
 	if mon, ok := obj.(*MonsterObject); ok && mon.FixedHide {
 		return false
 	}
+	// 城门实体不阻挡：通行由 Castle.IsBlockedByDoor 按门状态判定
+	//（Delphi TCastleDoor.SetMapXYFlag 标格，ObjMon2.pas:1013-1038）。
+	// 城墙实体保持阻挡（破坏后 Death=true 自动放行）。
+	if mon, ok := obj.(*MonsterObject); ok && mon.IsStructure && mon.Race == 110 {
+		return false
+	}
 	return true
 }
 
@@ -431,6 +437,52 @@ func (e *Environment) broadcastDeathMsg(center *BaseObject, sourceID int32, x, y
 			Param1:   x,
 			Param2:   y,
 			Param3:   param3,
+			Dir:      dir,
+			SourceID: sourceID,
+		})
+		p.msgMu.Unlock()
+	}
+}
+
+// broadcastSkeletonMsg 向附近玩家广播尸体骨架化（Delphi RM_SKELETON，
+// ObjBase.pas:17489, :5558-5568）。broadcastRefMsg 无 Dir 字段，
+// 故单独实现（骨架朝向需传给客户端）。
+func (e *Environment) broadcastSkeletonMsg(center *BaseObject, sourceID int32, x, y, dir int) {
+	objs := e.GetRangeObjects(center.CurrX, center.CurrY, viewRange)
+	for _, obj := range objs {
+		p, ok := obj.(*PlayObject)
+		if !ok || p.Ghost {
+			continue
+		}
+		p.msgMu.Lock()
+		p.msgList = append(p.msgList, SendMessage{
+			Ident:    RM_SKELETON,
+			Param1:   x,
+			Param2:   y,
+			Dir:      dir,
+			SourceID: sourceID,
+		})
+		p.msgMu.Unlock()
+	}
+}
+
+// broadcastMonsterAttackMsg 广播怪物远程攻击消息（RM_FLYAXE/RM_LIGHTING）。
+// 字段约定与 playobject.sendFlyAxeToClient/sendLightingToClient 一致：
+// Param1=x, Param2=y, Param3=目标ID, Dir=朝向（ObjBase.pas:6100-6133
+// 的 ProcessMsg 布局：lParam1/lParam2=坐标, wParam=dir, nParam3=目标）。
+func (e *Environment) broadcastMonsterAttackMsg(center *BaseObject, ident int, sourceID int32, x, y, dir int, targetID int32) {
+	objs := e.GetRangeObjects(center.CurrX, center.CurrY, viewRange)
+	for _, obj := range objs {
+		p, ok := obj.(*PlayObject)
+		if !ok || p.Ghost || p.ID == sourceID {
+			continue
+		}
+		p.msgMu.Lock()
+		p.msgList = append(p.msgList, SendMessage{
+			Ident:    ident,
+			Param1:   x,
+			Param2:   y,
+			Param3:   int(targetID),
 			Dir:      dir,
 			SourceID: sourceID,
 		})

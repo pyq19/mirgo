@@ -68,6 +68,12 @@ func (m *ActorManager) Update(now int64, moveTick bool) {
 		}
 		actor.Run(now)
 	}
+	// 自删 actor 清理（物体类 DIGDOWN 播完，Delphi DeleteActor）
+	for id, actor := range m.actors {
+		if actor.DelActor {
+			delete(m.actors, id)
+		}
+	}
 }
 
 func (m *ActorManager) SortedByY() []*Actor {

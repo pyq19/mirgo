@@ -99,6 +99,14 @@ type CastleObject struct {
 	GuardIDs     []int32
 	DoorOpen     bool
 
+	// 城门/城墙可视化 actor（批6：Delphi TCastleDoor/TWallStructure
+	// 由怪物实体渲染，ObjMon2.pas:1013-1096）
+	structuresSpawned    bool
+	DoorActorID          int32
+	WallActorIDs         []int32
+	doorVisualState      int  // -1 未同步；0-2 关闭破损度；7 开启；9 破坏
+	wallsVisualDestroyed bool // 城墙当前可视化状态是否破坏
+
 	// Delphi: 预约攻城列表 m_AttackWarList（Castle.pas:644-679）
 	WarDeclarations []CastleWarDeclaration
 	lastWarCheckDay string // 当日已完成 WarStartHour 开战检查（防重）
@@ -243,7 +251,8 @@ func (c *CastleObject) StartWar(server *netserver.TCPServer, engine *UserEngine)
 	c.mu.Unlock()
 
 	// Delphi: 攻城开始时关门 (Castle.pas:697)
-	c.ToggleDoor(true) // close door
+	c.ToggleDoor(false)
+	c.SyncDoorVisual(server, engine)
 
 	// Delphi: 生成弓箭守卫 (Castle.pas:260-290)
 	c.spawnCastleArchers(engine, now)
@@ -566,9 +575,171 @@ func (c *CastleObject) WallPositions() [][2]int {
 	return walls
 }
 
+// SpawnCastleStructures 生成城门/城墙静态可视化 actor（Delphi 城堡建筑
+// 以怪物实体渲染：SabukDoor race110 appr900，SabukW1-3 race111 appr901-903，
+// 帧布局在 Effect.wil nrace90 槽位，Actor.pas:1147-1152）。只执行一次。
+func (c *CastleObject) SpawnCastleStructures(engine *UserEngine, now int64) {
+	c.mu.Lock()
+	if c.structuresSpawned {
+		c.mu.Unlock()
+		return
+	}
+	c.structuresSpawned = true
+	c.mu.Unlock()
+
+	if engine == nil || engine.mapMgr == nil {
+		return
+	}
+	if env := engine.mapMgr.FindMap(c.Config.MapName); env == nil {
+		return
+	}
+
+	// 城门
+	doorX, doorY := c.DoorPosition()
+	if door := engine.SpawnCastleStructure(c.Config.MapName, doorX, doorY, "SabukDoor", now); door != nil {
+		c.mu.Lock()
+		door.Dir = c.doorVisualDirLocked()
+		c.DoorActorID = door.ID
+		c.doorVisualState = door.Dir
+		c.mu.Unlock()
+	}
+
+	// 城墙（W1/W2/W3 按序循环取外观）
+	wallNames := []string{"SabukW1", "SabukW2", "SabukW3"}
+	ids := make([]int32, 0)
+	for i, w := range c.WallPositions() {
+		mon := engine.SpawnCastleStructure(c.Config.MapName, w[0], w[1], wallNames[i%3], now)
+		if mon != nil {
+			mon.Dir = 0
+			ids = append(ids, mon.ID)
+		}
+	}
+	c.mu.Lock()
+	c.WallActorIDs = ids
+	c.mu.Unlock()
+	log.Logf(log.LevelInfo, "Castle", "spawned castle structures: door id=%d walls=%d", c.DoorActorID, len(ids))
+}
+
+// doorVisualDirLocked 城门展示 dir：0-2=关闭三档破损度，7=开启
+//（Delphi 关门 dir=3-round(HP/MaxHP*3)，开门 dir=7，ObjMon2.pas:1042/1053）。
+func (c *CastleObject) doorVisualDirLocked() int {
+	if c.DoorOpen || c.DoorHP <= 0 {
+		return 7
+	}
+	max := c.Config.DoorMaxHP
+	if max <= 0 {
+		return 0
+	}
+	dmgLevel := 3 - (c.DoorHP*3+max-1)/max // 破损度 0(完好)..2
+	if dmgLevel < 0 {
+		dmgLevel = 0
+	}
+	if dmgLevel > 2 {
+		dmgLevel = 2
+	}
+	return dmgLevel
+}
+
+// castleEnv 返回城堡所在地图。
+func (c *CastleObject) castleEnv(engine *UserEngine) *Environment {
+	if engine == nil || engine.mapMgr == nil {
+		return nil
+	}
+	return engine.mapMgr.FindMap(c.Config.MapName)
+}
+
+// SyncDoorVisual 按城门当前状态广播门 actor 动画（Delphi TCastleDoor
+// Open/Close/RefStatus，ObjMon2.pas:1039-1096）：
+// 开启→RM_DIGUP(dir=7)、关闭→RM_DIGDOWN(dir=破损度)、破坏→RM_DEATH、
+// 修复→RM_ALIVE、破损度变化→RM_TURN。
+func (c *CastleObject) SyncDoorVisual(server *netserver.TCPServer, engine *UserEngine) {
+	env := c.castleEnv(engine)
+	if env == nil {
+		return
+	}
+	c.mu.Lock()
+	doorID := c.DoorActorID
+	destroyed := c.DoorHP <= 0
+	prev := c.doorVisualState
+	state := c.doorVisualDirLocked()
+	if destroyed {
+		state = 9
+	}
+	if state == prev {
+		c.mu.Unlock()
+		return
+	}
+	c.doorVisualState = state
+	c.mu.Unlock()
+
+	door, ok := env.getObjectByID(doorID).(*MonsterObject)
+	if !ok || door == nil {
+		return
+	}
+	switch {
+	case state == 9 && !door.Death:
+		// 破坏：死亡动画（客户端 ActDie+Effect.wil 120..129 破坏特效）
+		door.Death = true
+		door.DeathTick = time.Now().UnixMilli()
+		env.broadcastDeathMsg(door.BaseObject, door.ID, door.CurrX, door.CurrY, door.Dir, true)
+	case state != 9 && door.Death:
+		// 修复：复活 + 关闭态
+		door.Death = false
+		door.DeathTick = 0
+		door.Dir = state
+		door.SendRefMsg(RM_ALIVE, door.Dir, door.CurrX, door.CurrY, "")
+	case state == 7:
+		door.Dir = 7
+		door.SendRefMsg(RM_DIGUP, 7, door.CurrX, door.CurrY, "")
+	case prev == 7:
+		// 开门→关闭：关门动画（dir 携带破损度）
+		door.Dir = state
+		door.SendRefMsg(RM_DIGDOWN, state, door.CurrX, door.CurrY, "")
+	default:
+		// 关闭中破损度变化
+		door.Dir = state
+		door.SendRefMsg(RM_TURN, state, door.CurrX, door.CurrY, "")
+	}
+}
+
+// SyncWallVisual 按城墙当前状态广播墙 actor 动画（破坏→RM_DEATH，
+// 修复→RM_ALIVE；客户端 ActDie+破损特效/碎片层）。
+func (c *CastleObject) SyncWallVisual(server *netserver.TCPServer, engine *UserEngine) {
+	env := c.castleEnv(engine)
+	if env == nil {
+		return
+	}
+	c.mu.Lock()
+	ids := append([]int32(nil), c.WallActorIDs...)
+	destroyed := c.WallHP <= 0
+	prev := c.wallsVisualDestroyed
+	if destroyed == prev {
+		c.mu.Unlock()
+		return
+	}
+	c.wallsVisualDestroyed = destroyed
+	c.mu.Unlock()
+
+	for _, id := range ids {
+		wall, ok := env.getObjectByID(id).(*MonsterObject)
+		if !ok || wall == nil {
+			continue
+		}
+		if destroyed && !wall.Death {
+			wall.Death = true
+			wall.DeathTick = time.Now().UnixMilli()
+			env.broadcastDeathMsg(wall.BaseObject, wall.ID, wall.CurrX, wall.CurrY, wall.Dir, true)
+		} else if !destroyed && wall.Death {
+			wall.Death = false
+			wall.DeathTick = 0
+			wall.SendRefMsg(RM_ALIVE, wall.Dir, wall.CurrX, wall.CurrY, "")
+		}
+	}
+}
+
 // HandleStructureDamage 攻城战期间玩家攻击城门/城墙时调用。
-// 返回是否命中了建筑结构。
-func (c *CastleObject) HandleStructureDamage(x, y, damage int) bool {
+// 返回是否命中了建筑结构；命中后同步建筑可视化状态。
+func (c *CastleObject) HandleStructureDamage(server *netserver.TCPServer, engine *UserEngine, x, y, damage int) bool {
 	if !c.IsAtWar() {
 		return false
 	}
@@ -578,11 +749,13 @@ func (c *CastleObject) HandleStructureDamage(x, y, damage int) bool {
 		if destroyed {
 			c.ToggleDoor(true)
 		}
+		c.SyncDoorVisual(server, engine)
 		return true
 	}
 	for _, w := range c.WallPositions() {
 		if abs(x-w[0]) <= 0 && abs(y-w[1]) <= 0 {
 			c.DamageWall(damage)
+			c.SyncWallVisual(server, engine)
 			return true
 		}
 	}
@@ -608,6 +781,14 @@ func (c *CastleObject) isAttackingGuildLocked(guildName string) bool {
 }
 
 func (c *CastleObject) ProcessCastleTick(engine *UserEngine, server *netserver.TCPServer, now int64) {
+	// 城门/城墙静态 actor 只生成一次（地图加载后首 tick）
+	c.mu.Lock()
+	spawned := c.structuresSpawned
+	c.mu.Unlock()
+	if !spawned {
+		c.SpawnCastleStructures(engine, now)
+	}
+
 	state := c.GetWarState()
 
 	switch state {

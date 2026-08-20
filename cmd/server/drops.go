@@ -89,7 +89,9 @@ func randomUpgradeItem(ui *protocol.UserItem, def *ItemDef, chances []int) {
 }
 
 // createDropItem 创建掉落物品实例，含随机耐久和随机属性。
-func createDropItem(itemDB *ItemDB, name string, nextItemID *int32, cfg *ServerConfig) (int, *protocol.UserItem) {
+// onGround=true 为散落地面（肉扣 2000 耐久）；false 为留尸体
+//（Delphi MonGetRandomItems，UsrEngn.pas:1581，无落地惩罚）。
+func createDropItem(itemDB *ItemDB, name string, nextItemID *int32, cfg *ServerConfig, onGround bool) (int, *protocol.UserItem) {
 	looks := 0
 	var ui *protocol.UserItem
 	if itemDB != nil {
@@ -102,12 +104,13 @@ func createDropItem(itemDB *ItemDB, name string, nextItemID *int32, cfg *ServerC
 			}
 			ui = itemDB.CreateUserItem(def.Idx)
 			if ui != nil {
-				// 装备类随机耐久（Delphi: MonGetRandomItems, UsrEngn.pas:1576）
-				if def.StdMode >= 5 && ui.DuraMax > 0 {
+				// 随机耐久（Delphi: MonGetRandomItems, UsrEngn.pas:1576-1581，
+				// DuraMax/100*(20+rand(80))，装备与肉同公式）。
+				if ui.DuraMax > 0 {
 					ui.Dura = uint16(int(ui.DuraMax) * (cfg.GetEquipDuraMin() + rand.Intn(cfg.GetEquipDuraRand())) / 100)
 				}
-				// 肉落地扣 2000 耐久（ObjBase.pas:1597-1603）。
-				if def.StdMode == 40 {
+				// 肉落地扣 2000 耐久（ObjBase.pas:1597-1603，仅散落地面）。
+				if onGround && def.StdMode == 40 {
 					if int(ui.Dura) > 2000 {
 						ui.Dura -= 2000
 					} else {
@@ -164,7 +167,7 @@ func (m *MonsterObject) DropLootWithTable(envir *Environment, nextItemID *int32,
 
 	addItem := func(name string) {
 		x, y := getDropPosition(envir, m.CurrX, m.CurrY, 3)
-		looks, ui := createDropItem(itemDB, name, nextItemID, cfg)
+		looks, ui := createDropItem(itemDB, name, nextItemID, cfg, true)
 		gi := &GroundItem{
 			ID:        *nextItemID,
 			Name:      name,

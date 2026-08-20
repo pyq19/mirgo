@@ -34,7 +34,12 @@ type MonsterObject struct {
 
 	// 可屠宰动物的肉质（Delphi m_nMeatQuality/m_nBodyLeathery，
 	// UsrEngn.pas:1839-1862）。
-	MeatQuality int
+	MeatQuality  int
+	BodyLeathery int  // 坚韧度：每次挖肉扣 5~20，耗尽出货（ObjBase.pas:17478-17495）
+	Skeleton     bool // m_boSkeleton：已被剔成骨架（ObjBase.pas:17486）
+	// 尸体内的掉落物（Delphi 动物的 m_ItemList，刷怪时 roll，
+	// UsrEngn.pas:1536-1605）；动物死亡不散落，挖肉皮量耗尽时入玩家背包。
+	CorpseItems []*protocol.UserItem
 
 	LastHiterID   int32
 	LastHiterTick int64
@@ -137,6 +142,10 @@ type MonsterObject struct {
 
 	// 安全区守卫标志（不可被玩家击杀）
 	IsSafeZoneGuard bool
+
+	// 城门/城墙静态建筑（race 110/111）：伤害转发城堡系统、
+	// 死亡不掉落、尸体常驻不 ghost（Delphi TCastleDoor/TWallStructure）。
+	IsStructure bool
 }
 
 func getAIBehavior(race byte) int {
@@ -344,6 +353,13 @@ func (o *MonsterObject) Run(server *netserver.TCPServer, now int64, userEngine *
 	}
 	// Delphi: 绿毒可致死 (ObjBase.pas:4261)
 	if o.StatusTimeArr[POISON_DECHEALTH] > 0 {
+		// Delphi: 绿毒每跳动物肉质 -1000（ObjBase.pas:4260）
+		if o.Animal {
+			o.MeatQuality -= 1000
+			if o.MeatQuality < 0 {
+				o.MeatQuality = 0
+			}
+		}
 		dmg := o.GreenPoisonDamage
 		if dmg < 1 {
 			dmg = 2
@@ -1268,6 +1284,14 @@ func (o *MonsterObject) attackMonsterTarget(server *netserver.TCPServer, target 
 					target.WAbil.HP = 0
 				} else {
 					target.WAbil.HP -= uint16(damage)
+				}
+				// Delphi: 物理被击动物肉质 -rand(300)（TAnimalObject.Struck，
+				// ObjBase.pas:2807-2811），怪物互殴同规则。
+				if damage > 0 && target.Animal {
+					target.MeatQuality -= rand.Intn(300)
+					if target.MeatQuality < 0 {
+						target.MeatQuality = 0
+					}
 				}
 				target.LastHiterID = o.ID
 				target.LastHiterTick = now

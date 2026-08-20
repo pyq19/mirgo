@@ -396,8 +396,9 @@ func (o *MonsterObject) runGuardAI(server *netserver.TCPServer, now int64) {
 		damage := o.calcMonsterDamage(best.BaseObject)
 		o.applyMonsterDamageToPlayer(server, best, damage, now)
 		o.FocusTick = now
-		// Delphi 发 RM_FLYAXE(10202)，客户端尚未实现 → 用 RM_HIT 代替
-		o.SendRefMsg(RM_HIT, o.Dir, o.CurrX, o.CurrY, "")
+		// Delphi 远程怪发 RM_FLYAXE（ObjBase.pas:6100-6117），客户端按
+		// raceImg 渲染飞斧/荆棘/箭（AxeMon.pas TDualAxeOma/TArcherMon）。
+		o.envir.broadcastMonsterAttackMsg(o.BaseObject, RM_FLYAXE, o.ID, o.CurrX, o.CurrY, o.Dir, best.ID)
 	}
 }
 
@@ -449,7 +450,9 @@ func (o *MonsterObject) runDualAxeAI(server *netserver.TCPServer, target *PlayOb
 				o.pendingAxeTick = now + int64(maxD)*50 + 600
 				o.FocusTick = now
 			}
-			o.SendRefMsg(RM_SPELL, o.Dir, o.CurrX, o.CurrY, "")
+			// Delphi TDualAxeMonster 发 RM_FLYAXE（飞斧客户端特效
+			// AxeMon.pas:578-594 由此消息触发）。
+			o.envir.broadcastMonsterAttackMsg(o.BaseObject, RM_FLYAXE, o.ID, o.CurrX, o.CurrY, o.Dir, target.ID)
 		}
 		return
 	}
@@ -513,7 +516,9 @@ func (o *MonsterObject) runLeechAI(server *netserver.TCPServer, target *PlayObje
 			o.WAbil.HP = uint16(hp)
 		}
 		o.FocusTick = now
-		o.SendRefMsg(RM_SPELL, o.Dir, o.CurrX, o.CurrY, "")
+		// Delphi TElectronicScolpionMon 发 RM_LIGHTING：客户端播 ActCritical
+		// + Mon19[430+dir*10] 闪电特效（AxeMon.pas:1573-1625）。
+		o.envir.broadcastMonsterAttackMsg(o.BaseObject, RM_LIGHTING, o.ID, o.CurrX, o.CurrY, o.Dir, target.ID)
 		return
 	}
 	o.chaseTarget(target.BaseObject, now)
@@ -861,7 +866,9 @@ func (o *MonsterObject) runLightningAI(server *netserver.TCPServer, target *Play
 				o.applyMonsterDamageToPlayer(server, p, damage, now)
 			}
 		}
-		o.SendRefMsg(RM_SPELL, o.Dir, o.CurrX, o.CurrY, "")
+		// Delphi TLightingZombi 发 RM_LIGHTING：客户端播攻击动画 +
+		// Mon5[350+fire16dir*10] 闪电特效（AxeMon.pas:970-982）。
+		o.envir.broadcastMonsterAttackMsg(o.BaseObject, RM_LIGHTING, o.ID, o.CurrX, o.CurrY, o.Dir, target.ID)
 		o.FocusTick = now
 		return
 	}

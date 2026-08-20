@@ -29,6 +29,9 @@ type ActorMsg struct {
 	Dir     int
 	Feature int
 	State   int
+	// SM_FLYAXE/SM_LIGHTING 的投射物/特效目标坐标
+	//（body TMessageBodyW/TMessageBodyWL，ObjBase.pas:6100-6133）。
+	TargetX, TargetY int
 }
 
 type Actor struct {
@@ -160,6 +163,22 @@ type Actor struct {
 	NpcEffX, NpcEffY int  // m_nEffX, m_nEffY（特效位置偏移）
 	NpcEffectHold    bool  // m_bo248（限时循环，appearance 52 挖掘）
 	NpcEffectHoldEnd int64 // m_dwUseEffectTick（限时循环截止时间）
+
+	// 特化怪物特效层（moneffect.go 数据表驱动，Delphi AxeMon.pas
+	// m_boUseEffect/EffectSurface/AttackEffectSurface 的统一抽象）
+	UseEffect       bool         // 特效激活
+	EffSpec         *EffectLayer // 当前特效层规格
+	EffFrame        int          // 独立时钟当前帧（SyncBody=false 时用）
+	EffLastTick     int64        // 独立时钟上次推进时刻
+	Fire16Dir       int          // 16 方向特效朝向（Dir16x10 用，指向目标）
+	SuppressEffDraw bool         // TCatMon 系：加载但不绘制
+	ProjTargetX     int          // SM_FLYAXE/SM_LIGHTING 目标格坐标
+	ProjTargetY     int
+	PendingProjectile *ProjectileSpec // Run 到触发帧时置位，PlayScene 消费
+	PendingCast       *CastSpec
+	effSpawned        bool // 本次动作已触发过投射物/施法（防重复）
+	DelAfterAction    bool // m_boDelActionAfterFinished：动作播完自删（物体类 DIGDOWN）
+	DelActor          bool // 待移除标志（ActorManager 消费）
 }
 
 func NewActor(recogID int32, x, y, dir int) *Actor {
@@ -178,6 +197,20 @@ func NewActor(recogID int32, x, y, dir int) *Actor {
 func (a *Actor) SendMsg(ident, x, y, dir, feature, state int) {
 	a.msgMu.Lock()
 	a.sendMsgLocked(ident, x, y, dir, feature, state)
+	a.msgMu.Unlock()
+}
+
+// SendTargetMsg 入队带投射物目标坐标的消息（SM_FLYAXE/SM_LIGHTING）。
+func (a *Actor) SendTargetMsg(ident, x, y, dir, targetX, targetY int) {
+	a.msgMu.Lock()
+	a.MsgList = append(a.MsgList, ActorMsg{
+		Ident:   ident,
+		X:       x,
+		Y:       y,
+		Dir:     dir,
+		TargetX: targetX,
+		TargetY: targetY,
+	})
 	a.msgMu.Unlock()
 }
 
@@ -264,7 +297,18 @@ func (a *Actor) ReadyAction(msg ActorMsg) {
 		a.Dir = msg.Dir
 	}
 
+	// SM_FLYAXE/SM_LIGHTING 携带目标坐标：存目标格并计算 16 方向特效朝向
+	//（Delphi TGasKuDeGi.CalcActorFrame FindActor→GetFlyDirection16，
+	// AxeMon.pas:864-874；找不到目标时兜底 dir*2 由 flyDir16 自然给出）。
+	if msg.Ident == protocol.SMFlyAxe || msg.Ident == protocol.SMLighting {
+		a.ProjTargetX, a.ProjTargetY = msg.TargetX, msg.TargetY
+		dx := float64((msg.TargetX - a.CurrX) * engine.TileWidth)
+		dy := float64((msg.TargetY - a.CurrY) * engine.TileHeight)
+		a.Fire16Dir = flyDir16(0, 0, dx, dy)
+	}
+
 	a.CurrentAction = msg.Ident
+	a.effSpawned = false
 	if msg.Ident == protocol.SMStruck {
 		a.HiterCode = int32(msg.State)
 	}
@@ -511,10 +555,30 @@ func (a *Actor) calcMonsterFrame() {
 	if a.MonAction == nil {
 		return
 	}
+	// 特化特效状态复位（Delphi TSkeletonOma.CalcActorFrame 开头清
+	// m_boUseEffect，AxeMon.pas:291-293），随后按新动作重建。
+	spec := monEffectSpec(a.Race)
+	a.UseEffect = false
+	a.EffSpec = nil
+	a.EffFrame = 0
+	a.SuppressEffDraw = spec != nil && spec.SuppressDraw
+	// 强制 dir=0 的种族（石碑/龙类/物体类，Delphi 各类 CalcActorFrame
+	// 开头 m_btDir := 0）。
+	if spec != nil && spec.LockDir0 {
+		a.Dir = 0
+	}
 	var action ActionInfo
+	turnStillFrame := false
 	switch a.CurrentAction {
 	case protocol.SMTurn:
-		action = a.MonAction.ActStand
+		// 城门静态帧：dir<3 关闭三档破损、dir>=3 开启定格 ActCritical.start
+		//（HerbActor.pas:467-488）。
+		if spec != nil && spec.DoorTurnBehavior && a.Dir >= 3 && a.MonAction.ActCritical.Frame > 0 {
+			action = a.MonAction.ActCritical
+			turnStillFrame = true
+		} else {
+			action = a.MonAction.ActStand
+		}
 		a.Shift(a.Dir, 0, 0, 1)
 	case protocol.SMWalk:
 		action = a.MonAction.ActWalk
@@ -523,7 +587,54 @@ func (a *Actor) calcMonsterFrame() {
 		action = a.MonAction.ActWalk
 		a.MoveStep = 2
 	case protocol.SMHit:
-		action = a.MonAction.ActAttack
+		// 触龙神 SM_HIT 用 ActCritical（HerbActor.pas:335-349）
+		if spec != nil && spec.HitUsesCritical && a.MonAction.ActCritical.Frame > 0 {
+			action = a.MonAction.ActCritical
+		} else {
+			action = a.MonAction.ActAttack
+		}
+	case protocol.SMFlyAxe:
+		// 黄泉教主 SM_FLYAXE 用 ActCritical（AxeMon.pas:1868-1882）
+		if spec != nil && spec.FlyAxeUsesCritical && a.MonAction.ActCritical.Frame > 0 {
+			action = a.MonAction.ActCritical
+		} else {
+			action = a.MonAction.ActAttack
+		}
+	case protocol.SMLighting:
+		// 虹魔蝎卫/虹魔教主/牛魔祭司 SM_LIGHTING 用 ActCritical
+		//（AxeMon.pas:1590-1604, 1665-1679, 1382-1399）
+		if spec != nil && spec.LightingUsesCritical && a.MonAction.ActCritical.Frame > 0 {
+			action = a.MonAction.ActCritical
+		} else {
+			action = a.MonAction.ActAttack
+		}
+	case protocol.SMDigUp:
+		// 城门开门=ActAttack（HerbActor.pas:442-449）；物体类出土=ActWalk
+		// 出现动画（:155-166）；怪物出土=ActDeath 帧段（AxeMon.pas:324-337）。
+		switch {
+		case spec != nil && spec.DigUpUsesAttack && a.MonAction.ActAttack.Frame > 0:
+			action = a.MonAction.ActAttack
+		case spec != nil && spec.DigUpUsesWalk && a.MonAction.ActWalk.Frame > 0:
+			action = a.MonAction.ActWalk
+		default:
+			action = a.MonAction.ActDeath
+		}
+		a.Shift(a.Dir, 0, 0, 1)
+	case protocol.SMDigDown:
+		// 城门关门=ActCritical（HerbActor.pas:450-459）；物体类回潜=ActDeath+
+		// 播完自删（:199-206）；神兽用 ActCritical 倒放（AxeMon.pas:338-350，
+		// Go 无倒放近似正放）；其余怪物 Delphi 无帧段处理，回落 ActStand。
+		switch {
+		case spec != nil && spec.DigDownUsesCritical && a.MonAction.ActCritical.Frame > 0:
+			action = a.MonAction.ActCritical
+		case spec != nil && spec.DigDownDeletes:
+			action = a.MonAction.ActDeath
+			a.DelAfterAction = true
+		case a.MonAction.ActCritical.Frame > 0:
+			action = a.MonAction.ActCritical
+		default:
+			action = a.MonAction.ActStand
+		}
 	case protocol.SMStruck:
 		action = a.MonAction.ActStruck
 		a.Shift(a.Dir, 0, 0, 1)
@@ -537,15 +648,80 @@ func (a *Actor) calcMonsterFrame() {
 	default:
 		action = a.MonAction.ActStand
 	}
-	a.StartFrame, a.EndFrame = CalcFrame(action, a.Dir)
+	frameDir := a.Dir
+	if spec != nil && ((spec.AllNoDir) ||
+		(spec.StandNoDir && (a.CurrentAction == protocol.SMTurn || a.CurrentAction == protocol.SMDigUp))) {
+		frameDir = 0
+	}
+	a.StartFrame, a.EndFrame = CalcFrame(action, frameDir)
+	// 城门开启定格帧（HerbActor.pas:481-488 m_btDir>=3 分支）。
+	if turnStillFrame {
+		a.StartFrame = action.Start
+		a.EndFrame = action.Start
+	}
+	// 城墙静态帧：ActStand.start + dir（加法，HerbActor.pas:605-614），
+	// 不是 dir*(frame+skip)。
+	if spec != nil && spec.TurnDirAdditive && a.CurrentAction == protocol.SMTurn {
+		s0, _ := CalcFrame(action, 0)
+		a.StartFrame = s0 + a.Dir
+		a.EndFrame = a.StartFrame + action.Frame - 1
+	}
+	// 黄泉教主 SM_LIGHTING 用 ActAttack+80 帧偏移（AxeMon.pas:1884）。
+	if spec != nil && a.CurrentAction == protocol.SMLighting && spec.LightingAttackShift != 0 {
+		a.StartFrame += spec.LightingAttackShift
+		a.EndFrame += spec.LightingAttackShift
+	}
+	// 龙身固定 2 帧动画（HerbActor.pas:781-801）。
+	if spec != nil && spec.FixedIdleFrames {
+		a.StartFrame, a.EndFrame = 0, 1
+	}
 	a.CurrentFrame = a.StartFrame
 	a.FrameTime = action.FTime
+	// 龙身固定帧时 400ms/帧（须在 action.FTime 赋值之后）。
+	if spec != nil && spec.FixedIdleFrames {
+		a.FrameTime = 400
+	}
 	a.LastFrameTick = 0
 
 	// SM_DEATH 直接显示尸体（死亡动画最后一帧）；只有 SM_NOWDEATH
 	// 才播放完整死亡动画（Delphi Actor.pas:1415-1429）。
 	if a.CurrentAction == protocol.SMDeath {
 		a.CurrentFrame = a.EndFrame
+	}
+
+	// 特化怪物特效按动作触发（Delphi 各类 CalcActorFrame 置 m_boUseEffect，
+	// AxeMon.pas:380-388/854-859/1368-1399 等）。
+	// 死亡特效仅 SM_NOWDEATH 触发；SM_DEATH（直接尸体）不播。
+	if spec != nil {
+		var eff *EffectLayer
+		switch a.CurrentAction {
+		case protocol.SMNowDeath:
+			eff = spec.DeathEffect
+		case protocol.SMHit:
+			if !spec.HitDisablesEffect {
+				eff = spec.AttackEffect
+			}
+		case protocol.SMLighting:
+			eff = spec.AttackEffectLighting
+		case protocol.SMFlyAxe:
+			if spec.AttackEffectFlyAxe != nil {
+				eff = spec.AttackEffectFlyAxe
+			} else {
+				eff = spec.AttackEffect
+			}
+		case protocol.SMStruck:
+			eff = spec.StruckEffect
+		case protocol.SMWalk:
+			eff = spec.WalkEffect
+		case protocol.SMTurn:
+			eff = spec.TurnEffect
+		}
+		if eff != nil {
+			a.UseEffect = true
+			a.EffSpec = eff
+			a.EffFrame = 0
+			a.EffLastTick = 0
+		}
 	}
 }
 
@@ -680,6 +856,28 @@ func (a *Actor) Move(now int64) bool {
 	return true
 }
 
+// checkEffectSpawns 动画到达触发帧时产生投射物/施法（Delphi RunFrameAction
+// NewFlyObject/NewMagic，AxeMon.pas:578-594/702-718/1530-1548/2019-2032）。
+// PendingProjectile/PendingCast 由 PlayScene 消费生成特效。
+func (a *Actor) checkEffectSpawns() {
+	if a.effSpawned || a.Type != ActorMonster {
+		return
+	}
+	spec := monEffectSpec(a.Race)
+	if spec == nil {
+		return
+	}
+	rel := a.CurrentFrame - a.StartFrame
+	if spec.Projectile != nil && a.CurrentAction == spec.Projectile.TriggerMsg && rel == spec.Projectile.RelFrame {
+		a.PendingProjectile = spec.Projectile
+		a.effSpawned = true
+	}
+	if spec.Cast != nil && (a.CurrentAction == protocol.SMLighting || a.CurrentAction == protocol.SMFlyAxe) && rel == spec.Cast.RelFrame {
+		a.PendingCast = spec.Cast
+		a.effSpawned = true
+	}
+}
+
 func (a *Actor) Run(now int64) {
 	if a.CurrentAction == protocol.SMWalk || a.CurrentAction == protocol.SMRun ||
 		a.CurrentAction == protocol.SMRush || a.CurrentAction == protocol.SMRushKung ||
@@ -714,6 +912,7 @@ func (a *Actor) Run(now int64) {
 						a.CurEffFrame++
 					}
 					a.RunActSound(a.CurrentFrame - a.StartFrame)
+					a.checkEffectSpawns()
 				}
 			} else {
 				a.CurrentAction = 0
@@ -721,6 +920,40 @@ func (a *Actor) Run(now int64) {
 				a.SpellConfirmed = false
 				a.CurEffFrame = 0
 				a.HitEffectNumber = 0 // 动作结束清除命中特效（对应 Delphi m_boHitEffect := FALSE，Actor.pas:3627）
+				// 动作播完清特化特效（Delphi m_boUseEffect:=FALSE，
+				// AxeMon.pas:482-483/1072-1073）。
+				a.UseEffect = false
+				a.EffSpec = nil
+				// 物体类 DIGDOWN 播完自删（Delphi m_boDelActionAfterFinished，
+				// Actor.pas:2549-2552 → PlayScn.pas:924-927 DeleteActor）。
+				if a.DelAfterAction {
+					a.DelAfterAction = false
+					a.DelActor = true
+				}
+			}
+		}
+		// 独立时钟特效推进（SyncBody=false：石碑死亡 20帧@80ms、
+		// 月魔蜘蛛烟花等；Delphi TGasKuDeGi.Run EffectFrame 时钟，
+		// AxeMon.pas:1046-1057，MsgMuch 时 ×2/3）。
+		if a.UseEffect && a.EffSpec != nil && !a.EffSpec.SyncBody && a.EffSpec.FrameTime > 0 {
+			effFT := int64(a.EffSpec.FrameTime)
+			if a.MsgMuch {
+				effFT = effFT * 2 / 3
+			}
+			if a.EffLastTick == 0 {
+				a.EffLastTick = now
+			} else if now-a.EffLastTick >= effFT {
+				a.EffLastTick = now
+				maxFrame := a.EffSpec.FixedFrames
+				if maxFrame <= 0 {
+					maxFrame = a.EndFrame - a.StartFrame + 1
+				}
+				if a.EffFrame < maxFrame-1 {
+					a.EffFrame++
+				} else {
+					a.UseEffect = false
+					a.EffSpec = nil
+				}
 			}
 		}
 		return
@@ -848,6 +1081,13 @@ func (a *Actor) getEndFrame() int {
 		return end
 	}
 	if a.MonAction != nil {
+		// 骨架尸体的空闲帧 = ActDeath 起始帧（Delphi
+		// TSkeletonOma.GetDefaultFrame，AxeMon.pas:420-422），
+		// 不是 ActDie 末帧。动物系 ActDeath frame=1，无方向偏移。
+		if a.Skeleton {
+			start, _ := CalcFrame(a.MonAction.ActDeath, 0)
+			return start
+		}
 		start, end := CalcFrame(a.MonAction.ActDie, a.Dir)
 		_ = start
 		return end
@@ -1001,6 +1241,12 @@ func (a *Actor) getMonsterBodyImage(resources *engine.ResourceManager) *wil.Imag
 
 func (a *Actor) getMonFile(resources *engine.ResourceManager) *wil.File {
 	nrace := a.Appearance / 10
+	switch nrace {
+	case 80:
+		return resources.Dragon // Delphi MShare.pas:845：appr 800-808 → Dragon.wil
+	case 90:
+		return resources.Effect // Delphi MShare.pas:846：appr 900-903 → Effect.wil
+	}
 	if nrace >= 0 && nrace < len(resources.Mon) && resources.Mon[nrace] != nil {
 		return resources.Mon[nrace]
 	}
@@ -1136,6 +1382,12 @@ func (a *Actor) drawBody(glState *engine.GLState, resources *engine.ResourceMana
 
 	// Delphi Actor.pas:2982-2990：appearance 51 强制混合模式
 	blend := a.State&0x00800000 != 0 || (a.Type == ActorNPC && a.Appearance == 51)
+	// 龙身本体整体加法混合（Delphi TDragonBody.DrawEff，HerbActor.pas:803-815）
+	if !blend && a.Type == ActorMonster {
+		if spec := monEffectSpec(a.Race); spec != nil && spec.BlendBody {
+			blend = true
+		}
+	}
 	if blend {
 		gl.BlendFunc(gl.SRC_ALPHA, gl.ONE)
 	}
@@ -1144,6 +1396,42 @@ func (a *Actor) drawBody(glState *engine.GLState, resources *engine.ResourceMana
 	if blend {
 		gl.BlendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
 	}
+
+	// 特化怪物特效层画在身体之后、同一 DrawChr 内（保持 Y 排序，
+	// Delphi AxeMon.pas:526-532）。
+	if a.UseEffect && a.Type == ActorMonster {
+		a.drawMonsterEffect(glState, resources, screenX, screenY, proj)
+	}
+
+	// 城墙破坏后常驻碎片层（Delphi TWallStructure.BrokenSurface，
+	// HerbActor.pas:618-636，帧 8+dir 普通绘制）。
+	if a.Death && a.Type == ActorMonster {
+		if spec := monEffectSpec(a.Race); spec != nil && spec.BrokenOverlay {
+			a.drawBrokenOverlay(glState, resources, screenX, screenY, proj)
+		}
+	}
+}
+
+// drawBrokenOverlay 绘制城墙碎片层（Effect.wil 槽位内 8+dir 帧）。
+func (a *Actor) drawBrokenOverlay(glState *engine.GLState, resources *engine.ResourceManager, screenX, screenY float32, proj [16]float32) {
+	file := a.getMonFile(resources)
+	if file == nil {
+		return
+	}
+	idx := GetMonOffset(a.Appearance) + 8 + a.Dir
+	if idx < 0 || idx >= file.Count {
+		return
+	}
+	img := file.GetImage(idx)
+	if img == nil || img.RGBA == nil {
+		return
+	}
+	tex := resources.GetTexture(file, idx)
+	if tex == 0 {
+		return
+	}
+	glState.DrawQuad(tex, screenX+float32(img.HotX), screenY+float32(img.HotY),
+		float32(img.Width), float32(img.Height), proj)
 }
 
 // DrawNpcEffect 绘制 NPC 特效覆盖层（Delphi TNpcActor.DrawEff: Actor.pas:3000-3010）。
@@ -1457,6 +1745,12 @@ func getWilFile(resources *engine.ResourceManager, actorType ActorType, appr int
 		return resources.Hum
 	case ActorMonster:
 		nrace := appr / 10
+		switch nrace {
+		case 80:
+			return resources.Dragon // Delphi MShare.pas:845：appr 800-808 → Dragon.wil
+		case 90:
+			return resources.Effect // Delphi MShare.pas:846：appr 900-903 → Effect.wil
+		}
 		if nrace < len(resources.Mon) {
 			return resources.Mon[nrace]
 		}

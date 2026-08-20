@@ -136,6 +136,7 @@ type ServerConfig struct {
 		AITickInterval       int64 `json:"aiTickInterval"`
 		CorpseDelay          int64 `json:"corpseDelay"`
 		GhostDelay           int64 `json:"ghostDelay"`
+		ButchInterval        int64 `json:"butchInterval"`
 		HPRegenInterval      int64 `json:"hpRegenInterval"`
 		HPRegenDivisor       int   `json:"hpRegenDivisor"`
 		OverlapThinkInterval int64 `json:"overlapThinkInterval"`
@@ -969,6 +970,14 @@ func (c *ServerConfig) GetGhostDelay() int64 {
 		return c.Monster.GhostDelay
 	}
 	return 300000
+}
+
+// GetButchInterval 屠宰频限（Delphi dwTurnIntervalTime，M2Share.pas:2121）。
+func (c *ServerConfig) GetButchInterval() int64 {
+	if c.Monster.ButchInterval > 0 {
+		return c.Monster.ButchInterval
+	}
+	return 600
 }
 
 func (c *ServerConfig) GetMonHPRegenInterval() int64 {

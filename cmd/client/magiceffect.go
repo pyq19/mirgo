@@ -121,6 +121,8 @@ type MagicEffect struct {
 	LastTick         int64
 	BaseIdx          int
 	ImgLib           int
+	File             *wil.File // 非 Magic/Magic2 的显式 WIL（怪物投射物用）
+	CycleFrames      int       // 飞行帧循环数（斧/虫 3 帧循环；0=不循环）
 	Done             bool
 	Light            int
 	Dir16            int
@@ -346,6 +348,24 @@ func (em *EffectManager) AddFlyBug(sx, sy, tx, ty float64, maxFrame int, frameTi
 	})
 }
 
+// AddMonsterFly 产生怪物投射物（Delphi TFlyingAxe/TFlyingArrow/
+// TFlyingFireBall/TFlyingBug，AxeMon.pas:578-594 等）。WIL 文件显式指定
+//（Mon*.wil/Effect.wil，不限于 Magic/Magic2）。arrowDir=true 时帧索引
+// 用 Dir16（箭 1 帧/方向），否则 Dir16*10。explosionBase>0 命中后爆炸。
+func (em *EffectManager) AddMonsterFly(file *wil.File, sx, sy, tx, ty float64, base, maxFrame int, frameTime int64, cycleFrames, explosionBase int, arrowDir bool) {
+	typ := EffFlyAxe
+	if arrowDir {
+		typ = EffFlyArrow
+	}
+	em.effects = append(em.effects, &MagicEffect{
+		Type: typ, X: sx, Y: sy, StartX: sx, StartY: sy, TargetX: tx, TargetY: ty,
+		BaseIdx: base, MaxFrame: maxFrame, FrameTime: frameTime,
+		LastTick: time.Now().UnixMilli(), Light: 1, File: file,
+		CycleFrames: cycleFrames, ExplosionBase: explosionBase,
+		Dir16: flyDir16(sx, sy, tx, ty),
+	})
+}
+
 func (em *EffectManager) Update(now int64) {
 	alive := em.effects[:0]
 	for _, eff := range em.effects {
@@ -402,24 +422,31 @@ func isFlyEffect(eff *MagicEffect) bool {
 
 // drawEffect 绘制单个特效（帧索引计算 + 取图 + 混合绘制）。
 func (em *EffectManager) drawEffect(eff *MagicEffect, glState *engine.GLState, resources *engine.ResourceManager, proj [16]float32) {
+	frame := eff.Frame
+	if eff.CycleFrames > 0 && !eff.Exploding && eff.CycleFrames < frame+1 {
+		frame = frame % eff.CycleFrames
+	}
 	var idx int
 	switch {
 	case eff.Exploding:
 		idx = eff.BaseIdx + eff.Frame
 	case eff.Type == EffFlyAxe || eff.Type == EffFlyBug:
-		idx = eff.BaseIdx + eff.Dir16*10 + eff.Frame
+		idx = eff.BaseIdx + eff.Dir16*10 + frame
 	case eff.Type == EffFly && !eff.Exploding:
-		idx = eff.BaseIdx + eff.Dir16*10 + eff.Frame
+		idx = eff.BaseIdx + eff.Dir16*10 + frame
 	case eff.Type == EffFlyArrow:
-		idx = eff.BaseIdx + eff.Dir16 + eff.Frame
+		idx = eff.BaseIdx + eff.Dir16 + frame
 	default:
 		idx = eff.BaseIdx + eff.Frame
 	}
 
 	var wilFile *wil.File
-	if eff.ImgLib == 0 {
+	switch {
+	case eff.File != nil:
+		wilFile = eff.File
+	case eff.ImgLib == 0:
 		wilFile = resources.Magic
-	} else {
+	default:
 		wilFile = resources.Magic2
 	}
 	if wilFile == nil || idx < 0 || idx >= wilFile.Count {

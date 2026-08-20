@@ -358,9 +358,15 @@ func (e *UserEngine) ProcessMonsters(server *netserver.TCPServer, now int64) {
 			continue
 		}
 		if m.Death {
+			// 城门/城墙尸体常驻：不掉落、不 ghost（Delphi 城堡建筑持久存在）。
+			if m.IsStructure {
+				continue
+			}
 			if !m.LootDropped {
 				m.LootDropped = true
-				if m.envir != nil {
+				// Delphi: m_boAnimal 的动物死亡不散落物品（ObjBase.pas:20983
+				// not m_boAnimal 条件），掉落物留在尸体等挖肉（CM_BUTCH）。
+				if !m.Animal && m.envir != nil {
 					m.DropLootWithTable(m.envir, &e.nextItemID, server, e.DropTables, e.ItemDB, e.Config)
 				}
 				// Delphi TZilKinZombi: 死亡分裂
@@ -378,6 +384,9 @@ func (e *UserEngine) ProcessMonsters(server *netserver.TCPServer, now int64) {
 				m.ghostTick = now
 				if m.envir != nil {
 					m.envir.RemoveObject(m.CurrX, m.CurrY, OS_MOVINGOBJECT, m)
+					// Delphi MakeGhost→DisappearA 广播 RM_DISAPPEAR
+					//（ObjBase.pas:20510-20515, 20144-20148）。
+					m.envir.broadcastRefMsg(m.BaseObject, RM_DISAPPEAR, m.ID, 0, 0, 0)
 				}
 				log.Logf(log.LevelInfo, "MonGen", "corpse ghosted: %s (id=%d)", m.Name, m.ID)
 			}
@@ -490,6 +499,11 @@ func (e *UserEngine) SpawnMonster(entry *MonGenEntry, server *netserver.TCPServe
 	mon.envir = env
 	e.initMonsterFromDef(mon, def, now)
 	initMeatQuality(mon)
+	// Delphi MonGetRandomItems（UsrEngn.pas:1536-1605,1951）：刷怪时把
+	// 掉落表 roll 进怪物背包；动物死亡不散落，留尸体等挖肉。
+	if mon.Animal {
+		e.rollCorpseItems(mon)
+	}
 
 	env.AddObject(x, y, OS_MOVINGOBJECT, mon)
 	e.Monsters = append(e.Monsters, mon)
@@ -590,6 +604,9 @@ func (e *UserEngine) initMonsterFromDef(mon *MonsterObject, def *MonsterDef, now
 		mon.StickMode = true
 	case 110, 111, 112: // TCastleDoor/TWallStructure/TArcherGuard — 固定
 		mon.StickMode = true
+		if def.Race == 110 || def.Race == 111 {
+			mon.IsStructure = true
+		}
 	case 55: // TTrainer — 训练师沙袋，固定不动、无敌、仅统计伤害
 		mon.StickMode = true
 	case 115: // TBigHeartMonster — 固定脉冲，视野 16 格
@@ -609,6 +626,39 @@ func (e *UserEngine) initMonsterFromDef(mon *MonsterObject, def *MonsterDef, now
 
 // SpawnMonsterByName 按数据库定义在指定位置生成怪物（GM 命令/NPC 脚本/子体生成共用）。
 // 数据库无对应条目时使用通用近战怪兜底。位置不可走时在 3×3 范围内另找空位。
+// SpawnCastleStructure 在精确坐标生成城门/城墙结构 actor（跳过可行走
+// 检查：建筑本身位于阻挡格，且不可被挪位）。
+func (e *UserEngine) SpawnCastleStructure(mapName string, x, y int, name string, now int64) *MonsterObject {
+	if e.mapMgr == nil {
+		return nil
+	}
+	env := e.mapMgr.FindMap(mapName)
+	if env == nil {
+		return nil
+	}
+	def := e.MonsterDB.GetByName(name)
+	if def == nil {
+		return nil
+	}
+	e.mu.Lock()
+	id := e.nextMonsterID
+	e.nextMonsterID++
+	e.mu.Unlock()
+
+	mon := NewMonsterObject(def.Name, id, byte(def.Race), byte(def.RaceImg), uint16(def.Appr), def.HP, 1400, 2000, def.Exp)
+	mon.MapName = mapName
+	mon.CurrX, mon.CurrY = x, y
+	mon.HomeX, mon.HomeY = x, y
+	mon.envir = env
+	e.initMonsterFromDef(mon, def, now)
+
+	env.AddObject(x, y, OS_MOVINGOBJECT, mon)
+	e.mu.Lock()
+	e.Monsters = append(e.Monsters, mon)
+	e.mu.Unlock()
+	return mon
+}
+
 func (e *UserEngine) SpawnMonsterByName(mapName string, x, y int, name string, now int64) *MonsterObject {
 	if e.mapMgr == nil {
 		return nil

@@ -669,6 +669,7 @@ func (s *PlayScene) Update(dt float64) {
 	}
 
 	s.State.Actors.Update(now, moveTick)
+	s.spawnActorEffects()
 	s.effects.Update(now)
 	s.events.Update(now)
 	s.pumpSellQuery()
@@ -779,6 +780,91 @@ func (s *PlayScene) Update(dt float64) {
 				s.sendAttack(protocol.CMHit+1, my.Dir)
 			}
 		}
+	}
+}
+
+// spawnActorEffects 消费特化怪物动画触发的投射物/施法（Delphi
+// RunFrameAction NewFlyObject/NewMagic，AxeMon.pas:578-594/702-718/
+// 1530-1548/2019-2032/2345-2357/2550-2563）。
+func (s *PlayScene) spawnActorEffects() {
+	for _, a := range s.State.Actors.All() {
+		if a.PendingProjectile != nil {
+			spec := a.PendingProjectile
+			a.PendingProjectile = nil
+			s.spawnMonsterProjectile(a, spec)
+		}
+		if a.PendingCast != nil {
+			spec := a.PendingCast
+			a.PendingCast = nil
+			s.spawnMonsterCast(a, spec)
+		}
+	}
+}
+
+// spawnMonsterProjectile 按投射物规格生成飞行特效。飞行时长按切比雪夫
+// 距离估算（每 tick 约半格，Delphi 按像素匀速飞行的近似）。
+func (s *PlayScene) spawnMonsterProjectile(a *Actor, spec *ProjectileSpec) {
+	if s.resources == nil || s.effects == nil {
+		return
+	}
+	var file *wil.File
+	switch {
+	case spec.Wil == WilEffect:
+		file = s.resources.Effect
+	case spec.Wil == WilDragon:
+		file = s.resources.Dragon
+	case spec.Wil >= 0 && spec.Wil < len(s.resources.Mon):
+		file = s.resources.Mon[spec.Wil]
+	}
+	if file == nil {
+		return
+	}
+	sx := float64(a.Rx*engine.TileWidth) + a.ShiftX
+	sy := float64(a.Ry*engine.TileHeight) + a.ShiftY
+	tx := float64(a.ProjTargetX * engine.TileWidth)
+	ty := float64(a.ProjTargetY * engine.TileHeight)
+	dist := absInt(a.ProjTargetX - a.Rx)
+	if d := absInt(a.ProjTargetY - a.Ry); d > dist {
+		dist = d
+	}
+	if dist < 1 {
+		dist = 1
+	}
+	frameTime := int64(50)
+	if spec.FrameTime > 0 {
+		frameTime = int64(spec.FrameTime)
+	}
+	s.effects.AddMonsterFly(file, sx, sy, tx, ty, spec.Base, dist*2, frameTime,
+		spec.CycleFrames, spec.ExplosionBase, spec.ArrowDir)
+}
+
+// spawnMonsterCast 按施法规格生成魔法特效（Delphi NewMagic，
+// AxeMon.pas:1530-1548 半月守卫系/2494-2497 龙柱）。
+func (s *PlayScene) spawnMonsterCast(a *Actor, spec *CastSpec) {
+	if s.effects == nil {
+		return
+	}
+	tx, ty := a.ProjTargetX, a.ProjTargetY
+	if spec.AtSelf {
+		tx, ty = a.Rx, a.Ry
+	}
+	px := float64(tx * engine.TileWidth)
+	py := float64(ty * engine.TileHeight)
+	switch spec.Kind {
+	case CastThunder, CastThunder2:
+		// mtThunder/mt13 均为 TThuderEffect(140)+Magic2（PlayScn.pas:1634-1638）
+		s.effects.AddThunder2(px, py, 6, 80)
+	case CastFly:
+		sx := float64(a.Rx*engine.TileWidth) + a.ShiftX
+		sy := float64(a.Ry*engine.TileHeight) + a.ShiftY
+		effNum := spec.EffNum
+		if effNum == 0 {
+			effNum = 1
+		}
+		s.effects.AddFly(sx, sy, px, py, effNum, 6, 50)
+	}
+	if spec.Sound > 0 {
+		gSound.PlaySound(spec.Sound)
 	}
 }
 

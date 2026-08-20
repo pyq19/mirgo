@@ -56,18 +56,21 @@ func (p *PlayObject) HandleCastleNpcSelect(tag string, npc *NpcObject, server *n
 
 	case tag == "@opendoor":
 		castle.ToggleDoor(true)
+		castle.SyncDoorVisual(server, p.Engine)
 		castle.broadcastSysMsg(server, p.Engine, fmt.Sprintf("%s 城门已开启", castle.Config.Name))
 		p.sysMsg(server, "城门已开启")
 		log.Logf(log.LevelInfo, "Castle", "%s opened castle door", p.Name)
 
 	case tag == "@closedoor":
 		castle.ToggleDoor(false)
+		castle.SyncDoorVisual(server, p.Engine)
 		castle.broadcastSysMsg(server, p.Engine, fmt.Sprintf("%s 城门已关闭", castle.Config.Name))
 		p.sysMsg(server, "城门已关闭")
 		log.Logf(log.LevelInfo, "Castle", "%s closed castle door", p.Name)
 
 	case tag == "@repairdoor":
 		if castle.RepairDoor() {
+			castle.SyncDoorVisual(server, p.Engine)
 			p.sysMsg(server, "城门已修复")
 			castle.broadcastSysMsg(server, p.Engine, fmt.Sprintf("%s 城门已修复", castle.Config.Name))
 		} else {
@@ -81,6 +84,7 @@ func (p *PlayObject) HandleCastleNpcSelect(tag string, npc *NpcObject, server *n
 
 	case tag == "@repairwall":
 		if castle.RepairWall() {
+			castle.SyncWallVisual(server, p.Engine)
 			p.sysMsg(server, "城墙已修复")
 			castle.broadcastSysMsg(server, p.Engine, fmt.Sprintf("%s 城墙已修复", castle.Config.Name))
 		} else {

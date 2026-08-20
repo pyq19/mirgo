@@ -188,7 +188,7 @@ Go 已有：move/search/recall/slave/dearrecall/masterrecall/nomob/make/level/mo
 #### 渲染/表现
 | 缺口 | 证据 |
 |------|------|
-| **特化怪物渲染类全缺**：34 个怪物类（专属死亡/攻击特效常量 DEATHEFFECTBASE/COWMONFIREBASE 等）+ 10 个物体类（草药/城门/龙/足球） | AxeMon.pas:11-256、HerbActor.pas 全文；Delphi 工厂 PlayScn.pas:2028-2149 按 race 实例化；Go 仅泛型 Actor 三分（actormanager.go:97-128） |
+| ~~**特化怪物渲染类全缺**~~ | ✅ 已修复（数据化方案）：cmd/client/moneffect.go 数据表按 raceImg 驱动——死亡特效族 18 种（稻草人火焰 Mon3[2860]/骷髅系 Mon3[340]/自爆/烟花/石碑独立时钟等）、攻击特效族 20+ 种（毒气/喷火/闪电/雕像火等）、投射物 6 种（飞斧/荆棘/箭/火球/飞虫+爆炸）、施法（半月守卫系/龙柱）、物体类 8 种（食人花出土回潜自删/触龙神/角蝇巢/龙身等）、城门城墙全状态机（开关/三档破损/破坏/修复+碎片层）；服务端补齐 RM_FLYAXE/RM_LIGHTING/RM_DIGUP/RM_DIGDOWN/RM_ALIVE 路由与 AI 攻击消息对齐 |
 | **魔法特效保真度低** | ✅ 已修复：服务端 46 条 magID→effType/effNum 映射 + 客户端 14 类特效参数查表（数据驱动方案） |
 | 武器发光缺失 | ✅ 已修复：Delphi DrawWeaponGlimmer 实为空实现，真实特效为 SM_BREAKWEAPON 武器破碎光效（Go 已接线 WeaponEffect） |
 | 变身等待机制缺失 | ✅ 已修复（pendingFaces 队列，等 actor 空闲后应用，5s 超时强制） |
@@ -330,7 +330,7 @@ Delphi 用 5 个监控 GUI（ViewKernelInfo/ViewLevel/ViewList/ViewOnlineHuman/V
 ## 八、Backlog（记录不排期，按需立项）
 
 **渲染/表现**
-- 特化怪物渲染 34 类 + 物体类 10 个：走数据化方案（参照魔法特效 magiceff 模式），不逐类移植 AxeMon/HerbActor。
+- ~~特化怪物渲染 34 类 + 物体类 10 个：走数据化方案（参照魔法特效 magiceff 模式），不逐类移植 AxeMon/HerbActor。~~ ✅ 已完成（cmd/client/moneffect.go 数据表驱动，含城门/城墙服务端可视化）。
 - 符咒飞行段→爆炸段切换、符咒地面 16/24 帧、雷电2 10 帧（批次3 保留 Go 现值的已知偏差）。
 - SM_AREASTATE(766) 客户端区域图标渲染（发送侧已实现）。
 - Ctrl+F 字体切换、全屏模式。~~IME 候选框（平台层）~~（Windows 已完成，批次8；Linux/macOS 完整支持见 doc/IME支持计划.md，含 Wayland text-input 缺失的更正）。

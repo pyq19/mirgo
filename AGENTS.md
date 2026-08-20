@@ -35,6 +35,8 @@ serverconfig/        # 已 gitignore — 转换后的配置文件
 - 客户端不使用 ImGui（自建渲染），查看器工具使用 ImGui
 - WIL 懒加载：`Load()` 只读索引，`GetImage(idx)` 按需解码（全局字节预算 LRU 淘汰，默认 128MB，`wil.SetCacheLimit` 可调），像素拷入 GPU 后调 `ReleasePixels()` 归还，`Close()` 关闭句柄并清空缓存
 - 服务端 `Send()` 不编码 body，调用方自行 `protocol.EncodeString()`/`EncodeBuffer()`
+- 特化怪物/物体特效走数据化：在 `cmd/client/moneffect.go` 的 `monEffectTable`（raceImg→特效规格）加表项，不逐类硬编码 Delphi AxeMon/HerbActor 类；服务端配套消息路由在 playobject.go（RM_FLYAXE/RM_LIGHTING/RM_DIGUP/RM_DIGDOWN/RM_ALIVE）
+- 动物系怪物（race 51/52/53/84，Animal=true）死亡不散落物品：掉落物刷怪时 roll 进 `CorpseItems` 尸体背包，靠 CM_BUTCH 挖肉出货；尸体可见性与骨架化由 SearchViewRange/newVisibleEntryMsg 统一处理
 
 ## 资源目录（已 gitignore — 需手动准备）
 
@@ -61,6 +63,7 @@ cmd/server/
 ├── mongen.go         # 刷怪系统(在线人数加速)、地面物品消失
 ├── drops.go          # 怪物掉落逻辑
 ├── droptable.go      # 掉落表加载(MonItems/*.jsonc)
+├── butchsystem.go    # 屠宰/挖肉(动物尸体背包/皮量/肉质/骨架化, CM_BUTCH)
 ├── envir.go          # 地图环境、碰撞、门、对象管理
 ├── mapevent.go       # 地图事件(火墙持续伤害/SM_SHOWEVENT广播)
 ├── mapmanager.go     # 地图加载、传送路由
@@ -79,7 +82,7 @@ cmd/server/
 ├── pksystem.go       # PK点数/红名/衰减
 ├── tradesystem.go    # 面对面交易
 ├── guildsystem.go    # 行会创建/聊天
-├── castle.go         # 城堡战(预约战/联盟/税收/攻城)
+├── castle.go         # 城堡战(预约战/联盟/税收/攻城) + 城门/城墙可视化actor(SyncDoorVisual/SyncWallVisual)
 ├── castlenpc.go      # 城堡NPC命令
 ├── merchantsystem.go # NPC商店买/卖/修理/价格查询
 ├── attackmode.go     # 攻击模式(全体/组队/和平等)
@@ -99,6 +102,7 @@ cmd/client/
 ├── actorbase.go      # Actor：消息队列/动画/Shift插值/多层渲染
 ├── actormanager.go   # Actor管理：注册/Y排序/Feature解析
 ├── actor.go          # 动画模板(HA 14动作/MA 39模板)/CalcFrame
+├── moneffect.go      # 特化怪物/物体特效数据表(raceImg→死亡/攻击特效/投射物/施法/物体行为)
 ├── worder.go         # 武器前后层规则
 ├── minimap.go        # 小地图(mmap.wil 预渲染底图直绘+角色标记, 无FBO)
 ├── lighting.go       # 光照/迷雾(6级光罩+光源)
@@ -116,6 +120,8 @@ cmd/client/
 | `Common/Grobal2.pas` | 消息定义、数据结构（2739行） |
 | `Common/EDcode.pas` | 6Bit 编解码算法 |
 | `Client/Actor.pas` | 角色基类、动画模板、渲染（3944行） |
+| `Client/AxeMon.pas` | 特化怪物渲染类(34类:死亡/攻击特效/投射物,2846行) |
+| `Client/HerbActor.pas` | 物体渲染类(10类:食人花/触龙神/城门/城墙/龙身等,822行) |
 | `Client/PlayScn.pas` | 地图渲染、光照、对象管理（2366行） |
 | `Client/ClMain.pas` | 主窗体、网络消息处理、本地预测 |
 | `M2Server/ObjBase.pas` | 游戏对象基类（26821行） |

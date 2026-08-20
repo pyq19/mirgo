@@ -53,6 +53,7 @@ type PlayObject struct {
 	MoveTick  int64
 	MoveCount int
 	TurnTick  int64
+	butchTick int64 // 屠宰频限锚点（Delphi dwTurnIntervalTime，ObjBase.pas:17465-17471）
 	SpellTick      int64
 	DigUpTick      int64
 	WalkSpeed      int64
@@ -499,6 +500,18 @@ func (p *PlayObject) ProcessMessage(msg SendMessage, server *netserver.TCPServer
 		p.sendStruckToClient(server, msg)
 	case RM_DEATH:
 		p.sendDeathToClient(server, msg)
+	case RM_SKELETON:
+		p.sendSkeletonToClient(server, msg)
+	case RM_ALIVE:
+		p.sendAliveToClient(server, msg)
+	case RM_DIGUP:
+		p.sendDigUpToClient(server, msg)
+	case RM_DIGDOWN:
+		p.sendDigDownToClient(server, msg)
+	case RM_FLYAXE:
+		p.sendFlyAxeToClient(server, msg)
+	case RM_LIGHTING:
+		p.sendLightingToClient(server, msg)
 	case RM_SPELL:
 		p.sendSpellToClient(server, msg)
 	case RM_FEATURECHANGED:
@@ -1088,7 +1101,7 @@ func (p *PlayObject) HandleHit(msg SendMessage, server *netserver.TCPServer) {
 			if t2 := p.findAttackTarget(x2, y2); t2 != nil && p.CanAttackTarget(t2) {
 				if !IsSafeZone(p.envir, t2.CurrX, t2.CurrY) {
 					if p.hitCheck(t2) {
-						p.applyDamage(server, t2, secPwr, dir)
+						p.applyDamage(server, t2, secPwr, dir, false)
 					}
 				}
 			}
@@ -1102,7 +1115,7 @@ func (p *PlayObject) HandleHit(msg SendMessage, server *netserver.TCPServer) {
 		if p.Engine != nil && p.Engine.Castle != nil && p.envir != nil && p.envir.Castle != nil {
 			attackX, attackY := p.CurrX+dx, p.CurrY+dy
 			damage := p.rollDC()
-			if p.Engine.Castle.HandleStructureDamage(attackX, attackY, damage) {
+			if p.Engine.Castle.HandleStructureDamage(server, p.Engine, attackX, attackY, damage) {
 				p.SendRefMsg(RM_HIT, dir, attackX, attackY, "")
 			}
 		}
@@ -1132,7 +1145,7 @@ func (p *PlayObject) HandleHit(msg SendMessage, server *netserver.TCPServer) {
 	if damage < 1 {
 		damage = 1
 	}
-	p.applyDamage(server, target, damage, dir)
+	p.applyDamage(server, target, damage, dir, false)
 }
 
 // doWideAttack — Delphi SwordWideAttack/CrsWideAttack (ObjBase.pas:22028-22075)
@@ -1169,7 +1182,7 @@ func (p *PlayObject) doWideAttack(server *netserver.TCPServer, dir, count int) {
 			continue
 		}
 		if p.hitCheck(t) {
-			p.applyDamage(server, t, secPwr, d)
+			p.applyDamage(server, t, secPwr, d, false)
 		}
 	}
 }
@@ -1368,10 +1381,18 @@ func (p *PlayObject) calcDamage(target *BaseObject) int {
 	return damage
 }
 
-func (p *PlayObject) applyDamage(server *netserver.TCPServer, target *BaseObject, damage int, dir int) {
+func (p *PlayObject) applyDamage(server *netserver.TCPServer, target *BaseObject, damage int, dir int, magic bool) {
 	cfg := p.Engine.Config
 	// 安全区守卫不可被玩家伤害
 	if mon := p.envir.getMonsterByBase(target); mon != nil && mon.IsSafeZoneGuard {
+		return
+	}
+	// 城门/城墙：伤害转发城堡系统（Delphi 攻城伤害走 Castle 血量，
+	// ObjMon2.pas:1061-1086），不走怪物实体；同步建筑外观状态。
+	if mon := p.envir.getMonsterByBase(target); mon != nil && mon.IsStructure {
+		if p.Engine != nil && p.Engine.Castle != nil {
+			p.Engine.Castle.HandleStructureDamage(server, p.Engine, mon.CurrX, mon.CurrY, damage)
+		}
 		return
 	}
 	// Delphi TTrainer（ObjNpc.pas:2628-2676）：训练师为无敌沙袋，仅累计伤害统计
@@ -1446,6 +1467,23 @@ func (p *PlayObject) applyDamage(server *netserver.TCPServer, target *BaseObject
 		hp = 0
 	}
 	target.WAbil.HP = uint16(hp)
+
+	// Delphi: 动物肉质按伤害类型下降——物理被击 -rand(300)
+	//（TAnimalObject.Struck，ObjBase.pas:2807-2811）；魔法 -伤害×1000
+	//（ObjBase.pas:4517，用魔法盾吸收后的最终伤害）。绿毒每跳 -1000
+	// 在怪物 Run 内独立处理（monsterobject.go）。
+	if damage > 0 {
+		if mon := p.envir.getMonsterByBase(target); mon != nil && mon.Animal {
+			if magic {
+				mon.MeatQuality -= damage * 1000
+			} else {
+				mon.MeatQuality -= rand.Intn(300)
+			}
+			if mon.MeatQuality < 0 {
+				mon.MeatQuality = 0
+			}
+		}
+	}
 
 	// Delphi 仅当伤害>0 才下发 SM_STRUCK（ObjBase.pas:5470）；
 	// 魔法盾完全吸收（damage=0）时客户端不应播放受击动画。
@@ -1611,7 +1649,121 @@ func (p *PlayObject) sendDeathToClient(server *netserver.TCPServer, msg SendMess
 		ident = protocol.SMNowDeath
 	}
 	resp := protocol.MakeDefaultMsg(ident, msg.SourceID, uint16(msg.Param1), uint16(msg.Param2), uint16(msg.Dir))
+	// Delphi SM_DEATH/SM_NOWDEATH 携带 TCharDesc body（ObjBase.pas:5547-5549），
+	// 后进入视野的玩家靠它创建尸体 actor（PlayScn.pas:2321-2338）。
+	body := ""
+	if p.envir != nil {
+		if obj := p.envir.getObjectByID(msg.SourceID); obj != nil {
+			body = protocol.EncodeBuffer(p.encodeCharDesc(objectFeature(obj), objectFeatureEx(obj)))
+		}
+	}
+	server.Send(p.Session.ID, resp, body)
+}
+
+// sendSkeletonToClient 对应 Delphi RM_SKELETON→SM_SKELETON
+//（ObjBase.pas:5558-5568），body=TCharDesc。
+func (p *PlayObject) sendSkeletonToClient(server *netserver.TCPServer, msg SendMessage) {
+	resp := protocol.MakeDefaultMsg(protocol.SMSkeleton, msg.SourceID, uint16(msg.Param1), uint16(msg.Param2), uint16(msg.Dir))
+	body := ""
+	if p.envir != nil {
+		if obj := p.envir.getObjectByID(msg.SourceID); obj != nil {
+			body = protocol.EncodeBuffer(p.encodeCharDesc(objectFeature(obj), objectFeatureEx(obj)))
+		}
+	}
+	server.Send(p.Session.ID, resp, body)
+}
+
+// sendAliveToClient 对应 Delphi RM_ALIVE→SM_ALIVE（城门修复/复活），
+// body=TCharDesc（SM_ALIVE 在 Delphi NewActor 列表中，PlayScn.pas:2323-2326）。
+func (p *PlayObject) sendAliveToClient(server *netserver.TCPServer, msg SendMessage) {
+	resp := protocol.MakeDefaultMsg(protocol.SMAlive, msg.SourceID, uint16(msg.Param1), uint16(msg.Param2), uint16(msg.Dir))
+	body := ""
+	if p.envir != nil {
+		if obj := p.envir.getObjectByID(msg.SourceID); obj != nil {
+			body = protocol.EncodeBuffer(p.encodeCharDesc(objectFeature(obj), objectFeatureEx(obj)))
+		}
+	}
+	server.Send(p.Session.ID, resp, body)
+}
+
+// objectCharStatus 计算状态位（Delphi m_nCharStatus，StatusChanged
+// ObjBase.pas:20139-20142）：StatusTimeArr[i]>0 → bit(31-i)。
+func objectCharStatus(obj interface{}) uint32 {
+	base := objectBase(obj)
+	if base == nil {
+		return 0
+	}
+	status := uint32(0)
+	for i := 0; i < 12; i++ {
+		if base.StatusTimeArr[i] > 0 {
+			status |= 0x80000000 >> uint(i)
+		}
+	}
+	return status
+}
+
+// sendDigUpToClient 对应 Delphi RM_DIGUP→SM_DIGUP（ObjBase.pas:6077-6090）：
+// Series=MakeWord(dir, light)；body=TMessageBodyWL{feature, charStatus, 0, 0}。
+// Go SendRefMsg 约定：Param1=dir, Param2=x, Param3=y。
+func (p *PlayObject) sendDigUpToClient(server *netserver.TCPServer, msg SendMessage) {
+	resp := protocol.MakeDefaultMsg(protocol.SMDigUp, msg.SourceID, uint16(msg.Param2), uint16(msg.Param3), uint16(msg.Param1&0xFF))
+	body := ""
+	if p.envir != nil {
+		if obj := p.envir.getObjectByID(msg.SourceID); obj != nil {
+			buf := make([]byte, 16)
+			binary.LittleEndian.PutUint32(buf[0:4], uint32(objectFeature(obj)))
+			binary.LittleEndian.PutUint32(buf[4:8], objectCharStatus(obj))
+			body = protocol.EncodeBuffer(buf)
+		}
+	}
+	server.Send(p.Session.ID, resp, body)
+}
+
+// sendDigDownToClient 对应 Delphi RM_DIGDOWN→SM_DIGDOWN
+//（ObjBase.pas:6091-6099），空 body。
+func (p *PlayObject) sendDigDownToClient(server *netserver.TCPServer, msg SendMessage) {
+	resp := protocol.MakeDefaultMsg(protocol.SMDigDown, msg.SourceID, uint16(msg.Param2), uint16(msg.Param3), 0)
 	server.Send(p.Session.ID, resp, "")
+}
+
+// sendFlyAxeToClient 对应 Delphi RM_FLYAXE→SM_FLYAXE（ObjBase.pas:6100-6117）。
+// body=TMessageBodyW 8 字节{目标x, 目标y, 目标ID低/高字}。
+// 约定：Param1=x, Param2=y, Dir=dir, Param3=目标ID；目标不存在则不发。
+func (p *PlayObject) sendFlyAxeToClient(server *netserver.TCPServer, msg SendMessage) {
+	if p.envir == nil {
+		return
+	}
+	tb := objectBase(p.envir.getObjectByID(int32(msg.Param3)))
+	if tb == nil {
+		return
+	}
+	buf := make([]byte, 8)
+	binary.LittleEndian.PutUint16(buf[0:2], uint16(tb.CurrX))
+	binary.LittleEndian.PutUint16(buf[2:4], uint16(tb.CurrY))
+	binary.LittleEndian.PutUint16(buf[4:6], uint16(uint32(tb.ID)&0xFFFF))
+	binary.LittleEndian.PutUint16(buf[6:8], uint16(uint32(tb.ID)>>16))
+	resp := protocol.MakeDefaultMsg(protocol.SMFlyAxe, msg.SourceID, uint16(msg.Param1), uint16(msg.Param2), uint16(msg.Dir))
+	server.Send(p.Session.ID, resp, protocol.EncodeBuffer(buf))
+}
+
+// sendLightingToClient 对应 Delphi RM_LIGHTING→SM_LIGHTING
+//（ObjBase.pas:6118-6133）。body=TMessageBodyWL 16 字节
+//{目标x, 目标y, 目标ID, wParam}。约定同 sendFlyAxeToClient。
+func (p *PlayObject) sendLightingToClient(server *netserver.TCPServer, msg SendMessage) {
+	if p.envir == nil {
+		return
+	}
+	tb := objectBase(p.envir.getObjectByID(int32(msg.Param3)))
+	if tb == nil {
+		return
+	}
+	buf := make([]byte, 16)
+	binary.LittleEndian.PutUint32(buf[0:4], uint32(uint16(tb.CurrX)))
+	binary.LittleEndian.PutUint32(buf[4:8], uint32(uint16(tb.CurrY)))
+	binary.LittleEndian.PutUint32(buf[8:12], uint32(tb.ID))
+	binary.LittleEndian.PutUint32(buf[12:16], uint32(uint16(msg.Dir)))
+	resp := protocol.MakeDefaultMsg(protocol.SMLighting, msg.SourceID, uint16(msg.Param1), uint16(msg.Param2), uint16(msg.Dir))
+	server.Send(p.Session.ID, resp, protocol.EncodeBuffer(buf))
 }
 
 func (p *PlayObject) awardExp(server *netserver.TCPServer, mon *MonsterObject) {
@@ -2084,6 +2236,8 @@ func (p *PlayObject) resurrect(server *netserver.TCPServer) {
 
 	if p.envir != nil {
 		p.envir.RemoveObject(p.CurrX, p.CurrY, OS_MOVINGOBJECT, p)
+		// 旧尸体立即从死亡地附近玩家视野移除，避免残影滞留一个视野扫描周期。
+		p.envir.broadcastRefMsg(p.BaseObject, RM_DISAPPEAR, p.ID, 0, 0, 0)
 	}
 	safeMap, safeX, safeY := GetSafeZonePoint()
 	if p.MapMgr != nil {
@@ -2302,6 +2456,36 @@ func (p *PlayObject) broadcastFeatureChanged(server *netserver.TCPServer) {
 	server.Send(p.Session.ID, resp, protocol.EncodeBuffer(p.encodeCharDesc(p.Feature(), p.FeatureEx())))
 }
 
+// newVisibleEntryMsg 按对象状态选择新入视野通告消息（Delphi
+// SearchViewRange，ObjBase.pas:25697-25726）：死亡对象发 SM_DEATH
+//（骨架发 SM_SKELETON）让客户端创建尸体；活体发 SM_TURN。
+// 尸体消息 body 只有 TCharDesc、不带名字（ObjBase.pas:5547-5549）。
+func (p *PlayObject) newVisibleEntryMsg(obj interface{}) (protocol.DefaultMessage, string) {
+	base := objectBase(obj)
+	dead, skeleton := false, false
+	switch o := obj.(type) {
+	case *MonsterObject:
+		dead, skeleton = o.Death, o.Skeleton
+	case *PlayObject:
+		dead = o.Death
+	}
+	if dead {
+		ident := uint16(protocol.SMDeath)
+		if skeleton {
+			ident = protocol.SMSkeleton
+		}
+		resp := protocol.MakeDefaultMsg(ident, base.ID, uint16(base.CurrX), uint16(base.CurrY), uint16(base.Dir))
+		body := protocol.EncodeBuffer(p.encodeCharDesc(objectFeature(obj), objectFeatureEx(obj)))
+		return resp, body
+	}
+	resp := protocol.MakeDefaultMsg(protocol.SMTurn, base.ID, uint16(base.CurrX), uint16(base.CurrY), uint16(base.Dir))
+	body := protocol.EncodeBuffer(p.encodeCharDesc(objectFeature(obj), objectFeatureEx(obj)))
+	if base.Name != "" {
+		body += protocol.EncodeString(base.Name)
+	}
+	return resp, body
+}
+
 func (p *PlayObject) SearchViewRange(server *netserver.TCPServer) {
 	if p.envir == nil {
 		return
@@ -2316,13 +2500,18 @@ func (p *PlayObject) SearchViewRange(server *netserver.TCPServer) {
 		var skip bool
 		switch o := obj.(type) {
 		case *PlayObject:
-			if o.ID == p.ID || o.Ghost || o.Death || o.Hidden {
+			// 死亡玩家保留在可见集合（Delphi 对死亡玩家同样通告
+			// SM_DEATH，ObjBase.pas:25705-25718），尸体对后进入者可见。
+			if o.ID == p.ID || o.Ghost || o.Hidden {
 				skip = true
 			} else {
 				id = o.ID
 			}
 		case *MonsterObject:
-			if o.Ghost || o.Death || o.Hidden {
+			// 死亡怪物保留在可见集合直至 ghost（Delphi 尸体时限
+			// dwMakeGhostTime=3分钟，M2Share.pas:1796）；潜地怪
+			//（Hidden）死亡后仍不可见（ObjBase.pas:25683 m_boFixedHideMode）。
+			if o.Ghost || o.Hidden {
 				skip = true
 			} else {
 				id = o.ID
@@ -2355,11 +2544,7 @@ func (p *PlayObject) SearchViewRange(server *netserver.TCPServer) {
 				delete(p.VisibleActors, id)
 				continue
 			}
-			resp := protocol.MakeDefaultMsg(protocol.SMTurn, base.ID, uint16(base.CurrX), uint16(base.CurrY), uint16(base.Dir))
-			body := protocol.EncodeBuffer(p.encodeCharDesc(objectFeature(obj), objectFeatureEx(obj)))
-			if base.Name != "" {
-				body += protocol.EncodeString(base.Name)
-			}
+			resp, body := p.newVisibleEntryMsg(obj)
 			server.Send(p.Session.ID, resp, body)
 		}
 	}

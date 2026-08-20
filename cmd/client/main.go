@@ -1436,8 +1436,36 @@ func (h *NetHandler) HandleMessage(msg protocol.DefaultMessage, body, rawBody st
 
 	case protocol.SMDigUp:
 		actor := h.playScene.State.Actors.Get(msg.Recog)
+		if actor == nil && body != "" {
+			// Delphi: SM_DIGUP 可为未知 actor 新建对象（ClMain.pas:4371-4384，
+			// PlayScn.pas:2323-2326 的 NewActor 列表含 SM_DIGUP），
+			// body 前 8 字节 = feature/status（TMessageBodyWL）。
+			actor = NewActorFromMessage(msg, body)
+			h.playScene.State.Actors.Add(actor)
+		}
 		if actor != nil {
 			actor.SendMsg(int(msg.Ident), int(msg.Param), int(msg.Tag), int(msg.Series)&0xFF, 0, 0)
+		}
+
+	case protocol.SMDigDown:
+		// Delphi: SM_DIGDOWN 要求 actor 已存在（不在 NewActor 列表，
+		// PlayScn.pas:2323-2326），潜地类播完自删由动画层处理。
+		actor := h.playScene.State.Actors.Get(msg.Recog)
+		if actor != nil {
+			actor.SendMsg(int(msg.Ident), int(msg.Param), int(msg.Tag), int(msg.Series)&0xFF, 0, 0)
+		}
+
+	case protocol.SMFlyAxe, protocol.SMLighting:
+		actor := h.playScene.State.Actors.Get(msg.Recog)
+		if actor != nil {
+			// body 前 4 字节 = 目标坐标（TMessageBodyW/TMessageBodyWL，
+			// ObjBase.pas:6100-6133），供投射物与攻击特效指向目标。
+			targetX, targetY := 0, 0
+			if raw := []byte(body); len(raw) >= 4 {
+				targetX = int(binary.LittleEndian.Uint16(raw[0:2]))
+				targetY = int(binary.LittleEndian.Uint16(raw[2:4]))
+			}
+			actor.SendTargetMsg(int(msg.Ident), int(msg.Param), int(msg.Tag), int(msg.Series)&0xFF, targetX, targetY)
 		}
 
 	case protocol.SMStruck:
@@ -1475,7 +1503,15 @@ func (h *NetHandler) HandleMessage(msg protocol.DefaultMessage, body, rawBody st
 
 	case protocol.SMDeath, protocol.SMNowDeath:
 		actor := h.playScene.State.Actors.Get(msg.Recog)
-		if actor != nil && actor.Type != ActorNPC {
+		if actor == nil && body != "" {
+			// Delphi: 未知 actor 的 SM_DEATH/SM_NOWDEATH 新建尸体
+			//（ClMain.pas:4172-4186、PlayScn.pas:2321-2338），一律按
+			// SM_DEATH 直接定格尸体、不播死亡动画（PlayScn.pas:2323-2326）。
+			actor = NewActorFromMessage(msg, body)
+			actor.Death = true
+			h.playScene.State.Actors.Add(actor)
+			actor.SendMsg(protocol.SMDeath, int(msg.Param), int(msg.Tag), int(msg.Series)&0xFF, 0, 0)
+		} else if actor != nil && actor.Type != ActorNPC {
 			actor.Death = true
 			actor.SendMsg(int(msg.Ident), int(msg.Param), int(msg.Tag), int(msg.Series)&0xFF, 0, 0)
 			if h.playScene.State.MySelf != nil && actor.RecogID == h.playScene.State.MySelf.RecogID {
@@ -1485,6 +1521,12 @@ func (h *NetHandler) HandleMessage(msg protocol.DefaultMessage, body, rawBody st
 
 	case protocol.SMAlive:
 		actor := h.playScene.State.Actors.Get(msg.Recog)
+		if actor == nil && body != "" {
+			// Delphi: SM_ALIVE 在 NewActor 列表中（PlayScn.pas:2323-2326），
+			// 城门修复等场景可为未知 actor 新建。
+			actor = NewActorFromMessage(msg, body)
+			h.playScene.State.Actors.Add(actor)
+		}
 		if actor != nil {
 			actor.Death = false
 			actor.Skeleton = false
@@ -1656,9 +1698,16 @@ func (h *NetHandler) HandleMessage(msg protocol.DefaultMessage, body, rawBody st
 
 	case protocol.SMSkeleton:
 		actor := h.playScene.State.Actors.Get(msg.Recog)
+		if actor == nil && body != "" {
+			// Delphi: 未知 actor 的 SM_SKELETON 新建骨架尸体
+			//（PlayScn.pas:2323-2336），Death/Skeleton 同时置位。
+			actor = NewActorFromMessage(msg, body)
+			h.playScene.State.Actors.Add(actor)
+		}
 		if actor != nil {
+			actor.Death = true
 			actor.Skeleton = true
-			actor.SendMsg(protocol.SMSkeleton, int(msg.Param), int(msg.Tag), 0, 0, 0)
+			actor.SendMsg(protocol.SMSkeleton, int(msg.Param), int(msg.Tag), int(msg.Series)&0xFF, 0, 0)
 		}
 
 	case protocol.SMThrow:
