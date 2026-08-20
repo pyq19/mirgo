@@ -160,6 +160,28 @@ func (c *UIControl) AbsY() int {
 	return y
 }
 
+// treeVisible 判断控件及其全部祖先是否都可见。Delphi 的焦点检查只看
+// 单层 Visible (DWinCtl.pas:933), 这里更严格: 父窗口隐藏时子控件的
+// 悬挂焦点同样失效。模态子树不挂 Root, 父链终于 nil, 判定依然成立。
+func (c *UIControl) treeVisible() bool {
+	for p := c; p != nil; p = p.Parent {
+		if !p.Visible {
+			return false
+		}
+	}
+	return true
+}
+
+// withinSubtree 判断 c 是否位于 root 子树内 (含 root 自身)。
+func withinSubtree(c, root *UIControl) bool {
+	for p := c; p != nil; p = p.Parent {
+		if p == root {
+			return true
+		}
+	}
+	return false
+}
+
 // ParentSpaceX 将绝对坐标换算到本控件的父级坐标空间
 // (LocalX, DWinCtl.pas:352-376): 控件自身的 Left/Top 以及处理函数
 // 接收的事件都处于该空间.

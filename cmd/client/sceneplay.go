@@ -612,6 +612,22 @@ func (s *PlayScene) Close() {
 	s.events = NewEventManager()
 	clear(s.groundItems)
 	s.floatingTexts = nil
+
+	// 清空跨会话的输入/UI 状态（对齐 Delphi CloseScene 隐藏 EdChat,
+	// PlayScn.pas:489-496）。PlayScene/UI 均为进程级单例, 脏焦点、
+	// 残留模态、chatMode 与手持物品不清会带进下一局。
+	// 注意用 End() 而非 Cancel(): Cancel 会把幽灵物品塞回背包。
+	if s.ui.Modal != nil {
+		s.ui.CloseModal(s.ui.Modal)
+	}
+	s.ui.ReleaseFocus()
+	s.ui.ReleaseCapture()
+	s.chatMode = false
+	s.chatInput = ""
+	s.chatScroll = 0
+	s.itemMove.End()
+	clearTextInputRect()
+
 	s.State.Reset()
 	log.Logf(log.LevelInfo, "PlayScene", "closed")
 }
@@ -1596,10 +1612,8 @@ func (s *PlayScene) OnChar(char rune) {
 }
 
 func (s *PlayScene) OnKey(key int, action int) {
-	// UI（模态框 / 聚焦的编辑控件）优先接收按键。
-	if s.ui.RouteKeyDown(key) {
-		return
-	}
+	// 修饰键跟踪需要 release 事件, 必须放在下面的 release 过滤之前
+	// (否则 Ctrl/Alt/Shift 的 release 被丢, ctrlDown/altDown 永久卡 true)。
 	// 跟踪 Ctrl 键用于加点面板 ×10 加速。
 	if key == 341 || key == 345 {
 		s.ctrlDown = action == 1
@@ -1614,13 +1628,24 @@ func (s *PlayScene) OnKey(key int, action int) {
 		s.altDown = action == 1
 		return
 	}
-	if key == 256 && action == 1 { // Esc
+	// Delphi VCL OnKeyDown 只收 press + OS 自动重复, 不收 release。
+	// release 漏进 UI 会让 EditBox 退格一次删两字符、对话框 Enter
+	// press+release 双触发 (丢金币等网络动作发两次)。
+	if action == 0 {
+		return
+	}
+	// UI（模态框 / 聚焦的编辑控件）优先接收按键。
+	if s.ui.RouteKeyDown(key) {
+		return
+	}
+	if key == keyEscape { // Esc
 		// Delphi 中 Esc 仅两处有效：EdChat 内取消聊天
 		// (PlayScn.pas:435-439) 与模态框 (FState:2152-2157,
 		// 已由 RouteKeyDown 处理)。聊天优先于手持物品。
 		if s.chatMode {
 			s.chatInput = ""
 			s.chatMode = false
+			clearTextInputRect()
 			return
 		}
 		if s.itemMove.Moving { // Go 扩展：Esc 取消手持物品
@@ -1630,9 +1655,19 @@ func (s *PlayScene) OnKey(key int, action int) {
 		return
 	}
 
+	// 聊天退格: 接受 press+repeat (按住连删, 对齐 Delphi TEdit 手感)。
+	// 其余热键必须仅 press 响应, 留在下面的 action==1 门后。
+	if key == keyBackspace {
+		if s.chatMode && s.chatInput != "" {
+			runes := []rune(s.chatInput)
+			s.chatInput = string(runes[:len(runes)-1])
+		}
+		return
+	}
+
 	if action == 1 {
 		switch key {
-		case 257: // Enter
+		case keyEnter, keyKPEnter: // Enter（含小键盘; Delphi VK_RETURN 天然等价）
 			if s.chatMode {
 				if s.chatInput != "" && s.sendChat != nil {
 					s.recordWhisper(s.chatInput)
@@ -1640,14 +1675,9 @@ func (s *PlayScene) OnKey(key int, action int) {
 				}
 				s.chatInput = ""
 				s.chatMode = false
+				clearTextInputRect()
 			} else {
 				s.enterChatMode()
-			}
-			return
-		case keyBackspace:
-			if s.chatMode && s.chatInput != "" {
-				runes := []rune(s.chatInput)
-				s.chatInput = string(runes[:len(runes)-1])
 			}
 			return
 		case 32: // 空格 — 打开聊天（ClMain:1741-1753）

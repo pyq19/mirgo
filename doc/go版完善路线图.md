@@ -47,6 +47,7 @@
 | 批次5-NPC脚本 | 混合表驱动（存量 ~180 命令保留 switch 零语义风险，新命令走注册表 npcscript_ext.go init 登记）；未知条件/动作 default 分支告警日志（跑图实测驱动长尾收集）；新增 12 条命令：条件 CHECKITEMTYPE（Delphi ObjNpc.pas:5142）/CHECKHORSE/CHECKCASTLEWAR/CHECKMONAREA，动作 HAIRSTYLE（ObjNpc.pas:3010）/HAIRCOLOR/HORSECALL/KILLHORSE（Delphi 空实现，Go 闭环实装并注明）/INCFAME/DECFAME（CreditPoint 承载）/MAKEHEALZONE/MAKEDAMAGEZONE（新事件类型 ETHealZone/ETDamageZone，NPC 为中心 3×3）；6 个命令级单测 | npcscript.go / npcscript_ext.go / mapevent.go / types.go |
 | 批次6-网关中间件 | 五层补偿（6.3 方案落地）：①封包序号校验（FrameScanner.OnCode 钩子+会话违规计数，重复 >10 断开、缓冲积压 >20000 记满，RunGate/Main.pas:363-413 语义）②每连接令牌桶限流（默认 60 条/秒突发 40，msgRateLimit/msgBurst 可配，超限计入违规累计）③敏感词过滤（serverconfig/WordFilter.txt 每行一词，聊天/私聊大小写不敏感替换等字符 '*'，RunGate FilterSayMsg 语义）④发送背压（客户端 '*' 回显重置计数，2048B 未确认暂停发送 3s，RunGate/Main.pas:501-553；SendChan 连续丢弃 32 次视为无响应断开）⑤黑名单（BlockIPList.txt 连接期 IP 拒绝支持前缀匹配、DenyAccountList.txt 登录期账号拒绝；转换器补 DenyIPAddrList/DenyAccountList/WordFilter 转换；机器码黑名单不做——客户端无机器码）；5 个中间件单测 | frame.go / server.go / wordfilter.go / blocklist.go / convert_misc.go |
 | 批次7-工程化 | /status GM 命令（在线/会话/怪物/NPC/行会/堆内存/GC/goroutine/怪物按地图分布，6.7 可观测性）；WIL 纹理缓存 LRU（8192 上限，超限淘汰最久未访问纹理释放显存，6.5）；WAL 已启用（sqlite.go 连接串 _journal_mode=WAL，6.6 已满足）；迁移保持状态自检式（PRAGMA table_info 幂等自愈，替代版本号方案）；go vet 全量干净。CI 按用户要求不做（保持 AGENTS.md"无 CI"现状，验证命令：go build ./... + go vet ./... + go test ./... -count=1） | gmcommands.go / resourcemanager.go |
+| 批次8-输入 | ScenePlay 无法打字修复 + 输入行为对齐 Delphi：①RouteChar/RouteKeyDown 语义重建（模态恒吞；焦点含祖先链不可见→释放放行，补 DWinCtl.pas:933-936 缺失检查；焦点控件无处理器放行——Delphi 双通道 KeyPreview+OS 焦点在 Go 单通道下的适配）②CloseModal 释放子树内焦点/捕获（修对话框关闭后焦点泄漏到隐藏输入框，及 Enter 一次按下 press+release 双触发 complete 重复发送网络动作）③DialogBox.complete 幂等守卫 ④PlayScene.Close 清模态/焦点/chatMode/手持物品（对齐 Delphi CloseScene）⑤KeyDown 只收 press+repeat 不收 release（修退格双删，退格长按连删对齐 VCL，修饰键跟踪保留 release）⑥小键盘 Enter 全链路补齐（聊天/调试控制台）⑦平台层 IME：Windows IMM32（组合窗/候选窗定位到输入框+预编辑串渲染）、Linux 提交字符经 XIM/text-input 验证可用（预编辑/候选定位受 GLFW 限制，见 6.5）；新增 4 个路由单测 | uimanager.go / uicontrol.go / sceneplay.go / scenelogin.go / sceneselectchr.go / uidialog.go / uiedit.go / uihud.go / debugconsole.go / ime.go / internal/engine/window.go / internal/engine/ime_windows.go |
 
 **有意不做（本轮）⚠️**
 
@@ -294,7 +295,7 @@ ObjBase.pas 26821 行是 Delphi 版的维护噩梦。Go 侧 playobject.go 已 23
 
 ### 6.5 客户端资源与平台层
 - ~~WIL LRU 淘汰~~ 已完成：落点改在 wil 包内（GetImage 直连调用方多，引擎层覆盖不全）——全局字节预算（默认 128MB，wil.SetCacheLimit 可调）+ 每文件 LRU，GPU 上传后 ReleasePixels 归还像素保留元数据壳。Delphi 原版（WIL.pas:546）实为 5 分钟 TTL、字节配额被注释，Go 版做了真 LRU。
-- **IME**：GLFW 无原生 IME，中文输入目前依赖 char 回调（无候选框）。如需完善，走平台层（X11 ibus / Win32 IMM32）——工作量不小，建议放 P2 之后。
+- **IME**：~~GLFW 无原生 IME，中文输入目前依赖 char 回调（无候选框）。如需完善，走平台层（X11 ibus / Win32 IMM32）~~ 已部分落地（批次8）：提交字符所有平台经 GLFW char 回调（X11 XIM / Wayland text-input-v3 / Win32 WM_CHAR）；Windows 平台层完成（internal/engine/ime_windows.go，IMM32 子类化：组合窗/候选窗定位到输入框 + 预编辑串渲染进 EditBox/聊天输入行，对齐 Delphi TEdit 原生体验）。剩余边界：Linux 无内联预编辑、候选窗为输入法自带浮动窗——GLFW 3.4 X11 后端锁定 XIMPreeditNothing 输入风格（x11_init.c:450）；Wayland 更严重：3.4 源码树无任何 text-input 协议，CJK 完全不可输入（wl_window.c:1188-1203 纯 XKB 路径）。Linux/macOS 完整支持计划（fork GLFW 补丁方案，含阶段划分与验证矩阵）见 doc/IME支持计划.md。
 - **像素级命中检测**：可用 WIL 图像 alpha 做精灵精确点选（Delphi CheckSelect，PlayScn.pas:1785-1818），提升点选体验，属低成本增强。
 
 ### 6.6 存储演进
@@ -332,7 +333,7 @@ Delphi 用 5 个监控 GUI（ViewKernelInfo/ViewLevel/ViewList/ViewOnlineHuman/V
 - 特化怪物渲染 34 类 + 物体类 10 个：走数据化方案（参照魔法特效 magiceff 模式），不逐类移植 AxeMon/HerbActor。
 - 符咒飞行段→爆炸段切换、符咒地面 16/24 帧、雷电2 10 帧（批次3 保留 Go 现值的已知偏差）。
 - SM_AREASTATE(766) 客户端区域图标渲染（发送侧已实现）。
-- Ctrl+F 字体切换、全屏模式、IME 候选框（平台层）。
+- Ctrl+F 字体切换、全屏模式。~~IME 候选框（平台层）~~（Windows 已完成，批次8；Linux/macOS 完整支持见 doc/IME支持计划.md，含 Wayland text-input 缺失的更正）。
 
 **UI/系统**
 - 邮件系统、黑名单面板、游戏设置面板、二级密码（SM_PASSWORD 族 5009/8002/8003）、骰子小游戏（8001）、好友面板完整功能（私聊/邮件/翻页）。

@@ -636,11 +636,19 @@ func (s *SelectChrScene) OnChar(char rune) {
 }
 
 func (s *SelectChrScene) OnKey(key int, action int) {
-	if action != 1 {
+	// release 不进 UI (Delphi VCL OnKeyDown 无 release)。
+	if action == 0 {
 		return
 	}
+	// press+repeat 进 UI: EdChrName 退格按住连删。
 	if s.ui != nil {
 		s.ui.RouteKeyDown(key)
+	}
+	// 场景动作 (创建/删除/开始) 仅响应 press — 否则长按 Enter 会
+	// repeat 触发 confirmCreate/startGame, 切场景后 repeat 还会落进
+	// 新场景 (进游戏瞬间聊天框莫名打开)。
+	if action != 1 {
+		return
 	}
 
 	if s.createMode {

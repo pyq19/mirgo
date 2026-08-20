@@ -167,7 +167,7 @@ func (dc *DebugConsole) OnKey(key int, action int, mods int) {
 	case 258: // Tab — 自动补全
 		dc.tabComplete()
 		dc.cursorPos = utf8.RuneCountInString(dc.Input)
-	case 257: // Enter
+	case 257, 335: // Enter（含小键盘 Enter）
 		if action == 1 {
 			dc.execute(dc.Input)
 			dc.Input = ""

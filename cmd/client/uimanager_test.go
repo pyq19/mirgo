@@ -261,6 +261,130 @@ func TestRaiseToTopChangesHitOrder(t *testing.T) {
 	}
 }
 
+// 焦点控件没有 OnChar/OnKeyDown 时必须放行 (修复 M1/M2):
+// Go 单通道下, "无处理器也吞" 会让点过 HUD 后聊天完全打不了字。
+func TestFocusWithoutHandlerPassesThrough(t *testing.T) {
+	m := newTestManager()
+	btn := NewUIControl("btn", KindButton)
+	btn.Left, btn.Top, btn.Width, btn.Height = 10, 10, 30, 30
+	btn.Visible = true
+	m.Root.AddChild(btn)
+
+	// 点击按钮获得焦点 (KindButton 默认 EnableFocus=true)。
+	m.RouteMouseDown(15, 15, 0)
+	m.RouteMouseUp(15, 15, 0)
+	if m.Focused != btn {
+		t.Fatal("pressing button should focus it")
+	}
+	// 按钮没有 OnChar/OnKeyDown → 字符/按键放行给场景。
+	if m.RouteChar('a') {
+		t.Fatal("char must pass through when focused control has no OnChar")
+	}
+	if m.RouteKeyDown(257) {
+		t.Fatal("key must pass through when focused control has no OnKeyDown")
+	}
+}
+
+// 焦点控件自身或祖先不可见时释放焦点并放行 (修复 M1/M2,
+// 补 Delphi DWinCtl.pas:933-936 的缺失检查)。
+func TestInvisibleFocusReleased(t *testing.T) {
+	m := newTestManager()
+	win := NewUIControl("win", KindWindow)
+	win.Left, win.Top, win.Width, win.Height = 100, 100, 200, 100
+	win.Visible = true
+	m.Root.AddChild(win)
+	edit := NewUIControl("edit", KindControl)
+	edit.Left, edit.Top, edit.Width, edit.Height = 10, 10, 100, 20
+	edit.Visible = true
+	got := ""
+	edit.OnChar = func(c *UIControl, ch rune) { got += string(ch) }
+	win.AddChild(edit)
+	m.SetFocus(edit)
+
+	// 正常状态: 字符投递成功。
+	if !m.RouteChar('x') {
+		t.Fatal("visible focused edit should receive chars")
+	}
+	// 父窗口隐藏 → 焦点失效 → 放行并释放焦点。
+	win.Visible = false
+	if m.RouteChar('y') {
+		t.Fatal("char must pass through when focused ancestor is hidden")
+	}
+	if m.Focused != nil {
+		t.Fatal("invisible focus should be released")
+	}
+	if got != "x" {
+		t.Fatalf("expected 'x', got %q", got)
+	}
+}
+
+// 模态可见时键盘恒吞 (修复 M1/M2): 即使模态与焦点都没有处理器,
+// 也不能漏键给游戏 (对话框开着时不许放技能/开聊天)。
+func TestModalConsumesKeyboardWithoutHandler(t *testing.T) {
+	m := newTestManager()
+	modal := NewUIControl("modal", KindWindow)
+	m.ShowModal(modal) // 焦点落在模态自身, 无 OnChar/OnKeyDown
+
+	if !m.RouteChar('a') {
+		t.Fatal("visible modal must consume chars even without handler")
+	}
+	if !m.RouteKeyDown(257) {
+		t.Fatal("visible modal must consume keys even without handler")
+	}
+
+	// 模态不可见但引用残留 → 自清理后回到焦点路径
+	// (DWinCtl.pas:924-929); 焦点(模态自身)不可见 → 释放放行。
+	modal.Visible = false
+	if m.RouteChar('b') {
+		t.Fatal("stale invisible modal must not consume chars")
+	}
+	if m.Modal != nil {
+		t.Fatal("stale invisible modal should be self-cleaned")
+	}
+	if m.Focused != nil {
+		t.Fatal("invisible focus should be released")
+	}
+}
+
+// 模态内聚焦子控件正常收字符; CloseModal 释放子树内焦点 (修复 M4)。
+func TestModalCharDeliveryAndCloseModalFocusRelease(t *testing.T) {
+	m := newTestManager()
+	modal := NewUIControl("dlg", KindWindow)
+	edit := NewUIControl("edit", KindControl)
+	got := ""
+	edit.OnChar = func(c *UIControl, ch rune) { got += string(ch) }
+	modal.AddChild(edit)
+	m.ShowModal(modal)
+	m.SetFocus(edit)
+
+	if !m.RouteChar('h') || !m.RouteChar('i') {
+		t.Fatal("focused edit inside modal should receive chars")
+	}
+	if got != "hi" {
+		t.Fatalf("expected 'hi', got %q", got)
+	}
+
+	m.CloseModal(modal)
+	if m.Focused != nil {
+		t.Fatal("CloseModal must release focus inside the closed subtree")
+	}
+
+	// 焦点在模态子树之外时, CloseModal 不动它。
+	m2 := newTestManager()
+	outside := NewUIControl("btn", KindButton)
+	outside.Left, outside.Top, outside.Width, outside.Height = 10, 10, 30, 30
+	outside.Visible = true
+	m2.Root.AddChild(outside)
+	m2.SetFocus(outside)
+	modal2 := NewUIControl("dlg2", KindWindow)
+	modal2.EnableFocus = false // ShowModal 不抢焦点
+	m2.ShowModal(modal2)
+	m2.CloseModal(modal2)
+	if m2.Focused != outside {
+		t.Fatal("CloseModal must not touch focus outside the closed subtree")
+	}
+}
+
 func TestControlDesc(t *testing.T) {
 	m := newTestManager()
 	btn := NewUIControl("DSW", KindButton)

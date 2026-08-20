@@ -79,9 +79,20 @@ func (e *EditBox) paint(proj [16]float32) {
 		display = string(masked)
 	}
 	focused := gActiveUI != nil && gActiveUI.Focused == e.Ctrl
-	if focused && time.Now().UnixMilli()%1000 < 500 {
-		display += "|"
+	if focused {
+		// 向 IME 平台层通告输入框位置 (候选窗/组合窗定位)。
+		notifyTextInputRect(int(x), int(y), int(w), int(h))
 	}
-	e.text.DrawText(display, x+4, y+(h-float32(e.text.LineHeight()))/2,
-		1, 1, 1, 1, proj)
+	ty := y + (h-float32(e.text.LineHeight()))/2
+	e.text.DrawText(display, x+4, ty, 1, 1, 1, 1, proj)
+	cursorX := x + 4 + float32(e.text.MeasureText(display))
+	if focused && imePreedit != "" {
+		// 预编辑串 (仅 Windows 平台层提供): 接在已提交文本之后,
+		// 暖色区分 (对齐 Delphi TEdit 的组合态显示)。
+		e.text.DrawText(imePreedit, cursorX, ty, 1, 1, 0.6, 1, proj)
+		cursorX += float32(e.text.MeasureText(imePreedit))
+	}
+	if focused && time.Now().UnixMilli()%1000 < 500 {
+		e.text.DrawText("|", cursorX, ty, 1, 1, 1, 1, proj)
+	}
 }

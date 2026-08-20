@@ -64,9 +64,17 @@ type DialogBox struct {
 	buttons  []ModalResult
 	edit     *EditBox // 输入模式下非 nil (Delphi mbAbort 对话框)
 	onResult func(mr ModalResult, text string)
+	done     bool
 }
 
+// complete 只允许执行一次。Delphi 的阻塞消息循环天然单次
+// (FState.pas:2098-2117); Go 非阻塞实现里, onResult 携带网络动作
+// (丢金币/交易改金/行会操作), 任何残余的双触发路径都会造成重复发送。
 func (d *DialogBox) complete(mr ModalResult) {
+	if d.done {
+		return
+	}
+	d.done = true
 	text := ""
 	if d.edit != nil {
 		text = d.edit.Text

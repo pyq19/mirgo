@@ -125,6 +125,7 @@ func main() {
 	}
 	window.SetResizable(false)
 	defer window.Destroy()
+	mainWindow = window
 
 	glState, err := engine.NewGLState()
 	if err != nil {
@@ -453,6 +454,7 @@ func main() {
 		if handler != nil {
 			handler.Pump()
 		}
+		imeRefresh()
 		sceneMgr.Update(dt)
 		globalFade.tick()
 	}, func() {

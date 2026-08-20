@@ -730,7 +730,8 @@ func (s *LoginScene) OnChar(char rune) {
 
 // OnKey 处理键盘输入。
 func (s *LoginScene) OnKey(key int, action int) {
-	if action != 1 {
+	// release 不进 UI (Delphi VCL OnKeyDown 无 release)。
+	if action == 0 {
 		return
 	}
 	if !s.showLoginUI || s.doorOpening {
@@ -740,20 +741,27 @@ func (s *LoginScene) OnKey(key int, action int) {
 		return
 	}
 	if s.ui.Modal != nil {
-		s.ui.RouteKeyDown(key)
-		return
-	}
-	if s.mode == modeServerSelect && key == keyEscape {
-		if s.closeFunc != nil {
-			s.closeFunc()
+		// 登录模态是纯消息框 (ShowMessage), 无编辑框: 只认 press,
+		// 防 Enter repeat 连环触发 closeModal → 落进编辑框 OnEnter 提交。
+		if action == 1 {
+			s.ui.RouteKeyDown(key)
 		}
 		return
 	}
-	if key == keyTab {
-		s.cycleFocus()
-		return
+	if action == 1 {
+		if s.mode == modeServerSelect && key == keyEscape {
+			if s.closeFunc != nil {
+				s.closeFunc()
+			}
+			return
+		}
+		if key == keyTab {
+			s.cycleFocus()
+			return
+		}
 	}
 	if !s.connecting {
+		// press+repeat: 退格按住连删。
 		s.ui.RouteKeyDown(key)
 	}
 }

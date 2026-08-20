@@ -332,12 +332,18 @@ func (s *PlayScene) paintBottomBar(barY int, proj [16]float32) {
 
 		// 聊天输入行 — EdChat (208,581) 386×12.
 		if s.chatMode && s.ui.Modal == nil {
+			notifyTextInputRect(chatBoardX, 581, 386, 12)
 			s.gl.DrawQuadColor(chatBoardX, 581, 386, 12, 0.75, 0.75, 0.75, 1, proj)
-			cursor := ""
-			if time.Now().UnixMilli()%1000 < 500 {
-				cursor = "|"
+			s.text.DrawText(s.chatInput, chatBoardX+2, 581, 0, 0, 0, 1, proj)
+			cursorX := float32(chatBoardX+2) + float32(s.text.MeasureText(s.chatInput))
+			if imePreedit != "" {
+				// 预编辑串 (仅 Windows 平台层提供), 暖色区分。
+				s.text.DrawText(imePreedit, cursorX, 581, 0.6, 0, 0, 1, proj)
+				cursorX += float32(s.text.MeasureText(imePreedit))
 			}
-			s.text.DrawText(s.chatInput+cursor, chatBoardX+2, 581, 0, 0, 0, 1, proj)
+			if time.Now().UnixMilli()%1000 < 500 {
+				s.text.DrawText("|", cursorX, 581, 0, 0, 0, 1, proj)
+			}
 		}
 	}
 }

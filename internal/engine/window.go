@@ -19,6 +19,12 @@ type Window struct {
 	width  int
 	height int
 	title  string
+
+	// IME 预编辑状态, 由平台层写入 (Windows: IMM32, ime_windows.go;
+	// 其他平台无预编辑支持, 恒为空)。已提交的字符在所有平台都经
+	// char 回调送达, 与预编辑无关。
+	preedit    string
+	preeditCur int
 }
 
 // NewWindow 创建一个使用 OpenGL 3.3 Core Profile 的 GLFW 窗口。
@@ -51,12 +57,14 @@ func NewWindow(width, height int, title string) (*Window, error) {
 	gl.BlendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
 	gl.ClearColor(0, 0, 0, 1)
 
-	return &Window{
+	w := &Window{
 		window: window,
 		width:  width,
 		height: height,
 		title:  title,
-	}, nil
+	}
+	platformIMEInit(w)
+	return w, nil
 }
 
 // Run 用给定的 update 和 render 函数启动主循环。
@@ -98,8 +106,22 @@ func (w *Window) ShouldClose() bool {
 
 // Destroy 终止 GLFW。
 func (w *Window) Destroy() {
+	platformIMEShutdown()
 	w.window.Destroy()
 	glfw.Terminate()
+}
+
+// SetTextInputRect 告知平台层当前文本输入框的位置 (窗口像素坐标),
+// 用于定位输入法候选窗/组合窗 (Windows IMM32)。传空矩形表示当前
+// 没有活动的文本输入。对应 Delphi 中 IME 候选窗随 TEdit 定位的原生行为。
+func (w *Window) SetTextInputRect(x, y, width, height int) {
+	platformIMESetRect(x, y, width, height)
+}
+
+// Preedit 返回当前预编辑 (组合中) 文本及其光标位置 (rune 偏移)。
+// 无 IME 平台层支持时恒为空串。
+func (w *Window) Preedit() (string, int) {
+	return w.preedit, w.preeditCur
 }
 
 // GetSize 返回窗口大小。

@@ -91,9 +91,21 @@ func (m *UIManager) ShowModal(c *UIControl) {
 	}
 }
 
+// CloseModal 关闭模态窗口。焦点/捕获若落在被关闭的子树内必须一并释放:
+// Delphi 在模态结束时 RestoreHideControls 并按需重聚焦 EdChat
+// (FState.pas:712-720, :2119-2123); Go 若不释放, 焦点会永久留在已隐藏
+// 的输入控件上, 此后所有键盘输入被吞 (且 Enter 会重复触发旧对话框回调)。
+// 必须在此处集中做, 不能依赖调用方: 链式对话框 (ShowConfirm 回调里再
+// ShowInput) 依赖"先放焦 → 新模态再抢焦"的顺序。
 func (m *UIManager) CloseModal(c *UIControl) {
 	if m.Modal == c {
 		m.Modal = nil
+	}
+	if m.Focused != nil && withinSubtree(m.Focused, c) {
+		m.ReleaseFocus()
+	}
+	if m.Capture != nil && withinSubtree(m.Capture, c) {
+		m.ReleaseCapture()
 	}
 	c.Hide()
 }
@@ -159,26 +171,56 @@ func (m *UIManager) RouteDblClick(absX, absY int) bool {
 
 // RouteChar / RouteKeyDown: 优先模态子树, 否则发给焦点控件
 // (TDWinManager.KeyPress/KeyDown, DWinCtl.pas:916-974).
+//
+// 与 Delphi 的两处有意差异 (根因: Delphi 是双通道 — KeyPreview 吞掉的
+// 只是窗体预览, 字符仍由 VCL 送给 OS 焦点控件 EdChat; Go 是单通道,
+// 这里吞掉即彻底丢弃):
+//  1. 模态可见时恒吞 — 对话框打开期间绝不漏键给游戏 (不误放技能/吃药).
+//  2. 焦点控件没有对应处理器时放行 — Delphi 的"无处理器也吞"只影响
+//     窗体预览逻辑, 字符照样进 EdChat; Go 单通道下必须放宽, 否则
+//     点过任何 HUD 后聊天完全打不了字.
 func (m *UIManager) RouteChar(ch rune) bool {
-	target := m.Focused
-	if m.Modal != nil && m.Modal.Visible {
-		target = m.Modal
+	if m.Modal != nil {
+		if m.Modal.Visible {
+			m.dispatchChar(m.Modal, ch)
+			return true
+		}
+		m.Modal = nil // 自清理 (DWinCtl.pas:924-929)
 	}
-	if target == nil {
+	f := m.Focused
+	if f == nil {
 		return false
 	}
-	return m.dispatchChar(target, ch)
+	if !f.treeVisible() {
+		m.ReleaseFocus() // DWinCtl.pas:933-936
+		return false
+	}
+	if f.OnChar == nil {
+		return false
+	}
+	return m.dispatchChar(f, ch)
 }
 
 func (m *UIManager) RouteKeyDown(key int) bool {
-	target := m.Focused
-	if m.Modal != nil && m.Modal.Visible {
-		target = m.Modal
+	if m.Modal != nil {
+		if m.Modal.Visible {
+			m.dispatchKeyDown(m.Modal, key)
+			return true
+		}
+		m.Modal = nil
 	}
-	if target == nil {
+	f := m.Focused
+	if f == nil {
 		return false
 	}
-	return m.dispatchKeyDown(target, key)
+	if !f.treeVisible() {
+		m.ReleaseFocus()
+		return false
+	}
+	if f.OnKeyDown == nil {
+		return false
+	}
+	return m.dispatchKeyDown(f, key)
 }
 
 // ---------------------------------------------------------------------------
