@@ -262,3 +262,38 @@ func TestClientItemRoundTrip(t *testing.T) {
 		t.Errorf("EncodeBuffer round trip mismatch: ok=%v got %+v", ok, out2)
 	}
 }
+
+// TestMessageBodyWLRoundTrip 验证 SM_STRUCK 等消息使用的
+// TMessageBodyWL（Grobal2.pas:712-717）编解码往返。
+func TestMessageBodyWLRoundTrip(t *testing.T) {
+	in := MessageBodyWL{
+		LParam1: 0x00123456, // feature
+		LParam2: -2,         // charStatus 可为负（状态位）
+		LTag1:   900001,     // 攻击者 ID
+		LTag2:   1,          // 魔法标志
+	}
+	buf := EncodeMessageBodyWL(&in)
+	if len(buf) != MessageBodyWLSize {
+		t.Fatalf("EncodeMessageBodyWL len = %d, want %d", len(buf), MessageBodyWLSize)
+	}
+	out, ok := DecodeMessageBodyWL(buf)
+	if !ok {
+		t.Fatal("DecodeMessageBodyWL returned ok=false")
+	}
+	if out != in {
+		t.Errorf("round trip mismatch:\n got %+v\nwant %+v", out, in)
+	}
+
+	// 短数据应失败
+	if _, ok := DecodeMessageBodyWL(buf[:MessageBodyWLSize-1]); ok {
+		t.Error("DecodeMessageBodyWL(short) = ok, want false")
+	}
+
+	// 与 EncodeBuffer/Decode6BitBuf 组合往返（线上 body 格式）
+	seg := EncodeBuffer(buf)
+	raw := Decode6BitBuf([]byte(seg))
+	out2, ok := DecodeMessageBodyWL(raw)
+	if !ok || out2 != in {
+		t.Errorf("EncodeBuffer round trip mismatch: ok=%v got %+v", ok, out2)
+	}
+}

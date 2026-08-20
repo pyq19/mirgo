@@ -416,6 +416,30 @@ func (e *Environment) broadcastRefMsg(center *BaseObject, ident int, sourceID in
 	}
 }
 
+// broadcastStruckMsg 广播受击消息（Delphi RM_STRUCK，ObjBase.pas:4514-4518）。
+// Param1=受击后 HP，Param2=MaxHP，Param3=伤害，Dir=魔法标志
+//（RM_STRUCK_MAG 为 1，进 SM_STRUCK body 的 lTag2）。
+// broadcastRefMsg 无 Dir 字段，受击需要携带魔法标志故单列。
+func (e *Environment) broadcastStruckMsg(center *BaseObject, sourceID int32, hp, maxHP, damage, magicFlag int) {
+	objs := e.GetRangeObjects(center.CurrX, center.CurrY, viewRange)
+	for _, obj := range objs {
+		p, ok := obj.(*PlayObject)
+		if !ok || p.Ghost {
+			continue
+		}
+		p.msgMu.Lock()
+		p.msgList = append(p.msgList, SendMessage{
+			Ident:    RM_STRUCK,
+			Param1:   hp,
+			Param2:   maxHP,
+			Param3:   damage,
+			Dir:      magicFlag,
+			SourceID: sourceID,
+		})
+		p.msgMu.Unlock()
+	}
+}
+
 // broadcastDeathMsg 向附近玩家广播死亡消息。justDied=true 发送
 // SM_NOWDEATH（客户端播放死亡动画）；justDied=false 发送 SM_DEATH
 // （客户端直接显示尸体）。dir 是死者的朝向

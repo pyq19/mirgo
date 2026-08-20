@@ -57,6 +57,9 @@ type GameSection struct {
 	SpeedHackMax    int            `json:"speedHackMax"`
 	HitIntervalTime int64          `json:"hitIntervalTime"`
 	StruckTime      int64          `json:"struckTime"`
+	// Go 服务端专属配置（Delphi 原版无此项）：受击开启头顶血条，
+	// 默认开启；设为 false 回到仅心灵启示开启血条的原版行为。
+	ShowHPOnStruck  bool           `json:"showHPOnStruck"`
 }
 
 // CommandsSection 包含 GM 命令定义。
@@ -127,6 +130,7 @@ func ConvertServer(inputDir, outputDir string) error {
 			SpeedHackMax:    getINIInt(setup, "Setup", "OverSpeedKickCount", 4),
 			HitIntervalTime: int64(getINIInt(setup, "Setup", "HitIntervalTime", 1400)),
 			StruckTime:      int64(getINIInt(setup, "Setup", "StruckTime", 500)),
+			ShowHPOnStruck:  true,
 		},
 		Commands: CommandsSection{
 			Names:       getINISection(commands, "Command"),

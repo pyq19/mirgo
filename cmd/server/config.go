@@ -55,6 +55,9 @@ type ServerConfig struct {
 		WalkHitInterval  int64          `json:"walkHitInterval"`
 		RunMagicInterval int64          `json:"runMagicInterval"`
 		StruckTime       int64          `json:"struckTime"`
+		// 受击开启头顶血条（Go 专属配置，Delphi 原版无此行为，
+		// 原版仅心灵启示开启）。未配置(nil)按默认开启处理。
+		ShowHPOnStruck   *bool          `json:"showHPOnStruck"`
 		TurnInterval     int64          `json:"turnInterval"`
 		SpellInterval    int64          `json:"spellInterval"`
 		DigUpInterval    int64          `json:"digUpInterval"`
@@ -452,6 +455,16 @@ func (c *ServerConfig) GetStruckTime() int64 {
 		return c.Game.StruckTime
 	}
 	return 500
+}
+
+// GetShowHPOnStruck 受击是否开启头顶血条（Go 专属配置）。
+// 未配置(nil)按默认开启处理；设为 false 可关闭，回到仅心灵启示
+// 开启血条的 Delphi 原版行为。
+func (c *ServerConfig) GetShowHPOnStruck() bool {
+	if c.Game.ShowHPOnStruck == nil {
+		return true
+	}
+	return *c.Game.ShowHPOnStruck
 }
 
 func (c *ServerConfig) GetTurnInterval() int64 {

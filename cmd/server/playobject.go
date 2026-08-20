@@ -279,6 +279,17 @@ func (p *PlayObject) Operate(server *netserver.TCPServer) {
 
 	now := time.Now().UnixMilli()
 
+	// 血条延迟开启与到期关闭（Delphi ObjBase.pas:4029-4032；
+	// Run 循环中不分死活都执行）。怪物不消费消息队列，
+	// 故用字段式 pending 而非 SendDelayMsg。
+	if p.showHPPendingTick > 0 && now >= p.showHPPendingTick {
+		p.showHPPendingTick = 0
+		p.MakeOpenHealth()
+	}
+	if p.ShowHP && p.ShowHPInterval > 0 && now-p.ShowHPTick > p.ShowHPInterval {
+		p.BreakOpenHealth()
+	}
+
 	p.ProcessStatusEffects(server, now)
 	p.DecayPkPoint(now)
 	p.CheckPKStatus(now)
@@ -347,8 +358,16 @@ func (p *PlayObject) ProcessMessage(msg SendMessage, server *netserver.TCPServer
 	if p.Death {
 		switch msg.Ident {
 		case protocol.CMSay, protocol.CMQueryBagItems, protocol.CMTakeOnItem, protocol.CMTakeOffItem, protocol.CMWantMinimap, protocol.CMSitdown:
+			// 死亡时允许的查询/聊天类消息
 		default:
-			return
+			// RM 中继必须正常下发：死亡玩家仍需接收周围世界更新
+			// 与自己的死亡/骨架转换消息——自己的 RM_DEATH 是客户端
+			// SM_NOWDEATH（死亡动画+灰屏）的唯一来源，此前被死亡守卫
+			// 一并丢弃导致客户端永远不进入死亡流程。只拦截 CM_* 动作
+			// 消息（RM_* 编号均 >= rmIdentBase，CM_* 均小于它）。
+			if msg.Ident < rmIdentBase {
+				return
+			}
 		}
 	}
 	switch msg.Ident {
@@ -526,6 +545,23 @@ func (p *PlayObject) ProcessMessage(msg SendMessage, server *netserver.TCPServer
 		// 客户端重组 State = Param<<16 | Tag（main.go SMCharStatusChanged）
 		statusMsg := protocol.MakeDefaultMsg(protocol.SMCharStatusChanged, msg.SourceID, uint16(msg.Param1), uint16(msg.Param2), 0)
 		server.Send(p.Session.ID, statusMsg, "")
+	case RM_OPENHEALTH:
+		// Delphi ObjBase.pas:6288-6296：Recog=对象ID、Param=HP、Tag=MaxHP
+		openMsg := protocol.MakeDefaultMsg(protocol.SMOpenHealth, msg.SourceID, uint16(msg.Param1), uint16(msg.Param2), 0)
+		server.Send(p.Session.ID, openMsg, "")
+	case RM_CLOSEHEALTH:
+		// Delphi ObjBase.pas:6297-6305
+		closeMsg := protocol.MakeDefaultMsg(protocol.SMCloseHealth, msg.SourceID, 0, 0, 0)
+		server.Send(p.Session.ID, closeMsg, "")
+	case RM_HEALTHSPELLCHANGED:
+		// Delphi ObjBase.pas:5715-5723：Recog=角色ID、Param=HP、Tag=MP、Series=MaxHP
+		hpMsg := protocol.MakeDefaultMsg(protocol.SMHealthSpellChanged, msg.SourceID, uint16(msg.Param1), uint16(msg.Param2), uint16(msg.Param3))
+		server.Send(p.Session.ID, hpMsg, "")
+	case RM_DOOPENHEALTH:
+		// Delphi ObjBase.pas:4623-4626：心灵启示延迟 1500ms 生效
+		if b := objectBase(p.envir.getObjectByID(msg.SourceID)); b != nil {
+			b.MakeOpenHealth()
+		}
 	}
 }
 
@@ -1487,8 +1523,25 @@ func (p *PlayObject) applyDamage(server *netserver.TCPServer, target *BaseObject
 
 	// Delphi 仅当伤害>0 才下发 SM_STRUCK（ObjBase.pas:5470）；
 	// 魔法盾完全吸收（damage=0）时客户端不应播放受击动画。
+	// SM_STRUCK 携带受击后 HP/MaxHP（ObjBase.pas:5508-5518），
+	// 客户端血条数值据此实时更新。
 	if damage > 0 {
-		p.envir.broadcastRefMsg(target, RM_STRUCK, target.ID, damage, target.CurrY, dir)
+		magicFlag := 0
+		if magic {
+			magicFlag = 1
+		}
+		p.envir.broadcastStruckMsg(target, target.ID, int(target.WAbil.HP), int(target.WAbil.MaxHP), damage, magicFlag)
+		// 受击开启血条（Go 配置 showHPOnStruck，默认开启；
+		// Delphi 原版无此行为，仅心灵启示开启）。致死伤害不开，
+		// 死亡流程统一处理。
+		if hp > 0 && p.Engine.Config.GetShowHPOnStruck() {
+			target.StruckOpenHealth()
+		}
+		// 被"心灵启示"标记的目标同步血量（Delphi HealthSpellChanged
+		// 仅 m_boShowHP 时广播，ObjBase.pas:2239-2249）。
+		if target.ShowHP {
+			p.envir.broadcastRefMsg(target, RM_HEALTHSPELLCHANGED, target.ID, int(target.WAbil.HP), 0, int(target.WAbil.MaxHP))
+		}
 	}
 
 	// 攻击方武器磨损（Delphi ObjBase.pas:22255 + DoDamageWeapon:18967）：
@@ -1620,24 +1673,31 @@ func (p *PlayObject) sendHitToClient(server *netserver.TCPServer, smIdent uint16
 	server.Send(p.Session.ID, resp, body)
 }
 
+// sendStruckToClient 对应 Delphi RM_STRUCK→SM_STRUCK（ObjBase.pas:5508-5518）：
+// Recog=受害者 ID，Param=受害者 HP，Tag=MaxHP，Series=伤害，
+// body=TMessageBodyWL{lParam1=feature, lParam2=charStatus, lTag1=攻击者 ID,
+// lTag2=魔法标志}。broadcastStruckMsg 约定：Param1=HP, Param2=MaxHP,
+// Param3=damage, Dir=魔法标志。
 func (p *PlayObject) sendStruckToClient(server *netserver.TCPServer, msg SendMessage) {
 	resp := protocol.MakeDefaultMsg(protocol.SMStruck, msg.SourceID, uint16(msg.Param1), uint16(msg.Param2), uint16(msg.Param3))
-	// body[0:4] = 攻击者 ID, body[4:6] = 伤害值
 	var hiterID int32
+	obj := interface{}(nil)
 	if p.envir != nil {
-		if obj := p.envir.getObjectByID(msg.SourceID); obj != nil {
-			switch t := obj.(type) {
-			case *PlayObject:
-				hiterID = t.LastHiterID
-			case *MonsterObject:
-				hiterID = t.LastHiterID
-			}
+		obj = p.envir.getObjectByID(msg.SourceID)
+		switch t := obj.(type) {
+		case *PlayObject:
+			hiterID = t.LastHiterID
+		case *MonsterObject:
+			hiterID = t.LastHiterID
 		}
 	}
-	buf := make([]byte, 6)
-	binary.LittleEndian.PutUint32(buf[0:4], uint32(hiterID))
-	binary.LittleEndian.PutUint16(buf[4:6], uint16(msg.Param1))
-	body := protocol.EncodeBuffer(buf)
+	wl := protocol.MessageBodyWL{
+		LParam1: objectFeature(obj),
+		LParam2: int32(objectCharStatus(obj)),
+		LTag1:   hiterID,
+		LTag2:   int32(msg.Dir),
+	}
+	body := protocol.EncodeBuffer(protocol.EncodeMessageBodyWL(&wl))
 	server.Send(p.Session.ID, resp, body)
 }
 
@@ -1654,7 +1714,7 @@ func (p *PlayObject) sendDeathToClient(server *netserver.TCPServer, msg SendMess
 	body := ""
 	if p.envir != nil {
 		if obj := p.envir.getObjectByID(msg.SourceID); obj != nil {
-			body = protocol.EncodeBuffer(p.encodeCharDesc(objectFeature(obj), objectFeatureEx(obj)))
+			body = protocol.EncodeBuffer(p.encodeCharDesc(objectFeature(obj), int32(objectCharStatus(obj))))
 		}
 	}
 	server.Send(p.Session.ID, resp, body)
@@ -1667,7 +1727,7 @@ func (p *PlayObject) sendSkeletonToClient(server *netserver.TCPServer, msg SendM
 	body := ""
 	if p.envir != nil {
 		if obj := p.envir.getObjectByID(msg.SourceID); obj != nil {
-			body = protocol.EncodeBuffer(p.encodeCharDesc(objectFeature(obj), objectFeatureEx(obj)))
+			body = protocol.EncodeBuffer(p.encodeCharDesc(objectFeature(obj), int32(objectCharStatus(obj))))
 		}
 	}
 	server.Send(p.Session.ID, resp, body)
@@ -1680,7 +1740,7 @@ func (p *PlayObject) sendAliveToClient(server *netserver.TCPServer, msg SendMess
 	body := ""
 	if p.envir != nil {
 		if obj := p.envir.getObjectByID(msg.SourceID); obj != nil {
-			body = protocol.EncodeBuffer(p.encodeCharDesc(objectFeature(obj), objectFeatureEx(obj)))
+			body = protocol.EncodeBuffer(p.encodeCharDesc(objectFeature(obj), int32(objectCharStatus(obj))))
 		}
 	}
 	server.Send(p.Session.ID, resp, body)
@@ -1688,6 +1748,8 @@ func (p *PlayObject) sendAliveToClient(server *netserver.TCPServer, msg SendMess
 
 // objectCharStatus 计算状态位（Delphi m_nCharStatus，StatusChanged
 // ObjBase.pas:20139-20142）：StatusTimeArr[i]>0 → bit(31-i)。
+// ShowHP 时并入 STATE_OPENHEATH 低字位（GetCharStatus，
+// ObjBase.pas:20074-20088）。
 func objectCharStatus(obj interface{}) uint32 {
 	base := objectBase(obj)
 	if base == nil {
@@ -1698,6 +1760,9 @@ func objectCharStatus(obj interface{}) uint32 {
 		if base.StatusTimeArr[i] > 0 {
 			status |= 0x80000000 >> uint(i)
 		}
+	}
+	if base.ShowHP {
+		status |= STATE_OPENHEATH
 	}
 	return status
 }
@@ -1815,7 +1880,9 @@ func (p *PlayObject) addExp(server *netserver.TCPServer, exp int) {
 	}
 	p.WAbil.Exp += uint32(exp)
 
-	expMsg := protocol.MakeDefaultMsg(protocol.SMWinExp, int32(exp), 0, 0, 0)
+	// Delphi SM_WINEXP（ObjBase.pas:5577-5581）：Recog=新总经验，
+	// Param/Tag=增量低/高字，客户端聊天框提示"已获得 N 点经验值.."。
+	expMsg := protocol.MakeDefaultMsg(protocol.SMWinExp, int32(p.WAbil.Exp), uint16(exp&0xFFFF), uint16(exp>>16), 0)
 	server.Send(p.Session.ID, expMsg, "")
 
 	maxExp := p.GetMaxExp()
@@ -1827,7 +1894,8 @@ func (p *PlayObject) addExp(server *netserver.TCPServer, exp int) {
 		p.WAbil.HP = p.WAbil.MaxHP
 		p.WAbil.MP = p.WAbil.MaxMP
 
-		levelMsg := protocol.MakeDefaultMsg(protocol.SMLevelUp, int32(p.WAbil.Level), 0, 0, 0)
+		// Delphi SM_LEVELUP（ObjBase.pas:5582-5596）：Recog=当前经验，Param=等级。
+		levelMsg := protocol.MakeDefaultMsg(protocol.SMLevelUp, int32(p.WAbil.Exp), uint16(p.WAbil.Level), 0, 0)
 		server.Send(p.Session.ID, levelMsg, "")
 
 		p.BonusPoint += p.Engine.Config.GetBonusPerLevel()
@@ -1851,11 +1919,15 @@ func (p *PlayObject) GetMaxExp() uint32 {
 }
 
 func (p *PlayObject) sendHealthSpell(server *netserver.TCPServer) {
-	// Recog=HP, Param=MaxHP, Tag=MP, Series=MaxMP（双端同步修改；
-	// 旧的 HP<<16|MP 打包方式导致客户端把 MP 读成 HP）。
+	// Delphi 格式（ObjBase.pas:5715-5723）：Recog=角色 ID、Param=HP、
+	// Tag=MP、Series=MaxHP。MaxMP 不在本消息内，客户端由 SMAbility 提供。
 	resp := protocol.MakeDefaultMsg(protocol.SMHealthSpellChanged,
-		int32(p.WAbil.HP), uint16(p.WAbil.MaxHP), uint16(p.WAbil.MP), uint16(p.WAbil.MaxMP))
+		p.ID, uint16(p.WAbil.HP), uint16(p.WAbil.MP), uint16(p.WAbil.MaxHP))
 	server.Send(p.Session.ID, resp, "")
+	// 被"心灵启示"标记时向周围广播（ObjBase.pas:2239-2249）。
+	if p.ShowHP && p.envir != nil {
+		p.envir.broadcastRefMsg(p.BaseObject, RM_HEALTHSPELLCHANGED, p.ID, int(p.WAbil.HP), int(p.WAbil.MP), int(p.WAbil.MaxHP))
+	}
 }
 
 func (p *PlayObject) Regenerate(server *netserver.TCPServer, now int64) {
@@ -2335,6 +2407,7 @@ func (p *PlayObject) HandlePickup(msg SendMessage, server *netserver.TCPServer) 
 		log.Logf(log.LevelInfo, "PlayObject", "%s picked up %d gold (total: %d)", p.Name, item.Gold, p.Gold)
 	} else {
 		added := false
+		var addedItem *protocol.UserItem
 		if item.UserItem != nil {
 			if len(p.ItemList) < p.Engine.Config.GetMaxBagSlots() {
 				// 负重检查（Delphi: IsAddWeightAvailable, ObjBase.pas:2085）
@@ -2347,6 +2420,7 @@ func (p *PlayObject) HandlePickup(msg SendMessage, server *netserver.TCPServer) 
 					}
 				}
 				p.ItemList = append(p.ItemList, item.UserItem)
+				addedItem = item.UserItem
 				added = true
 			} else {
 				p.sysMsg(server, "背包已满")
@@ -2354,12 +2428,25 @@ func (p *PlayObject) HandlePickup(msg SendMessage, server *netserver.TCPServer) 
 			}
 		} else if p.ItemDB != nil {
 			if def := p.ItemDB.GetByName(item.Name); def != nil {
-				added = p.GiveItem(def.Idx)
+				addedItem, added = p.GiveItem(def.Idx)
 			}
 		}
 		if added {
-			resp := protocol.MakeDefaultMsg(protocol.SMDropItemSuccess, 1, 0, 0, 0)
-			server.Send(p.Session.ID, resp, protocol.EncodeString(item.Name))
+			// 拾取成功 → SM_ADDITEM + TClientItem body（Delphi SendAddItem，
+			// ObjBase.pas:2094-2125）；客户端显示绿字"放到包囊"
+			//（ClMain.pas:5253-5262）。SMDropItemSuccess 仅留给扔物品流程。
+			if addedItem != nil && p.ItemDB != nil {
+				if def := p.ItemDB.GetByIdx(int(addedItem.WIndex)); def != nil {
+					ci := protocol.ClientItem{
+						S:         StdItemOf(def),
+						MakeIndex: addedItem.MakeIndex,
+						Dura:      addedItem.Dura,
+						DuraMax:   addedItem.DuraMax,
+					}
+					addMsg := protocol.MakeDefaultMsg(protocol.SMAddItem, 0, 0, 0, 0)
+					server.Send(p.Session.ID, addMsg, protocol.EncodeBuffer(protocol.EncodeClientItem(&ci)))
+				}
+			}
 			p.RecalcAbilitys()
 			p.SendBagItemsFull(server)
 			p.sendWeightChanged(server)
@@ -2394,7 +2481,9 @@ func (p *PlayObject) sendMovementToClient(server *netserver.TCPServer, smIdent u
 		return
 	}
 	resp := protocol.MakeDefaultMsg(smIdent, msg.SourceID, uint16(msg.Param2), uint16(msg.Param3), uint16(msg.Param1))
-	body := protocol.EncodeBuffer(p.encodeCharDesc(objectFeature(obj), objectFeatureEx(obj)))
+	// body=TCharDesc{feature, charStatus}（ObjBase.pas:5296-5299）。
+	// 马/衣服特效改由 SMFeatureChanged 携带（ObjBase.pas:5456-5465）。
+	body := protocol.EncodeBuffer(p.encodeCharDesc(objectFeature(obj), int32(objectCharStatus(obj))))
 	server.Send(p.Session.ID, resp, body)
 }
 
@@ -2408,11 +2497,16 @@ func (p *PlayObject) sendTurnToClient(server *netserver.TCPServer, msg SendMessa
 		return
 	}
 	resp := protocol.MakeDefaultMsg(protocol.SMTurn, msg.SourceID, uint16(msg.Param2), uint16(msg.Param3), uint16(msg.Param1))
-	body := protocol.EncodeBuffer(p.encodeCharDesc(objectFeature(obj), objectFeatureEx(obj)))
+	// body=TCharDesc{feature, charStatus}（ObjBase.pas:5449-5454）。
+	body := protocol.EncodeBuffer(p.encodeCharDesc(objectFeature(obj), int32(objectCharStatus(obj))))
 	if src.Name != "" {
 		body += protocol.EncodeString(src.Name)
 	}
 	server.Send(p.Session.ID, resp, body)
+	// Delphi RM_TURN 后紧跟 SM_FEATURECHANGED 携带扩展外观
+	//（ObjBase.pas:5456-5465）：移动 body 不再带 featureEx 后，
+	// 观察者客户端靠它获得马/衣服特效状态。
+	p.sendFeatureChangedToClient(server, msg)
 }
 
 func (p *PlayObject) sendDisappearToClient(server *netserver.TCPServer, msg SendMessage) {
@@ -2475,11 +2569,11 @@ func (p *PlayObject) newVisibleEntryMsg(obj interface{}) (protocol.DefaultMessag
 			ident = protocol.SMSkeleton
 		}
 		resp := protocol.MakeDefaultMsg(ident, base.ID, uint16(base.CurrX), uint16(base.CurrY), uint16(base.Dir))
-		body := protocol.EncodeBuffer(p.encodeCharDesc(objectFeature(obj), objectFeatureEx(obj)))
+		body := protocol.EncodeBuffer(p.encodeCharDesc(objectFeature(obj), int32(objectCharStatus(obj))))
 		return resp, body
 	}
 	resp := protocol.MakeDefaultMsg(protocol.SMTurn, base.ID, uint16(base.CurrX), uint16(base.CurrY), uint16(base.Dir))
-	body := protocol.EncodeBuffer(p.encodeCharDesc(objectFeature(obj), objectFeatureEx(obj)))
+	body := protocol.EncodeBuffer(p.encodeCharDesc(objectFeature(obj), int32(objectCharStatus(obj))))
 	if base.Name != "" {
 		body += protocol.EncodeString(base.Name)
 	}
@@ -2546,6 +2640,12 @@ func (p *PlayObject) SearchViewRange(server *netserver.TCPServer) {
 			}
 			resp, body := p.newVisibleEntryMsg(obj)
 			server.Send(p.Session.ID, resp, body)
+			// 新入视野活体补发 SMFeatureChanged 携带马/衣服特效
+			//（Delphi SM_TURN 后紧跟 SM_FEATURECHANGED，
+			// ObjBase.pas:5456-5465；移动 body 不再带 featureEx）。
+			if resp.Ident == protocol.SMTurn {
+				p.sendFeatureChangedToClient(server, SendMessage{SourceID: id})
+			}
 		}
 	}
 

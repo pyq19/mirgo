@@ -29,10 +29,13 @@
 - [x] 怪物死亡后尸体消失过快 (SearchViewRange 不再排除死亡对象, 尸体保留 3 分钟至 ghost, ghost 广播 RM_DISAPPEAR; 后进入者经 SM_DEATH/SM_SKELETON 建尸体)
 - [x] 怪物死亡后, 鸡死后直接爆鸡肉, 明显不是原版 176 行为. 应该杀鸡后, 要挖肉才得到鸡肉 (动物死亡不散落, 掉落物刷怪时 roll 进尸体背包, Alt 挖肉扣皮量耗尽出货+骨架化)
 - [x] 特化怪物渲染全量补齐(数据化方案): 死亡特效族18种/攻击特效族20+种/投射物6种/施法/物体类8种/城门城墙全状态机, 数据表见 cmd/client/moneffect.go (对照 Delphi AxeMon.pas+HerbActor.pas)
-- [ ] 不同分辨率下的字体模糊问题
-- [ ] 血条会挡住人物/怪物, 以及怪物被攻击后, 血条不变. 血条的行为应该完全遵守delphi版实现
-- [ ] 拾取物品时, 左上角绿字提示, 遵守delphi版实现
-- [ ] 击杀怪物后, 增加经验值的消息要在聊天框中提示, 遵守delphi版实现
+- [x] bug: 不同分辨率下的字体模糊问题 (字形按物理像素倍率光栅化+缓存物理度量, DrawText 物理像素走笔/整数对齐, 缩放源改 GetFramebufferSize+回调; engine/text.go)
+- [x] bug: 血条会挡住人物/怪物, 以及怪物被攻击后, 血条没有改变. 血条的行为应该完全遵守delphi版实现 (血条改为 DrawScrn.pas:277-302 式顶层覆盖层 pass; 血条机制: 心灵启示技能28完整流程+STATE_OPENHEATH 状态位+到期 SMCloseHealth; SMStruck 改 Delphi 格式携带 HP/MaxHP 实时更新; SMHealthSpellChanged Delphi 格式+ShowHP 广播; 移动消息 body 第二槽 featureEx→charStatus, 马状态改由 SMFeatureChanged 补偿; 受击开启血条=Go 专属 jsonc 配置 game.showHPOnStruck 默认开启/10秒无命中自动关, serverconfig 转换写入默认值)
+- [x] 拾取物品时, 左上角绿字提示, 遵守delphi版实现 (拾取改发 SMAddItem+TClientItem body, 客户端 AddSysMsg/DrawScreenTop: 左上角(30,40)绿字黑描边/行距16/3000ms/上限10条; "<物品名> 放到包囊."; 金币改绿字 "%d 金币 金币.")
+- [x] 击杀怪物后, 增加经验值的消息要在聊天框中提示, 遵守delphi版实现 (SMWinExp 改 Delphi 格式 Recog=总经验/Param+Tag=增量, 聊天框白字红底"已获得 N 点经验值.."; SMLevelUp Recog=Exp/Param=Level, 升级绿字"恭喜！你升级了!"+紫底祝贺语)
+- [ ] 聊天框样式细节微调
+- [ ] 检查所有 GM 命令
+- [ ] 玩家角色死亡后, 聊天框应该有提示, 目前没有
 
 # server
 
@@ -55,8 +58,9 @@
 
 # serverconfig
 
-- [ ] serverconfig 转换出来的配置文件要带上本项目的 go 服务端额外的一些配置, 而不仅仅是 176 服务端原本的配置
-- [ ] serverconfig 转换出来的配置文件要带上中文注释
+serverconfig 转换出来的配置文件要带上本项目的 go 服务端额外的一些配置, 而不仅仅是 176 服务端原本的配置
+
+- [ ] serverconfig 转换出来的配置文件要带上中文注释, 发挥 jsonc 可以注释的优势
 
 # 综合
 

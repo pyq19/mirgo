@@ -7,16 +7,19 @@ import (
 )
 
 type MagicDef struct {
-	MagID      int    `json:"magId"`
-	MagName    string `json:"magName"`
-	EffectType int    `json:"effectType"`
-	Effect     int    `json:"effect"`
-	Spell      int    `json:"spell"`
-	Power      int    `json:"power"`
-	MaxPower   int    `json:"maxPower"`
-	Job        int    `json:"job"`
-	NeedL1     int    `json:"needL1"`
-	Delay      int    `json:"delay"`
+	MagID       int    `json:"magId"`
+	MagName     string `json:"magName"`
+	EffectType  int    `json:"effectType"`
+	Effect      int    `json:"effect"`
+	Spell       int    `json:"spell"`
+	Power       int    `json:"power"`
+	MaxPower    int    `json:"maxPower"`
+	Job         int    `json:"job"`
+	NeedL1      int    `json:"needL1"`
+	Delay       int    `json:"delay"`
+	DefPower    int    `json:"defPower"`    // Delphi MagicInfo.btDefPower
+	DefMaxPower int    `json:"defMaxPower"` // Delphi MagicInfo.btDefMaxPower
+	MaxTrainLv  int    `json:"maxTrainLv"`  // Delphi MagicInfo.btTrainLv
 }
 
 type MagicDB struct {

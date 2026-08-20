@@ -186,6 +186,17 @@ type ClientItem struct {
 	DuraMax   uint16   // 最大耐久
 }
 
+// MessageBodyWL 是 16 字节通用消息体。
+// 对应 Delphi TMessageBodyWL（Grobal2.pas:712-717）。
+// SM_STRUCK 用法：LParam1=feature，LParam2=charStatus，
+// LTag1=攻击者 ID，LTag2=魔法标志（RM_STRUCK_MAG 为 1）。
+type MessageBodyWL struct {
+	LParam1 int32
+	LParam2 int32
+	LTag1   int32
+	LTag2   int32
+}
+
 // Ability 表示角色能力。
 // 大小：50 字节（紧凑排列）—— 对应 Delphi TAbility（Grobal2.pas:734）
 type Ability struct {

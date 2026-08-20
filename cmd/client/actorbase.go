@@ -148,10 +148,10 @@ type Actor struct {
 	RushBounceDir   int   // bounce direction
 	Overweight      bool  // F3: 超重标志（移动减速）
 	NameColor       int   // SMChangeNameColor: 名字颜色调色板索引（249=红名, 251=黄名, 255=白）
-	ShowHP          bool  // SMOpenHealth: 显示头顶HP条
-	ShowHPVal       int   // 当前HP
-	ShowMaxHPVal    int   // 最大HP
+	ShowHP          bool  // m_boOpenHealth: 显示头顶HP条（SMOpenHealth/状态位）
 	ShowHPUntil     int64 // SMInstanceHealGuage: 血条到期时间（0=常驻，Delphi 2s）
+	HP              int   // m_Abil.HP：SMStruck/SMHealthSpellChanged 同步
+	MaxHP           int   // m_Abil.MaxHP
 
 	// NPC 特效覆盖层（Delphi TNpcActor: Actor.pas:760-775）
 	NpcUseEffect     bool  // m_boUseEffect
@@ -260,8 +260,14 @@ func (a *Actor) ProcMsg() {
 
 func (a *Actor) ReadyAction(msg ActorMsg) {
 	switch msg.Ident {
-	case protocol.SMWalk, protocol.SMRun, protocol.SMTurn, protocol.SMRush, protocol.SMRushKung, protocol.SMBackStep, protocol.SMHorseRun:
+	case protocol.SMWalk, protocol.SMRun, protocol.SMTurn, protocol.SMRush, protocol.SMRushKung, protocol.SMBackStep, protocol.SMHorseRun, protocol.SMDigUp, protocol.SMAlive:
 		a.updateFeature(msg.Feature)
+		// Delphi ReadyAction（Actor.pas:1452-1463）：移动/出现消息按
+		// charStatus 的 STATE_OPENHEATH 位重置头顶血条开关。
+		if !a.Death {
+			a.State = int32(msg.State)
+			a.ShowHP = msg.State&0x02 != 0
+		}
 	}
 
 	if msg.Ident >= 3000 && msg.Ident <= 3099 {

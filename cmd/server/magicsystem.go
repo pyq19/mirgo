@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/binary"
+	"math"
 	"math/rand"
 	"time"
 
@@ -563,15 +564,18 @@ func (p *PlayObject) castTaoistSpell(server *netserver.TCPServer, magID, power, 
 				}
 			}
 		}
-	case 28: // Show HP: reveal target's health bar
+	case 28: // 心灵启示：延迟 1.5s 开启目标头顶血条（Delphi Magic.pas:522-531）
 		target := p.findAttackTarget(tx, ty)
-		if target != nil {
-			if tp := p.envir.getPlayerByBase(target); tp != nil {
-				msg := protocol.MakeDefaultMsg(protocol.SMOpenHealth, tp.ID, uint16(tp.WAbil.HP), uint16(tp.WAbil.MaxHP), 0)
-				server.Send(p.Session.ID, msg, protocol.EncodeString(tp.Name))
-			} else if mon := p.envir.getMonsterByBase(target); mon != nil {
-				msg := protocol.MakeDefaultMsg(protocol.SMOpenHealth, mon.ID, uint16(mon.WAbil.HP), uint16(mon.WAbil.MaxHP), 0)
-				server.Send(p.Session.ID, msg, protocol.EncodeString(mon.Name))
+		if target != nil && !target.ShowHP {
+			lv := 0
+			if m := p.findMagic(28); m != nil {
+				lv = m.Level
+			}
+			if rand.Intn(6) <= lv+3 {
+				now := time.Now().UnixMilli()
+				target.ShowHPTick = now
+				target.ShowHPInterval = int64(p.magicDuration13(28)) * 1000
+				target.showHPPendingTick = now + 1500
 			}
 		}
 	case 49: // 净化术：Delphi SKILL_49 原样为空实现（Magic.pas:678-680，
@@ -700,6 +704,44 @@ func (p *PlayObject) findMagic(magID int) *PlayerMagic {
 		}
 	}
 	return nil
+}
+
+// getRPow 对应 Delphi GetRPow（Magic.pas:247-252）：打包 word 高字>低字时
+// 在 [低字, 高字] 内随机，否则取低字。入参如 SC（低字下限/高字上限）。
+func getRPow(w int) int {
+	lo, hi := w&0xFFFF, w>>16
+	if hi > lo {
+		return rand.Intn(hi-lo+1) + lo
+	}
+	return lo
+}
+
+// magicDuration13 对应 Delphi GetPower13（Magic.pas:238-246），返回秒数。
+// 心灵启示（技能 28）用它计算血条显示时长：
+// GetPower13(GetRPow(SC)*2 + 30) * 1000 ms（Magic.pas:526）。
+func (p *PlayObject) magicDuration13(magID int) int {
+	trainLv, defPow, defMax := 3, 0, 0
+	if p.MagicDB != nil {
+		if def := p.MagicDB.GetByID(magID); def != nil {
+			trainLv, defPow, defMax = def.MaxTrainLv, def.DefPower, def.DefMaxPower
+		}
+	}
+	if trainLv <= 0 {
+		trainLv = 3
+	}
+	lv := 0
+	if m := p.findMagic(magID); m != nil {
+		lv = m.Level
+	}
+	n := getRPow(int(p.WAbil.SC))*2 + 30
+	d10 := float64(n) / 3.0
+	extra := 0
+	// Delphi Random(0)=0；Go rand.Intn(0) 会 panic，需 guard。
+	if defMax > defPow {
+		extra = rand.Intn(defMax - defPow)
+	}
+	d18 := float64(n) - d10
+	return int(math.Round(d18/float64(trainLv+1)*float64(lv+1) + d10 + float64(defPow+extra)))
 }
 
 func (p *PlayObject) learnMagic(magID, level int, key byte) {

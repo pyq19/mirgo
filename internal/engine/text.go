@@ -32,13 +32,19 @@ func SetTextScale(s float64) {
 	}
 }
 
-// glyphEntry 是缓存的字形纹理。
+// glyphEntry 是缓存的字形纹理。逻辑度量（w/h/advance/bearingX/bearingY）
+// 用于布局（MeasureText 等）；物理度量（pw/ph/padv/pbx/pby）是光栅化纹理
+// 的真实像素度量，DrawText 按物理像素走笔以保持像素对齐。scale==1 时两者相同。
 type glyphEntry struct {
-	tex     uint32 // GL 纹理 ID
-	w, h    int    // 字形像素尺寸
-	advance int    // 水平步进（像素）
-	bearingX int   // 左侧 bearing
-	bearingY int   // 顶部 bearing（从基线到字形顶部）
+	tex      uint32 // GL 纹理 ID
+	w, h     int    // 字形像素尺寸（逻辑）
+	advance  int    // 水平步进（逻辑像素）
+	bearingX int    // 左侧 bearing（逻辑）
+	bearingY int    // 顶部 bearing（从基线到字形顶部，逻辑）
+	pw, ph   int    // 纹理物理像素尺寸
+	padv     int    // 物理水平步进
+	pbx      int    // 物理左侧 bearing
+	pby      int    // 物理顶部 bearing（从基线到字形顶部）
 }
 
 // TextRenderer 使用 TTF 字体渲染文本，并缓存字形纹理。
@@ -46,10 +52,11 @@ type glyphEntry struct {
 // hinting/点阵清晰度；其余平台回退 x/image 矢量抗锯齿。
 type TextRenderer struct {
 	gl         *GLState
-	face       font.Face   // 逻辑尺寸 face（度量/布局）
-	renderFace font.Face   // 高分辨率 face（光栅化），nil 时 == face
-	ascent     int         // 从基线到行顶的逻辑像素数
-	scale      float64     // 光栅化倍率（1.0 = 不缩放）
+	face       font.Face // 逻辑尺寸 face（度量/布局）
+	renderFace font.Face // 高分辨率 face（光栅化），nil 时 == face
+	ascent     int       // 从基线到行顶的逻辑像素数
+	ascentPhys int       // 从基线到行顶的物理像素数（与实际光栅 face 一致，scale==1 时 == ascent）
+	scale      float64   // 光栅化倍率（1.0 = 不缩放）
 	cache      map[rune]*glyphEntry
 	cacheMu    sync.RWMutex
 	size       float64
@@ -85,7 +92,7 @@ var fontSearchPaths = []string{
 	// Windows：Delphi 原版默认宋体（MShare.pas:216-228 g_sCurFontName），
 	// 9pt 行高恰好容纳聊天板 12px 行距（FState:3703）。
 	`C:\Windows\Fonts\simsun.ttc`, // 宋体
-	`C:\Windows\Fonts\msyh.ttc`,  // 微软雅黑
+	`C:\Windows\Fonts\msyh.ttc`,   // 微软雅黑
 	`C:\Windows\Fonts\msyhbd.ttc`, // 微软雅黑 Bold
 	`C:\Windows\Fonts\simhei.ttf`, // 黑体
 	`C:\Windows\Fonts\arial.ttf`,  // Arial（英文兜底）
@@ -169,6 +176,7 @@ func NewTextRenderer(glState *GLState, fontPath string, size float64) (*TextRend
 	if tr.gdi != nil {
 		tr.ascent = tr.gdi.ascent
 	}
+	tr.ascentPhys = tr.ascent
 	allRenderers = append(allRenderers, tr)
 	if TextScale != 1 {
 		tr.SetScale(TextScale)
@@ -214,6 +222,7 @@ func (tr *TextRenderer) WithSize(size float64) (*TextRenderer, error) {
 	if child.gdi != nil {
 		child.ascent = child.gdi.ascent
 	}
+	child.ascentPhys = child.ascent
 	allRenderers = append(allRenderers, child)
 	if TextScale != 1 {
 		child.SetScale(TextScale)
@@ -239,6 +248,12 @@ func (tr *TextRenderer) SetScale(s float64) {
 		if s != 1 {
 			tr.gdiRender, _ = newGdiFont(tr.gdiFamily, int(math.Round(float64(tr.gdiPx)*s)))
 		}
+		if tr.gdiRender != nil {
+			tr.ascentPhys = tr.gdiRender.ascent
+		} else {
+			// 高分辨率字体创建失败（或 s==1）：回退逻辑度量。
+			tr.ascentPhys = tr.ascent
+		}
 		tr.clearCache()
 		return
 	}
@@ -260,6 +275,11 @@ func (tr *TextRenderer) SetScale(s float64) {
 				tr.renderFace = face
 			}
 		}
+	}
+	if tr.renderFace != nil {
+		tr.ascentPhys = tr.renderFace.Metrics().Ascent.Ceil()
+	} else {
+		tr.ascentPhys = tr.ascent
 	}
 	tr.clearCache()
 }
@@ -284,17 +304,33 @@ func (tr *TextRenderer) getGlyph(ch rune) *glyphEntry {
 	}
 	tr.cacheMu.RUnlock()
 
-	// GDI 后端（Windows）：度量取逻辑字体，纹理取高分辨率字体。
+	// GDI 后端（Windows）：逻辑度量取逻辑字体，纹理与物理度量取高分辨率字体
+	// （gdiFont.glyph 的度量即该字体自身物理像素：GetTextExtentPoint32W + 墨迹框）。
 	if tr.gdi != nil {
 		img, gw, gh, advance, topX, topY, ok := tr.gdi.glyph(ch)
 		if !ok {
 			spaceAdv, _ := tr.face.GlyphAdvance(' ')
-			return &glyphEntry{advance: spaceAdv.Ceil()}
+			g := &glyphEntry{advance: spaceAdv.Ceil(), padv: spaceAdv.Ceil()}
+			if tr.gdiRender != nil {
+				if _, _, _, radv, _, _, rok := tr.gdiRender.glyph(' '); rok {
+					g.padv = radv
+				}
+			}
+			return g
 		}
 		src := img
+		// 物理度量默认为逻辑度量复制（scale==1 或高分辨率光栅失败时），
+		// 高分辨率成功后改用 gdiRender 的物理度量。
+		pw, ph, padv, pbx, pby := gw, gh, advance, topX, tr.ascent-topY
 		if tr.gdiRender != nil {
-			if rimg, _, _, _, _, _, rok := tr.gdiRender.glyph(ch); rok && rimg != nil {
-				src = rimg
+			rimg, rw, rh, radv, rtopX, rtopY, rok := tr.gdiRender.glyph(ch)
+			if rok {
+				padv = radv
+				if rimg != nil {
+					src = rimg
+					pw, ph, pbx = rw, rh, rtopX
+					pby = tr.gdiRender.ascent - rtopY
+				}
 			}
 		}
 		var tex uint32
@@ -310,6 +346,11 @@ func (tr *TextRenderer) getGlyph(ch rune) *glyphEntry {
 			// DrawText 以 y+ascent-bearingY 定位字形顶：GDI 裁剪框顶
 			// 相对行顶为 topY，等价 bearingY = ascent-topY。
 			bearingY: tr.ascent - topY,
+			pw:       pw,
+			ph:       ph,
+			padv:     padv,
+			pbx:      pbx,
+			pby:      pby,
 		}
 		tr.cacheMu.Lock()
 		tr.cache[ch] = g
@@ -317,17 +358,34 @@ func (tr *TextRenderer) getGlyph(ch rune) *glyphEntry {
 		return g
 	}
 
+	// 光栅 face：scale > 1 时为高分辨率 renderFace，否则为逻辑 face。
+	// 其 fixed26.6 度量即物理像素值。
+	rf := tr.renderFace
+	if rf == nil {
+		rf = tr.face
+	}
+	// physAdv 取实际光栅 face 的物理 advance（失败时空格兜底）。
+	physAdv := func(r rune) int {
+		if a, ok := rf.GlyphAdvance(r); ok {
+			return a.Ceil()
+		}
+		if a, ok := rf.GlyphAdvance(' '); ok {
+			return a.Ceil()
+		}
+		return 0
+	}
+
 	// 逻辑度量（用于布局/quad 尺寸）。
 	advance, ok := tr.face.GlyphAdvance(ch)
 	if !ok {
 		spaceAdv, _ := tr.face.GlyphAdvance(' ')
-		return &glyphEntry{advance: spaceAdv.Ceil()}
+		return &glyphEntry{advance: spaceAdv.Ceil(), padv: physAdv(' ')}
 	}
 
 	bounds, _, ok := tr.face.GlyphBounds(ch)
 	if !ok {
 		spaceAdv, _ := tr.face.GlyphAdvance(' ')
-		return &glyphEntry{advance: spaceAdv.Ceil()}
+		return &glyphEntry{advance: spaceAdv.Ceil(), padv: physAdv(' ')}
 	}
 
 	logMinX := bounds.Min.X.Floor()
@@ -339,21 +397,19 @@ func (tr *TextRenderer) getGlyph(ch rune) *glyphEntry {
 	gh := logMaxY - logMinY
 
 	if gw <= 0 || gh <= 0 {
-		return &glyphEntry{advance: advance.Ceil()}
+		return &glyphEntry{advance: advance.Ceil(), padv: physAdv(ch)}
 	}
 
 	// 光栅化：scale > 1 时用 renderFace 生成高分辨率位图。
-	rf := tr.renderFace
-	if rf == nil {
-		rf = tr.face
-	}
+	// 物理度量默认为逻辑度量复制（rf==tr.face 即 scale==1 时两者本就相同）。
+	pw, ph, pbx, pby, padv := gw, gh, logMinX, -logMinY, advance.Ceil()
 	var img *image.RGBA
 	if rf == tr.face {
 		img = image.NewRGBA(image.Rect(0, 0, gw, gh))
 		d := &font.Drawer{Dst: img, Src: image.White, Face: rf, Dot: fixed.P(-logMinX, -logMinY)}
 		d.DrawString(string(ch))
 	} else {
-		// 高分辨率光栅化。
+		// 高分辨率光栅化；物理度量取 renderFace。
 		rBounds, _, _ := rf.GlyphBounds(ch)
 		rMinX := rBounds.Min.X.Floor()
 		rMaxX := rBounds.Max.X.Ceil()
@@ -362,11 +418,12 @@ func (tr *TextRenderer) getGlyph(ch rune) *glyphEntry {
 		rw := rMaxX - rMinX
 		rh := rMaxY - rMinY
 		if rw <= 0 || rh <= 0 {
-			return &glyphEntry{advance: advance.Ceil()}
+			return &glyphEntry{advance: advance.Ceil(), padv: physAdv(ch)}
 		}
 		img = image.NewRGBA(image.Rect(0, 0, rw, rh))
 		d := &font.Drawer{Dst: img, Src: image.White, Face: rf, Dot: fixed.P(-rMinX, -rMinY)}
 		d.DrawString(string(ch))
+		pw, ph, pbx, pby, padv = rw, rh, rMinX, -rMinY, physAdv(ch)
 	}
 
 	tex := tr.gl.UploadTexture(img)
@@ -378,6 +435,11 @@ func (tr *TextRenderer) getGlyph(ch rune) *glyphEntry {
 		advance:  advance.Ceil(),
 		bearingX: logMinX,
 		bearingY: -logMinY,
+		pw:       pw,
+		ph:       ph,
+		padv:     padv,
+		pbx:      pbx,
+		pby:      pby,
 	}
 
 	tr.cacheMu.Lock()
@@ -388,18 +450,27 @@ func (tr *TextRenderer) getGlyph(ch rune) *glyphEntry {
 }
 
 // DrawText 用给定的 RGBA 颜色在 (x, y) 处渲染文本。
-// (x, y) 是文本基线区域的左上角。
+// (x, y) 是文本基线区域的左上角（逻辑坐标）。
+// 走笔按物理像素进行：起点四舍五入到物理像素网格，步进使用字形的物理
+// advance，再换算回逻辑坐标提交 quad。这样在 NEAREST 采样下纹理 texel
+// 与物理像素 1:1 对齐，任意缩放倍率（含非整数倍）文字都保持锐利。
+// 布局度量（MeasureText 等）仍为逻辑值，不受影响。
 func (tr *TextRenderer) DrawText(text string, x, y float32, r, g, b, a float32, proj [16]float32) {
-	cursorX := x
+	s := tr.scale
+	penX := int(math.Round(float64(x) * s))
+	penY := int(math.Round(float64(y) * s))
+	inv := float32(1 / s)
 	for _, ch := range text {
 		glyph := tr.getGlyph(ch)
 		if glyph.tex != 0 {
-			// 位置：cursorX + bearingX，y + ascent - bearingY
-			dx := cursorX + float32(glyph.bearingX)
-			dy := y + float32(tr.ascent-glyph.bearingY)
-			tr.gl.DrawQuadTint(glyph.tex, dx, dy, float32(glyph.w), float32(glyph.h), r, g, b, a, proj)
+			// 位置：penX + pbx，penY + ascentPhys - pby（物理像素），
+			// 除以 s 换算回逻辑坐标。
+			dx := float32(penX+glyph.pbx) * inv
+			dy := float32(penY+(tr.ascentPhys-glyph.pby)) * inv
+			tr.gl.DrawQuadTint(glyph.tex, dx, dy, float32(glyph.pw)*inv, float32(glyph.ph)*inv, r, g, b, a, proj)
 		}
-		cursorX += float32(glyph.advance)
+		// 空格等无纹理字形同样按物理 advance 步进。
+		penX += glyph.padv
 	}
 }
 
@@ -488,5 +559,3 @@ func (tr *TextRenderer) Destroy() {
 		}
 	}
 }
-
-

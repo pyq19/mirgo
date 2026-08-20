@@ -269,8 +269,32 @@ type PlayScene struct {
 	autoPickup         bool
 	lastAutoPickupTick int64
 
+	// 血条显示开关（Delphi ClientConf，服务端默认均为 False，
+	// M2Share.pas:2176-2177）。
+	showRedHPLable bool // 血条常驻显示
+	showHPNumber   bool // HP 数字显示
+
+	// 左上角绿字系统消息（Delphi AddSysMsg/DrawScreenTop，
+	// DrawScrn.pas:141-145、392-415）。
+	sysMsgs []sysMsgEntry
+
 	effects *EffectManager
 	events  *EventManager
+}
+
+// sysMsgEntry 是一条左上角绿字系统消息（拾取/升级等）。
+type sysMsgEntry struct {
+	Text string
+	Tick int64
+}
+
+// AddSysMsg 追加一条左上角绿字系统消息（Delphi AddSysMsg，
+// DrawScrn.pas:141-145），上限 10 条。
+func (s *PlayScene) AddSysMsg(text string) {
+	if len(s.sysMsgs) >= 10 {
+		s.sysMsgs = s.sysMsgs[1:]
+	}
+	s.sysMsgs = append(s.sysMsgs, sysMsgEntry{Text: text, Tick: time.Now().UnixMilli()})
 }
 
 func NewPlayScene(gl *engine.GLState, resources *engine.ResourceManager, mapDir string) *PlayScene {
@@ -612,6 +636,9 @@ func (s *PlayScene) Close() {
 	s.events = NewEventManager()
 	clear(s.groundItems)
 	s.floatingTexts = nil
+	// 死亡灰屏状态：小退再进游戏时新角色是活体，
+	// 不重置会把灰色画面带进下一局。
+	s.deathGray = false
 
 	// 清空跨会话的输入/UI 状态（对齐 Delphi CloseScene 隐藏 EdChat,
 	// PlayScn.pas:489-496）。PlayScene/UI 均为进程级单例, 脏焦点、
@@ -642,6 +669,12 @@ func (s *PlayScene) Update(dt float64) {
 	}
 
 	now := time.Now().UnixMilli()
+
+	// 绿字系统消息 3000ms 过期，每帧至多删一条队首
+	//（Delphi DrawScreenTop，DrawScrn.pas:409-410）。
+	if len(s.sysMsgs) > 0 && now-s.sysMsgs[0].Tick >= 3000 {
+		s.sysMsgs = s.sysMsgs[1:]
+	}
 
 	if len(s.floatingTexts) > 0 {
 		alive := s.floatingTexts[:0]
@@ -1030,6 +1063,11 @@ func (s *PlayScene) Render(glState *engine.GLState, proj [16]float32) {
 		}
 	}
 
+	// 头顶血条覆盖层（Delphi DrawScrn.pas:277-302）：世界层+光照之后、
+	// UI 之前，仍使用世界投影。死亡灰度路径下在 FBO 输出之后绘制，
+	// 血条不受灰度影响（Delphi 灰度仅作用世界表面）。
+	s.drawHealthBars(proj)
+
 	// UI 层使用完整窗口逻辑视口。
 	s.gl.SetViewport(0, 0, fbW, fbH)
 	if verbose {
@@ -1351,21 +1389,44 @@ func (s *PlayScene) drawActorLabel(a *Actor, worldX, worldY float32, proj [16]fl
 		s.text.DrawText(a.UserName, nameX, nameY+1, 0, 0, 0, 1.0, proj)
 		s.text.DrawText(a.UserName, nameX, nameY, nr, ng, nb, 1.0, proj)
 	}
+}
 
-	// 所有可见角色的血条（DrawScrn.pas:280-301），位于 SayY - 10。
-	// 注意：十周年版 Prguse2.wil 的 index 0/1 不是 HP 条图像（80x51 散布暗像素），
-	// 因此直接使用彩色矩形绘制，不使用 Prguse2 纹理。
-	if !a.Death && a.Type != ActorNPC {
-		hpBarY := sayY - 10
-		s.gl.DrawQuadColor(worldX+4, hpBarY, 40, 4, 0.1, 0.0, 0.0, 0.8, proj)
-		ratio := float32(1.0)
-		if s.State.MySelf != nil && a.RecogID == s.State.MySelf.RecogID && s.State.MaxHP > 0 {
-			ratio = float32(s.State.HP) / float32(s.State.MaxHP)
-		} else if a.ShowHP && a.ShowMaxHPVal > 0 {
-			ratio = float32(a.ShowHPVal) / float32(a.ShowMaxHPVal)
+// drawHealthBars 绘制所有开启血条的角色的头顶血条（Delphi
+// DrawScrn.pas:277-302）：整场景渲染完成之后的顶层覆盖层，
+// 遍历 m_ActorList（含 NPC/自己），永不被角色/前景遮挡。
+// 血条数值取 actor.HP/MaxHP（SMStruck/SMHealthSpellChanged 同步）。
+func (s *PlayScene) drawHealthBars(proj [16]float32) {
+	for _, a := range s.State.Actors.All() {
+		if a == nil || a.Death {
+			continue
 		}
-		if ratio > 0 {
-			s.gl.DrawQuadColor(worldX+4, hpBarY, 40*ratio, 4, 0.8, 0.0, 0.0, 0.8, proj)
+		if s.showRedHPLable {
+			a.ShowHP = true // Delphi 每帧强制常显（DrawScrn.pas:286）
+		}
+		if !a.ShowHP {
+			continue
+		}
+		worldX := float32(float64(a.Rx*engine.TileWidth) + a.ShiftX)
+		worldY := float32(float64(a.Ry*engine.TileHeight) + a.ShiftY)
+		sayY := worldY - 47 // PlayScn.pas:1232-1235
+		barY := sayY - 10
+
+		// Delphi 数字血量（DrawScrn.pas:280-285），默认关闭。
+		if s.showHPNumber && a.MaxHP > 1 && s.text != nil {
+			hpText := fmt.Sprintf("%d/%d", a.HP, a.MaxHP)
+			s.text.DrawTextOutline(hpText, worldX+engine.TileWidth/2-15, sayY-5, 1, 1, 1, 1, 0, 0, 0, 1, proj)
+		}
+
+		// 十周年版 Prguse2.wil 的 index 0/1 不是 HP 条图像
+		//（80x51 散布暗像素），用彩色矩形绘制：黑底 + 红条按
+		// HP/MaxHP 比例裁剪（DrawScrn.pas:293-300），40 宽居中于
+		// tile 中心（worldX+24）。
+		s.gl.DrawQuadColor(worldX+4, barY, 40, 4, 0.1, 0.0, 0.0, 0.8, proj)
+		if a.MaxHP > 0 {
+			ratio := float32(a.HP) / float32(a.MaxHP)
+			if ratio > 0 {
+				s.gl.DrawQuadColor(worldX+4, barY, 40*ratio, 4, 0.8, 0.0, 0.0, 0.8, proj)
+			}
 		}
 	}
 }
@@ -2886,6 +2947,14 @@ func (s *PlayScene) RenderUI(proj [16]float32) {
 	// UI 控件树（DWinCtl 移植）绘制在旧版手绘面板之上；
 	// 旧版面板正逐步迁移到控件树中。
 	s.ui.Paint(proj)
+
+	// 左上角绿字系统消息（Delphi DrawScreenTop，DrawScrn.pas:392-415）：
+	// UI 之后、提示框之前绘制，起点 (30,40)、行距 16px、绿色+黑描边。
+	sx, sy := float32(30), float32(40)
+	for _, m := range s.sysMsgs {
+		s.text.DrawTextOutline(m.Text, sx, sy, 0, 0.5, 0, 1, 0, 0, 0, 1, proj)
+		sy += 16
+	}
 
 	// 先画提示面板，再画光标上的手持物品——Delphi 绘制顺序
 	// （ClMain.pas: DrawHint :1079, 手持物品 :1093）。

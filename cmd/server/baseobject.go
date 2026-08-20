@@ -37,7 +37,20 @@ const (
 	RM_CRSHIT    = 10025
 	RM_TWINHIT   = 10026
 	RM_CHARSTATUSCHANGED = 10139 // Grobal2.pas:1153
+	RM_HEALTHSPELLCHANGED = 10052 // Grobal2.pas:1128
+	RM_OPENHEALTH  = 10410        // Grobal2.pas:1190
+	RM_CLOSEHEALTH = 10411        // Grobal2.pas:1191
+	RM_DOOPENHEALTH = 8040        // Grobal2.pas:1220
 )
+
+// STATE_OPENHEATH 是 charStatus 中的"显示血条"状态位
+//（Common/Grobal2.pas:96，拼写沿用 Delphi 原文）。
+const STATE_OPENHEATH = 0x02
+
+// rmIdentBase 是 RM_* 内部消息的编号下界（当前最小为
+// RM_DOOPENHEALTH=8040）；客户端消息 CM_* 编号均小于该值。
+// 死亡守卫据此区分 RM 中继（放行）与 CM 动作（拦截）。
+const rmIdentBase = RM_DOOPENHEALTH
 
 const viewRange = 12
 
@@ -85,6 +98,13 @@ type BaseObject struct {
 	Death         bool
 	Ghost         bool
 	Hidden        bool
+
+	// 头顶血条显示（Delphi m_boShowHP，心灵启示开启，
+	// ObjBase.pas:3595-3612、4029-4032）
+	ShowHP            bool
+	ShowHPTick        int64 // 开启时刻（施法时刻，Magic.pas:525）
+	ShowHPInterval    int64 // 显示时长 ms
+	showHPPendingTick int64 // 0=无；MakeOpenHealth 延迟触发时刻（+1500ms）
 
 	// 背包
 	UseItems [13]*protocol.UserItem
@@ -248,6 +268,45 @@ func (o *BaseObject) SendRefMsg(ident, param1, param2, param3 int, msg string) {
 			})
 			p.msgMu.Unlock()
 		}
+	}
+}
+
+// MakeOpenHealth 开启头顶血条显示（Delphi ObjBase.pas:3606-3612）。
+// 置 m_boShowHP 并广播 RM_OPENHEALTH，周围客户端收到 SM_OPENHEALTH
+//（ObjBase.pas:6288-6296，Recog=对象ID、Param=HP、Tag=MaxHP）。
+// 必须用 envir.broadcastRefMsg（含自身）——SendRefMsg 排除自身，
+// 会导致开启者自己收不到（Delphi SendRefMsg 含自身，ObjBase.pas:19652-19657）。
+func (o *BaseObject) MakeOpenHealth() {
+	o.ShowHP = true
+	if o.envir == nil {
+		return
+	}
+	o.envir.broadcastRefMsg(o, RM_OPENHEALTH, o.ID, int(o.WAbil.HP), int(o.WAbil.MaxHP), 0)
+}
+
+// BreakOpenHealth 关闭头顶血条显示（Delphi ObjBase.pas:3595-3604）。
+func (o *BaseObject) BreakOpenHealth() {
+	if !o.ShowHP {
+		return
+	}
+	o.ShowHP = false
+	if o.envir == nil {
+		return
+	}
+	o.envir.broadcastRefMsg(o, RM_CLOSEHEALTH, o.ID, 0, 0, 0)
+}
+
+// showHPStruckDurationMs 是受击开启的血条在最后一次受击后的
+// 保持时长（毫秒）。Go 专属行为，Delphi 原版无受击开启。
+const showHPStruckDurationMs int64 = 10 * 1000
+
+// StruckOpenHealth 受击开启头顶血条（Go 专属配置 showHPOnStruck）：
+// 设置到期参数并立即广播开启；重复受击仅刷新到期时刻，不重复广播。
+func (o *BaseObject) StruckOpenHealth() {
+	o.ShowHPTick = time.Now().UnixMilli()
+	o.ShowHPInterval = showHPStruckDurationMs
+	if !o.ShowHP {
+		o.MakeOpenHealth()
 	}
 }
 

@@ -255,6 +255,34 @@ func DecodeClientItem(buf []byte) (item ClientItem, ok bool) {
 	return item, true
 }
 
+// MessageBodyWLSize 是 MessageBodyWL 二进制编码的字节数（4×i32）。
+// 对应 Delphi TMessageBodyWL（Grobal2.pas:712-717）。
+const MessageBodyWLSize = 16
+
+// EncodeMessageBodyWL 将 MessageBodyWL 编码为小端二进制。
+// 用于 SM_STRUCK 等消息体。
+func EncodeMessageBodyWL(b *MessageBodyWL) []byte {
+	buf := make([]byte, MessageBodyWLSize)
+	binary.LittleEndian.PutUint32(buf[0:4], uint32(b.LParam1))
+	binary.LittleEndian.PutUint32(buf[4:8], uint32(b.LParam2))
+	binary.LittleEndian.PutUint32(buf[8:12], uint32(b.LTag1))
+	binary.LittleEndian.PutUint32(buf[12:16], uint32(b.LTag2))
+	return buf
+}
+
+// DecodeMessageBodyWL 将小端二进制解码为 MessageBodyWL。
+// 数据不足 MessageBodyWLSize 时返回 ok=false。
+func DecodeMessageBodyWL(buf []byte) (b MessageBodyWL, ok bool) {
+	if len(buf) < MessageBodyWLSize {
+		return b, false
+	}
+	b.LParam1 = int32(binary.LittleEndian.Uint32(buf[0:4]))
+	b.LParam2 = int32(binary.LittleEndian.Uint32(buf[4:8]))
+	b.LTag1 = int32(binary.LittleEndian.Uint32(buf[8:12]))
+	b.LTag2 = int32(binary.LittleEndian.Uint32(buf[12:16]))
+	return b, true
+}
+
 // MakeDefaultMsg 用给定参数创建一个 TDefaultMessage。
 func MakeDefaultMsg(ident uint16, recog int32, param, tag, series uint16) DefaultMessage {
 	return DefaultMessage{

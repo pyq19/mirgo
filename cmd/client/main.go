@@ -94,8 +94,16 @@ func cycleResolution(w *glfw.Window) {
 	applyResolution(w, (resIdx+1)%len(resolutions))
 }
 
-func scaleTextRenderers() {
-	engine.SetTextScale(float64(winW) / float64(ScreenWidth))
+// scaleTextRenderers 按帧缓冲宽度（物理像素）更新全局文字缩放倍率。
+// 800×600 逻辑场景被拉伸到整个帧缓冲（渲染循环用 GetFramebufferSize 设视口），
+// 文字必须按帧缓冲倍率光栅化才能与物理像素对齐；窗口尺寸在 HiDPI 下
+// 与物理像素不成比例，不能作为来源。
+func scaleTextRenderers(w *glfw.Window) {
+	fbW, _ := w.GetFramebufferSize()
+	if fbW <= 0 {
+		return
+	}
+	engine.SetTextScale(float64(fbW) / float64(ScreenWidth))
 }
 
 const (
@@ -154,8 +162,9 @@ func main() {
 		}
 	}()
 
-	if resIdx != 0 {
-		engine.TextScale = float64(resolutions[resIdx][0]) / float64(ScreenWidth)
+	// 文字光栅化倍率以帧缓冲宽度为准（见 scaleTextRenderers 注释）。
+	if fbW, _ := window.GetFramebufferSize(); fbW > 0 {
+		engine.TextScale = float64(fbW) / float64(ScreenWidth)
 	}
 	// 主字体 9pt ≡ 原版 dfm Font.Height=-12（ClMain.dfm），
 	// GDI 后端按 -12px 光栅化，与原版 TextOut 一致。
@@ -374,7 +383,7 @@ func main() {
 		// Alt+Enter 循环切换分辨率。
 		if action == glfw.Press && key == glfw.KeyEnter && mods == glfw.ModAlt {
 			cycleResolution(glfwWindow)
-			scaleTextRenderers()
+			scaleTextRenderers(glfwWindow)
 			return
 		}
 		// 控制台打开时所有按键交给控制台, 不再转发给场景。
@@ -445,6 +454,15 @@ func main() {
 			return
 		}
 		sceneMgr.OnScroll(xoff, yoff)
+	})
+
+	// 帧缓冲尺寸变化（Alt+Enter 分辨率切换、跨 DPI 显示器拖动等）时同步
+	// 文字缩放倍率，保证文字始终按帧缓冲倍率光栅化（SetScale 幂等）。
+	glfwWindow.SetFramebufferSizeCallback(func(w *glfw.Window, width int, height int) {
+		if width <= 0 {
+			return // 最小化等场景尺寸为 0，保持现有倍率
+		}
+		engine.SetTextScale(float64(width) / float64(ScreenWidth))
 	})
 
 	log.Logf(log.LevelInfo, "Client", "login scene ready")
@@ -848,6 +866,19 @@ func decodeTurnName(rawBody string) string {
 	return name
 }
 
+// parseCharDesc 解析移动/转身/死亡/复活消息 body 的
+// TCharDesc{feature, charStatus}（Grobal2.pas:719-722，
+// ObjBase.pas:5296-5299）。
+func parseCharDesc(body string) (feature, status int, ok bool) {
+	raw := []byte(body)
+	if len(raw) < 8 {
+		return 0, 0, false
+	}
+	feature = int(int32(binary.LittleEndian.Uint32(raw[0:4])))
+	status = int(int32(binary.LittleEndian.Uint32(raw[4:8])))
+	return feature, status, true
+}
+
 // HandleMessage 处理服务器消息。
 func (h *NetHandler) HandleMessage(msg protocol.DefaultMessage, body, rawBody string) {
 	log.Logf(log.LevelInfo, "Client", "<<< recv %s Recog=%d Param=%d Tag=%d Series=%d body=%q",
@@ -1104,13 +1135,17 @@ func (h *NetHandler) HandleMessage(msg protocol.DefaultMessage, body, rawBody st
 		if actor == nil {
 			actor = NewActorFromMessage(msg, body)
 			h.playScene.State.Actors.Add(actor)
-		} else {
-			actor.updateFeatureFromBody(body)
+		}
+		// body=TCharDesc{feature, charStatus}（ObjBase.pas:5449-5454），
+		// 马/衣服特效由随后的 SMFeatureChanged 携带。
+		feature, status := 0, 0
+		if body != "" {
+			feature, status, _ = parseCharDesc(body)
 		}
 		if name := decodeTurnName(rawBody); name != "" {
 			actor.UserName = name
 		}
-		actor.SendMsg(protocol.SMTurn, int(msg.Param), int(msg.Tag), int(msg.Series)&0xFF, 0, 0)
+		actor.SendMsg(protocol.SMTurn, int(msg.Param), int(msg.Tag), int(msg.Series)&0xFF, feature, status)
 
 	case protocol.SMWalk:
 		if h.playScene.State.MySelf != nil && msg.Recog == h.playScene.State.MySelf.RecogID {
@@ -1118,7 +1153,8 @@ func (h *NetHandler) HandleMessage(msg protocol.DefaultMessage, body, rawBody st
 		}
 		actor := h.playScene.State.Actors.Get(msg.Recog)
 		if actor != nil {
-			actor.SendMsg(protocol.SMWalk, int(msg.Param), int(msg.Tag), int(msg.Series)&0xFF, 0, 0)
+			feature, status, _ := parseCharDesc(body)
+			actor.SendMsg(protocol.SMWalk, int(msg.Param), int(msg.Tag), int(msg.Series)&0xFF, feature, status)
 		}
 
 	case protocol.SMRun:
@@ -1127,7 +1163,8 @@ func (h *NetHandler) HandleMessage(msg protocol.DefaultMessage, body, rawBody st
 		}
 		actor := h.playScene.State.Actors.Get(msg.Recog)
 		if actor != nil {
-			actor.SendMsg(protocol.SMRun, int(msg.Param), int(msg.Tag), int(msg.Series)&0xFF, 0, 0)
+			feature, status, _ := parseCharDesc(body)
+			actor.SendMsg(protocol.SMRun, int(msg.Param), int(msg.Tag), int(msg.Series)&0xFF, feature, status)
 		}
 
 	case protocol.SMHorseRun:
@@ -1136,7 +1173,8 @@ func (h *NetHandler) HandleMessage(msg protocol.DefaultMessage, body, rawBody st
 		}
 		actor := h.playScene.State.Actors.Get(msg.Recog)
 		if actor != nil {
-			actor.SendMsg(protocol.SMHorseRun, int(msg.Param), int(msg.Tag), int(msg.Series)&0xFF, 0, 0)
+			feature, status, _ := parseCharDesc(body)
+			actor.SendMsg(protocol.SMHorseRun, int(msg.Param), int(msg.Tag), int(msg.Series)&0xFF, feature, status)
 		}
 
 	case protocol.SMDisappear, protocol.SMGhost, protocol.SMHide:
@@ -1377,13 +1415,20 @@ func (h *NetHandler) HandleMessage(msg protocol.DefaultMessage, body, rawBody st
 		h.playScene.State.LightLevel = int(msg.Recog)
 
 	case protocol.SMHealthSpellChanged:
-		// Recog=HP, Param=MaxHP, Tag=MP, Series=MaxMP（服务端已同步修改；
-		// 旧的 HP<<16|MP 打包方式会导致 HP 显示 MP 的值）。
+		// Delphi 格式（ObjBase.pas:5715-5723，ClMain.pas:4238-4245）：
+		// Recog=角色 ID，Param=HP，Tag=MP，Series=MaxHP。
+		// MaxMP 由 SMAbility 独家提供（本消息 Delphi 即不携带）。
 		st := h.playScene.State
-		st.HP = int(msg.Recog)
-		st.MaxHP = int(msg.Param)
-		st.MP = int(msg.Tag)
-		st.MaxMP = int(msg.Series)
+		actor := h.playScene.State.Actors.Get(msg.Recog)
+		if actor != nil {
+			actor.HP = int(msg.Param)
+			actor.MaxHP = int(msg.Series)
+		}
+		if st.MySelf != nil && msg.Recog == st.MySelf.RecogID {
+			st.HP = int(msg.Param)
+			st.MP = int(msg.Tag)
+			st.MaxHP = int(msg.Series)
+		}
 
 	case protocol.SMCharStatusChanged:
 		actor := h.playScene.State.Actors.Get(msg.Recog)
@@ -1444,7 +1489,8 @@ func (h *NetHandler) HandleMessage(msg protocol.DefaultMessage, body, rawBody st
 			h.playScene.State.Actors.Add(actor)
 		}
 		if actor != nil {
-			actor.SendMsg(int(msg.Ident), int(msg.Param), int(msg.Tag), int(msg.Series)&0xFF, 0, 0)
+			feature, status, _ := parseCharDesc(body)
+			actor.SendMsg(int(msg.Ident), int(msg.Param), int(msg.Tag), int(msg.Series)&0xFF, feature, status)
 		}
 
 	case protocol.SMDigDown:
@@ -1469,15 +1515,23 @@ func (h *NetHandler) HandleMessage(msg protocol.DefaultMessage, body, rawBody st
 		}
 
 	case protocol.SMStruck:
+		// Delphi（ObjBase.pas:5508-5518，ClMain.pas:4247-4266）：
+		// Recog=受害者，Param=HP，Tag=MaxHP，Series=伤害，
+		// body=TMessageBodyWL{lParam1=feature, lParam2=charStatus,
+		// lTag1=攻击者 ID, lTag2=魔法标志}。
 		actor := h.playScene.State.Actors.Get(msg.Recog)
 		if actor != nil {
-			hiterID := int32(0)
-			damage := uint16(0)
-			if raw := []byte(body); len(raw) >= 4 {
-				hiterID = int32(binary.LittleEndian.Uint32(raw[0:4]))
-				if len(raw) >= 6 {
-					damage = binary.LittleEndian.Uint16(raw[4:6])
-				}
+			wl, _ := protocol.DecodeMessageBodyWL([]byte(body))
+			hiterID := wl.LTag1
+			damage := int(msg.Series)
+			// 受击实时更新 actor 血量 → 头顶血条数值随之变化。
+			actor.HP = int(msg.Param)
+			actor.MaxHP = int(msg.Tag)
+			// 自己的 HUD 读 State.HP（Delphi 读 g_MySelf.m_Abil.HP，
+			// ClMain.pas:4263-4264）；致死一击 Param=0，据此清零。
+			if h.playScene.State.MySelf != nil && actor.RecogID == h.playScene.State.MySelf.RecogID {
+				h.playScene.State.HP = int(msg.Param)
+				h.playScene.State.MaxHP = int(msg.Tag)
 			}
 			actor.HiterCode = hiterID
 			if hiterID != 0 && actor.MagicStruckSound < 1 {
@@ -1493,7 +1547,7 @@ func (h *NetHandler) HandleMessage(msg protocol.DefaultMessage, body, rawBody st
 				}
 			}
 			if damage > 0 {
-				h.playScene.addFloatingText(actor.CurrX, actor.CurrY, strconv.Itoa(int(damage)), 1.0, 0.3, 0.3)
+				h.playScene.addFloatingText(actor.CurrX, actor.CurrY, strconv.Itoa(damage), 1.0, 0.3, 0.3)
 			}
 			// UpdateMsg 合并队列中已有的受击消息并清掉本地预测指令
 			//（Delphi ClMain.pas:4260 用 UpdateMsg 而非 SendMsg）。
@@ -1530,24 +1584,36 @@ func (h *NetHandler) HandleMessage(msg protocol.DefaultMessage, body, rawBody st
 		if actor != nil {
 			actor.Death = false
 			actor.Skeleton = false
-			actor.SendMsg(protocol.SMAlive, int(msg.Param), int(msg.Tag), int(msg.Series)&0xFF, 0, 0)
+			feature, status, _ := parseCharDesc(body)
+			actor.SendMsg(protocol.SMAlive, int(msg.Param), int(msg.Tag), int(msg.Series)&0xFF, feature, status)
 			if h.playScene.State.MySelf != nil && actor.RecogID == h.playScene.State.MySelf.RecogID {
 				h.playScene.deathGray = false
 			}
 		}
 
 	case protocol.SMWinExp:
-		// 服务器随后会发送完整的 SMAbility；先应用增量，
-		// 让经验条立即变化。
-		h.playScene.State.Exp += int(msg.Recog)
-		log.Logf(log.LevelInfo, "Client", "gained exp: %d", msg.Recog)
+		// Delphi（ObjBase.pas:5577-5581，ClMain.pas:4224-4229）：
+		// Recog=新总经验，Param/Tag=增量低/高字。经验条最终由
+		// SMAbility 覆盖为权威值。
+		st := h.playScene.State
+		st.Exp = int(msg.Recog)
+		delta := int(uint32(msg.Param) | uint32(msg.Tag)<<16)
+		log.Logf(log.LevelInfo, "Client", "gained exp: %d (total %d)", delta, msg.Recog)
+		h.playScene.AddChatMessageColor(fmt.Sprintf("已获得 %d 点经验值..", delta),
+			[4]float32{1, 1, 1, 1}, [4]float32{1, 0, 0, 1})
 
 	case protocol.SMLevelUp:
-		h.playScene.State.Level = int(msg.Recog)
-		if h.playScene.State.MySelf != nil {
-			h.playScene.State.MySelf.Level = int(msg.Recog)
+		// Delphi（ObjBase.pas:5582-5596，ClMain.pas:4231-4236）：
+		// Recog=当前经验，Param=新等级。
+		st := h.playScene.State
+		st.Level = int(msg.Param)
+		if st.MySelf != nil {
+			st.MySelf.Level = int(msg.Param)
 		}
-		log.Logf(log.LevelInfo, "Client", "level up: %d", msg.Recog)
+		log.Logf(log.LevelInfo, "Client", "level up: %d", msg.Param)
+		h.playScene.AddSysMsg("恭喜！你升级了!")
+		h.playScene.AddChatMessageColor("祝贺! 您的水平上升。 您的生命值， 魔法值全部增加。",
+			[4]float32{1, 1, 1, 1}, [4]float32{0.5, 0, 0.5, 1})
 
 	case protocol.SMItemShow:
 		log.Logf(log.LevelDebug, "Client", "item show: id=%d x=%d y=%d looks=%d name=%s",
@@ -1664,18 +1730,20 @@ func (h *NetHandler) HandleMessage(msg protocol.DefaultMessage, body, rawBody st
 
 	case protocol.SMGoldChanged:
 		log.Logf(log.LevelInfo, "Client", "gold: %d", msg.Recog)
-		// Delphi（ClMain.pas:4479-4487）：增加时显示"获得 N 金币"。
+		// Delphi（ClMain.pas:4479-4487）：增加时左上角绿字
+		// "<增量> 金币 金币."（g_sGoldName='金币'，MShare.pas:135）。
 		oldGold := h.playScene.State.Gold
 		h.playScene.State.Gold = int(msg.Recog)
 		if h.playScene.State.Gold > oldGold {
-			h.playScene.AddChatMessage(fmt.Sprintf("获得 %d 金币", h.playScene.State.Gold-oldGold))
+			h.playScene.AddSysMsg(fmt.Sprintf("%d 金币 金币.", h.playScene.State.Gold-oldGold))
 		}
 		gSound.PlaySound(sMoney)
 
 	case protocol.SMBackStep:
 		actor := h.playScene.State.Actors.Get(msg.Recog)
 		if actor != nil {
-			actor.SendMsg(protocol.SMBackStep, int(msg.Param), int(msg.Tag), int(msg.Series)&0xFF, 0, 0)
+			feature, status, _ := parseCharDesc(body)
+			actor.SendMsg(protocol.SMBackStep, int(msg.Param), int(msg.Tag), int(msg.Series)&0xFF, feature, status)
 		}
 
 	case protocol.SMSitdown:
@@ -1687,13 +1755,15 @@ func (h *NetHandler) HandleMessage(msg protocol.DefaultMessage, body, rawBody st
 	case protocol.SMRush:
 		actor := h.playScene.State.Actors.Get(msg.Recog)
 		if actor != nil {
-			actor.SendMsg(protocol.SMRush, int(msg.Param), int(msg.Tag), int(msg.Series)&0xFF, 0, 0)
+			feature, status, _ := parseCharDesc(body)
+			actor.SendMsg(protocol.SMRush, int(msg.Param), int(msg.Tag), int(msg.Series)&0xFF, feature, status)
 		}
 
 	case protocol.SMRushKung:
 		actor := h.playScene.State.Actors.Get(msg.Recog)
 		if actor != nil {
-			actor.SendMsg(protocol.SMRushKung, int(msg.Param), int(msg.Tag), int(msg.Series)&0xFF, 0, 0)
+			feature, status, _ := parseCharDesc(body)
+			actor.SendMsg(protocol.SMRushKung, int(msg.Param), int(msg.Tag), int(msg.Series)&0xFF, feature, status)
 		}
 
 	case protocol.SMSkeleton:
@@ -1838,6 +1908,12 @@ func (h *NetHandler) HandleMessage(msg protocol.DefaultMessage, body, rawBody st
 		h.playScene.addServerChat(body, msg.Param)
 
 	case protocol.SMAddItem:
+		// Delphi ClientGetAddItem（ClMain.pas:5253-5262）：body=TClientItem，
+		// 左上角绿字 "<物品名> 放到包囊."。背包状态由服务端紧随的
+		// SMBagItems 全量同步（Go 服务端权威）。
+		if ci, ok := protocol.DecodeClientItem([]byte(body)); ok {
+			h.playScene.AddSysMsg(ci.S.GetName() + " 放到包囊.")
+		}
 		log.Logf(log.LevelInfo, "Client", "item added")
 		queryBag := protocol.MakeDefaultMsg(protocol.CMQueryBagItems, 0, 0, 0, 0)
 		h.Send(queryBag, "")
@@ -2318,9 +2394,13 @@ func (h *NetHandler) HandleMessage(msg protocol.DefaultMessage, body, rawBody st
 
 	case protocol.SMOpenHealth:
 		if actor := h.playScene.State.Actors.Get(msg.Recog); actor != nil {
+			// Delphi（ClMain.pas:4283-4295）：非自己时才写入 HP/MaxHP，
+			// 自己的血量以 sendHealthSpell→SMHealthSpellChanged 为准。
+			if h.playScene.State.MySelf == nil || actor.RecogID != h.playScene.State.MySelf.RecogID {
+				actor.HP = int(msg.Param)
+				actor.MaxHP = int(msg.Tag)
+			}
 			actor.ShowHP = true
-			actor.ShowHPVal = int(msg.Param)
-			actor.ShowMaxHPVal = int(msg.Tag)
 		}
 
 	case protocol.SMCloseHealth:
@@ -2331,9 +2411,9 @@ func (h *NetHandler) HandleMessage(msg protocol.DefaultMessage, body, rawBody st
 	case protocol.SMInstanceHealGuage:
 		// Delphi ClMain.pas:4303-4313：治疗系魔法的瞬时头顶血条（约 2 秒）
 		if actor := h.playScene.State.Actors.Get(msg.Recog); actor != nil {
+			actor.HP = int(msg.Param)
+			actor.MaxHP = int(msg.Tag)
 			actor.ShowHP = true
-			actor.ShowHPVal = int(msg.Param)
-			actor.ShowMaxHPVal = int(msg.Tag)
 			actor.ShowHPUntil = time.Now().UnixMilli() + 2000
 		}
 

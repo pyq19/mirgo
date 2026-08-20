@@ -15,16 +15,18 @@ import (
 
 
 
-func (p *PlayObject) GiveItem(itemIdx int) bool {
+// GiveItem 向背包添加一件新物品。成功时返回创建的 UserItem
+//（供 SM_ADDITEM 等需要物品实例的消息使用），失败返回 nil。
+func (p *PlayObject) GiveItem(itemIdx int) (*protocol.UserItem, bool) {
 	if p.Engine != nil && len(p.ItemList) >= p.Engine.Config.GetMaxBagSlots() {
-		return false
+		return nil, false
 	}
 	if p.ItemDB == nil {
-		return false
+		return nil, false
 	}
 	def := p.ItemDB.GetByIdx(itemIdx)
 	if def == nil {
-		return false
+		return nil, false
 	}
 	// 唯一实例ID（Delphi g_MakeItemIdx）；DB idx 会在同名物品堆叠间冲突，
 	// 导致基于 MakeIndex 寻址的操作出错。
@@ -42,7 +44,7 @@ func (p *PlayObject) GiveItem(itemIdx int) bool {
 		DuraMax:   uint16(def.DuraMax),
 	}
 	p.ItemList = append(p.ItemList, userItem)
-	return true
+	return userItem, true
 }
 
 // HandleAdjustBonus 应用已分配的加成点（CMAdjustBonus: Recog =

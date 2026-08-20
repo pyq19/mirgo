@@ -324,7 +324,19 @@ func (o *MonsterObject) OnStruck(attackerID int32, now int64, userEngine *UserEn
 }
 
 func (o *MonsterObject) Run(server *netserver.TCPServer, now int64, userEngine *UserEngine) {
-	if o.Ghost || o.Death {
+	if o.Ghost {
+		return
+	}
+	// 血条延迟开启与到期关闭（Delphi ObjBase.pas:4029-4032，
+	// 不分死活都执行）。怪物不消费消息队列，用字段式 pending。
+	if o.showHPPendingTick > 0 && now >= o.showHPPendingTick {
+		o.showHPPendingTick = 0
+		o.MakeOpenHealth()
+	}
+	if o.ShowHP && o.ShowHPInterval > 0 && now-o.ShowHPTick > o.ShowHPInterval {
+		o.BreakOpenHealth()
+	}
+	if o.Death {
 		return
 	}
 	o.engine = userEngine
@@ -838,9 +850,19 @@ func (o *MonsterObject) applyMonsterDamageToPlayer(server *netserver.TCPServer, 
 	}
 	target.WAbil.HP = uint16(hp)
 
-	// Delphi 仅当伤害>0 才下发 SM_STRUCK（ObjBase.pas:5470）。
+	// Delphi 仅当伤害>0 才下发 SM_STRUCK（ObjBase.pas:5470）；
+	// 携带受击后 HP/MaxHP（ObjBase.pas:5508-5518）。
 	if damage > 0 && o.envir != nil {
-		o.envir.broadcastRefMsg(target.BaseObject, RM_STRUCK, target.ID, damage, target.CurrY, o.Dir)
+		o.envir.broadcastStruckMsg(target.BaseObject, target.ID, int(target.WAbil.HP), int(target.WAbil.MaxHP), damage, 0)
+		// 受击开启血条（Go 配置 showHPOnStruck，默认开启；
+		// Delphi 原版无此行为，仅心灵启示开启）。致死伤害不开。
+		if hp > 0 && o.engine != nil && o.engine.Config != nil && o.engine.Config.GetShowHPOnStruck() {
+			target.StruckOpenHealth()
+		}
+		// 被"心灵启示"标记的目标同步血量（ObjBase.pas:2239-2249）。
+		if target.ShowHP {
+			o.envir.broadcastRefMsg(target.BaseObject, RM_HEALTHSPELLCHANGED, target.ID, int(target.WAbil.HP), int(target.WAbil.MP), int(target.WAbil.MaxHP))
+		}
 	}
 
 	if hp <= 0 {

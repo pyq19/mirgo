@@ -188,3 +188,50 @@ func TestWantMinimapAllowedWhileDead(t *testing.T) {
 		t.Errorf("Param = %d, want 3", msg.Param)
 	}
 }
+
+// TestDeathGateAllowsRMRelay 回归：玩家死亡后 RM 中继必须正常下发。
+// 受害者自己的 RM_DEATH 是客户端 SM_NOWDEATH（死亡动画+灰屏）的唯一
+// 来源——此前死亡守卫把 RM 与 CM 一并丢弃，客户端永远不进入死亡流程。
+func TestDeathGateAllowsRMRelay(t *testing.T) {
+	srv, session, conn := startMinimapServer(t)
+
+	env := newTestEnv(40, 40)
+	p := NewPlayObject(session, "victim", 1)
+	p.envir = env
+	p.CurrX, p.CurrY = 20, 20
+	env.AddObject(20, 20, OS_MOVINGOBJECT, p)
+	p.Death = true
+
+	// broadcastDeathMsg(justDied=true) 入队的消息形态
+	p.ProcessMessage(SendMessage{
+		Ident: RM_DEATH, SourceID: p.ID,
+		Param1: 20, Param2: 20, Dir: 3, Param3: 1,
+	}, srv)
+
+	msg := readFrame(t, conn)
+	if msg.Ident != protocol.SMNowDeath {
+		t.Fatalf("Ident = %d, want %d (SMNowDeath)——死亡玩家自己的 RM_DEATH 不得被守卫丢弃",
+			msg.Ident, protocol.SMNowDeath)
+	}
+	if msg.Recog != p.ID {
+		t.Errorf("Recog = %d, want %d", msg.Recog, p.ID)
+	}
+}
+
+// TestDeathGateBlocksCMAction 回归：死亡守卫仍须拦截 CM 动作消息。
+func TestDeathGateBlocksCMAction(t *testing.T) {
+	srv, session, conn := startMinimapServer(t)
+
+	p := NewPlayObject(session, "victim", 1)
+	p.envir = newTestEnv(40, 40)
+	p.CurrX, p.CurrY = 20, 20
+	p.Death = true
+
+	p.ProcessMessage(SendMessage{Ident: protocol.CMWalk, Param1: 5, Param2: 20, Param3: 21}, srv)
+
+	conn.SetReadDeadline(time.Now().Add(300 * time.Millisecond))
+	buf := make([]byte, 256)
+	if n, err := conn.Read(buf); err == nil && n > 0 {
+		t.Fatalf("死亡后 CM 动作不应有任何响应，收到 %q", buf[:n])
+	}
+}
