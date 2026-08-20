@@ -2,7 +2,6 @@ package main
 
 import (
 	"bufio"
-	"encoding/json"
 	"fmt"
 	"path/filepath"
 	"strings"
@@ -29,8 +28,8 @@ type MapRoute struct {
 
 // MiniMap 表示小地图映射。
 type MiniMap struct {
-	MapName  string `json:"mapName"`
-	MiniMapID int   `json:"miniMapId"`
+	MapName   string `json:"mapName"`
+	MiniMapID int    `json:"miniMapId"`
 }
 
 // StartPoint 表示安全区/重生点。
@@ -126,31 +125,27 @@ func convertMapInfo(envirDir, outputDir string) error {
 
 	// 地图定义 → maps/map_info.jsonc
 	mapResult := map[string]interface{}{
-		"_source":      "asset/server/Envir/mapinfo.txt",
-		"_description": "地图信息定义（地图属性）",
-		"maps":         maps,
+		"maps": maps,
 	}
-	mapJSON, err := json.MarshalIndent(mapResult, "", "  ")
+	mapJSON, err := MarshalJSONC(mapResult, mapInfoComments, false)
 	if err != nil {
 		return err
 	}
-	mapComment := fmt.Sprintf("地图信息\n来源: asset/server/Envir/mapinfo.txt\n数量: %d 个地图", len(maps))
-	if err := WriteJSONC(filepath.Join(outputDir, "maps", "map_info.jsonc"), string(mapJSON), mapComment); err != nil {
+	mapComment := fmt.Sprintf("地图信息\n来源: asset/server/Envir/mapinfo.txt\n数量: %d 个地图\n字段说明:\n  index  地图编号（对应 Map 目录下 .map 文件名，可为数字或字母）\n  name   地图标题（中文名）\n  flags  原版数字标志位（Go 服务端暂未消费，属性以 props 为准）\n  props  地图属性 token（SAFE/DARK/MINE/NORECONNECT(0)/EXPRATE(3) 等，见服务端 parseMapFlag；可缺省）", len(maps))
+	if err := WriteJSONC(filepath.Join(outputDir, "maps", "map_info.jsonc"), mapJSON, mapComment); err != nil {
 		return err
 	}
 
 	// 传送路线 → maps/map_routes.jsonc（与 server MapManager.InitRoutes 约定一致）
 	routeResult := map[string]interface{}{
-		"_source":      "asset/server/Envir/mapinfo.txt",
-		"_description": "地图间传送路线",
-		"routes":       routes,
+		"routes": routes,
 	}
-	routeJSON, err := json.MarshalIndent(routeResult, "", "  ")
+	routeJSON, err := MarshalJSONC(routeResult, mapRouteComments, false)
 	if err != nil {
 		return err
 	}
-	routeComment := fmt.Sprintf("传送路线\n来源: asset/server/Envir/mapinfo.txt\n数量: %d 条路线", len(routes))
-	return WriteJSONC(filepath.Join(outputDir, "maps", "map_routes.jsonc"), string(routeJSON), routeComment)
+	routeComment := fmt.Sprintf("传送路线\n来源: asset/server/Envir/mapinfo.txt\n数量: %d 条路线\n字段说明:\n  srcMap/srcX/srcY  出发点地图编号与坐标（踩到该坐标触发传送）\n  dstMap/dstX/dstY  目标点地图编号与坐标", len(routes))
+	return WriteJSONC(filepath.Join(outputDir, "maps", "map_routes.jsonc"), routeJSON, routeComment)
 }
 
 func copyMapFiles(inputDir, outputDir string) error {
@@ -191,20 +186,18 @@ func convertMiniMap(envirDir, outputDir string) error {
 	}
 
 	result := map[string]interface{}{
-		"_source":     "asset/server/Envir/MiniMap.txt",
-		"_description": "小地图映射关系",
-		"miniMaps":    miniMaps,
+		"miniMaps": miniMaps,
 	}
 
-	jsonData, err := json.MarshalIndent(result, "", "  ")
+	jsonData, err := MarshalJSONC(result, miniMapComments, false)
 	if err != nil {
 		return err
 	}
 
 	outputFile := filepath.Join(outputDir, "maps", "mini_map.jsonc")
-	comment := fmt.Sprintf("小地图映射\n来源: asset/server/Envir/MiniMap.txt\n数量: %d 个映射", len(miniMaps))
+	comment := fmt.Sprintf("小地图映射\n来源: asset/server/Envir/MiniMap.txt\n数量: %d 个映射\n字段说明:\n  mapName     地图编号（对应 map_info 的 index）\n  miniMapId   小地图图像编号（客户端小地图资源索引，乱改将看不到小地图）", len(miniMaps))
 
-	return WriteJSONC(outputFile, string(jsonData), comment)
+	return WriteJSONC(outputFile, jsonData, comment)
 }
 
 func convertStartPoint(envirDir, outputDir string) error {
@@ -234,18 +227,60 @@ func convertStartPoint(envirDir, outputDir string) error {
 	}
 
 	result := map[string]interface{}{
-		"_source":     "asset/server/Envir/StartPoint.txt",
-		"_description": "安全区和复活点",
 		"startPoints": startPoints,
 	}
 
-	jsonData, err := json.MarshalIndent(result, "", "  ")
+	jsonData, err := MarshalJSONC(result, startPointComments, false)
 	if err != nil {
 		return err
 	}
 
 	outputFile := filepath.Join(outputDir, "maps", "start_points.jsonc")
-	comment := fmt.Sprintf("安全区/复活点\n来源: asset/server/Envir/StartPoint.txt\n数量: %d 个点", len(startPoints))
+	comment := fmt.Sprintf("安全区/复活点\n来源: asset/server/Envir/StartPoint.txt\n数量: %d 个点\n字段说明:\n  mapName  地图编号\n  x/y      安全区中心坐标\n  range    安全区半径（格）；<=0 时服务端按默认 5 处理", len(startPoints))
 
-	return WriteJSONC(outputFile, string(jsonData), comment)
+	return WriteJSONC(outputFile, jsonData, comment)
+}
+
+// mapInfoComments 是 map_info.jsonc 的中文注释表（条目多，仅首条记录渲染，commentAll=false）。
+// 文案来源：cmd/server/mapmanager.go InitMapFlags/parseMapFlag。
+var mapInfoComments = map[string]string{
+	// maps 为非空数组，注释放键上方
+	"maps":         "地图列表（服务端 MapManager.InitMapFlags 消费，按 index 匹配已加载的 .map 文件）",
+	"maps[].index": "地图编号（对应 Map 目录下同名 .map 文件，可为数字或字母）",
+	"maps[].name":  "地图标题（中文名）",
+	"maps[].flags": "原版数字标志位（Delphi nServerIndex；Go 服务端暂未消费）",
+	"maps[].props": "地图属性 token（SAFE/DARK/DAY/MINE/NORECONNECT(0)/EXPRATE(3)/DECHP(5/1000) 等，见服务端 parseMapFlag）",
+}
+
+// mapRouteComments 是 map_routes.jsonc 的中文注释表（条目多，仅首条记录渲染，commentAll=false）。
+// 文案来源：cmd/server/mapmanager.go InitRoutes/FindRoute 与 playobject.go CheckMapRoute。
+var mapRouteComments = map[string]string{
+	// routes 为非空数组，注释放键上方
+	"routes":          "传送路线列表（玩家踩到 srcX/srcY 即传送至 dstMap 的 dstX/dstY）",
+	"routes[].srcMap": "出发点地图编号",
+	"routes[].srcX":   "出发点 X 坐标",
+	"routes[].srcY":   "出发点 Y 坐标",
+	"routes[].dstMap": "目标地图编号",
+	"routes[].dstX":   "目标点 X 坐标",
+	"routes[].dstY":   "目标点 Y 坐标",
+}
+
+// miniMapComments 是 mini_map.jsonc 的中文注释表（条目多，仅首条记录渲染，commentAll=false）。
+// 文案来源：cmd/server/mapmanager.go InitMiniMaps。
+var miniMapComments = map[string]string{
+	// miniMaps 为非空数组，注释放键上方
+	"miniMaps":             "小地图映射列表（服务端 MapManager.InitMiniMaps 消费，写入 Environment.MinMap）",
+	"miniMaps[].mapName":   "地图编号（对应 map_info 的 index）",
+	"miniMaps[].miniMapId": "小地图图像编号（客户端小地图资源索引，乱改将看不到小地图）",
+}
+
+// startPointComments 是 start_points.jsonc 的中文注释表（条目多，仅首条记录渲染，commentAll=false）。
+// 文案来源：cmd/server/safezone.go LoadSafeZones。
+var startPointComments = map[string]string{
+	// startPoints 为非空数组，注释放键上方
+	"startPoints":           "安全区/复活点列表（服务端 LoadSafeZones 消费）",
+	"startPoints[].mapName": "地图编号",
+	"startPoints[].x":       "安全区中心 X 坐标",
+	"startPoints[].y":       "安全区中心 Y 坐标",
+	"startPoints[].range":   "安全区半径（格）；<=0 时服务端按默认 5 处理",
 }

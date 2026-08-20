@@ -2,7 +2,6 @@ package main
 
 import (
 	"bufio"
-	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -22,9 +21,9 @@ type MonGen struct {
 
 // MonItem 表示怪物掉落物品。
 type MonItem struct {
-	Prob string `json:"prob"`
-	Name string `json:"name"`
-	Count int   `json:"count,omitempty"`
+	Prob  string `json:"prob"`
+	Name  string `json:"name"`
+	Count int    `json:"count,omitempty"`
 }
 
 // ConvertMonsters 转换怪物配置文件。
@@ -86,20 +85,43 @@ func convertMonGen(envirDir, outputDir string) error {
 	}
 
 	result := map[string]interface{}{
-		"_source":     "asset/server/Envir/mongen.txt",
-		"_description": "怪物刷新点定义",
-		"spawns":      gens,
+		"spawns": gens,
 	}
 
-	jsonData, err := json.MarshalIndent(result, "", "  ")
+	jsonData, err := MarshalJSONC(result, monGenComments, false)
 	if err != nil {
-		return err
+		return fmt.Errorf("marshaling mon gen: %w", err)
 	}
 
 	outputFile := filepath.Join(outputDir, "monsters", "mon_gen.jsonc")
-	comment := fmt.Sprintf("怪物刷新点\n来源: asset/server/Envir/mongen.txt\n数量: %d 个刷新点", len(gens))
+	comment := fmt.Sprintf("怪物刷新点（怪物刷新点定义）\n来源: asset/server/Envir/mongen.txt\n数量: %d 个刷新点\n", len(gens)) + monGenFieldDocs
 
-	return WriteJSONC(outputFile, string(jsonData), comment)
+	return WriteJSONC(outputFile, jsonData, comment)
+}
+
+// monGenFieldDocs 是 mon_gen.jsonc 头部注释追加的字段说明表，
+// 按 MonGen 结构体字段顺序，每个字段一行。
+const monGenFieldDocs = `字段说明（按结构体字段顺序）:
+mapName  地图编号（刷新点所在地图，不在地图列表中的条目加载时跳过）
+x        刷新点中心 X 坐标
+y        刷新点中心 Y 坐标
+name     怪物名称（引用 Monster 表名称）
+range    刷新半径（格；在中心 ±range 内随机选可走点）
+count    维持存活怪物数量（按 game.monGenRate 缩放）
+interval 重生间隔（分钟；Delphi LocalDB.pas:1237 按分钟×60×1000 转 ms，空值按 10 分钟处理）`
+
+// monGenComments 是 mon_gen.jsonc 的中文注释表。
+// 键为点号路径；commentAll=false 时元素注释只渲染在首条记录。
+// 文案来源：cmd/server/mongen.go loadMonGenFromFile/SpawnMonster 消费逻辑。
+var monGenComments = map[string]string{
+	"spawns":            "怪物刷新点（mongen.txt 每行一条）",
+	"spawns[].mapName":  "地图编号（不在地图列表则跳过）",
+	"spawns[].x":        "刷新点 X 坐标",
+	"spawns[].y":        "刷新点 Y 坐标",
+	"spawns[].name":     "怪物名称（引用 Monster 表）",
+	"spawns[].range":    "刷新半径（格）",
+	"spawns[].count":    "维持存活怪物数量",
+	"spawns[].interval": "重生间隔（分钟，服务端 ×60×1000 转 ms）",
 }
 
 func convertMonItems(envirDir, outputDir string) error {
@@ -154,21 +176,19 @@ func convertMonItems(envirDir, outputDir string) error {
 		}
 
 		result := map[string]interface{}{
-			"_source":      fmt.Sprintf("asset/server/Envir/MonItems/%s", base),
-			"_description": fmt.Sprintf("%s 的掉落表", monsterName),
-			"monster":      monsterName,
-			"items":        items,
+			"monster": monsterName,
+			"items":   items,
 		}
 
-		jsonData, err := json.MarshalIndent(result, "", "  ")
+		jsonData, err := MarshalJSONC(result, monItemComments, true)
 		if err != nil {
 			continue
 		}
 
 		outputFile := filepath.Join(dstDir, monsterName+".jsonc")
-		comment := fmt.Sprintf("怪物掉落表\n来源: asset/server/Envir/MonItems/%s\n怪物: %s", base, monsterName)
+		comment := fmt.Sprintf("怪物掉落表（%s 的掉落表）\n来源: asset/server/Envir/MonItems/%s\n怪物: %s\n", monsterName, base, monsterName) + monItemFieldDocs
 
-		if err := WriteJSONC(outputFile, string(jsonData), comment); err != nil {
+		if err := WriteJSONC(outputFile, jsonData, comment); err != nil {
 			fmt.Printf("  警告: 写入 %s 失败: %v\n", outputFile, err)
 			continue
 		}
@@ -208,4 +228,22 @@ func copyMonUseItems(envirDir, outputDir string) error {
 
 	fmt.Printf("  复制了 %d 个怪物装备配置\n", count)
 	return nil
+}
+
+// monItemFieldDocs 是 mon_items/*.jsonc 头部注释追加的字段说明表，
+// 按 MonItem 结构体字段顺序，每个字段一行。
+const monItemFieldDocs = `字段说明（按结构体字段顺序）:
+prob  掉落概率 "1/N"（服务端取分母 N 作为判定基数，1/N 概率掉落）
+name  物品名称（"金币" 表示金币掉落）
+count 掉落数量（省略时按 1；金币条目为金币数量）`
+
+// monItemComments 是 mon_items/*.jsonc 的中文注释表。
+// 键为点号路径；小文件用 commentAll=true 逐元素渲染。
+// 文案来源：cmd/server/droptable.go loadFile/parseProb 消费逻辑。
+var monItemComments = map[string]string{
+	"monster":       "怪物名（掉落表索引键，对应 Monster 表名称）",
+	"items":         "掉落行（原文格式: prob name [count]）",
+	"items[].prob":  "掉落概率 1/N",
+	"items[].name":  "物品名（\"金币\" 为金币）",
+	"items[].count": "掉落数量（省略按 1）",
 }

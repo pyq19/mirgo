@@ -2,7 +2,6 @@ package main
 
 import (
 	"bufio"
-	"encoding/json"
 	"fmt"
 	"path/filepath"
 	"strings"
@@ -23,12 +22,12 @@ type ItemRule struct {
 
 // GroupItem 表示物品套装/分组。
 type GroupItem struct {
-	ID       int      `json:"id"`
-	Count    int      `json:"count"`
-	Name     string   `json:"name"`
-	Items    []string `json:"items"`
-	Bonus    string   `json:"bonus"`
-	Desc     string   `json:"desc"`
+	ID    int      `json:"id"`
+	Count int      `json:"count"`
+	Name  string   `json:"name"`
+	Items []string `json:"items"`
+	Bonus string   `json:"bonus"`
+	Desc  string   `json:"desc"`
 }
 
 // MakeItem 表示合成配方。
@@ -113,20 +112,18 @@ func convertDisableTakeOffList(envirDir, outputDir string) error {
 	}
 
 	result := map[string]interface{}{
-		"_source":      "asset/server/Envir/DisableTakeOffList.txt",
-		"_description": "禁止脱下物品列表",
-		"items":        items,
+		"items": items,
 	}
 
-	jsonData, err := json.MarshalIndent(result, "", "  ")
+	jsonData, err := MarshalJSONC(result, takeoffComments, true)
 	if err != nil {
 		return err
 	}
 
 	outputFile := filepath.Join(outputDir, "items", "disable_takeoff_list.jsonc")
-	comment := fmt.Sprintf("禁止脱下物品列表\n来源: asset/server/Envir/DisableTakeOffList.txt\n数量: %d 个物品", len(items))
+	comment := fmt.Sprintf("禁止脱下物品列表\n来源: asset/server/Envir/DisableTakeOffList.txt\n数量: %d 个物品\n字段说明:\n  name  物品名（仅备注用，匹配以 idx 为准）\n  idx   物品 0 基数据库索引（即 StdItems 行号；Delphi 原文件记为 wIndex-1）", len(items))
 
-	return WriteJSONC(outputFile, string(jsonData), comment)
+	return WriteJSONC(outputFile, jsonData, comment)
 }
 
 func convertFilterItems(envirDir, outputDir string) error {
@@ -162,20 +159,18 @@ func convertFilterItems(envirDir, outputDir string) error {
 	}
 
 	result := map[string]interface{}{
-		"_source":     "asset/server/Envir/FilterItemList.txt",
-		"_description": "物品过滤列表",
-		"items":       items,
+		"items": items,
 	}
 
-	jsonData, err := json.MarshalIndent(result, "", "  ")
+	jsonData, err := MarshalJSONC(result, filterItemComments, false)
 	if err != nil {
 		return err
 	}
 
 	outputFile := filepath.Join(outputDir, "items", "filter_items.jsonc")
-	comment := fmt.Sprintf("物品过滤列表\n来源: asset/server/Envir/FilterItemList.txt\n数量: %d 个物品", len(items))
+	comment := fmt.Sprintf("物品过滤列表\n来源: asset/server/Envir/FilterItemList.txt\n数量: %d 个物品\n字段说明:\n  type   过滤分类编号（原文件第 1 列）\n  name   物品名\n  props  附加数值参数（原文件第 3 列起）", len(items))
 
-	return WriteJSONC(outputFile, string(jsonData), comment)
+	return WriteJSONC(outputFile, jsonData, comment)
 }
 
 func convertItemRules(envirDir, outputDir string) error {
@@ -203,20 +198,18 @@ func convertItemRules(envirDir, outputDir string) error {
 	}
 
 	result := map[string]interface{}{
-		"_source":     "asset/server/Envir/ItemRuleList.txt",
-		"_description": "物品规则列表",
-		"rules":       rules,
+		"rules": rules,
 	}
 
-	jsonData, err := json.MarshalIndent(result, "", "  ")
+	jsonData, err := MarshalJSONC(result, itemRuleComments, false)
 	if err != nil {
 		return err
 	}
 
 	outputFile := filepath.Join(outputDir, "items", "item_rules.jsonc")
-	comment := fmt.Sprintf("物品规则列表\n来源: asset/server/Envir/ItemRuleList.txt\n数量: %d 条规则", len(rules))
+	comment := fmt.Sprintf("物品规则列表\n来源: asset/server/Envir/ItemRuleList.txt\n数量: %d 条规则\n字段说明:\n  name   物品名\n  rules  规则标志串（原文件制表符后的数值序列，逐位对应各项规则开关）", len(rules))
 
-	return WriteJSONC(outputFile, string(jsonData), comment)
+	return WriteJSONC(outputFile, jsonData, comment)
 }
 
 func convertGroupItems(envirDir, outputDir string) error {
@@ -250,20 +243,18 @@ func convertGroupItems(envirDir, outputDir string) error {
 	}
 
 	result := map[string]interface{}{
-		"_source":     "asset/server/Envir/GroupItemList.txt",
-		"_description": "套装定义",
-		"groups":      groups,
+		"groups": groups,
 	}
 
-	jsonData, err := json.MarshalIndent(result, "", "  ")
+	jsonData, err := MarshalJSONC(result, groupItemComments, true)
 	if err != nil {
 		return err
 	}
 
 	outputFile := filepath.Join(outputDir, "items", "group_items.jsonc")
-	comment := fmt.Sprintf("套装定义\n来源: asset/server/Envir/GroupItemList.txt\n数量: %d 套", len(groups))
+	comment := fmt.Sprintf("套装定义\n来源: asset/server/Envir/GroupItemList.txt\n数量: %d 套\n字段说明:\n  id     套装编号\n  count  激活套装所需件数\n  name   套装名称\n  items  套装包含的物品名列表\n  bonus  套装加成属性值（竖线分隔数值）\n  desc   套装生效提示文本", len(groups))
 
-	return WriteJSONC(outputFile, string(jsonData), comment)
+	return WriteJSONC(outputFile, jsonData, comment)
 }
 
 func convertUnbindList(envirDir, outputDir string) error {
@@ -296,20 +287,18 @@ func convertUnbindList(envirDir, outputDir string) error {
 	}
 
 	result := map[string]interface{}{
-		"_source":     "asset/server/Envir/UnbindList.txt",
-		"_description": "解绑物品列表",
-		"items":       items,
+		"items": items,
 	}
 
-	jsonData, err := json.MarshalIndent(result, "", "  ")
+	jsonData, err := MarshalJSONC(result, unbindComments, true)
 	if err != nil {
 		return err
 	}
 
 	outputFile := filepath.Join(outputDir, "items", "unbind_list.jsonc")
-	comment := fmt.Sprintf("解绑物品列表\n来源: asset/server/Envir/UnbindList.txt\n数量: %d 个物品", len(items))
+	comment := fmt.Sprintf("解绑物品列表\n来源: asset/server/Envir/UnbindList.txt\n数量: %d 个物品\n字段说明:\n  id    Shape 编号（对应 StdMode 31 包裹类物品的 Shape 值）\n  name  解包后得到的物品名", len(items))
 
-	return WriteJSONC(outputFile, string(jsonData), comment)
+	return WriteJSONC(outputFile, jsonData, comment)
 }
 
 func convertMakeItems(envirDir, outputDir string) error {
@@ -356,18 +345,74 @@ func convertMakeItems(envirDir, outputDir string) error {
 	}
 
 	result := map[string]interface{}{
-		"_source":     "asset/server/Envir/MakeItem.txt",
-		"_description": "合成配方",
-		"recipes":     recipes,
+		"recipes": recipes,
 	}
 
-	jsonData, err := json.MarshalIndent(result, "", "  ")
+	jsonData, err := MarshalJSONC(result, makeItemComments, false)
 	if err != nil {
 		return err
 	}
 
 	outputFile := filepath.Join(outputDir, "items", "make_items.jsonc")
-	comment := fmt.Sprintf("合成配方\n来源: asset/server/Envir/MakeItem.txt\n数量: %d 个配方", len(recipes))
+	comment := fmt.Sprintf("合成配方\n来源: asset/server/Envir/MakeItem.txt\n数量: %d 个配方\n字段说明:\n  product    产物物品名\n  materials  所需材料列表（name 材料名，count 数量）\n说明: 服务端 makedrug.go 消费；未列出 goldCost，缺省按金币模式处理", len(recipes))
 
-	return WriteJSONC(outputFile, string(jsonData), comment)
+	return WriteJSONC(outputFile, jsonData, comment)
+}
+
+// filterItemComments 是 filter_items.jsonc 的中文注释表（条目多，仅首条记录渲染，commentAll=false）。
+var filterItemComments = map[string]string{
+	// items 为非空数组，注释放键上方
+	"items":         "物品过滤列表（GEEM2 FilterItemList，Go 服务端暂未消费，保留）",
+	"items[].type":  "过滤分类编号（原文件第 1 列）",
+	"items[].name":  "物品名",
+	"items[].props": "附加数值参数（原文件第 3 列起）",
+}
+
+// itemRuleComments 是 item_rules.jsonc 的中文注释表（条目多，仅首条记录渲染，commentAll=false）。
+var itemRuleComments = map[string]string{
+	// rules 为非空数组，注释放键上方
+	"rules":         "物品规则列表（逐物品行为开关，Go 服务端暂未消费，保留）",
+	"rules[].name":  "物品名",
+	"rules[].rules": "规则标志串（原文件制表符后的数值序列，逐位对应各项规则开关）",
+}
+
+// groupItemComments 是 group_items.jsonc 的中文注释表（条目少，逐元素渲染，commentAll=true）。
+var groupItemComments = map[string]string{
+	// groups 为非空数组，注释放键上方
+	"groups":         "套装列表（Go 服务端暂未消费，保留）",
+	"groups[].id":    "套装编号",
+	"groups[].count": "激活套装所需件数",
+	"groups[].name":  "套装名称",
+	"groups[].items": "套装包含的物品名列表",
+	"groups[].bonus": "套装加成属性值（竖线分隔数值）",
+	"groups[].desc":  "套装生效提示文本",
+}
+
+// unbindComments 是 unbind_list.jsonc 的中文注释表（条目少，逐元素渲染，commentAll=true）。
+// 文案来源：cmd/server/itemdb.go LoadUnbindList（StdMode 31 解包）。
+var unbindComments = map[string]string{
+	// items 为非空数组，注释放键上方
+	"items":        "解绑（解包）映射列表（服务端 ItemDB.LoadUnbindList 消费）",
+	"items[].id":   "Shape 编号（对应 StdMode 31 包裹类物品的 Shape 值）",
+	"items[].name": "解包后得到的物品名",
+}
+
+// takeoffComments 是 disable_takeoff_list.jsonc 的中文注释表（条目少，逐元素渲染，commentAll=true）。
+// 文案来源：cmd/server/itemdb.go LoadDisableTakeOffList。
+var takeoffComments = map[string]string{
+	// items 为非空数组，注释放键上方
+	"items":        "禁止脱下物品列表（服务端 ItemDB.LoadDisableTakeOffList 消费，禁止脱下/死亡掉落）",
+	"items[].name": "物品名（仅备注用，匹配以 idx 为准）",
+	"items[].idx":  "物品 0 基数据库索引（即 StdItems 行号；Delphi 原文件记为 wIndex-1）",
+}
+
+// makeItemComments 是 make_items.jsonc 的中文注释表（59 条 > 50，仅首条记录渲染，commentAll=false）。
+// 文案来源：cmd/server/makedrug.go LoadDrugRecipes/DrugRecipe。
+var makeItemComments = map[string]string{
+	// recipes 为非空数组，注释放键上方
+	"recipes":                     "制药/合成配方列表（服务端 LoadDrugRecipes 消费）",
+	"recipes[].product":           "产物物品名",
+	"recipes[].materials":         "所需材料列表",
+	"recipes[].materials[].name":  "材料物品名",
+	"recipes[].materials[].count": "所需材料数量",
 }

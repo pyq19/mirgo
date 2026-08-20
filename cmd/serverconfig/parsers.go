@@ -239,43 +239,6 @@ func WriteJSONC(filename string, data string, comment string) error {
 	return err
 }
 
-// StringSliceToJSON 将字符串切片转换为 JSON 数组格式。
-func StringSliceToJSON(items []string) string {
-	var sb strings.Builder
-	sb.WriteString("[\n")
-	for i, item := range items {
-		if i > 0 {
-			sb.WriteString(",\n")
-		}
-		sb.WriteString(fmt.Sprintf("  %q", item))
-	}
-	sb.WriteString("\n]")
-	return sb.String()
-}
-
-// MapSliceToJSON 将映射切片转换为 JSON 数组格式。
-func MapSliceToJSON(items []map[string]string) string {
-	var sb strings.Builder
-	sb.WriteString("[\n")
-	for i, item := range items {
-		if i > 0 {
-			sb.WriteString(",\n")
-		}
-		sb.WriteString("  {\n")
-		j := 0
-		for k, v := range item {
-			if j > 0 {
-				sb.WriteString(",\n")
-			}
-			sb.WriteString(fmt.Sprintf("    %q: %q", k, v))
-			j++
-		}
-		sb.WriteString("\n  }")
-	}
-	sb.WriteString("\n]")
-	return sb.String()
-}
-
 // CopyFile 将文件从 src 复制到 dst。
 func CopyFile(src, dst string) error {
 	// 确保目标目录存在

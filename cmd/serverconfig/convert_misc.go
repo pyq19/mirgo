@@ -2,7 +2,6 @@ package main
 
 import (
 	"bufio"
-	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -130,20 +129,18 @@ func convertGuardList(envirDir, outputDir string) error {
 	}
 
 	result := map[string]interface{}{
-		"_source":     "asset/server/Envir/GuardList.txt",
-		"_description": "卫兵列表",
-		"guards":      guards,
+		"guards": guards,
 	}
 
-	jsonData, err := json.MarshalIndent(result, "", "  ")
+	jsonData, err := MarshalJSONC(result, guardComments, true)
 	if err != nil {
 		return err
 	}
 
 	outputFile := filepath.Join(outputDir, "guards", "guard_list.jsonc")
-	comment := fmt.Sprintf("卫兵列表\n来源: asset/server/Envir/GuardList.txt\n数量: %d 个卫兵", len(guards))
+	comment := fmt.Sprintf("卫兵列表\n来源: asset/server/Envir/GuardList.txt\n数量: %d 个卫兵\n字段说明:\n  name     守卫怪物名（按怪物名生成，如\"卫士\"）\n  mapName  所在地图编号\n  x/y      所在坐标\n  dir      朝向（0-7 共 8 方向）\n说明: Go 服务端暂未消费（守卫由安全区两侧统一生成，见 loadSafeZoneGuards），保留", len(guards))
 
-	return WriteJSONC(outputFile, string(jsonData), comment)
+	return WriteJSONC(outputFile, jsonData, comment)
 }
 
 func convertAdminList(envirDir, outputDir string) error {
@@ -169,20 +166,18 @@ func convertAdminList(envirDir, outputDir string) error {
 	}
 
 	result := map[string]interface{}{
-		"_source":     "asset/server/Envir/AdminList.txt",
-		"_description": "管理员列表",
-		"admins":      admins,
+		"admins": admins,
 	}
 
-	jsonData, err := json.MarshalIndent(result, "", "  ")
+	jsonData, err := MarshalJSONC(result, adminComments, true)
 	if err != nil {
 		return err
 	}
 
 	outputFile := filepath.Join(outputDir, "guards", "admin_list.jsonc")
-	comment := fmt.Sprintf("管理员列表\n来源: asset/server/Envir/AdminList.txt\n数量: %d 个管理员", len(admins))
+	comment := fmt.Sprintf("管理员列表\n来源: asset/server/Envir/AdminList.txt\n数量: %d 个管理员\n说明: 原文件 \"* 角色名\" 行（* 即权限等级 10）；Go 服务端暂未消费，保留", len(admins))
 
-	return WriteJSONC(outputFile, string(jsonData), comment)
+	return WriteJSONC(outputFile, jsonData, comment)
 }
 
 func convertCastle(inputDir, outputDir string) error {
@@ -210,7 +205,7 @@ func convertCastle(inputDir, outputDir string) error {
 		"wallMaxHP": getINIInt(castleINI, "defense", "LeftWallHP", 5000),
 	}
 
-	jsonData, err := json.MarshalIndent(config, "", "  ")
+	jsonData, err := MarshalJSONC(config, castleComments, true)
 	if err != nil {
 		return err
 	}
@@ -218,7 +213,7 @@ func convertCastle(inputDir, outputDir string) error {
 	outputFile := filepath.Join(outputDir, "castle", "sabuk_wall.jsonc")
 	comment := "沙巴克城堡配置\n来源: asset/server/Castle/0/SabukW.txt\n说明: schema 对齐服务端 CastleConfig，源文件未提供的字段使用服务端默认值"
 
-	return WriteJSONC(outputFile, string(jsonData), comment)
+	return WriteJSONC(outputFile, jsonData, comment)
 }
 
 func convertNotice(inputDir, outputDir string) error {
@@ -235,12 +230,10 @@ func convertNotice(inputDir, outputDir string) error {
 	}
 
 	result := map[string]interface{}{
-		"_source":     "asset/server/Notice/Notice.txt",
-		"_description": "登录公告",
-		"content":     string(data),
+		"content": string(data),
 	}
 
-	jsonData, err := json.MarshalIndent(result, "", "  ")
+	jsonData, err := MarshalJSONC(result, noticeComments, true)
 	if err != nil {
 		return err
 	}
@@ -248,7 +241,44 @@ func convertNotice(inputDir, outputDir string) error {
 	outputFile := filepath.Join(outputDir, "notice", "notice.jsonc")
 	comment := "登录公告\n来源: asset/server/Notice/Notice.txt"
 
-	return WriteJSONC(outputFile, string(jsonData), comment)
+	return WriteJSONC(outputFile, jsonData, comment)
+}
+
+// guardComments 是 guard_list.jsonc 的中文注释表（小文件，逐元素渲染，commentAll=true）。
+// 文案来源：Delphi LocalDB.pas 守卫生成（RegenMonsterByName）。
+var guardComments = map[string]string{
+	// guards 为非空数组，注释放键上方
+	"guards":           "卫兵列表（Delphi 按怪物名生成守卫；Go 服务端暂未消费，保留）",
+	"guards[].name":    "守卫怪物名（按怪物名生成，如\"卫士\"）",
+	"guards[].mapName": "所在地图编号",
+	"guards[].x":       "所在 X 坐标",
+	"guards[].y":       "所在 Y 坐标",
+	"guards[].dir":     "朝向（0-7 共 8 方向）",
+}
+
+// adminComments 是 admin_list.jsonc 的中文注释表（小文件，逐元素渲染，commentAll=true）。
+var adminComments = map[string]string{
+	// admins 为非空数组，注释放键上方
+	"admins":   "管理员角色名列表（原文件 \"* 角色名\" 行，* 即权限等级 10；Go 服务端暂未消费，保留）",
+	"admins[]": "管理员角色名",
+}
+
+// castleComments 是 sabuk_wall.jsonc 的中文注释表（6 个字段，全字段注释，commentAll=true）。
+// 文案来源：cmd/server/castle.go CastleConfig/LoadCastleConfig。
+var castleComments = map[string]string{
+	"name":      "城堡名称",
+	"map":       "城堡所在地图编号",
+	"palaceX":   "皇宫中心 X 坐标（攻城占领判定/弓箭手布防基准）",
+	"palaceY":   "皇宫中心 Y 坐标",
+	"doorMaxHP": "城门耐久上限",
+	"wallMaxHP": "城墙耐久上限",
+}
+
+// noticeComments 是 notice.jsonc 的中文注释表（commentAll=true）。
+// 文案来源：cmd/server/main.go loadNoticeText。
+var noticeComments = map[string]string{
+	// content 为叶子（字符串），注释放行尾
+	"content": "登录公告原文（Notice.txt GBK→UTF-8 全文；为空时服务端回退默认文案）",
 }
 
 func convertCustomMagic(envirDir, outputDir string) error {

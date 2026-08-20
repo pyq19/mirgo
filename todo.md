@@ -58,9 +58,9 @@
 
 # serverconfig
 
-serverconfig 转换出来的配置文件要带上本项目的 go 服务端额外的一些配置, 而不仅仅是 176 服务端原本的配置
+- [x] serverconfig 转换出来的配置文件要带上本项目的 go 服务端额外的一些配置, 而不仅仅是 176 服务端原本的配置 (server.jsonc 已输出与 config.go 对齐的全部 15 节, Go 专属参数按默认值写入)
 
-- [ ] serverconfig 转换出来的配置文件要带上中文注释, 发挥 jsonc 可以注释的优势
+- [x] serverconfig 转换出来的配置文件要带上中文注释, 发挥 jsonc 可以注释的优势 (jsonc_writer.go 反射写出器 + 各文件中文注释表; 数据库大文件头部字段说明表 + 首条记录注释)
 
 # 综合
 

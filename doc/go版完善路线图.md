@@ -65,12 +65,12 @@
 | 客户端主干（渲染/动画/UI/输入/声音） | ~85% | 三层地图+Y-sort、HA 14 动作/MA 38 模板逐值一致、UI 框架忠实移植、声音门面层完整；缺长尾（特化怪物特效、UI 邮件/设置类、反作弊） |
 | 服务端核心玩法 | ~80% | 36 个系统中 27 个完整、4 个部分、3 个不可达（P0）、2 个缺失 |
 | 网关层能力（原 RunGate/LoginGate） | ~20% | 序号校验/敏感词过滤/IP 黑名单/发送背压基本未移植，ratelimit.go 只覆盖登录期 |
-| 配置转换（cmd/serverconfig） | 结构 100% / 语义 ~5% | 数据库表/刷新点/商店/脚本数量全对齐；但 !setup.txt 3544 键仅映射 ~18 个，mapinfo.txt 地图属性转换后无人消费 |
+| 配置转换（cmd/serverconfig） | 结构 100% / 语义大部分对齐 | server.jsonc 已补齐与 config.go 对齐的全部 15 节（Go 专属参数按默认值写入），全部输出带字段级中文注释（jsonc_writer.go 反射写出器）；剩余未消费清单见 3.1「配置文件消费缺口」 |
 | 消息常量覆盖 | SM 205/216、CM 81/85、RM 25/126 | 已覆盖常量无数值冲突；RM 缺口属架构差异（Go 状态同步直发 SM，不走 RM 中继） |
 
 **最危险的三类缺口**：
 1. **已实现但不可达**（P0）：处理器写好了，路由/映射没接上 —— 屠宰、私聊、好友、行会宣战、挖矿、2 个怪物 AI 全部静默失效。
-2. **数据转换了但无人消费**：地图属性（SAFE/DARK/EXPRATE…）、公告、部分 Envir 列表。
+2. **数据转换了但无人消费**：地图属性、公告已随 P0-4/P0-5 修复；剩余长尾（exp_table/strings/global_vars/GEEM2 物品规则等）见 3.1「配置文件消费缺口」审计。
 3. **网关层防刷能力真空**：单进程合并后，RunGate 的防攻击/过滤/背压没有补偿实现。
 
 ---
@@ -161,6 +161,44 @@ Go 已有：move/search/recall/slave/dearrecall/masterrecall/nomob/make/level/mo
 - **行会 Run 语义**：~~Delphi g_GuildManager.Run 每 10s；Go 仅周期存档~~ ✅ 已修复（ProcessGuilds 每 10s：到期行会战移除+成员通知+落盘；wars/allies 持久化）
 - **在线人数广播**：~~Delphi boSendOnlineCount（UsrEngn.pas:3054-3060），Go 无~~ ✅ 已修复（周期系统消息，配置 sendOnlineTime/sendOnlineCountRate/sendOnlineCountMsg）
 - **CM 缺口**：~~CM_SOFTCLOSE(1009)/CM_USERGETDETAILITEM(1015)/CM_QUERYUSERNAME(80)/CM_SITDOWN(3012)~~ ✅ 已修复；CM_QUERYUSERSET(3040) 经查为 Delphi MD5 后门、CM_THROW(3005) Delphi 无处理器 → backlog（对照 ObjBase.pas:4663-5287）
+
+#### 配置文件消费缺口（serverconfig 全量审计，2026-08-21）
+
+背景：serverconfig 转换器输出约 25 个 jsonc + 若干原样复制文件；以下按"是否被 cmd/server 加载/消费"逐项审计，全部附 file:line 证据。
+
+**A. 已转换但服务端完全不加载**
+
+| 文件 | Delphi 原用途 | Go 现状 |
+|------|--------------|---------|
+| exp_table.jsonc | Exps.ini 等级经验表（Level1~Level1000） | **影响最大的缺口**：升级经验硬编码 `level²×100`（playobject.go:1913-1919 GetMaxExp），升级节奏与 1.76 原版严重不符（Exps.ini 高等级需数十亿经验） |
+| strings.jsonc | String.ini 游戏提示文本（约 210 条） | 未加载；提示文案散落在代码里硬编码 |
+| global_vars.jsonc | GlobalVal.ini 2000 个全局变量（NPC 脚本读写） | 未加载；Go NPC 脚本走 VAR/SAVEVAR 文件机制（见上文 SQL 变量条目） |
+| items/filter_items.jsonc | GEEM2 物品过滤列表（SendFilterItemList 下发客户端） | 未加载 |
+| items/item_rules.jsonc | GEEM2 物品规则标志 | 未加载 |
+| items/group_items.jsonc | GEEM2 套装组合加成 | 未加载 |
+| guards/guard_list.jsonc | Envir/GuardList.txt 守卫列表 | 未加载；守卫由安全区两侧程序化生成（loadSafeZoneGuards，mongen.go:42） |
+| guards/admin_list.jsonc | Envir 管理员列表（Delphi LoadAdminList，LocalDB.pas:47） | 未加载；由 server.jsonc `game.gmAccounts` 取代 |
+| monsters/smart_monster/*.ini | SmartMonster 特化怪物配置 | 原样复制未消费（仅建目录） |
+| monsters/mon_use_items/*.txt | 怪物使用物品配置 | 原样复制未消费 |
+| magic/custom_magic/*.ini | 自定义魔法配置 | 原样复制未消费 |
+
+**B. 已加载但字段未消费完整**
+
+| 文件 | 未消费字段 | 影响 |
+|------|-----------|------|
+| items/std_items.jsonc | color/horse/element/expands/insuranceCurrency/insuranceGold/elements 服务端 ItemDef（itemdb.go:10-40）未定义；overLap/hp/mp/light 已定义但无消费点 | GEEM2 扩展属性（堆叠标记/附加 HP/MP/光源/坐骑/元素/装备保险）全部失效 |
+| monsters/monster_db.jsonc | attackSpd 未被读取：怪物攻速固定 `walkSpeed + attackSpeedOffset`（mongen.go:542）；attackState/exploreItem/attackSource/disableSimpleActor 服务端 MonsterDef（monsterdb.go）未定义 | 怪物攻击速度无视 DB 调整值，与 Delphi 行为不一致 |
+| magic/magic_db.jsonc | defSpell/descr/needL2~L15/l2Train~l15Train/canUpgrade/maxUpgradeLv 未消费（服务端 MagicDef 仅 13 字段，magicdb.go:9-23） | ①技能熟练度仅 3 级（trainThreshold0/1/2 配置），Delphi 支持 15 级训练；②耗蓝直接取 Spell 定额（magicsystem.go:69,102），Delphi 公式为按技能级缩放 + DefSpell（ObjBase.pas:21700） |
+| maps/map_info.jsonc | 数字 flags 未消费（mapmanager.go:85-102 只读 props；props 已消费） | Delphi flags 按服务器编号过滤（nServerIndex），单服无实质影响 |
+| maps/start_points.jsonc | range 取源文件第 4 列（恒 0）；Delphi LoadStartPoint 只读前 3 列、无半径概念（LocalDB.pas:1579-1615）；服务端 <=0 回退半径 5（safezone.go:47-49） | 安全区半径无原版依据；源文件第 5 列（恒 10）疑似半径但 Delphi 不消费，语义未定 |
+| server.jsonc | server.limits.humLimit/monLimit 无消费点；game.buildGuild 无消费点 | humLimit/monLimit 保留占位；建会费用实际由 economy.guildCreateCost 消费（guildsystem.go:317） |
+
+**C. 本次审计顺带修复 ✅**
+
+| 项 | 内容 | 落点 |
+|----|------|------|
+| mon_gen interval 单位 | mongen.txt 第 7 列原义为**分钟**（Delphi LocalDB.pas:1237 `dwZenTime := Str_ToInt(sData,-1)*60*1000`），Go 曾按秒解释导致刷怪间隔快 60 倍；已改为分钟换算 + 空值回退 10 分钟 + 回归测试 | mongen.go loadMonGenFromFile / mongen_test.go |
+| server.jsonc 补全 | 转换器输出与 config.go 对齐的全部 15 节 + 全字段中文注释（本表审计依据） | cmd/serverconfig/convert_server.go / jsonc_writer.go |
 
 ### 3.2 客户端
 
