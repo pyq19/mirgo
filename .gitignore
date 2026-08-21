@@ -1,4 +1,8 @@
 
+.codegraph
+mimocode.jsonc
+opencode.jsonc
+codegraph.json
 imgui.ini
 asset
 temp.md
