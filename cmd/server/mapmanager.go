@@ -143,6 +143,8 @@ func parseMapFlag(props []string) MapFlag {
 			f.ReconnectMap = arg
 		case "NORECALL":
 			f.NoRecall = true
+		case "NOGUILDRECALL":
+			f.NoGuildRecall = true
 		case "NORANDOMMOVE":
 			f.NoRandomMove = true
 		case "NOPOSITIONMOVE", "NOHORSE":

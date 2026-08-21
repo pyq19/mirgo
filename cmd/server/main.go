@@ -65,6 +65,11 @@ func main() {
 		os.Exit(1)
 	}
 
+	// 解析 GM 命令名与权限（commands.names/permissions，Command.ini 转译）。
+	buildGMCommandTable(config)
+	adminListPath := filepath.Join(*configDir, "guards", "admin_list.jsonc")
+	adminList := loadAdminList(adminListPath)
+
 	listenAddr := config.GetListenAddr()
 	dbPath := config.GetDatabasePath()
 
@@ -124,8 +129,6 @@ func main() {
 	safeZonesPath := filepath.Join(*configDir, "maps", "start_points.jsonc")
 	LoadSafeZones(safeZonesPath)
 
-	noticeText := loadNoticeText(*configDir)
-
 	monGenPath := filepath.Join(*configDir, "monsters", "mon_gen.jsonc")
 	npcConfigDir := filepath.Join(*configDir, "npcs")
 
@@ -138,6 +141,13 @@ func main() {
 	userEngine.DropTables = dropTables
 	userEngine.monGenPath = monGenPath
 	userEngine.npcConfigDir = npcConfigDir
+	userEngine.AdminList = adminList
+	userEngine.adminListPath = adminListPath
+	userEngine.configDir = *configDir
+	userEngine.itemDBPath = itemDBPath
+	userEngine.monsterDBPath = monsterDBPath
+	userEngine.dropTablesDir = dropTablesDir
+	userEngine.NoticeText = loadNoticeText(*configDir)
 	userEngine.InitWorld(mapMgr)
 	userEngine.LoadGuilds()
 
@@ -158,6 +168,10 @@ func main() {
 	loadDenyChrNameList(*configDir)
 	loadBlockLists(*configDir)
 	loadWordFilter(*configDir)
+	// GM 永久封禁表（Delphi LoadDenyIPAddrList/LoadDenyAccountList/
+	// LoadDenyChrNameList，svMain.pas:614-616）；Go 用数据库同目录的
+	// deny_lists.json 替代 Delphi Envir 文本文件（usrengine.go）。
+	userEngine.LoadDenyLists(filepath.Join(filepath.Dir(config.GetDatabasePath()), "deny_lists.json"))
 
 	server := netserver.NewTCPServer(listenAddr)
 	// 每连接入站消息限流（路线图 6.3 网关补偿层，默认 60 条/秒突发 40）
@@ -261,6 +275,18 @@ func main() {
 		log.Logf(log.LevelInfo, "Server", "[**RunLogin] character loaded: %s id=%d map=%s(%d,%d)",
 			charData.Name, charData.ID, charData.Map, charData.X, charData.Y)
 
+		// 登录封禁拦截（Delphi CheckDenyLogon，ObjBase.pas:16610,26763-26783）：
+		// IP/帐号/角色名命中 GM 封禁表则提示并断线。文案为 Delphi 游戏内
+		// 原文（g_sYourIPaddrDenyLogon 等，M2Share.pas:3187-3189）——本 WL
+		// 版 Delphi 即在 UserLogon 内做游戏内拦截，并非只在 LoginSrv 层。
+		if denyMsg := userEngine.CheckDenyLogon(sessionRemoteIP(session), session.AccountName, charData.Name); denyMsg != "" {
+			log.Logf(log.LevelWarn, "Server", "[**RunLogin] denied logon for %s: %s", charData.Name, denyMsg)
+			denyMsgPkg := protocol.MakeDefaultMsg(protocol.SMSysMessage, 0, chatColorSys, 0, 0)
+			server.Send(session.ID, denyMsgPkg, protocol.EncodeString(denyMsg))
+			server.CloseSession(session.ID)
+			return true
+		}
+
 		// 创建 PlayObject
 		player := NewPlayObject(session, charData.Name, int32(charData.ID))
 		player.MapMgr = mapMgr
@@ -286,10 +312,37 @@ func main() {
 		player.Gold = int(charData.Gold)
 		player.SessionID = session.ID
 		player.AccountName = session.AccountName
+		// 登录恢复禁言状态（Delphi m_boFilterSendMsg := GetDisableSendMsgList
+		// (m_sCharName)，ObjBase.pas:16628）。
+		player.FilterSendMsg = userEngine.isMsgDisabled(charData.Name)
 		player.LastPkDecayTick = time.Now().UnixMilli()
-		if perm, ok := config.Game.GMAccounts[player.AccountName]; ok {
-			player.Permission = byte(perm)
+		// 权限授予（Delphi UserLogon，ObjBase.pas:16384-16392）：
+		// AdminList 按角色名+IP 校验；GMAccounts 为 Go 专属按账号名补充。
+		perm := 0
+		if v, ok := config.Game.GMAccounts[player.AccountName]; ok {
+			perm = v
 		}
+		clientIP := sessionRemoteIP(session)
+		admins := userEngine.getAdminList()
+		for i := range admins {
+			a := &admins[i]
+			if !strings.EqualFold(a.Name, charData.Name) {
+				continue
+			}
+			if compareIPaddr(clientIP, a.IP) {
+				if a.Level > perm {
+					perm = a.Level
+				}
+			} else {
+				// IP 不匹配：提示后强制断线（Delphi m_boEmergencyClose）。
+				msg := protocol.MakeDefaultMsg(protocol.SMSysMessage, 0, chatColorSys, 0, 0)
+				server.Send(session.ID, msg, protocol.EncodeString("GM IP validation failed..."))
+				server.CloseSession(session.ID)
+				return true
+			}
+			break
+		}
+		player.Permission = byte(perm)
 
 		// 查找并设置地图环境
 		envir := mapMgr.FindMap(charData.Map)
@@ -431,7 +484,7 @@ func main() {
 
 		// 发送公告（SMLogon 将在 CMLoginNoticeOK 之后发送）
 		noticeResp := protocol.MakeDefaultMsg(protocol.SMSendNotice, 0, 0, 0, 0)
-		server.Send(session.ID, noticeResp, protocol.EncodeString(noticeText))
+		server.Send(session.ID, noticeResp, protocol.EncodeString(userEngine.GetNoticeText()))
 
 		player.NotifyFriendsOnline(server)
 
@@ -1204,7 +1257,6 @@ func sendCharacterList(server *netserver.TCPServer, session *netserver.Session, 
 	return true
 }
 
-
 // sendLoginFail 发送登录失败响应。
 // Fix 1: 使用 SMPasswdFail (503) 代替 SMQueryChrFail (527)。
 func sendLoginFail(server *netserver.TCPServer, session *netserver.Session) {
@@ -1458,7 +1510,7 @@ func userEntryFromInfo(username string, info *storage.AccountInfo) protocol.User
 
 // sendNeedUpdateAccount 发送 SM_NEEDUPDATE_ACCOUNT + EncodeBuffer(TUserEntry)，
 // 要求客户端补全账号资料（LoginSrv/LMain.pas:1239-1244）。发送后登录流程照常
-//（LMain.pas:1245-1282 仍发 SM_PASSOK_SELECTSERVER）。
+// （LMain.pas:1245-1282 仍发 SM_PASSOK_SELECTSERVER）。
 func sendNeedUpdateAccount(server *netserver.TCPServer, session *netserver.Session, db *storage.Database, username string) {
 	info, err := db.GetAccountInfo(username)
 	if err != nil {

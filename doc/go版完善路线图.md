@@ -6,9 +6,9 @@
 
 ---
 
-## 修复进度（2026-08-05，物品系统第二轮审查 + 批次 1-7 全部完成）
+## 修复进度（2026-08-21，批次 1-9 全部完成，含 GM 命令全量对齐）
 
-> 本文档为活文档：批次 1-7 按"玩法优先"顺序实施完毕，每项附落点。
+> 本文档为活文档：批次 1-9 按"玩法优先"顺序实施完毕，每项附落点。
 > 剩余长尾（特化怪物渲染类、UI 邮件/设置/二级密码、客户端反作弊、GME 副本、
 > 攻城器械、付费体系持久化等）见文末 backlog，按需立项。
 
@@ -48,6 +48,7 @@
 | 批次6-网关中间件 | 五层补偿（6.3 方案落地）：①封包序号校验（FrameScanner.OnCode 钩子+会话违规计数，重复 >10 断开、缓冲积压 >20000 记满，RunGate/Main.pas:363-413 语义）②每连接令牌桶限流（默认 60 条/秒突发 40，msgRateLimit/msgBurst 可配，超限计入违规累计）③敏感词过滤（serverconfig/WordFilter.txt 每行一词，聊天/私聊大小写不敏感替换等字符 '*'，RunGate FilterSayMsg 语义）④发送背压（客户端 '*' 回显重置计数，2048B 未确认暂停发送 3s，RunGate/Main.pas:501-553；SendChan 连续丢弃 32 次视为无响应断开）⑤黑名单（BlockIPList.txt 连接期 IP 拒绝支持前缀匹配、DenyAccountList.txt 登录期账号拒绝；转换器补 DenyIPAddrList/DenyAccountList/WordFilter 转换；机器码黑名单不做——客户端无机器码）；5 个中间件单测 | frame.go / server.go / wordfilter.go / blocklist.go / convert_misc.go |
 | 批次7-工程化 | /status GM 命令（在线/会话/怪物/NPC/行会/堆内存/GC/goroutine/怪物按地图分布，6.7 可观测性）；WIL 纹理缓存 LRU（8192 上限，超限淘汰最久未访问纹理释放显存，6.5）；WAL 已启用（sqlite.go 连接串 _journal_mode=WAL，6.6 已满足）；迁移保持状态自检式（PRAGMA table_info 幂等自愈，替代版本号方案）；go vet 全量干净。CI 按用户要求不做（保持 AGENTS.md"无 CI"现状，验证命令：go build ./... + go vet ./... + go test ./... -count=1） | gmcommands.go / resourcemanager.go |
 | 批次8-输入 | ScenePlay 无法打字修复 + 输入行为对齐 Delphi：①RouteChar/RouteKeyDown 语义重建（模态恒吞；焦点含祖先链不可见→释放放行，补 DWinCtl.pas:933-936 缺失检查；焦点控件无处理器放行——Delphi 双通道 KeyPreview+OS 焦点在 Go 单通道下的适配）②CloseModal 释放子树内焦点/捕获（修对话框关闭后焦点泄漏到隐藏输入框，及 Enter 一次按下 press+release 双触发 complete 重复发送网络动作）③DialogBox.complete 幂等守卫 ④PlayScene.Close 清模态/焦点/chatMode/手持物品（对齐 Delphi CloseScene）⑤KeyDown 只收 press+repeat 不收 release（修退格双删，退格长按连删对齐 VCL，修饰键跟踪保留 release）⑥小键盘 Enter 全链路补齐（聊天/调试控制台）⑦平台层 IME：Windows IMM32（组合窗/候选窗定位到输入框+预编辑串渲染）、Linux 提交字符经 XIM/text-input 验证可用（预编辑/候选定位受 GLFW 限制，见 6.5）；新增 4 个路由单测 | uimanager.go / uicontrol.go / sceneplay.go / scenelogin.go / sceneselectchr.go / uidialog.go / uiedit.go / uihud.go / debugconsole.go / ime.go / internal/engine/window.go / internal/engine/ime_windows.go |
+| 批次9-GM命令 | GM 命令全量对齐 Delphi：①表驱动注册表替代两级 switch（gmcmd_registry.go：Command.ini names/permissions 转译消费、GetValidStr3 四分隔符、0-10 分级权限+三态失败反馈、? 参数帮助、@! 红字广播、未知命令兜底红字）②AdminList 登录授权链（admin_list.jsonc 角色名+CompareIPaddr 校验、失败红字+断线，与 GMAccounts 取最大值）③既有 32 命令迁移并修正 7 处语义错位/6 处行为偏差（@recall→@guildrecall+GM 召唤版、@observe→@regoto+真隐身、@pkpoint 改查询+@incpkpoint、@changemode→@attackmode 用户命令、传送戒指冷却改每玩家、@monclear 补死亡广播、@superman 改模式位等）④十族补齐 ~125 条：用户开关/传送人员/属性经济技能/物品/封禁禁言侦听/NPC怪物地图模式/行会城堡（AddGuild/DelGuild/ChangeSabukLord/ForcedWallconquestWar/SabukWallGold+争霸赛 4 条）/重载 9 条/任务标志 8 条/调试杂项 11 条，注册总数 157（Delphi 有效命令除空壳外全覆盖，另含 8 条 Go 专属扩展）⑤/who(3)/total(5) 聊天前缀命令；支撑改动：城堡 ChangeOwner/ForceStartWar、奴隶叛变（SpiritMutinyTick）、文字过滤总开关（boFilterWord）、TestSpeedMode 超速豁免、登录公告热重载；未移植 4 条（ReloadRobot/ReloadRobotManage 无机器人子系统、Reconnection 无多网关架构、TestServerConfig 无 SM_SERVERCONFIG 协议）；原版逻辑 bug 9 处修正不继承、文案怪癖照抄，代码注释逐条留档；105 个命令级单测 | gmcmd_registry.go / gmcommands.go / gmcmd_{user,move,econ,item,ban,npc,guild,reload,quest,debug}.go / adminlist.go / castle.go / chatsystem.go |
 
 **有意不做（本轮）⚠️**
 
@@ -65,12 +66,12 @@
 | 客户端主干（渲染/动画/UI/输入/声音） | ~85% | 三层地图+Y-sort、HA 14 动作/MA 38 模板逐值一致、UI 框架忠实移植、声音门面层完整；缺长尾（特化怪物特效、UI 邮件/设置类、反作弊） |
 | 服务端核心玩法 | ~80% | 36 个系统中 27 个完整、4 个部分、3 个不可达（P0）、2 个缺失 |
 | 网关层能力（原 RunGate/LoginGate） | ~20% | 序号校验/敏感词过滤/IP 黑名单/发送背压基本未移植，ratelimit.go 只覆盖登录期 |
-| 配置转换（cmd/serverconfig） | 结构 100% / 语义 ~5% | 数据库表/刷新点/商店/脚本数量全对齐；但 !setup.txt 3544 键仅映射 ~18 个，mapinfo.txt 地图属性转换后无人消费 |
+| 配置转换（cmd/serverconfig） | 结构 100% / 语义大部分对齐 | server.jsonc 已补齐与 config.go 对齐的全部 15 节（Go 专属参数按默认值写入），全部输出带字段级中文注释（jsonc_writer.go 反射写出器）；剩余未消费清单见 3.1「配置文件消费缺口」 |
 | 消息常量覆盖 | SM 205/216、CM 81/85、RM 25/126 | 已覆盖常量无数值冲突；RM 缺口属架构差异（Go 状态同步直发 SM，不走 RM 中继） |
 
 **最危险的三类缺口**：
 1. **已实现但不可达**（P0）：处理器写好了，路由/映射没接上 —— 屠宰、私聊、好友、行会宣战、挖矿、2 个怪物 AI 全部静默失效。
-2. **数据转换了但无人消费**：地图属性（SAFE/DARK/EXPRATE…）、公告、部分 Envir 列表。
+2. **数据转换了但无人消费**：地图属性、公告已随 P0-4/P0-5 修复；剩余长尾（exp_table/strings/global_vars/GEEM2 物品规则等）见 3.1「配置文件消费缺口」审计。
 3. **网关层防刷能力真空**：单进程合并后，RunGate 的防攻击/过滤/背压没有补偿实现。
 
 ---
@@ -132,14 +133,24 @@
 | 玩家摆摊 | OPENUSERMARKET 等（:790-796） | 缺 |
 | 条件长尾 | CHECKITEMTYPE/CHECKACCESSORY/CHECKVAR/CHECKMONAREA/CHECKDURAEVA/ONERROR/ELARGE 等 ~25 个（:232-500） | 复杂脚本无法运行 |
 
-#### GM 命令（Delphi 192 vs Go ~30）
-Go 已有：move/search/recall/slave/dearrecall/masterrecall/nomob/make/level/mob/gold/heal/takeonhorse/takeoffhorse/pkpoint/reloadnpc/kick/info/mapinfo/monclear/revive/superman/observe/shutup/recallmob/moveuser/changemode（gmcommands.go:23-383）。
-缺失类别（M2Share.pas:2680-2940）：
-- **热重载族**：ReloadAdmin/ReloadManage/ReloadMonItems/ReloadItemDB/ReloadMagicDB/ReloadMonsterDB/ReloadLineNotice/ReloadAbuse（Go 仅 reloadnpc）
-- **封禁族**：DenyIPLogon/DenyAccountLogon/DenyCharNameLogon/Del/ShowDeny*
-- **属性修改族**：LuckyPoint/Hunger/Training/DeleteSkill/ChangeJob/ChangeGender/BonusPoint/AddGold/DelGold/CreditPoint/ReNewLevel/AdjustLevel/AdjustExp/ChangeWeaponDura
-- **城堡族**：SabukWallGold/ForcedWallconquestWar/ChangeSabukLord/ReloadGuildAll/SbkDoor
-- **权限/信息族**：PrvMsg/AllowMsg/LetShout/LetTrade/MemberFunc/MobLevel/MobCount/HumanCount/ServerStatus
+#### GM 命令（Delphi ~150 有效 vs Go 157 注册）✅ 批次9 全量对齐
+表驱动注册表 gmcmd_registry.go 替代旧两级 switch：Command.ini 转译表（server.jsonc
+commands.names/permissions）按 Delphi 字段名消费、GetValidStr3 四分隔符、0-10 分级
+权限+三态失败反馈（'权限不够'/静默/兜底红字）、`?` 参数帮助、`@!` 红字广播、
+未知命令红字兜底；AdminList（admin_list.jsonc 角色名+IP）登录授权。
+十族全部补齐（gmcmd_{user,move,econ,item,ban,npc,guild,reload,quest,debug}.go）：
+- **用户命令族**：Date/PrvMsg/AllowMsg/LetShout/LetTrade/LetGuild/BanGuildChat/EndGuild/AuthAlly/联盟/取消联盟/AllowGroupRecall/GroupRecall/AllowGuildRecall/MemberFunc(Ex)/LockLogin + 仓库密码三命令（Go 一行式，偏差留档）
+- **传送/人员族**：PositionMove/HumanLocal/MobLevel/MobCount/HumanCount/Ting/SuperTing/MapMove/Kill/Recall（GM 召唤）/ReGoto/Observer（真隐身）/GameMaster
+- **属性/经济/技能族**：ChangeJob/ChangeGender/hair/BonusPoint 三条/SetPermission/ReNewLevel/GameGold/GamePoint/CreditPoint/LuckyPoint/AdjustLevel/AdjustExp/Training/TrainingSkill/DeleteSkill/AddGamePoint/DelGamePoint
+- **物品族**：Supermake/DeleteItem/ClearBag/ShowUseItemInfo/BindUseItem/ChangeItemName/RefineWeapon/ClrPassword
+- **封禁/禁言族**：Deny 九条（登录拦截 CheckDenyLogon+永久封禁落盘 deny_lists.json）/DisableSendMsg/EnableSendMsg/DisableSendMsgList/ViewWhisper/Shutup/ReleaseShutup/ShutupList
+- **NPC/怪物/地图模式族**：MobNpc/DelNpc/NpcScript/Mission/MobPlace/SetMapMode/ShowMapMode/FireBurn/TestFire/MobFireBurn/ClearMon（补死亡广播）
+- **行会/城堡族**：AddGuild/DelGuild/ReloadGuild/ChangeSabukLord/ForcedWallconquestWar/SabukWallGold/StartContest/EndContest/ContestPoint/Announcement
+- **重载族**：ReloadAdmin/ReloadManage/ReloadMonItems/ReloadItemDB/ReloadMonsterDB/ReloadLineNotice/ReloadAbuse（Delphi 空壳，Go 实装真重载）/ReLoadMinMap（同）/ReloadGuild
+- **任务标志族**：ShowFlag/ShowOpen/ShowUnit/SetFlag/SetOpen/SetUnit/ClearMission/StartQuest
+- **调试杂项族**：Backstep/Hunger/DisableFilter/CHGUSERFULL/CHGZENFASTSTEP/TestStatus/祈祷生效/停止叛变/ServerStatus/TestGetBagItem/TestSpeedMode
+未移植 4 条：ReloadRobot/ReloadRobotManage（Go 无机器人子系统）、Reconnection（单端口无网关可换）、TestServerConfig（Go 无 SM_SERVERCONFIG 协议）；Delphi 空壳命令（@Ball/@ChangeLuck/@NameColor 等十余条）按决策不移植。
+原版逻辑 bug 9 处修正不继承、文案怪癖照抄，逐条留档见审查报告；105 个命令级单测。
 
 #### 持久化字段缺失（Delphi THumData 3164B vs Go SQLite 列+JSON）
 | 缺失字段组 | Delphi 字段 | 状态 |
@@ -151,7 +162,7 @@ Go 已有：move/search/recall/slave/dearrecall/masterrecall/nomob/make/level/mo
 | 状态效果 | wStatusTimeArr | ✅ 已修复（入 charMeta，上线恢复含隐身标志+状态广播） |
 | 回城点 | sHomeMap/wHomeX/wHomeY | 设计决策：用全局安全区替代（playobject.go:1739） |
 | 仓库密码 | sStoragePwd | ✅ 已实现（@setstoragepwd/@chgstoragepwd/@unlockstorage，4-7 位、错 >3 锁定、登录自动上锁、入 charMeta；storagesystem.go） |
-| 元宝/游戏点/充值点 | nGameGold/nGamePoint/nPayMentPoint | 待实现（只有 Gold） |
+| 元宝/游戏点/充值点 | nGameGold/nGamePoint/nPayMentPoint | 部分实现：运行时字段+GM 命令（@GameGold/@GamePoint/@CreditPoint，批次9）；缺落盘与客户端同步协议 |
 | 贡献/饥饿/身体幸运 | wContribution/nHungerStatus/dBodyLuck | 饥饿度字段已实现（食物 +=DuraMax/10 上限 5000，入 charMeta，708 下发）；贡献/身体幸运未实现 |
 
 #### 其他服务端缺口
@@ -161,6 +172,44 @@ Go 已有：move/search/recall/slave/dearrecall/masterrecall/nomob/make/level/mo
 - **行会 Run 语义**：~~Delphi g_GuildManager.Run 每 10s；Go 仅周期存档~~ ✅ 已修复（ProcessGuilds 每 10s：到期行会战移除+成员通知+落盘；wars/allies 持久化）
 - **在线人数广播**：~~Delphi boSendOnlineCount（UsrEngn.pas:3054-3060），Go 无~~ ✅ 已修复（周期系统消息，配置 sendOnlineTime/sendOnlineCountRate/sendOnlineCountMsg）
 - **CM 缺口**：~~CM_SOFTCLOSE(1009)/CM_USERGETDETAILITEM(1015)/CM_QUERYUSERNAME(80)/CM_SITDOWN(3012)~~ ✅ 已修复；CM_QUERYUSERSET(3040) 经查为 Delphi MD5 后门、CM_THROW(3005) Delphi 无处理器 → backlog（对照 ObjBase.pas:4663-5287）
+
+#### 配置文件消费缺口（serverconfig 全量审计，2026-08-21）
+
+背景：serverconfig 转换器输出约 25 个 jsonc + 若干原样复制文件；以下按"是否被 cmd/server 加载/消费"逐项审计，全部附 file:line 证据。
+
+**A. 已转换但服务端完全不加载**
+
+| 文件 | Delphi 原用途 | Go 现状 |
+|------|--------------|---------|
+| exp_table.jsonc | Exps.ini 等级经验表（Level1~Level1000） | **影响最大的缺口**：升级经验硬编码 `level²×100`（playobject.go:1913-1919 GetMaxExp），升级节奏与 1.76 原版严重不符（Exps.ini 高等级需数十亿经验） |
+| strings.jsonc | String.ini 游戏提示文本（约 210 条） | 未加载；提示文案散落在代码里硬编码 |
+| global_vars.jsonc | GlobalVal.ini 2000 个全局变量（NPC 脚本读写） | 未加载；Go NPC 脚本走 VAR/SAVEVAR 文件机制（见上文 SQL 变量条目） |
+| items/filter_items.jsonc | GEEM2 物品过滤列表（SendFilterItemList 下发客户端） | 未加载 |
+| items/item_rules.jsonc | GEEM2 物品规则标志 | 未加载 |
+| items/group_items.jsonc | GEEM2 套装组合加成 | 未加载 |
+| guards/guard_list.jsonc | Envir/GuardList.txt 守卫列表 | 未加载；守卫由安全区两侧程序化生成（loadSafeZoneGuards，mongen.go:42） |
+| guards/admin_list.jsonc | Envir 管理员列表（Delphi LoadAdminList，LocalDB.pas:47） | ✅ 已消费（批次9：loadAdminList adminlist.go，登录授权按角色名+CompareIPaddr 校验、失败红字+断线，与 gmAccounts 取最大值；@ReloadAdmin 热重载） |
+| monsters/smart_monster/*.ini | SmartMonster 特化怪物配置 | 原样复制未消费（仅建目录） |
+| monsters/mon_use_items/*.txt | 怪物使用物品配置 | 原样复制未消费 |
+| magic/custom_magic/*.ini | 自定义魔法配置 | 原样复制未消费 |
+
+**B. 已加载但字段未消费完整**
+
+| 文件 | 未消费字段 | 影响 |
+|------|-----------|------|
+| items/std_items.jsonc | color/horse/element/expands/insuranceCurrency/insuranceGold/elements 服务端 ItemDef（itemdb.go:10-40）未定义；overLap/hp/mp/light 已定义但无消费点 | GEEM2 扩展属性（堆叠标记/附加 HP/MP/光源/坐骑/元素/装备保险）全部失效 |
+| monsters/monster_db.jsonc | attackSpd 未被读取：怪物攻速固定 `walkSpeed + attackSpeedOffset`（mongen.go:542）；attackState/exploreItem/attackSource/disableSimpleActor 服务端 MonsterDef（monsterdb.go）未定义 | 怪物攻击速度无视 DB 调整值，与 Delphi 行为不一致 |
+| magic/magic_db.jsonc | defSpell/descr/needL2~L15/l2Train~l15Train/canUpgrade/maxUpgradeLv 未消费（服务端 MagicDef 仅 13 字段，magicdb.go:9-23） | ①技能熟练度仅 3 级（trainThreshold0/1/2 配置），Delphi 支持 15 级训练；②耗蓝直接取 Spell 定额（magicsystem.go:69,102），Delphi 公式为按技能级缩放 + DefSpell（ObjBase.pas:21700） |
+| maps/map_info.jsonc | 数字 flags 未消费（mapmanager.go:85-102 只读 props；props 已消费） | Delphi flags 按服务器编号过滤（nServerIndex），单服无实质影响 |
+| maps/start_points.jsonc | range 取源文件第 4 列（恒 0）；Delphi LoadStartPoint 只读前 3 列、无半径概念（LocalDB.pas:1579-1615）；服务端 <=0 回退半径 5（safezone.go:47-49） | 安全区半径无原版依据；源文件第 5 列（恒 10）疑似半径但 Delphi 不消费，语义未定 |
+| server.jsonc | server.limits.humLimit/monLimit 无消费点；game.buildGuild 无消费点 | humLimit/monLimit 保留占位；建会费用实际由 economy.guildCreateCost 消费（guildsystem.go:317） |
+
+**C. 本次审计顺带修复 ✅**
+
+| 项 | 内容 | 落点 |
+|----|------|------|
+| mon_gen interval 单位 | mongen.txt 第 7 列原义为**分钟**（Delphi LocalDB.pas:1237 `dwZenTime := Str_ToInt(sData,-1)*60*1000`），Go 曾按秒解释导致刷怪间隔快 60 倍；已改为分钟换算 + 空值回退 10 分钟 + 回归测试 | mongen.go loadMonGenFromFile / mongen_test.go |
+| server.jsonc 补全 | 转换器输出与 config.go 对齐的全部 15 节 + 全字段中文注释（本表审计依据） | cmd/serverconfig/convert_server.go / jsonc_writer.go |
 
 ### 3.2 客户端
 
@@ -234,7 +283,7 @@ Delphi 客户端三定时器 CheckHackTimer/SpeedHackTimer/SendTimeTimer（ClMai
 | 封包序列号校验 | RunGate 重复序号 nPacketErrCount++，>10 拒绝服务；缓冲 >20000 直接记 99（RunGate/Main.pas:363-413） | 仅静默剥离 code 数字（frame.go:56-60），不校验重复/乱序 |
 | 聊天敏感词过滤 | WordFilter.txt 网关级重写 CM_SAY（RunGate/Main.pas:430-455） | 无 |
 | 发言间隔限制 | dwSayMsgTime=1000ms（GateShare.pas:110） | 无 |
-| IP/账号/机器码黑名单 | BlockIPList.txt/TempBlockIPList（GateShare.pas:93-94）；DenyIPAddrList/DenyAccountList/DenyMachineIDList（Envir 目录） | 仅 DenyChrNameList 建角黑名单（validation.go:19-42）；三类列表未转换未实现 |
+| IP/账号/机器码黑名单 | BlockIPList.txt/TempBlockIPList（GateShare.pas:93-94）；DenyIPAddrList/DenyAccountList/DenyMachineIDList（Envir 目录） | ✅ IP/账号/角色名三类已实现：连接期 BlockIPList 前缀拒绝（批次6）+ GM 封禁族运行时三表（@DenyIPLogon/@DenyAccountLogon/@DenyCharNameLogon，登录拦截 CheckDenyLogon，永久封禁落盘 deny_lists.json，批次9）+ 建角 DenyChrNameList（validation.go）；机器码黑名单不做（客户端无机器码） |
 | 发送背压/心跳 | 每 512B 插 `*`，2048B 未回显暂停发送 3 秒（RunGate/Main.pas:501-553）；客户端回显 `*`（ClMain.pas:2795-2799） | 客户端回显已实现（cmd/client/main.go:750-753）；服务端 FrameScanner keepalive 传 nil（server.go:189），无背压（SendChan 256 满则丢包 server.go:299-305） |
 | =DIG 服务端发送 | 挖矿成功发 `=DIG`（ObjBase.pas:8834） | ✅ 已实现（playobject.go:885-886、mining.go:182-183 两处；本表原"服务端从不发"说法有误） |
 | 客户端速度作弊检测 | SM_TIMECHECK_MSG + +GOOD 载荷（见 3.2） | 仅定义常量（message.go:871） |
@@ -275,7 +324,7 @@ P0-1/P0-2/P0-3 全是同一类 bug：**处理器写了，路由没接上**。靠
 - 顺手收益：注册表可自动生成协议文档，避免 doc/技术参考.md 与代码漂移（本次已发现 3 处文档错误：sceneserverselect.go 不存在、MA 模板 39→38 种、TMsgHeader 16→20 字节）。
 
 ### 6.2 数据驱动管线
-- 配置 → 启动校验 → 热重载三级管线：P0-4/P0-5 暴露的是"转换了但没人消费"，根因是加载链路没有闭环校验。建议启动时校验每个 jsonc 的必填字段与消费方存在性；把 Delphi 的 19 个 Reload* 命令收敛为统一 `/reload <模块>`。
+- 配置 → 启动校验 → 热重载三级管线：P0-4/P0-5 暴露的是"转换了但没人消费"，根因是加载链路没有闭环校验。建议启动时校验每个 jsonc 的必填字段与消费方存在性；~~把 Delphi 的 19 个 Reload* 命令收敛为统一 `/reload <模块>`~~（批次9 已按 Delphi 逐条忠实移植 Reload* GM 命令族，命令名/权限表可经 Command.ini 转译覆盖，不再收敛）。
 - NPC 脚本命令表驱动化：当前 npcscript.go 2478 行巨型 switch，~150 个 case。改为 `map[string]ConditionFunc` / `map[string]ActionFunc` 注册表后，长尾命令（3.1 节 ~240 个）可增量补齐且可单测。
 - 魔法特效数据化：Go 服务端 effType 三分类（magicsystem.go:714-722）+ 客户端特效表，比移植 Delphi 44 个硬编码特化类（AxeMon/HerbActor）更符合现代做法——把"哪个 magid 用什么特效参数"放进 magiceff.jsonc。
 
@@ -326,6 +375,7 @@ Delphi 用 5 个监控 GUI（ViewKernelInfo/ViewLevel/ViewList/ViewOnlineHuman/V
 | 5 | NPC 脚本/GM 命令长尾 | ✅ 批次5（混合表驱动+12 条玩法命令，余长尾由未知命令告警驱动） |
 | 6 | P2 连接中间件链（6.3） | ✅ 批次6（五层补偿） |
 | 7 | 工程化：CI、/status、WIL LRU | ✅ 批次7 |
+| 8 | GM 命令全量对齐（十族 ~125 条补齐 + 注册表/权限/授权链重构） | ✅ 批次9（2026-08-21，157 注册，未移植 4 条留档） |
 
 ## 八、Backlog（记录不排期，按需立项）
 
@@ -337,13 +387,13 @@ Delphi 用 5 个监控 GUI（ViewKernelInfo/ViewLevel/ViewList/ViewOnlineHuman/V
 
 **UI/系统**
 - 邮件系统、黑名单面板、游戏设置面板、二级密码（SM_PASSWORD 族 5009/8002/8003）、骰子小游戏（8001）、好友面板完整功能（私聊/邮件/翻页）。
-- 饥饿系统（SM_MYSTATUS 管道已铺，服务端恒 0）。
+- 饥饿系统（SM_MYSTATUS 管道+食物增值+@Hunger GM 命令已实现，缺饥饿度消耗/惩罚效果）。
 
 **服务端长尾**
 - 解毒术（Delphi 40）：ID 体系迁移决策后再做（与双龙斩冲突）。
 - 城堡战 TechLevel 效果逻辑、皇宫/密道独立地图管理。
 - 商人巡逻（Delphi 死代码，保留 m_boCanMove 开关位）。
-- GM 命令长尾（封禁族/属性修改族/城堡族，Delphi 192 vs Go ~31）。
+- ~~GM 命令长尾（封禁族/属性修改族/城堡族，Delphi 192 vs Go ~31）~~ ✅ 批次9 全量对齐（157 注册；余未移植 4 条：ReloadRobot/ReloadRobotManage/Reconnection/TestServerConfig，均因 Go 无对应子系统/协议，见 gmcmd_{reload,debug}.go 头注）。
 - NPC 脚本长尾（GME 副本/SQL 变量/攻城器械/天气法术/玩家摆摊等 ~220 条，由未知命令告警日志实测驱动）。
 - CM_QUERYUSERSET(3040)（Delphi MD5 后门）、CM_THROW(3005)（Delphi 无处理器）。
 
@@ -353,7 +403,7 @@ Delphi 用 5 个监控 GUI（ViewKernelInfo/ViewLevel/ViewList/ViewOnlineHuman/V
 - SMSpell2/SMCertificationSuccess/SMIDNotFound/SMItemUpdate——旧协议变体，Go 闭环有替代通道。
 
 **持久化**
-- 元宝/游戏点/充值点/贡献/身体幸运（付费体系）；仓库密码 StoragePwd（无设置/解锁流程）。
+- 元宝/游戏点/充值点/贡献/身体幸运（付费体系；运行时 GM 命令 @GameGold/@GamePoint/@CreditPoint 已可改值，缺落盘与客户端同步）。~~仓库密码 StoragePwd（无设置/解锁流程）~~ ✅ 已实现（@setstoragepwd/@chgstoragepwd/@unlockstorage + @ClrPassword）。
 
 ## 附：调查方法与证据索引
 

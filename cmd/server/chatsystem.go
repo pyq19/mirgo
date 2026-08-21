@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"strings"
 	"time"
 
@@ -10,7 +11,7 @@ import (
 )
 
 // 聊天消息 Param 颜色：低字节=前景、高字节=背景的调色板索引
-//（客户端 GetRGB ≡ Prguse MainPalette，ClMain.pas:392-398,996）。
+// （客户端 GetRGB ≡ Prguse MainPalette，ClMain.pas:392-398,996）。
 // 默认值取自 Delphi M2Share.pas:1838-1857；发送端填色见
 // ObjBase.pas:5662-5674。组队色为预留（Go 服务端暂未实现组队聊天）。
 // 有意偏差：Delphi 把 cry 并入 SM_HEAR 通道、组队并入 SM_SYSMESSAGE
@@ -23,6 +24,9 @@ const (
 	chatColorSys     = 0x38<<8 | 0xFF // 系统（红系默认）：白字深底
 	chatColorGuild   = 0xFF<<8 | 0xDB // 行会：绿字亮底
 	chatColorGroup   = 0xFF<<8 | 0xC4 // 组队：预留
+	// SysMsg 颜色（Delphi btBlueMsg/btGreenMsg 默认值，M2Share.pas:1846-1850）
+	chatColorSysBlue  = 0xFC<<8 | 0xFF // c_Blue
+	chatColorSysGreen = 0xFF<<8 | 0xDB // c_Green
 )
 
 func (p *PlayObject) HandleSay(msg SendMessage, server *netserver.TCPServer) {
@@ -41,8 +45,25 @@ func (p *PlayObject) HandleSay(msg SendMessage, server *netserver.TCPServer) {
 		return
 	}
 
+	if strings.HasPrefix(text, "/") {
+		p.handleSlashCmd(text[1:], server)
+		return
+	}
+
 	// 敏感词过滤（Delphi RunGate FilterSayMsg 网关层语义，Main.pas:554-579）
 	text = filterChatText(text)
+
+	// 发言过滤（Delphi m_boFilterSendMsg，ObjBase.pas:704 注释"发的文字只能
+	// 自己看到"，@DisableSendMsg 设置）：位于 @ 命令与 / 命令分发之后，
+	// GM 命令不受过滤影响；其后附近发言（8730-8735）、喊话（8713-8718）、
+	// 行会消息均不再广播，仅以 SM_HEAR 回显给自己。
+	// 偏差：Delphi 编组('!!')/行会('!~')分支未查 m_boFilterSendMsg，
+	// Go 按字段语义一并收紧。
+	if p.FilterSendMsg {
+		hearMsg := protocol.MakeDefaultMsg(protocol.SMHear, p.ID, chatColorHear, 0, 0)
+		server.Send(p.Session.ID, hearMsg, protocol.EncodeString(p.Name+"/"+text))
+		return
+	}
 
 	if strings.HasPrefix(text, "!~") {
 		if guildText := text[2:]; guildText != "" {
@@ -77,6 +98,43 @@ func (p *PlayObject) HandleSay(msg SendMessage, server *netserver.TCPServer) {
 	log.Logf(log.LevelInfo, "Chat", "%s: %s", p.Name, text)
 }
 
+// handleSlashCmd 私聊前缀 "/" 的特殊命令（Delphi ProcessSayMsg，
+// ObjBase.pas:8601-8676）：/who 在线人数（权限3）、/total 总在线（权限5），
+// 其余 "/名字 内容" 为私聊——Go 未实装私聊通道，静默吞掉。
+func (p *PlayObject) handleSlashCmd(text string, server *netserver.TCPServer) {
+	cmd := strings.ToLower(strings.TrimSpace(text))
+	if cmd != "who" && cmd != "total" {
+		return
+	}
+	whoPerm, totalPerm := 3, 5
+	if p.Engine != nil && p.Engine.Config != nil {
+		if v, ok := p.Engine.Config.Commands.Permissions["Who"]; ok {
+			whoPerm = v
+		}
+		if v, ok := p.Engine.Config.Commands.Permissions["Total"]; ok {
+			totalPerm = v
+		}
+	}
+	count := 0
+	if p.Engine != nil {
+		count = p.Engine.GetPlayerCount()
+	}
+	if cmd == "who" {
+		if int(p.Permission) < whoPerm {
+			p.sysMsg(server, gmMsgPermTooLow)
+			return
+		}
+		p.sysMsg(server, fmt.Sprintf("在线人数: %d", count)) // g_sOnlineCountMsg（M2Share.pas:3230）
+		return
+	}
+	if int(p.Permission) < totalPerm {
+		p.sysMsg(server, gmMsgPermTooLow)
+		return
+	}
+	// Go 单进程单服，总在线=本服在线（Delphi 跨服统计无对应）。
+	p.sysMsg(server, fmt.Sprintf("总在线人数: %d", count)) // g_sTotalOnlineCountMsg（M2Share.pas:3231）
+}
+
 // HandleCry 喊话：广播到同地图所有玩家。
 func (p *PlayObject) HandleCry(text string, server *netserver.TCPServer) {
 	if p.Engine == nil {
@@ -87,6 +145,12 @@ func (p *PlayObject) HandleCry(text string, server *netserver.TCPServer) {
 	p.Engine.mu.RLock()
 	for _, other := range p.Engine.PlayObjectList {
 		if other.Ghost || other.envir != p.envir {
+			continue
+		}
+		// Delphi CryCry 接收方检查（UsrEngn.pas:1516-1522）：
+		// m_boBanShout=FALSE（@LetShout 关闭群聊，反义命名 TRUE=允许）
+		// 的玩家收不到喊话。
+		if !other.BanShout {
 			continue
 		}
 		server.Send(other.Session.ID, cryMsg, body)
@@ -105,6 +169,13 @@ func (p *PlayObject) HandleWhisper(msg SendMessage, server *netserver.TCPServer)
 	targetName := body[:slashIdx]
 	text := filterChatText(body[slashIdx+1:])
 
+	// 禁言玩家不能发起私聊（Delphi ProcessSayMsg '/' 分支：
+	// if not m_boFilterSendMsg then Whisper(...)，ObjBase.pas:8674-8676，
+	// 静默丢弃）。
+	if p.FilterSendMsg {
+		return
+	}
+
 	if p.Engine == nil {
 		return
 	}
@@ -113,12 +184,22 @@ func (p *PlayObject) HandleWhisper(msg SendMessage, server *netserver.TCPServer)
 		p.sysMsg(server, "对方不在线")
 		return
 	}
+	// Delphi Whisper 转发检查（ObjBase.pas:2181-2185）：目标关闭私聊
+	//（m_boHearWhisper=false，@AllowMsg）或已拉黑发送者（IsBlockWhisper，
+	// ObjBase.pas:2217-2230，@PrvMsg）→ 不转发，向发送者反馈
+	// g_sUserDenyWhisperMsg='  拒绝私聊...'（M2Share.pas:3192）。
+	if !target.HearWhisper || target.isBlockWhisper(p.Name) {
+		p.sysMsg(server, target.Name+"  拒绝私聊...")
+		return
+	}
 
 	whisperMsg := protocol.MakeDefaultMsg(protocol.SMWhisper, p.ID, chatColorWhisper, 0, 0)
 	// 发给目标：显示发送者名字
 	server.Send(target.Session.ID, whisperMsg, protocol.EncodeString(p.Name+"/"+text))
 	// 发回给自己：显示目标名字
 	server.Send(p.Session.ID, whisperMsg, protocol.EncodeString(targetName+"/"+text))
+	// GM 侦听私聊转发（Delphi m_GetWhisperHuman，ObjBase.pas:2190-2202）。
+	p.forwardWhisperWatchers(server, target, text)
 	log.Logf(log.LevelInfo, "Chat", "%s whispers to %s: %s", p.Name, targetName, text)
 }
 
@@ -143,7 +224,7 @@ func (p *PlayObject) partyOf() *Party {
 }
 
 // broadcastPartyMembers 向所有成员发送完整成员名列表
-//（客户端 GroupMembers 由该消息重建；队长在前，与 Delphi 顺序一致）。
+// （客户端 GroupMembers 由该消息重建；队长在前，与 Delphi 顺序一致）。
 func (p *PlayObject) broadcastPartyMembers(party *Party, server *netserver.TCPServer) {
 	var sb strings.Builder
 	for i, id := range party.Members {
@@ -166,7 +247,7 @@ func (p *PlayObject) broadcastPartyMembers(party *Party, server *netserver.TCPSe
 }
 
 // HandleCreateGroup 创建队伍，并可选邀请指定玩家
-//（Delphi SendCreateGroup 携带名称，FState:5523-5536）。
+// （Delphi SendCreateGroup 携带名称，FState:5523-5536）。
 func (p *PlayObject) HandleCreateGroup(msg SendMessage, server *netserver.TCPServer) {
 	if p.partyOf() != nil || p.Engine == nil {
 		resp := protocol.MakeDefaultMsg(protocol.SMCreateGroupFail, 0, 0, 0, 0)

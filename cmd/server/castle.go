@@ -316,6 +316,44 @@ func (c *CastleObject) EndWar(server *netserver.TCPServer, engine *UserEngine) {
 	log.Logf(log.LevelInfo, "Castle", "castle war ended")
 }
 
+// ChangeOwner 更改城堡所属行会（Delphi Castle.GetCastle，
+// Castle.pas:828-846：设 m_MasterGuild/m_sOwnGuild、广播占领消息、
+// SaveConfigFile；@ChangeSabukLord 调用）。
+// 偏差：Delphi 新旧行会 RefMemberName 成员称号刷新在 Go 无对应，跳过。
+func (c *CastleObject) ChangeOwner(server *netserver.TCPServer, engine *UserEngine, guildName string) {
+	c.mu.Lock()
+	c.OwnerGuild = guildName
+	c.mu.Unlock()
+	// Delphi 广播 '[%s 已被 %s 占领]'（Castle.pas:838）。
+	c.broadcastSysMsg(server, engine, fmt.Sprintf("[%s 已被 %s 占领]", c.Config.Name, guildName))
+	c.SaveState(engine.DB())
+	log.Logf(log.LevelInfo, "Castle", "castle owner changed to %s", guildName)
+}
+
+// ForceStartWar 强制开始攻城战（@ForcedWallconquestWar，Delphi
+// StartWallconquestWar，Castle.pas:848-861）：无需宣战预约、无进攻方
+// 名单，任意状态直接开战（区别于 StartWar 的预约战前置校验）。
+func (c *CastleObject) ForceStartWar(server *netserver.TCPServer, engine *UserEngine) {
+	c.mu.Lock()
+	if c.WarState == CastleWarActive {
+		c.mu.Unlock()
+		return
+	}
+	now := time.Now().UnixMilli()
+	c.WarState = CastleWarActive
+	c.WarStartTick = now
+	c.WarEndTick = now + int64(c.Config.WarDurationMin)*60*1000
+	c.mu.Unlock()
+
+	c.ToggleDoor(false) // Delphi MainDoorControl(True) 关城门（Castle.pas:1136-1149）
+	c.SyncDoorVisual(server, engine)
+	c.spawnCastleArchers(engine, now)
+	// Delphi 广播 '[%s攻城战已经开始]'（Castle.pas:856）。
+	c.broadcastSysMsg(server, engine, fmt.Sprintf("[%s攻城战已经开始]", c.Config.Name))
+	c.SaveState(engine.DB())
+	log.Logf(log.LevelInfo, "Castle", "castle war force-started")
+}
+
 func (c *CastleObject) DamageDoor(dmg int) bool {
 	c.mu.Lock()
 	defer c.mu.Unlock()

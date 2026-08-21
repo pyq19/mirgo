@@ -1002,8 +1002,9 @@ func (o *MonsterObject) searchTarget(now int64, userEngine *UserEngine) {
 		if !ok || p.Ghost || p.Death {
 			continue
 		}
-		// F11: GM 不可被攻击
-		if p.Permission > 9 {
+		// F11: GM 不可被攻击；管理员/隐身/无敌模式同样不被怪物锁定
+		//（Delphi m_boAdminMode/m_boObMode/m_boSuperMan）。
+		if p.Permission > 9 || p.AdminMode || p.ObMode || p.SuperManMode {
 			continue
 		}
 		// CoolEye > player level: always detect invisible; otherwise probabilistic
@@ -1078,6 +1079,18 @@ func (o *MonsterObject) validateTarget(now int64, userEngine *UserEngine) {
 // slaveFollow — Delphi 主人跟随与瞬移（ObjMon.pas:468-497）：
 // 主人死亡/离线 → 叛变；距离 >20 格或跨图 → 瞬移到主人背后。
 func (o *MonsterObject) slaveFollow(e *UserEngine, now int64) {
+	// 祈祷生效宝宝叛变（Delphi g_dwSpiritMutinyTick 生效期，
+	// M2Share.pas:1509）：宠物脱离主人变为野怪。
+	// 最小闭环：复用"主人死亡 → 叛变"既有通路（主从纽带清除后
+	// 按普通野怪索敌）；Delphi 叛变期结束后恢复跟随的语义不实装。
+	e.mu.RLock()
+	mutiny := e.SpiritMutinyTick > now
+	e.mu.RUnlock()
+	if mutiny {
+		o.PlayerMasterID = 0
+		o.TargetID = 0
+		return
+	}
 	master := e.GetPlayer(o.PlayerMasterID)
 	if master == nil || master.Ghost {
 		o.PlayerMasterID = 0

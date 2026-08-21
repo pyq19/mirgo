@@ -60,6 +60,7 @@ type PlayObject struct {
 	RunSpeed       int64
 	OverSpeedCount int
 	LastSpeedViolationTick int64 // 上次超速违规时间（用于衰减）
+	TestSpeedMode          bool  // Delphi m_boTestSpeedMode：速度测试模式豁免动作间隔校验（@TestSpeedMode，ObjBase.pas:15128-15144）
 	LastActionTick int64         // Delphi m_dwActionTick：动作转换间隔锚点（ObjBase.pas:25246）
 	OldIdent       int           // Delphi m_wOldIdent：上一动作（归一化后，ObjBase.pas:25352）
 	OldDir         int           // Delphi m_btOldDir：上一动作方向（ObjBase.pas:25353）
@@ -98,6 +99,34 @@ type PlayObject struct {
 	HorseType       byte
 	Permission      byte
 	ShutupTick      int64 // 禁言到期时间
+
+	// GM 命令状态（Delphi ProcessUserLineMsg 族，ObjBase.pas:7188-8600）。
+	TeleportTick    int64 // 传送戒指冷却（m_dwTeleportTick，每玩家）
+	SearchTick      int64 // 探测冷却（m_dwSearchHumanTick）
+	GuildRecallTick int64 // 行会合一冷却（nGuildRecallTime=180s）
+	GroupRecallTick int64 // 编组传送冷却（m_dwGroupRcallTick）
+	LastRedMsgTick  int64 // GM 红字广播冷却（m_dwSayMsgTick，2s）
+	AdminMode       bool  // 管理员模式（m_boAdminMode，@GameMaster）
+	ObMode          bool  // 隐身模式（m_boObMode，@Observer）
+	SuperManMode    bool  // 无敌模式（m_boSuperMan，@Superman）
+
+	// 用户聊天/社交开关（Delphi 构造默认值，ObjBase.pas:1327-1332；
+	// 注意 BanShout/BanGuildChat 为 Delphi 反义命名，TRUE=允许）。
+	HearWhisper      bool     // m_boHearWhisper 默认 true（@AllowMsg）
+	BanShout         bool     // m_boBanShout 默认 true，TRUE=允许群聊（@LetShout）
+	AllowDeal        bool     // m_boAllowDeal 默认 true（@LetTrade）
+	BanGuildChat     bool     // m_boBanGuildChat 默认 true，TRUE=允许行会聊天（@BanGuildChat）
+	AllowGuildInvite bool     // m_boAllowGuild 默认 false（@LetGuild）
+	AllowGroupReCall bool     // m_boAllowGroupReCall 默认 false（@AllowGroupRecall）
+	AllowGuildReCall bool     // m_boAllowGuildReCall 默认 false（@AllowGuildRecall）
+	BlockWhisper     []string // m_BlockWhisperList（@PrvMsg 私聊拉黑）
+	ViewWhisperName  string   // m_GetWhisperHuman（@ViewWhisper GM 侦听私聊）
+	FilterSendMsg    bool     // m_boFilterSendMsg（@DisableSendMsg 发言过滤）
+
+	// 经济/杂项字段（GM 命令族消费）。
+	GameGold  int // m_nGameGold 游戏币（@GameGold）
+	GamePoint int // m_nGamePoint 游戏点（@GamePoint/@AddGamePoint/@DelGamePoint）
+	Hunger    int // 饥饿值（@Hunger；Go 无饥饿消耗链路，仅存值）
 
 	LastHiterID   int32 // 最后攻击者 ID（供奴隶目标选择）
 	LastHiterTick int64
@@ -255,6 +284,12 @@ func NewPlayObject(session *netserver.Session, name string, id int32) *PlayObjec
 		visionInterval: 2000 + rand.Int63n(2000),
 		StrScriptVars:  make(map[string]string),
 		nameLists:      make(map[string][]string),
+		// Delphi 构造默认（ObjBase.pas:1327-1332）：私聊/群聊/交易/行会聊天
+		// 默认允许（反义命名 TRUE=允许），编组/行会召回同意默认关闭。
+		HearWhisper:  true,
+		BanShout:     true,
+		AllowDeal:    true,
+		BanGuildChat: true,
 	}
 	base.outer = p
 	return p
@@ -887,6 +922,11 @@ func (p *PlayObject) kickOutOfGame(server *netserver.TCPServer) {
 // checkActionSpeed 校验动作间隔并记录超速违规。
 // 返回 true 表示允许动作，false 表示拒绝（速度过快）。
 func (p *PlayObject) checkActionSpeed(now, interval int64, tick *int64, server *netserver.TCPServer) bool {
+	// Delphi m_boTestSpeedMode 豁免（ObjBase.pas:4735/4949/4993 动作速度校验）。
+	if p.TestSpeedMode {
+		*tick = now
+		return true
+	}
 	// E5: 超速计数衰减 — 10秒无违规则 -1
 	if p.OverSpeedCount > 0 && now-p.LastSpeedViolationTick > p.Engine.Config.GetSpeedDecayInterval() {
 		p.OverSpeedCount--
@@ -1419,6 +1459,10 @@ func (p *PlayObject) calcDamage(target *BaseObject) int {
 
 func (p *PlayObject) applyDamage(server *netserver.TCPServer, target *BaseObject, damage int, dir int, magic bool) {
 	cfg := p.Engine.Config
+	// GM 无敌模式（Delphi m_boSuperMan）：被攻击不扣血。
+	if tp := p.envir.getPlayerByBase(target); tp != nil && tp.SuperManMode {
+		return
+	}
 	// 安全区守卫不可被玩家伤害
 	if mon := p.envir.getMonsterByBase(target); mon != nil && mon.IsSafeZoneGuard {
 		return
@@ -3126,9 +3170,9 @@ func (p *PlayObject) toggleSlaveRelax(server *netserver.TCPServer) {
 		}
 	}
 	if relax {
-		p.sysMsg(server, "宠物休息")
+		p.sysMsg(server, "宝宝行动：休息") // Delphi sPetRest（CmdChangeSalveStatus，ObjBase.pas:10987-10996）
 	} else {
-		p.sysMsg(server, "宠物攻击")
+		p.sysMsg(server, "宝宝行动：攻击")
 	}
 }
 

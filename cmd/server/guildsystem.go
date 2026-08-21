@@ -133,39 +133,45 @@ func (ue *UserEngine) SaveGuilds() {
 	}
 }
 
-// LoadGuilds 在启动时从 SQLite 恢复全部行会到内存（丢弃已过期的行会战）。
+// guildFromRecord 把存储记录转换为 Guild（启动 LoadGuilds 与
+// @ReloadGuild 共用；丢弃已过期的行会战）。
+func guildFromRecord(rec storage.GuildRecord) *Guild {
+	g := &Guild{
+		Name:   rec.Name,
+		Leader: rec.Master,
+		Notice: rec.Notice,
+		Ranks:  make(map[string]string, len(rec.Members)),
+	}
+	for _, m := range rec.Members {
+		g.Members = append(g.Members, m.Name)
+		g.Ranks[m.Name] = m.Rank
+	}
+	now := time.Now().UnixMilli()
+	if len(rec.Wars) > 0 {
+		var wars []GuildWar
+		if err := json.Unmarshal(rec.Wars, &wars); err == nil {
+			for _, w := range wars {
+				if w.EndTick > now {
+					g.WarGuilds = append(g.WarGuilds, w)
+				}
+			}
+		}
+	}
+	if len(rec.Allies) > 0 {
+		json.Unmarshal(rec.Allies, &g.AllyGuilds)
+	}
+	return g
+}
+
+// LoadGuilds 在启动时从 SQLite 恢复全部行会到内存。
 func (ue *UserEngine) LoadGuilds() {
 	records, err := ue.db.LoadGuilds()
 	if err != nil {
 		log.Logf(log.LevelError, "Guild", "failed to load guilds: %v", err)
 		return
 	}
-	now := time.Now().UnixMilli()
 	for _, rec := range records {
-		g := &Guild{
-			Name:   rec.Name,
-			Leader: rec.Master,
-			Notice: rec.Notice,
-			Ranks:  make(map[string]string, len(rec.Members)),
-		}
-		for _, m := range rec.Members {
-			g.Members = append(g.Members, m.Name)
-			g.Ranks[m.Name] = m.Rank
-		}
-		if len(rec.Wars) > 0 {
-			var wars []GuildWar
-			if err := json.Unmarshal(rec.Wars, &wars); err == nil {
-				for _, w := range wars {
-					if w.EndTick > now {
-						g.WarGuilds = append(g.WarGuilds, w)
-					}
-				}
-			}
-		}
-		if len(rec.Allies) > 0 {
-			json.Unmarshal(rec.Allies, &g.AllyGuilds)
-		}
-		ue.Guilds = append(ue.Guilds, g)
+		ue.Guilds = append(ue.Guilds, guildFromRecord(rec))
 	}
 	log.Logf(log.LevelInfo, "Guild", "loaded %d guilds from database", len(ue.Guilds))
 }
@@ -343,7 +349,10 @@ func (p *PlayObject) HandleGuildMessage(msg SendMessage, server *netserver.TCPSe
 	text := msg.Msg
 	for _, memberName := range guild.Members {
 		member := p.Engine.GetPlayerByName(memberName)
-		if member != nil {
+		// Delphi TGuild.SendGuildMsg 接收方检查（Guild.pas:670）：
+		// m_boBanGuildChat=FALSE（@BanGuildChat 关闭行会聊天，
+		// 反义命名 TRUE=允许）的成员收不到行会消息。
+		if member != nil && member.BanGuildChat {
 			guildMsg := protocol.MakeDefaultMsg(protocol.SMGuildMessage, p.ID, chatColorGuild, 0, 0)
 			server.Send(member.Session.ID, guildMsg, protocol.EncodeString(p.Name+"/"+text))
 		}
@@ -365,6 +374,15 @@ func (p *PlayObject) HandleGuildAddMember(msg SendMessage, server *netserver.TCP
 	if target == nil {
 		resp := protocol.MakeDefaultMsg(protocol.SMGuildAddMemberFail, 2, 0, 0, 0)
 		server.Send(p.Session.ID, resp, "")
+		return
+	}
+	// Delphi ClientGuildAddMember 检查 m_boAllowGuild（ObjBase.pas:18095-18112）：
+	// 目标用 @LetGuild 关闭了加入行会 → 失败码 5（'对方不允许加入行会。'），
+	// 并提示目标本人允许的指令名。
+	if !target.AllowGuildInvite {
+		resp := protocol.MakeDefaultMsg(protocol.SMGuildAddMemberFail, 5, 0, 0, 0)
+		server.Send(p.Session.ID, resp, "")
+		target.sysMsg(server, "你拒绝加入行会。 [允许命令为 @"+gmNameByKey("LetGuild", "LetGuild")+"]")
 		return
 	}
 	if guild.IsMember(targetName) {

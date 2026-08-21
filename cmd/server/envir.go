@@ -41,6 +41,7 @@ type MapFlag struct {
 	NoReconnect    bool   // NORECONNECT(map): 掉线重连到指定地图
 	ReconnectMap   string // NORECONNECT 的目标地图
 	NoRecall       bool   // NORECALL: 禁止回忆/召唤传送
+	NoGuildRecall  bool   // NOGUILDRECALL: 禁止行会合一（Delphi boNOGUILDRECALL）
 	NoRandomMove   bool   // NORANDOMMOVE: 禁止随机传送
 	NoPositionMove bool   // NOPOSITIONMOVE: 禁止坐标传送
 	NoDrug         bool   // NODRUG: 禁止使用药水

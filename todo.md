@@ -34,7 +34,7 @@
 - [x] 拾取物品时, 左上角绿字提示, 遵守delphi版实现 (拾取改发 SMAddItem+TClientItem body, 客户端 AddSysMsg/DrawScreenTop: 左上角(30,40)绿字黑描边/行距16/3000ms/上限10条; "<物品名> 放到包囊."; 金币改绿字 "%d 金币 金币.")
 - [x] 击杀怪物后, 增加经验值的消息要在聊天框中提示, 遵守delphi版实现 (SMWinExp 改 Delphi 格式 Recog=总经验/Param+Tag=增量, 聊天框白字红底"已获得 N 点经验值.."; SMLevelUp Recog=Exp/Param=Level, 升级绿字"恭喜！你升级了!"+紫底祝贺语)
 - [ ] 聊天框样式细节微调
-- [ ] 检查所有 GM 命令
+- [x] 检查所有 GM 命令 (表驱动注册表 gmcmd_registry.go 消费 Command.ini 转译表+0-10 分级权限+三态失败反馈+?帮助+@!红字广播+未知命令兜底; AdminList 登录授权链; 既有 32 命令迁移修正 7 处错位/6 处偏差; 十族补齐 ~125 条共 157 注册, Delphi 有效命令除空壳外全覆盖; 未移植 4 条 ReloadRobot/ReloadRobotManage/Reconnection/TestServerConfig 留档; 105 个命令级单测; 路线图批次9)
 - [ ] 玩家角色死亡后, 聊天框应该有提示, 目前没有
 
 # server
@@ -58,9 +58,9 @@
 
 # serverconfig
 
-serverconfig 转换出来的配置文件要带上本项目的 go 服务端额外的一些配置, 而不仅仅是 176 服务端原本的配置
+- [x] serverconfig 转换出来的配置文件要带上本项目的 go 服务端额外的一些配置, 而不仅仅是 176 服务端原本的配置 (server.jsonc 已输出与 config.go 对齐的全部 15 节, Go 专属参数按默认值写入)
 
-- [ ] serverconfig 转换出来的配置文件要带上中文注释, 发挥 jsonc 可以注释的优势
+- [x] serverconfig 转换出来的配置文件要带上中文注释, 发挥 jsonc 可以注释的优势 (jsonc_writer.go 反射写出器 + 各文件中文注释表; 数据库大文件头部字段说明表 + 首条记录注释)
 
 # 综合
 

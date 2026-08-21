@@ -2,7 +2,6 @@ package main
 
 import (
 	"bufio"
-	"encoding/json"
 	"fmt"
 	"path/filepath"
 	"strings"
@@ -21,24 +20,14 @@ type NpcDef struct {
 
 // MerchantDef 表示商人/NPC 位置。
 type MerchantDef struct {
-	ID       string `json:"id"`
-	MapName  string `json:"mapName"`
-	X        int    `json:"x"`
-	Y        int    `json:"y"`
-	Name     string `json:"name"`
-	Face     int    `json:"face"`
-	Body     int    `json:"body"`
-	Castle   int    `json:"castle"`
-}
-
-// NpcScript 表示带元数据的 NPC 脚本。
-type NpcScript struct {
-	Source     string `json:"source"`
-	Type       string `json:"type"`
-	MapName    string `json:"mapName,omitempty"`
-	NpcName    string `json:"npcName,omitempty"`
-	Operations []string `json:"operations,omitempty"`
-	Script     string `json:"script"`
+	ID      string `json:"id"`
+	MapName string `json:"mapName"`
+	X       int    `json:"x"`
+	Y       int    `json:"y"`
+	Name    string `json:"name"`
+	Face    int    `json:"face"`
+	Body    int    `json:"body"`
+	Castle  int    `json:"castle"`
 }
 
 // ConvertNPCs 转换 NPC 配置文件。
@@ -105,20 +94,18 @@ func convertNpcList(envirDir, outputDir string) error {
 	}
 
 	result := map[string]interface{}{
-		"_source":     "asset/server/Envir/Npcs.txt",
-		"_description": "NPC定义",
-		"npcs":        npcs,
+		"npcs": npcs,
 	}
 
-	jsonData, err := json.MarshalIndent(result, "", "  ")
+	jsonData, err := MarshalJSONC(result, npcComments, false)
 	if err != nil {
 		return err
 	}
 
 	outputFile := filepath.Join(outputDir, "npcs", "npc_list.jsonc")
-	comment := fmt.Sprintf("NPC定义\n来源: asset/server/Envir/Npcs.txt\n数量: %d 个NPC", len(npcs))
+	comment := fmt.Sprintf("NPC定义\n来源: asset/server/Envir/Npcs.txt\n数量: %d 个NPC\n字段说明:\n  name     NPC 名字（也用于匹配脚本 npcs/npc_scripts/<name>-<map>.txt）\n  race     NPC 类型（原文件列：0=店主 1=国王 2=沙巴克官员；服务端仅对 15 用和平NPC图像）\n  mapName  所在地图编号\n  x/y      所在坐标\n  face     脸部图像号\n  body     身体图像号（外观 Appr）", len(npcs))
 
-	return WriteJSONC(outputFile, string(jsonData), comment)
+	return WriteJSONC(outputFile, jsonData, comment)
 }
 
 func convertMerchantList(envirDir, outputDir string) error {
@@ -154,20 +141,47 @@ func convertMerchantList(envirDir, outputDir string) error {
 	}
 
 	result := map[string]interface{}{
-		"_source":     "asset/server/Envir/merchant.txt",
-		"_description": "商人/NPC位置定义",
-		"merchants":   merchants,
+		"merchants": merchants,
 	}
 
-	jsonData, err := json.MarshalIndent(result, "", "  ")
+	jsonData, err := MarshalJSONC(result, merchantComments, false)
 	if err != nil {
 		return err
 	}
 
 	outputFile := filepath.Join(outputDir, "npcs", "merchant_list.jsonc")
-	comment := fmt.Sprintf("商人/NPC位置\n来源: asset/server/Envir/merchant.txt\n数量: %d 个商人", len(merchants))
+	comment := fmt.Sprintf("商人/NPC位置\n来源: asset/server/Envir/merchant.txt\n数量: %d 个商人\n字段说明:\n  id       商人脚本 ID（匹配 npcs/merchant_scripts/<id>-<map>.txt）\n  mapName  所在地图编号\n  x/y      所在坐标\n  name     商店显示名称\n  face     脸部图像号\n  body     身体图像号（外观 Appr）\n  castle   是否属于沙巴克城堡（非 0 = 城堡商人：城战受限、城主行会折扣、收城堡税）", len(merchants))
 
-	return WriteJSONC(outputFile, string(jsonData), comment)
+	return WriteJSONC(outputFile, jsonData, comment)
+}
+
+// npcComments 是 npc_list.jsonc 的中文注释表（条目多，仅首条记录渲染，commentAll=false）。
+// 文案来源：cmd/server/npclist.go、mongen.go LoadNpcs、npcobject.go Feature。
+var npcComments = map[string]string{
+	// npcs 为非空数组，注释放键上方
+	"npcs":           "NPC 定义列表（服务端 LoadNpcList → LoadNpcs 消费）",
+	"npcs[].name":    "NPC 名字（也用于匹配脚本 npcs/npc_scripts/<name>-<map>.txt）",
+	"npcs[].race":    "NPC 类型（原文件列：0=店主 1=国王 2=沙巴克官员；服务端仅对 15 用和平NPC图像）",
+	"npcs[].mapName": "所在地图编号",
+	"npcs[].x":       "所在 X 坐标",
+	"npcs[].y":       "所在 Y 坐标",
+	"npcs[].face":    "脸部图像号",
+	"npcs[].body":    "身体图像号（外观 Appr）",
+}
+
+// merchantComments 是 merchant_list.jsonc 的中文注释表（条目多，仅首条记录渲染，commentAll=false）。
+// 文案来源：cmd/server/npclist.go、mongen.go LoadNpcs、merchantsystem.go（城堡折扣/税）。
+var merchantComments = map[string]string{
+	// merchants 为非空数组，注释放键上方
+	"merchants":           "商人定义列表（服务端 LoadMerchantList → LoadNpcs 消费，IsMerchant=true）",
+	"merchants[].id":      "商人脚本 ID（匹配 npcs/merchant_scripts/<id>-<map>.txt）",
+	"merchants[].mapName": "所在地图编号",
+	"merchants[].x":       "所在 X 坐标",
+	"merchants[].y":       "所在 Y 坐标",
+	"merchants[].name":    "商店显示名称",
+	"merchants[].face":    "脸部图像号",
+	"merchants[].body":    "身体图像号（外观 Appr）",
+	"merchants[].castle":  "是否属于沙巴克城堡（非 0 = 城堡商人：城战受限、城主行会折扣、收城堡税）",
 }
 
 func copyNpcScripts(envirDir, outputDir, srcSubdir, dstSubdir string) error {

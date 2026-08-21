@@ -277,7 +277,9 @@ func (e *UserEngine) loadMonGenFromFile(homeMap string) bool {
 			MonName: spawn.Name,
 			Range:   spawn.Range,
 			Count:   spawn.Count,
-			ZenTime: int64(interval) * 1000,
+			// interval 单位是分钟（Delphi LocalDB.pas:1237
+			// dwZenTime := Str_ToInt(sData,-1)*60*1000）。
+			ZenTime: int64(interval) * 60 * 1000,
 		})
 	}
 
