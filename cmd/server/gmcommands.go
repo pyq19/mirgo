@@ -503,10 +503,9 @@ func (p *PlayObject) cmdLevel(server *netserver.TCPServer, params []string) bool
 	}
 	old := p.WAbil.Level
 	p.WAbil.Level = uint16(lvl)
-	p.RecalcAbilitys()
-	p.WAbil.HP = p.WAbil.MaxHP
-	p.WAbil.MP = p.WAbil.MaxMP
-	p.sendHealthSpell(server)
+	// Delphi HasLevelUp(1)（ObjBase.pas:10867）：重算能力并经
+	// RM_LEVELUP → SM_LEVELUP 通知客户端（含 SMAbility/血量刷新）。
+	gmRefreshAbilities(p, server)
 	log.Logf(log.LevelInfo, "GM", "[等级调整] %s (%d -> %d)", p.Name, old, lvl)
 	return true
 }

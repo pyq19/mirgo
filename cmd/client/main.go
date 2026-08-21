@@ -1621,6 +1621,14 @@ func (h *NetHandler) HandleMessage(msg protocol.DefaultMessage, body, rawBody st
 		h.playScene.AddSysMsg("恭喜！你升级了!")
 		h.playScene.AddChatMessageColor("祝贺! 您的水平上升。 您的生命值， 魔法值全部增加。",
 			[4]float32{1, 1, 1, 1}, [4]float32{0.5, 0, 0.5, 1})
+		// 升级光柱+音效（Delphi WL 版 ClMain.pas:4831-4832 DrawEffectHum(8)
+		// + PlaySound(s_meltstone=101)，SoundUtil.pas:110）。
+		if my := st.MySelf; my != nil && h.playScene.resources.ChrSel != nil {
+			h.playScene.effects.AddLevelUp(h.playScene.resources.ChrSel,
+				float64(my.Rx)*engine.TileWidth+my.ShiftX,
+				float64(my.Ry)*engine.TileHeight+my.ShiftY)
+			gSound.PlaySound(101)
+		}
 
 	case protocol.SMItemShow:
 		log.Logf(log.LevelDebug, "Client", "item show: id=%d x=%d y=%d looks=%d name=%s",

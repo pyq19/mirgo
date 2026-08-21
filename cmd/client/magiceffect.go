@@ -121,6 +121,7 @@ type MagicEffect struct {
 	LastTick         int64
 	BaseIdx          int
 	ImgLib           int
+	Hotspot          bool      // true=X/Y 即图像左上角，直接绘制（不居中）
 	File             *wil.File // 非 Magic/Magic2 的显式 WIL（怪物投射物用）
 	CycleFrames      int       // 飞行帧循环数（斧/虫 3 帧循环；0=不循环）
 	Done             bool
@@ -233,6 +234,33 @@ func (em *EffectManager) AddExplosion(x, y float64, effNum, maxFrame int, frameT
 		Type: EffExplosion, X: x, Y: y,
 		BaseIdx: base, MaxFrame: maxFrame, FrameTime: frameTime,
 		LastTick: time.Now().UnixMilli(), Light: light, ImgLib: imgLib,
+	})
+}
+
+// 升级光柱画布参数（ChrSel.wil[4..17] 292×350 实测不透明像素包围盒）：
+// 光柱水平中心 X≈146，地面光斑底边 Y≈345。
+const (
+	levelUpPillarCenterX = 146
+	levelUpPillarFootY   = 345
+)
+
+// AddLevelUp 在角色位置播放升级光柱（Delphi WL 版 ClMain.pas:4832
+// DrawEffectHum(8) → NewMagic magnumb=999 → mtExplosion case 999，
+// MirClient/PlayScn.pas:1539-1546）：ChrSel.wil[4..17] 14 帧、帧间隔 80ms、
+// light=1（TMagicEff.Create 默认值，magiceff.pas:671）。图源即选角界面
+// 解冻石光柱。anchorX/anchorY 传角色绘制锚点（Rx*TileWidth+ShiftX，
+// sceneplay.go:1201）。Delphi 原实现定位公式（m_nTargetX+260，
+// m_nTargetY-55）把格子坐标当屏幕像素，属位置 hack，此处改为按实测
+// 画布参数将光柱中心对准角色脚底（格子中心）。
+func (em *EffectManager) AddLevelUp(file *wil.File, anchorX, anchorY float64) {
+	feetX := anchorX + float64(engine.TileWidth)/2
+	feetY := anchorY + float64(engine.TileHeight)/2
+	em.effects = append(em.effects, &MagicEffect{
+		Type: EffExplosion,
+		X:    feetX - levelUpPillarCenterX,
+		Y:    feetY - levelUpPillarFootY,
+		BaseIdx: 4, MaxFrame: 14, FrameTime: 80,
+		LastTick: time.Now().UnixMilli(), Light: 1, File: file, Hotspot: true,
 	})
 }
 
@@ -467,6 +495,10 @@ func (em *EffectManager) drawEffect(eff *MagicEffect, glState *engine.GLState, r
 	h := float32(img.Height)
 	drawX := float32(eff.X) - w/2
 	drawY := float32(eff.Y) - h/2
+	if eff.Hotspot {
+		drawX = float32(eff.X)
+		drawY = float32(eff.Y)
+	}
 
 	switch eff.Type {
 	case EffFlyAxe, EffFlyArrow, EffFlyBug:
