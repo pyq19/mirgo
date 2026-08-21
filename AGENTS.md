@@ -28,11 +28,11 @@ serverconfig/        # 已 gitignore — 转换后的配置文件
 
 ## CodeGraph 代码索引
 
-本项目已建 CodeGraph 知识图谱索引（`.codegraph/`）：覆盖全部 Go 源码（cmd/、internal/）与 Delphi 参考源码（asset/delphi/）；vendor/、serverconfig/、文档不在索引内。文件监视器自动同步，写入后约 1s 延迟。详细用法与工具速查见 `doc/codegraph.md`。
+本项目已建 CodeGraph 知识图谱索引（`.codegraph/`）：覆盖全部 Go 源码（cmd/、internal/）与 Delphi 参考源码（asset/delphi/）；vendor/、serverconfig/、文档不在索引内。文件监视器自动同步，写入后约 1s 延迟。详细用法与工具速查见 `doc/codegraph_opencode.md`。
 
 **任何代理查找代码、理解结构、评估改动影响、获取编辑前上下文时，优先用 CodeGraph，替代 grep + 逐文件读取。**
 
-### 主代理 / general 子代理（有 codegraph MCP 工具）
+### build/plan 主代理与 general 子代理（有 codegraph MCP 工具）
 
 核心工具 `codegraph_explore`（工具列表里显示为 `codegraph_codegraph_explore`）：
 
@@ -43,7 +43,7 @@ serverconfig/        # 已 gitignore — 转换后的配置文件
 - Read/Grep 只用于索引不覆盖的内容（serverconfig JSONC、文档、二进制资源）或确认个别细节
 - 响应开头出现 "⚠️ Some files referenced below were edited since the last index sync…" 时，对列出的文件改用 Read；出现 "⚠️ CodeGraph auto-sync is DISABLED…" 时先运行 `codegraph sync`
 
-### explore 子代理（无 MCP 工具）
+### explore/scout 子代理（无 MCP 工具）
 
 用 bash 调 `codegraph` CLI（只读）：
 
@@ -54,7 +54,7 @@ serverconfig/        # 已 gitignore — 转换后的配置文件
 ### 派发子代理时
 
 子代理不会继承本 AGENTS.md。主代理派发涉及代码的任务时，prompt 中必须附上：
-"查找/理解代码优先用 CodeGraph：general 子代理用 codegraph_explore MCP 工具；explore 子代理用 bash 运行 codegraph explore \"...\"。返回的源码视为已读，不要重复打开文件。"
+"查找/理解代码优先用 CodeGraph：general 子代理用 codegraph_explore MCP 工具；explore/scout 子代理用 bash 运行 codegraph explore \"...\"。返回的源码视为已读，不要重复打开文件。"
 
 ## 约束
 
