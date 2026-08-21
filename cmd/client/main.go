@@ -1570,6 +1570,13 @@ func (h *NetHandler) HandleMessage(msg protocol.DefaultMessage, body, rawBody st
 			actor.SendMsg(int(msg.Ident), int(msg.Param), int(msg.Tag), int(msg.Series)&0xFF, 0, 0)
 			if h.playScene.State.MySelf != nil && actor.RecogID == h.playScene.State.MySelf.RecogID {
 				h.playScene.deathGray = true
+				// Go 专属扩展：自己死亡时聊天框红字提示。仅 SM_NOWDEATH
+				//（新鲜死亡）触发——骨架化转换的 SM_DEATH 会再广播给
+				// 自己一次（playobject.go broadcastDeathMsg），不重复提示。
+				if msg.Ident == protocol.SMNowDeath {
+					h.playScene.AddChatMessageColor("你死了.",
+						[4]float32{1, 0, 0, 1}, [4]float32{0, 0, 0, 1})
+				}
 			}
 		}
 
