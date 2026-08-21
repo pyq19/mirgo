@@ -86,6 +86,13 @@ func (p *PlayObject) HandleDealTry(msg SendMessage, server *netserver.TCPServer)
 		server.Send(p.Session.ID, resp, "")
 		return
 	}
+	// Delphi DealTry 目标侧检查（ObjBase.pas:17675-17685）：目标用
+	// @LetTrade 关闭交易（m_boAllowDeal=false）→ 提示发起方
+	// g_sPoseDisableDealMsg='对方禁止进入交易...'（M2Share.pas:3047）。
+	if !target.AllowDeal {
+		p.sysMsg(server, "对方禁止进入交易...")
+		return
+	}
 	p.Deal = &DealState{Partner: target}
 	target.Deal = &DealState{Partner: p}
 	menuMsg := protocol.MakeDefaultMsg(protocol.SMDealMenu, 0, 0, 0, 0)

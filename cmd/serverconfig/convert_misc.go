@@ -150,19 +150,43 @@ func convertAdminList(envirDir, outputDir string) error {
 		return err
 	}
 
-	var admins []string
+	// 解析规则 = Delphi TFrmDB.LoadAdminList（LocalDB.pas:82-154）：
+	// 首字符等级标记 '*'→10 '1'→9 ... '9'→1，其后按 / \ 空格 TAB 切出
+	// 角色名与 IP。原样例文件只有 "* 角色名"（无 IP），ip 保留为空串，
+	// Go 服务端对无 IP 条目不生效（与 Delphi WL 版一致）。
+	type adminEntry struct {
+		Name  string `json:"name"`
+		Level int    `json:"level"`
+		IP    string `json:"ip"`
+	}
+	var admins []adminEntry
 	scanner := bufio.NewScanner(strings.NewReader(string(data)))
 	for scanner.Scan() {
 		line := strings.TrimSpace(scanner.Text())
 		if line == "" || line[0] == ';' {
 			continue
 		}
-
-		// Format: * name
-		parts := strings.Fields(line)
-		if len(parts) >= 2 && parts[0] == "*" {
-			admins = append(admins, parts[1])
+		level := -1
+		switch line[0] {
+		case '*':
+			level = 10
+		case '1', '2', '3', '4', '5', '6', '7', '8', '9':
+			level = 10 - int(line[0]-'0')
 		}
+		if level <= 0 {
+			continue
+		}
+		rest := strings.FieldsFunc(line[1:], func(r rune) bool {
+			return r == '/' || r == '\\' || r == ' ' || r == '\t'
+		})
+		if len(rest) == 0 || rest[0] == "" {
+			continue
+		}
+		entry := adminEntry{Name: rest[0], Level: level}
+		if len(rest) >= 2 {
+			entry.IP = rest[1]
+		}
+		admins = append(admins, entry)
 	}
 
 	result := map[string]interface{}{
@@ -175,7 +199,7 @@ func convertAdminList(envirDir, outputDir string) error {
 	}
 
 	outputFile := filepath.Join(outputDir, "guards", "admin_list.jsonc")
-	comment := fmt.Sprintf("管理员列表\n来源: asset/server/Envir/AdminList.txt\n数量: %d 个管理员\n说明: 原文件 \"* 角色名\" 行（* 即权限等级 10）；Go 服务端暂未消费，保留", len(admins))
+	comment := fmt.Sprintf("管理员列表\n来源: asset/server/Envir/AdminList.txt\n数量: %d 个管理员\n说明: 首字符等级标记（*=10, 1=9 ... 9=1）+ 角色名 + IP；\n  登录时按角色名授权并校验登录 IP（Delphi ObjBase.pas:16384-16392）；\n  ip 为空的条目不生效，可填 \"*\" 允许任意 IP", len(admins))
 
 	return WriteJSONC(outputFile, jsonData, comment)
 }
@@ -259,8 +283,10 @@ var guardComments = map[string]string{
 // adminComments 是 admin_list.jsonc 的中文注释表（小文件，逐元素渲染，commentAll=true）。
 var adminComments = map[string]string{
 	// admins 为非空数组，注释放键上方
-	"admins":   "管理员角色名列表（原文件 \"* 角色名\" 行，* 即权限等级 10；Go 服务端暂未消费，保留）",
-	"admins[]": "管理员角色名",
+	"admins":         "管理员列表（Delphi Envir/AdminList.txt；登录按角色名授权+IP 校验）",
+	"admins[].name":  "管理员角色名",
+	"admins[].level": "权限等级 1-10（原文件首字符标记：*=10, 1=9 ... 9=1）",
+	"admins[].ip":    "允许登录的 IP（'*' 开头通配；空串条目不生效）",
 }
 
 // castleComments 是 sabuk_wall.jsonc 的中文注释表（6 个字段，全字段注释，commentAll=true）。

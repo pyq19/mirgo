@@ -18,8 +18,27 @@ import (
 )
 
 var wordFilter struct {
-	mu    sync.RWMutex
-	words []string
+	mu      sync.RWMutex
+	words   []string
+	enabled bool // Delphi boFilterWord（M2Share.pas:1343，@DisableFilter 翻转）
+}
+
+func init() {
+	wordFilter.enabled = true // Delphi boFilterWord 默认 True
+}
+
+// setWordFilterEnabled 过滤总开关写入（@DisableFilter）。
+func setWordFilterEnabled(on bool) {
+	wordFilter.mu.Lock()
+	wordFilter.enabled = on
+	wordFilter.mu.Unlock()
+}
+
+// wordFilterIsEnabled 过滤总开关读取。
+func wordFilterIsEnabled() bool {
+	wordFilter.mu.RLock()
+	defer wordFilter.mu.RUnlock()
+	return wordFilter.enabled
 }
 
 // loadWordFilter 加载敏感词表；文件不存在时不过滤（仅日志提示）。
@@ -49,8 +68,9 @@ func loadWordFilter(configDir string) {
 func filterChatText(text string) string {
 	wordFilter.mu.RLock()
 	words := wordFilter.words
+	enabled := wordFilter.enabled
 	wordFilter.mu.RUnlock()
-	if len(words) == 0 || text == "" {
+	if !enabled || len(words) == 0 || text == "" {
 		return text
 	}
 	result := text
